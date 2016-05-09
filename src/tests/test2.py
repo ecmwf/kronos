@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 import os
 
 # Add parent directory as search path form modules
