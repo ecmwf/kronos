@@ -1,10 +1,12 @@
 #!/usr/bin/env python
 
-import fileinput
-import subprocess
-import sys
-import getopt
 import os
+
+# Add parent directory as search path form modules
+os.sys.path.append(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
+
+from config.config import Config
+from RealWorkload import RealWorkload
 
 
 #////////////////////////////////////////////////////////////////
@@ -22,16 +24,7 @@ def test0_stats_ECMWF():
     InputWorkload.make_plots(plot_tag, "hour")
 
 
-#////////////////////////////////////////////////////////////////
 
-
-#////////////////////////////////////////////////////////////////
-if __name__ == '__main__' and __package__ is None:
-    from os import sys, path
-    sys.path.append(path.dirname(path.dirname(path.abspath(__file__))))
-
-    from config.config import Config
-    from RealWorkload import RealWorkload
+if __name__ == '__main__':
 
     test0_stats_ECMWF()
-#////////////////////////////////////////////////////////////////
