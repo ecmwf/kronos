@@ -1,29 +1,19 @@
-import numpy as np
-from pylab import *
-import time
-import os
-import csv
-import time
-
-#--- for clustering..
 from sklearn.decomposition import PCA
-
-
-#from SyntheticApp import SyntheticApp
-#from ScheduledJob import ScheduledJob
 from PlotHandler import PlotHandler
 from TimeSignal import TimeSignal
 
 from tools import *
-from clustering import *
+import clustering
+import time
 
 
 class IOWSModel(object):
+    """
+    A model of the workload that applies:
 
-    """ A model of the workload that applies:
-    1) clustering of the apps
-    2) visualization
-    3) scaling factor and redeployment of synthetic apps (TODO)
+      1) clustering of the apps
+      2) visualization
+      3) scaling factor and redeployment of synthetic apps (TODO)
     """
 
     #===================================================================
@@ -82,7 +72,7 @@ class IOWSModel(object):
                 data = np.vstack((data, data_row))
 
             #-------------- clustering ---------------
-            cluster_method = ClusteringFactory(which_clust, data, self._Nclusters)
+            cluster_method = clustering.factory(which_clust, data)
             self._Nclusters = cluster_method.train_method(self._Nclusters, self.kmeans_maxiter)            
             self.cluster_centers = cluster_method.clusters
             self.cluster_labels = cluster_method.labels
@@ -160,7 +150,7 @@ class IOWSModel(object):
                 data = np.vstack((data, data_row))
 
             #-------------- clustering ---------------
-            cluster_method = ClusteringFactory(which_clust, data, self._Nclusters)
+            cluster_method = clustering.factory(which_clust, data, self._Nclusters)
             cluster_method.train_method(self._Nclusters, self.kmeans_maxiter)
             self.cluster_centers = cluster_method.clusters
             self.cluster_labels = cluster_method.labels
