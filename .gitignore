@@ -1,2 +1,5 @@
 .*un
 *.pyc
+*.out
+*.log
+*.exe
