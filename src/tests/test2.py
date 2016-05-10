@@ -1,13 +1,13 @@
 #!/usr/bin/env python
 
+# Add parent directory as search path form modules
 import os
 
-# Add parent directory as search path form modules
 os.sys.path.append(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
 
 from config.config import Config
-from RealWorkload import RealWorkload
 from IOWSModel import IOWSModel
+from RealWorkload import RealWorkload
 from WorkloadCorrector import WorkloadCorrector
 from PlotHandler import PlotHandler
 

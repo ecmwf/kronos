@@ -1,6 +1,6 @@
-from ClusteringKmeans import ClusteringKmeans
-from ClusteringSOM import ClusteringSOM
-from ClusteringDBSCAN import ClusteringDBSCAN
+from kmeans import ClusteringKmeans
+from SOM import ClusteringSOM
+from DBSCAN import ClusteringDBSCAN
 
 
 def factory(key, data):
