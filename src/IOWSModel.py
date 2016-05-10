@@ -150,7 +150,7 @@ class IOWSModel(object):
                 data = np.vstack((data, data_row))
 
             #-------------- clustering ---------------
-            cluster_method = clustering.factory(which_clust, data, self._Nclusters)
+            cluster_method = clustering.factory(which_clust, data)
             cluster_method.train_method(self._Nclusters, self.kmeans_maxiter)
             self.cluster_centers = cluster_method.clusters
             self.cluster_labels = cluster_method.labels

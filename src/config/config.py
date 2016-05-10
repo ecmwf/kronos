@@ -1,3 +1,4 @@
+import os
 
 
 class Config(object):
@@ -5,8 +6,10 @@ class Config(object):
     """temporary quick&dirty solution to store config keys (TODO)"""
 
     #--------- directories ----------
-    DIR_OUTPUT = "/home/ma/maab/workspace/iows/output"
-    DIR_INPUT = "/home/ma/maab/workspace/iows/input"
+    DIR_OUTPUT = os.path.join(os.getcwd(), "output")
+    DIR_INPUT = os.path.join(os.getcwd(), "input")
+    if not os.path.exists(DIR_OUTPUT):
+        os.mkdir(DIR_OUTPUT)
 
     DIR_LOG_OUTPUT = "/perm/ma/maab/temp/test_logs"
     DIR_DARSHAN_LIB = "/usr/local/apps/darshan/2.3.1-ecm1.1/lib64"
