@@ -1,11 +1,4 @@
-from pylab import *
-import os
 import time
-import numpy as np
-import sys
-import getopt
-import fileinput
-import subprocess
 import random as rdm
 
 from tools import *

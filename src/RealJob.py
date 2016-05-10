@@ -22,6 +22,7 @@ class RealJob(object):
         self.cpu_percent = None
         self.group = None
         self.jobname = None
+        self.user = None
 
         #----- derived ---------
         self.runtime = None

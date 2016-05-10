@@ -46,6 +46,11 @@ class WorkloadCorrector(object):
 
         self.Workload.total_metrics = []
 
+        self.ANN_normalizing_factor = None
+
+        self.TrainDS = None
+        self.TestDS = None
+
     #================================================================
     def replace_missing_data(self, method_key):
 

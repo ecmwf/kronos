@@ -183,6 +183,7 @@ class RealWorkload(object):
                     line_dict['cpu_percent'].replace(":", ""))
                 aJob.group = str(line_dict['group'])
                 aJob.jobname = str(line_dict['jobname'])
+                aJob.user = str(line_dict['user'])
 
                 # print 'aJob.time_created ', aJob.time_created
                 # print 'aJob.time_queued  ', aJob.time_queued

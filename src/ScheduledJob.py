@@ -7,7 +7,7 @@ import os
 
 class ScheduledJob(object):
   
-  "TODO: update this class: obsolete!"
+    "TODO: update this class: obsolete!"
 
     #===================================================================
     def __init__(self):
