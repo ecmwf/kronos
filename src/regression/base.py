@@ -1,6 +1,6 @@
 
 
-class RegressionBase(object):
+class Base(object):
 
     """#TODO: finish off this class.. Base Class for regression algorithms"""
 

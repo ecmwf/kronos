@@ -108,20 +108,3 @@ class PBSLogReader(LogReader):
 
                 self.LogData.append(line_dict)
                 job_cc = job_cc + 1
-
-        # ------ data aggregated per job ID -------
-        self.LogData = multikeysort(self.LogData, ['time_start'])
-
-        minStartTime = min(self.LogData, key=lambda x: x['time_start'])
-
-        for r in self.LogData:
-            r['time_start_0'] = r['time_start'] - minStartTime['time_start']
-            r['time_mid_0'] = r['time_start'] - minStartTime['time_start'] + \
-                (r['time_end'] - r['time_start']) / 2.0
-
-        #------- some artificial IO metrics.. ---------
-        for r in self.LogData:
-            r['IO_N_read'] = int(r['ncpus'] * (10 + random.random() * 5))
-            r['IO_Kb_read'] = r['ncpus'] * (100 + random.random() * 5)
-            r['IO_N_write'] = int(r['ncpus'] * (10 + random.random() * 5))
-            r['IO_Kb_write'] = r['ncpus'] * (100 + random.random() * 5)

@@ -1,5 +1,5 @@
 
-from LogReader import LogReader
-from DarshanLogReader import DarshanLogReader
-from PBSLogReader import PBSLogReader
-from SinCosLogReader import SinCosLogReader
+from log_reader import LogReader
+from darshan_log_reader import DarshanLogReader
+from PBS_log_reader import PBSLogReader
+from sin_cos_log_reader import SinCosLogReader

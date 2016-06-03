@@ -1,5 +1,7 @@
+import numpy as np
+
 from base import ClusteringBase
-from tools import *
+from tools import mytools
 
 
 class ClusteringSOM(ClusteringBase):
@@ -9,7 +11,7 @@ class ClusteringSOM(ClusteringBase):
 
     def train_method(self, nclusters, maxiter):
 
-        (nclustX, nclustY) = squarest_pair(nclusters)
+        (nclustX, nclustY) = mytools.squarest_pair(nclusters)
 
         # Initialise training
         som_col = nclustX

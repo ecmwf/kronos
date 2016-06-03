@@ -1,6 +1,6 @@
 
 
-class RegressionANN(object):
+class ANN(object):
 
     """#TODO: finish off this class.. ANN Class for regression algorithms"""
 
