@@ -50,17 +50,17 @@ class IOWSModel(object):
 
         self.clustering_key = None
 
-        # num of kernels for each synth app, tmporarily set as constant (TODO: to change..)
+        # num of kernels for each synth app, temporarely set as constant (TODO: to change..)
         self.n_kernels = config_options.WORKLOADCORRECTOR_JOBS_NBINS
         self.n_time_signals = len(config_options.WORKLOADCORRECTOR_LIST_TIME_NAMES)
 
     def set_input_workload(self, input_workload):
         self.input_workload = input_workload
 
-    def apply_clustering(self, clustering_key, which_clust, i_nc=-1):
+    def apply_clustering(self, clustering_key, which_clust, n_clust_pc=-1):
 
         self.clustering_key = clustering_key
-        self._n_clusters = int(i_nc)
+        self._n_clusters = max(1, int(n_clust_pc / 100. * len(self.input_workload.LogData)))
 
         if clustering_key == "spectral":
 
@@ -261,12 +261,14 @@ class IOWSModel(object):
             plt.savefig(self.out_dir + '/' + plt_tag + '_plot' + '_cluster_PCA=2_' + str(self._n_clusters) + '.png')
             plt.close(i_fig)
 
-    def create_scaled_workload(self, clustering_key, which_clust, scaling_factor):
+    def create_scaled_workload(self, clustering_key, which_clust, n_clust_pc):
 
         """ function that creates the scaled workload """
 
         # call the clustering first..
-        self.apply_clustering(clustering_key, which_clust, scaling_factor)
+        self.apply_clustering(clustering_key, which_clust, n_clust_pc)
+
+        scaling_factor = n_clust_pc/100.
 
         # # -------- create pareto front with points of the WL ----------
         # wl_time_points = []
