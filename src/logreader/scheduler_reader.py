@@ -1,3 +1,14 @@
+from matplotlib import dates
+
+import pylab as pylb
+import matplotlib.pyplot as plt
+import numpy as np
+from datetime import datetime
+
+import scipy.stats as stats
+
+from tools import *
+from plot_handler import PlotHandler
 from real_job import RealJob
 
 
@@ -139,4 +150,169 @@ def read_pbs_logs(filename_in):
             cce += 1
         cc += 1
 
+    # remove invalid entries
+    pbs_jobs[:] = [i_job for i_job in pbs_jobs if i_job.time_start != -1]
+    pbs_jobs[:] = [i_job for i_job in pbs_jobs if i_job.time_end != -1]
+    pbs_jobs[:] = [i_job for i_job in pbs_jobs if i_job.time_end >= i_job.time_start]
+    pbs_jobs[:] = [i_job for i_job in pbs_jobs if i_job.time_queued != -1]
+    pbs_jobs[:] = [i_job for i_job in pbs_jobs if i_job.time_start >= i_job.time_queued]
+    pbs_jobs[:] = [i_job for i_job in pbs_jobs if i_job.ncpus > 0]
+    pbs_jobs.sort(key=lambda x: x.time_start, reverse=False)
+
+    # times relative to start of log
+    min_start_time = min([i_job.time_start for i_job in pbs_jobs])
+    for i_job in pbs_jobs:
+        i_job.runtime = float(i_job.time_end) - float(i_job.time_start)
+        i_job.time_start_0 = i_job.time_start - min_start_time
+        i_job.time_in_queue = i_job.time_start - i_job.time_queued
+
     return pbs_jobs
+
+
+def make_scheduler_plots(list_jobs, plot_tag, out_dir, date_ticks="month"):
+    """make plots"""
+
+    # ncpu(t)
+    iFig = PlotHandler.get_fig_handle_ID()
+    Fhdl = plt.figure(iFig)
+    xname = "time_start_0"
+    yname = "ncpus"
+    vecXkeys = np.asarray([x.time_start for x in list_jobs])
+
+    # convert epoch to matplotlib float format
+    dts = map(datetime.fromtimestamp, vecXkeys)
+    fds = dates.date2num(dts)  # converted
+
+    vecYkeys = np.asarray([y.ncpus for y in list_jobs])
+    plt.title('x=' + str(xname) + ',  y=' + str(yname))
+
+    plt.plot(fds, vecYkeys, 'k')
+    plt.subplots_adjust(left=0.1, right=0.9, top=0.9, bottom=0.3)
+    ax = plt.gca()
+
+    if date_ticks == "month":
+        ax.xaxis.set_major_locator(dates.MonthLocator())
+        hfmt = dates.DateFormatter('%Y-%m/%d')
+    # elif date_ticks == "hour":
+    else:
+        ax.xaxis.set_major_locator(dates.HourLocator())
+        hfmt = dates.DateFormatter('%m/%d %H:%M')
+
+    ax.xaxis.set_major_formatter(hfmt)
+    plt.xticks(rotation='vertical')
+    plt.xticks(rotation=90)
+
+    plt.xlabel('date/time')
+    plt.ylabel(yname)
+    plt.savefig(out_dir + '/' + plot_tag + '_plot_' + 'raw_data' + '_x=' + xname + '_y=' + yname + '.png')
+    plt.close(iFig)
+
+
+
+    # --------- PDF(ncpus) -----------
+    iFig = PlotHandler.get_fig_handle_ID()
+    yname = "ncpus"
+    vecYkeys = np.asarray([y.ncpus for y in list_jobs])
+    nbins = 100
+    hh,bin_edges = np.histogram(vecYkeys, bins=nbins, density=True)
+
+    # figure
+    plt.figure(iFig)
+    plt.title("PDF of ncpus")
+    xx = (bin_edges[1:] + bin_edges[:-1]) / 2
+
+    # fit gamma distribution
+    fit_shape, fit_loc, fit_scale = stats.gamma.fit(vecYkeys)
+    gg_pdf = stats.gamma.pdf(xx, fit_shape, fit_loc, fit_scale)
+
+    # plotting..
+    line1 = plt.bar(bin_edges[:-1], hh, pylb.diff(bin_edges), color='b')
+    line2, = plt.plot(xx, gg_pdf, 'k-')
+    lgd = plt.legend([line1, line2],
+               ['raw data', 'PDF gamma model:\nk=%.3f\nl=%.3f\nsc=%.3f'%(fit_shape, fit_loc, fit_scale)],
+               loc=2,
+               bbox_to_anchor=(1, 0.5))
+
+    plt.yscale('log')
+    plt.xlabel('N CPU''s')
+    plt.savefig(out_dir + '/' + plot_tag + '_plot_' + 'raw_data' + '_y=' + yname + '_hist.png',
+                bbox_extra_artists=(lgd,),
+                bbox_inches='tight')
+    plt.close(iFig)
+
+    # ------------ PDF(memory Kb) ------------
+    # iFig = PlotHandler.get_fig_handle_ID()
+    # yname  = "memory_kb"
+    # vecYkeys = np.asarray( [ y.memory_kb  for y in list_jobs ] )
+    # nbins = 40
+    # hh,bin_edges = np.histogram(vecYkeys, bins=nbins, density=True)
+    # figure( iFig )
+    # title("PDF of memory_kb")
+    # xx = (bin_edges[1:] + bin_edges[:-1]) / 2
+    # bar( bin_edges[:-1] , hh, diff(bin_edges), color='r')
+    # yscale('log')
+    # xlabel( 'Average job memory [Kb]' )
+    # savefig(out_dir+'/'+plot_tag+'_plot_'+'raw_data'+'_y='+yname+'_hist.png')
+    # close(iFig)
+
+    # --------- PDF(runtime) -----------
+    iFig = PlotHandler.get_fig_handle_ID()
+    yname = "runtime"
+    vecYkeys = np.asarray([y.runtime for y in list_jobs])
+    nbins = 100
+    hh, bin_edges = np.histogram(vecYkeys, bins=nbins, density=True)
+
+    # figure
+    plt.figure(iFig)
+    plt.title("PDF of runtime")
+    xx = (bin_edges[1:] + bin_edges[:-1]) / 2
+
+    # fit gamma distribution
+    fit_shape, fit_loc, fit_scale = stats.gamma.fit(vecYkeys)
+    gg_pdf = stats.gamma.pdf(xx, fit_shape, fit_loc, fit_scale)
+
+    # plotting..
+    line1 = plt.bar(bin_edges[:-1], hh, pylb.diff(bin_edges), color='r')
+    line2, = plt.plot(xx, gg_pdf, 'k-')
+    lgd = plt.legend([line1, line2],
+                     ['raw data', 'PDF gamma model:\nk=%.3f\nl=%.3f\nsc=%.3f' % (fit_shape, fit_loc, fit_scale)],
+                     loc=2,
+                     bbox_to_anchor=(1, 0.5))
+
+    plt.yscale('log')
+    plt.xlabel('Job runtime [s]')
+    plt.savefig(out_dir + '/' + plot_tag + '_plot_' + 'raw_data' + '_y=' + yname + '_hist.png',
+                bbox_extra_artists=(lgd,),
+                bbox_inches='tight')
+    plt.close(iFig)
+
+    # --------- PDF(qtime) -----------
+    iFig = PlotHandler.get_fig_handle_ID()
+    yname = "Queuing time"
+    vecYkeys = np.asarray([y.time_in_queue for y in list_jobs])
+    nbins = 100
+    hh, bin_edges = np.histogram(vecYkeys, bins=nbins, density=True)
+
+    # figure
+    plt.figure(iFig)
+    plt.title("PDF of Queuing time")
+    xx = (bin_edges[1:] + bin_edges[:-1]) / 2
+
+    # fit gamma distribution
+    fit_shape, fit_loc, fit_scale = stats.gamma.fit(vecYkeys)
+    gg_pdf = stats.gamma.pdf(xx, fit_shape, fit_loc, fit_scale)
+
+    # plotting..
+    line1 = plt.bar(bin_edges[:-1], hh, pylb.diff(bin_edges), color='g')
+    line2, = plt.plot(xx, gg_pdf, 'k-')
+    lgd = plt.legend([line1, line2],
+                     ['raw data', 'PDF gamma model:\nk=%.3f\nl=%.3f\nsc=%.3f' % (fit_shape, fit_loc, fit_scale)],
+                     loc=2,
+                     bbox_to_anchor=(1, 0.5))
+
+    plt.yscale('log')
+    plt.xlabel('Job queuing time [s]')
+    plt.savefig(out_dir + '/' + plot_tag + '_plot_' + 'raw_data' + '_y=' + yname + '_hist.png',
+                bbox_extra_artists=(lgd,),
+                bbox_inches='tight')
+    plt.close(iFig)

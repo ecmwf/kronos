@@ -1,15 +1,16 @@
 
 import os
-# from numpy import zeros, arange, sin, floor, pi, sqrt, linalg, asarray
 import numpy as np
 import copy
 
 
 def mb(bytes):
+    """ Mb from bytes """
     return bytes / 1024 / 1024
 
-# sort items according to multiple keys..
+
 def multikeysort(items, columns):
+    """ Sort items according to multiple keys.. """
     from operator import itemgetter
     comparers = [((itemgetter(col[1:].strip()), -1) if col.startswith('-')
                   else (itemgetter(col.strip()), 1)) for col in columns]
@@ -24,8 +25,8 @@ def multikeysort(items, columns):
     return sorted(items, cmp=comparer)
 
 
-# safe check for empty file..
 def isfilenotempty(fname):
+    """ Safe check for empty file.. """
     if os.path.isfile(fname):
         if os.path.getsize(fname):
             return 1
@@ -35,8 +36,8 @@ def isfilenotempty(fname):
         return 0
 
 
-# from frequency to time domain
 def freq_to_time(time, freqs, ampls, phases):
+    """ from frequency to time domain """
     time_signal = np.zeros(len(time))
     for iF in np.arange(0, len(freqs)):
         time_signal = time_signal + \
@@ -44,8 +45,8 @@ def freq_to_time(time, freqs, ampls, phases):
     return time_signal
 
 
-# from frequency to time domain
 def squarest_pair(num_in):
+    """ from frequency to time domain """
 
     N = int(np.floor(np.sqrt(num_in)))
     M = int(num_in / N)
@@ -55,26 +56,27 @@ def squarest_pair(num_in):
         M = int(num_in / N)
     return (N, M)
 
-# pareto front
-def simple_cull(inputPoints, dominates):
 
-    inputPoints_orig = copy.deepcopy(inputPoints)
+def simple_cull(input_points, dominates_points):
+    """ pareto front """
+
+    inputPoints_orig = copy.deepcopy(input_points)
     paretoPoints = set()
     paretoIdxes = []
     candidateRowNr = 0
     dominatedPoints = set()
 
-    while len(inputPoints):
-        candidateRow = inputPoints[candidateRowNr]
-        inputPoints.remove(candidateRow)
+    while len(input_points):
+        candidateRow = input_points[candidateRowNr]
+        input_points.remove(candidateRow)
         rowNr = 0
         nonDominated = True
-        while len(inputPoints) != 0 and rowNr < len(inputPoints):
-            row = inputPoints[rowNr]
-            if dominates(candidateRow, row):
-                inputPoints.remove(row)
+        while len(input_points) != 0 and rowNr < len(input_points):
+            row = input_points[rowNr]
+            if dominates_points(candidateRow, row):
+                input_points.remove(row)
                 dominatedPoints.add(tuple(row))
-            elif dominates(row, candidateRow):
+            elif dominates_points(row, candidateRow):
                 nonDominated = False
                 dominatedPoints.add(tuple(candidateRow))
                 rowNr += 1
@@ -94,6 +96,31 @@ def simple_cull(inputPoints, dominates):
     return paretoPoints, paretoIdxes, dominatedPoints
 
 
-# pareto front (helper function)
-def dominates(row, anotherRow):
-    return sum([row[x] >= anotherRow[x] for x in range(len(row))]) == len(row) # maximization domination
+def dominates(row, another_row):
+    """ pareto front (helper function) """
+    return sum([row[x] >= another_row[x] for x in range(len(row))]) == len(row) # maximization domination
+
+
+# def create_dummy_workload(run_dir):
+#     """ create dummy workload by running a set of summy synthetic apps """
+#
+#     os.chdir(run_dir)
+#
+#     for i_run in run_list:
+#
+#         # run IO + map
+#         run_str = (
+#                    "/home/ma/maab/workspace/Allinea_examples_files/NEXTGenIO_buiild/" +
+#                    " allinea-forge-default-2016-05-26-0f0efef441a7-Suse-11-x86_64/bin/map --profile" +
+#                    " /home/ma/maab/workspace/downloaded_software/IOR/src/C/IOR" +
+#                    " -t 2m -b 10m"
+#                   )
+#
+#         print run_str
+#
+#         # -k - o / home / ma / maab / workspace / Allinea_examples_files / my_tests / out_ior.dat
+#
+#         os.system(run_str)
+
+
+

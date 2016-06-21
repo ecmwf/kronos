@@ -16,44 +16,88 @@ class SyntheticApp(object):
         self.time_signals = ts_list
 
     # write list ouf output kernels
-    def make_kernels_from_ts(self, n_bins):
+    def make_kernels_from_ts(self, n_bins, dgt_types):
 
         # application object to be written to JSON
         ker_data = {}
+
+        frames = []
 
         # metadata
         md_data = {
             "job_ID": self.jobID,
             "job_name": self.job_name,
-            "time_start": self.time_start,
-            }
+            "time_start": self.time_start}
 
-        ker_data["_metadata"] = md_data
+        ker_data["metadata"] = md_data
+
+        # ------------- FORMAT --------------
+        # {
+        #     "mpi_ranks_verbose": true,
+        #     "enable_trace": true,
+        #
+        #     "frames": [{
+        #         "name": "file-read",
+        #         "kb_read": 12345,
+        #         "n_read": 12
+        #     }, {
+        #         "name": "file-read",
+        #         "kb_read": 12345,
+        #         "n_read": 12
+        #     }, {
+        #         "name": "file-write",
+        #         "kb_write": 12345,
+        #         "n_write": 3
+        #     }]
+        # }
+        # -----------------------------------
 
         # digitize all the ts
-        for i_ts in self.time_signals:
-            i_ts.digitize(n_bins, "sum")
+        for (tt, i_ts) in enumerate(self.time_signals):
+            i_ts.digitize(n_bins, dgt_types[tt])
 
         # sort ts by type..
-        ker_blocks_all = {}
-        cc = 0
-        for (bb, i_bin) in enumerate(range(n_bins)):
+        ker_blocks_all = []
+        for i_bin in range(n_bins):
             ker_blocks = {}
             for i_ts in self.time_signals:
 
-                if not ker_blocks.has_key(i_ts.ts_group):
-                    ker_blocks[i_ts.ts_group] = {i_ts.name: i_ts.yvalues[i_bin], "_type": i_ts.ts_group, "_bin": bb}
-                    cc += 1
-                else:
-                    ker_blocks[i_ts.ts_group][i_ts.name] = i_ts.yvalues[i_bin]
+                # print "---------------------"
+                # print i_ts.name, i_ts.ts_group, i_ts.sum
 
-            # rename keys to a sequential name..
-            for (ii, i_key) in enumerate(ker_blocks.keys()):
-                seq_id = "kID-" + str(ii+bb*len(ker_blocks.keys()))
-                ker_blocks[seq_id] = ker_blocks.pop(i_key)
-                ker_blocks_all[seq_id] = ker_blocks[seq_id]
+                # only read and write for now..
+                if i_ts.ts_group=="cpu" \
+                        or i_ts.ts_group == "file-read" \
+                        or i_ts.ts_group == "file-write" \
+                        or i_ts.ts_group == "mpi":
+
+                    # if i_ts.yvalues_bins[i_bin] >= 1.0:
+                    # print i_ts.yvalues_bins[i_bin]
+                    if not ker_blocks.has_key(i_ts.ts_group):
+                        ker_blocks[i_ts.ts_group] = {i_ts.name: i_ts.yvalues_bins[i_bin], "name": i_ts.ts_group}
+
+                        # TODO: remove this as soon as we count #read and #write..
+                        if i_ts.ts_group == "file-read":
+                            ker_blocks[i_ts.ts_group]["n_read"] = 1
+                        if i_ts.ts_group == "file-write":
+                            ker_blocks[i_ts.ts_group]["n_write"] = 1
+                        # -----------------------------------------------------------
+                    else:
+                        ker_blocks[i_ts.ts_group][i_ts.name] = i_ts.yvalues_bins[i_bin]
+
+                # print ker_blocks
+                # print "---------------------"
+
+            # # rename keys to a sequential name..
+            # for (ii, i_key) in enumerate(ker_blocks.keys()):
+            #     seq_id = "kID-" + str(ii+bb*len(ker_blocks.keys()))
+            #     ker_blocks[seq_id] = ker_blocks.pop(i_key)
+            #     ker_blocks_all[seq_id] = ker_blocks[seq_id]
+
+            # ker_blocks_all.extend(ker_blocks.values()[:])
+            ker_blocks_all.append(ker_blocks.values()[:])
 
         # return full list of sequences
-        ker_data["kernels"] = ker_blocks_all
+        ker_data["frames"] = ker_blocks_all
 
         return ker_data

@@ -47,31 +47,34 @@ class TimeSignal(object):
         self.name = name
         self.ts_type = ts_type
         self.ts_group = ts_group
-        self.xvalues = xvals
-        self.yvalues = yvals
+        self.xvalues = np.asarray(xvals)
+        self.yvalues = np.asarray(yvals)
         self.yvalues = self.yvalues.astype(self.ts_type)
 
     # calculate bins
-    def digitize(self, Nbins, key):
+    def digitize(self, n_bins, key):
 
-        self.xedge_bins = np.linspace(min(self.xvalues), max(self.xvalues), Nbins + 1)
+        digitize_eps = 1.0e-6
+        # self.xedge_bins = np.linspace(min(self.xvalues)-digitize_eps,
+        #                               max(self.xvalues)+digitize_eps, n_bins + 1)
+        # bins can be started from t=0.0
+        self.xedge_bins = np.linspace(0.0, max(self.xvalues) + digitize_eps, n_bins + 1)
         self.dx_bins = self.xedge_bins[1] - self.xedge_bins[0]
 
         digitized_data = np.digitize(self.xvalues, self.xedge_bins)
         self.xvalues_bins = 0.5 * (self.xedge_bins[1:] + self.xedge_bins[:-1])
 
-        self.yvalues_bins = []
-        for i in range(1, len(self.xedge_bins)):
-            mean_val = 1e-6
-            if any(self.yvalues[digitized_data == i]):
+        self.yvalues_bins = np.zeros(len(self.xvalues_bins))+digitize_eps
+        for i_bin in range(1, len(self.xvalues_bins)+1):
+            if any(self.yvalues[digitized_data == i_bin]):
                 if key == 'mean':
-                    mean_val = self.yvalues[digitized_data == i].mean()
+                    mean_val = self.yvalues[digitized_data == i_bin].mean()
                 elif key == 'sum':
-                    mean_val = self.yvalues[digitized_data == i].sum()
+                    mean_val = self.yvalues[digitized_data == i_bin].sum()
                 else:
                     raise ValueError('option not recognised!')
+                self.yvalues_bins[i_bin-1] = mean_val
 
-            self.yvalues_bins.append(mean_val)
         self.yvalues_bins = np.asarray(self.yvalues_bins)
         self.yvalues_bins = self.yvalues_bins.astype(self.ts_type)
 
@@ -79,3 +82,8 @@ class TimeSignal(object):
     @property
     def sum(self):
         return np.sum(self.yvalues)
+
+    # calculate the integral value
+    @property
+    def mean(self):
+        return np.mean(self.yvalues)
