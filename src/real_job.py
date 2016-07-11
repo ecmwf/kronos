@@ -12,16 +12,19 @@ class RealJob(object):
         self.time_end = None
         self.time_start = None
         self.ncpus = None
+        self.nnodes = None
         self.memory_kb = None
         # self.cpu_percent = None
         self.group = None
         self.jobname = None
         self.user = None
+        self.queue_type = None
 
         # derived
         self.runtime = None
         self.time_start_0 = None
         self.time_in_queue = None
+        self.idx_in_log = None
 
         # added
         self.timesignals = []
@@ -58,12 +61,15 @@ class RealJob(object):
         if self.time_end is None: raise UserWarning("job: " + self.jobname + ", Qty: time_end")
         if self.time_start is None: raise UserWarning("job:"  + self.jobname + ", Qty: time_start")
         if self.ncpus is None: raise UserWarning("job: " + self.jobname + ", Qty: ncpus")
+        if self.nnodes is None: raise UserWarning("job: " + self.jobname + ", Qty: nnodes")
         if self.memory_kb is None: raise UserWarning("job: " + self.jobname + ", Qty: memory_kb")
 
         # self.cpu_percent is None
         if self.group is None: raise UserWarning("job: " + self.jobname + ", Qty: group")
         if self.jobname is None: raise UserWarning("job: " + self.jobname + ", Qty: jobname")
         if self.user is None: raise UserWarning("job: " + self.jobname + ", Qty: user")
+        if self.queue_type is None: raise UserWarning("job: " + self.jobname + ", Qty: queue_type")
+
 
         # derived
         if self.runtime is None: raise UserWarning("job: " + self.jobname + ", Qty: runtime")

@@ -39,6 +39,7 @@ class IOWSModel(object):
         self.kmeans_rseed = config_options.IOWSMODEL_KMEANS_KMEANS_RSEED
         self.job_impact_index_rel_tsh = config_options.IOWSMODEL_JOB_IMPACT_INDEX_REL_TSH
         self.jobs_n_bins = config_options.WORKLOADCORRECTOR_JOBS_NBINS
+        self.supported_synth_apps = config_options.IOWSMODEL_SUPPORTED_SYNTH_APPS
 
         self.cluster_centers = {}
         self.cluster_labels = {}
@@ -68,6 +69,8 @@ class IOWSModel(object):
         self.calculate_total_metrics()
 
         scaling_factor = float(n_clust_pc)/100.
+
+        print "scaling factor: ", scaling_factor
 
         # # -------- create pareto front with points of the WL ----------
         # wl_time_points = []
@@ -313,32 +316,36 @@ class IOWSModel(object):
 
         self.aggregated_metrics = list_signals
 
+    # def export_scaled_workload(self):
+    #
+    #     # prepare JSON data
+    #     json_all_synth_app = {}
+    #     n_bins = 1
+    #     for i_app in self.syntapp_list:
+    #         job_entry = i_app.make_kernels_from_ts(n_bins, self.job_signal_dgt, self.supported_synth_apps)
+    #         json_all_synth_app[i_app.job_name] = job_entry
+    #
+    #     self.plot_sanity_check(json_all_synth_app)
+    #
+    #     with open(self.out_dir+'/dummy.json', 'w') as f:
+    #         json.encoder.FLOAT_REPR = lambda o: format(o, '.2f')
+    #         json.dump(json_all_synth_app, f, ensure_ascii=True, sort_keys=True, indent=4, separators=(',', ': '))
+
     def export_scaled_workload(self):
 
-        # prepare JSON data
+        n_bins = 10
+
         json_all_synth_app = {}
-        n_bins = 1
-        for i_app in self.syntapp_list:
-            job_entry = i_app.make_kernels_from_ts(n_bins, self.job_signal_dgt)
-            json_all_synth_app[i_app.job_name] = job_entry
-
-        self.plot_sanity_check(json_all_synth_app)
-
-        with open(self.out_dir+'/dummy.json', 'w') as f:
-            json.encoder.FLOAT_REPR = lambda o: format(o, '.2f')
-            json.dump(json_all_synth_app, f, ensure_ascii=True, sort_keys=True, indent=4, separators=(',', ': '))
-
-    def export_scaled_workload_TEST(self):
-
-        n_bins = 1
 
         for (ii, i_app) in enumerate(self.syntapp_list):
-            job_entry = i_app.make_kernels_from_ts(n_bins, self.job_signal_dgt)
+            job_entry = i_app.make_kernels_from_ts(n_bins, self.job_signal_dgt, self.supported_synth_apps)
             job_entry["mpi_ranks_verbose"] = 'true'
             job_entry["enable_trace"] = 'true'
 
             name_json_file = 'input'+str(ii)+'.json'
             name_json_file_raw = '_temp_input' + str(ii) + '.json'
+
+            json_all_synth_app[i_app.job_name] = job_entry
 
             with open(self.out_dir + '/' + name_json_file_raw, 'w') as f:
                 json.encoder.FLOAT_REPR = lambda o: format(o, '.2f')
@@ -350,6 +357,9 @@ class IOWSModel(object):
                 with open(self.out_dir + '/' + name_json_file_raw, "rt") as fin:
                     for line in fin:
                         fout.write(line.replace('"true"', 'true'))
+
+        # Sanity check in/out
+        self.plot_sanity_check(json_all_synth_app)
 
     def make_plots(self, plt_tag):
         """ Plotting routine """
@@ -442,7 +452,7 @@ class IOWSModel(object):
             plt.plot(xx, ts_sums_out, color='r', linestyle='', marker='*')
             if tt == 0:
                 plt.title('Sanity check: json input -> json synthetic apps (total values, sc=1)')
-            plt.legend(['input from profiler', 'output to synthetic apps'], loc=2)
+            plt.legend(['input from profiler', 'output to synthetic apps'], loc=1)
             plt.ylabel(ts_name)
             plt.xlabel('#Apps')
         plt.savefig(self.out_dir + '/' 'Sanity_check.png')

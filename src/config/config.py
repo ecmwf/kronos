@@ -68,3 +68,4 @@ class Config(object):
     IOWSMODEL_KMEANS_MAXITER = 8000
     IOWSMODEL_KMEANS_KMEANS_RSEED = 170
     IOWSMODEL_JOB_IMPACT_INDEX_REL_TSH = 0.2
+    IOWSMODEL_SUPPORTED_SYNTH_APPS = ['cpu', 'file-read', 'file-write', 'mpi']

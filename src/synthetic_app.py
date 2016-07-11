@@ -16,7 +16,7 @@ class SyntheticApp(object):
         self.time_signals = ts_list
 
     # write list ouf output kernels
-    def make_kernels_from_ts(self, n_bins, dgt_types):
+    def make_kernels_from_ts(self, n_bins, dgt_types, supported_synth_apps):
 
         # application object to be written to JSON
         ker_data = {}
@@ -62,17 +62,10 @@ class SyntheticApp(object):
             ker_blocks = {}
             for i_ts in self.time_signals:
 
-                # print "---------------------"
                 # print i_ts.name, i_ts.ts_group, i_ts.sum
 
-                # only read and write for now..
-                if i_ts.ts_group=="cpu" \
-                        or i_ts.ts_group == "file-read" \
-                        or i_ts.ts_group == "file-write" \
-                        or i_ts.ts_group == "mpi":
-
+                if supported_synth_apps.count(i_ts.ts_group) != 0:
                     # if i_ts.yvalues_bins[i_bin] >= 1.0:
-                    # print i_ts.yvalues_bins[i_bin]
                     if not ker_blocks.has_key(i_ts.ts_group):
                         ker_blocks[i_ts.ts_group] = {i_ts.name: i_ts.yvalues_bins[i_bin], "name": i_ts.ts_group}
 
@@ -82,17 +75,14 @@ class SyntheticApp(object):
                         if i_ts.ts_group == "file-write":
                             ker_blocks[i_ts.ts_group]["n_write"] = 1
                         # -----------------------------------------------------------
+
                     else:
                         ker_blocks[i_ts.ts_group][i_ts.name] = i_ts.yvalues_bins[i_bin]
 
-                # print ker_blocks
-                # print "---------------------"
-
-            # # rename keys to a sequential name..
-            # for (ii, i_key) in enumerate(ker_blocks.keys()):
-            #     seq_id = "kID-" + str(ii+bb*len(ker_blocks.keys()))
-            #     ker_blocks[seq_id] = ker_blocks.pop(i_key)
-            #     ker_blocks_all[seq_id] = ker_blocks[seq_id]
+            # sanitize values in block (e.g. # of mpi calls can't be 0 if kb > 0, etc...)
+            ker_blocks['mpi']['n_collective'] = max(1, ker_blocks['mpi']['n_collective'])
+            ker_blocks['mpi']['n_pairwise'] = max(1, ker_blocks['mpi']['n_pairwise'])
+            ker_blocks['file-write']['kb_write'] = max(1, ker_blocks['file-write']['kb_write'])
 
             # ker_blocks_all.extend(ker_blocks.values()[:])
             ker_blocks_all.append(ker_blocks.values()[:])

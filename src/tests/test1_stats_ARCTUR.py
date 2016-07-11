@@ -30,17 +30,18 @@ def test1_stats_ARCTUR():
 
     # Load config
     config = Config()
-    plot_tag = "ARCTUR_"
+    plot_tag = "ARCTUR"
 
     scheduler_tag = "pbs"
-    scheduler_log_file = "/perm/ma/maab/PBS_logs_from_ARCTUR/Arctur-1.accounting.logs"
+    scheduler_log_file = "/perm/ma/maab/ngio_logs/ARCTUR/Arctur-1.accounting.logs"
+    # scheduler_log_file = "/perm/ma/maab/ngio_logs/ARCTUR/Arctur-1.accounting.logs_test"
     profiler_tag = ""
     profiler_log_dir = ""
 
     # Initialise the input workload
     input_workload = RealWorkload(config)
     input_workload.plot_tag = plot_tag
-    input_workload.plot_time_tick = "month"
+    input_workload.plot_time_tick = "year"
     input_workload.read_logs(scheduler_tag, profiler_tag, scheduler_log_file, profiler_log_dir)
 
 

@@ -25,20 +25,27 @@ def test0_stats_ECMWF():
     # InputWorkload.calculate_derived_quantities()
     # InputWorkload.make_plots(plot_tag, "hour")
 
-
     # Load config
     config = Config()
-    plot_tag = "ECMWF_"
+    plot_tag = "ECMWF"
 
-    scheduler_tag = "pbs"
-    scheduler_log_file = "/perm/ma/maab/PBS_log_example/20151123"
+    # scheduler_tag = "pbs"
+    # scheduler_log_file = "/perm/ma/maab/PBS_log_example/20151123"
+    # # scheduler_log_file = "/perm/ma/maab/PBS_log_example/20151123_test_2k"
+    # profiler_tag = ""
+    # profiler_log_dir = ""
+
+    scheduler_tag = "accounting"
+    scheduler_log_file = "/perm/ma/maab/ngio_logs/ECMWF/cca-jobs-20160201.csv"
+    # scheduler_log_file = "/perm/ma/maab/ngio_logs/ECMWF/cca-jobs-20160201_test.csv"
+    # scheduler_log_file = "/perm/ma/maab/ngio_logs/ECMWF/cca-jobs-20160201_test_0.csv"
     profiler_tag = ""
     profiler_log_dir = ""
 
     # Initialise the input workload
     input_workload = RealWorkload(config)
     input_workload.plot_tag = plot_tag
-    input_workload.plot_time_tick = "hour"
+    input_workload.plot_time_tick = "day"
     input_workload.read_logs(scheduler_tag, profiler_tag, scheduler_log_file, profiler_log_dir)
 
 

@@ -36,7 +36,6 @@ def test_synth_app_0():
     model.set_input_workload(input_workload)
     model.create_scaled_workload("time_plane", "Kmeans", scaling_factor)
     model.export_scaled_workload()
-    model.export_scaled_workload_TEST()
     model.make_plots(plot_tag)
 
     # # Run the synthetic apps and profile them with Allinea
