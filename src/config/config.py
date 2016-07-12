@@ -5,8 +5,8 @@ class Config(object):
     """temporary quick&dirty solution to store config keys (TODO)"""
 
     # --------- directories ----------
-    DIR_OUTPUT = os.path.join(os.getcwd(), "/home/ma/maab/workspace/iows/output")
-    DIR_INPUT = os.path.join(os.getcwd(), "/home/ma/maab/workspace/iows/input")
+    DIR_OUTPUT = os.path.join(os.getcwd(), "/var/tmp/maab/iows/output")
+    DIR_INPUT = os.path.join(os.getcwd(), "/var/tmp/maab/iows/input")
     if not os.path.exists(DIR_OUTPUT):
         os.mkdir(DIR_OUTPUT)
 

@@ -333,14 +333,14 @@ class IOWSModel(object):
 
     def export_scaled_workload(self):
 
-        n_bins = 10
+        n_bins = 2
 
         json_all_synth_app = {}
 
         for (ii, i_app) in enumerate(self.syntapp_list):
             job_entry = i_app.make_kernels_from_ts(n_bins, self.job_signal_dgt, self.supported_synth_apps)
-            job_entry["mpi_ranks_verbose"] = 'true'
-            job_entry["enable_trace"] = 'true'
+            # job_entry["mpi_ranks_verbose"] = 'true'
+            # job_entry["enable_trace"] = 'true'
 
             name_json_file = 'input'+str(ii)+'.json'
             name_json_file_raw = '_temp_input' + str(ii) + '.json'
@@ -356,10 +356,12 @@ class IOWSModel(object):
             with open(self.out_dir + '/' + name_json_file, "wt") as fout:
                 with open(self.out_dir + '/' + name_json_file_raw, "rt") as fin:
                     for line in fin:
-                        fout.write(line.replace('"true"', 'true'))
+                        # fout.write(line.replace('"true"', 'true'))
+                        fout.write(line.replace('"false"', 'false'))
 
-        # Sanity check in/out
-        self.plot_sanity_check(json_all_synth_app)
+        # # Sanity check in/out
+        # # < NOTE: this only works for n_bin = 1 >
+        # self.plot_sanity_check(json_all_synth_app)
 
     def make_plots(self, plt_tag):
         """ Plotting routine """
@@ -447,9 +449,16 @@ class IOWSModel(object):
                            for i_ker in i_bin
                            if i_ker.has_key(ts_name)]
 
+            # print "--------"
+            # print len(xx)
+            # print len(ts_sums_input)
+            # print len(ts_sums_out)
+            # print ts_sums_input
+
             plt.subplot(n_time_signals_in, 1, tt + 1)
             plt.plot(xx, ts_sums_input, color='b', linestyle='-')
             plt.plot(xx, ts_sums_out, color='r', linestyle='', marker='*')
+
             if tt == 0:
                 plt.title('Sanity check: json input -> json synthetic apps (total values, sc=1)')
             plt.legend(['input from profiler', 'output to synthetic apps'], loc=1)

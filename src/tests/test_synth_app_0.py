@@ -19,13 +19,13 @@ def test_synth_app_0():
     plot_tag = "test_SA_"
 
     # create dummy workload by synthetic apps
-    run_dir = "/home/ma/maab/workspace/iows/input"
+    run_dir = "/var/tmp/maab/iows/input"
 
     # Initialise the input workload
     scheduler_tag = ""
     scheduler_log_file = ""
     profiler_tag = "allinea"
-    profiler_log_dir = "/home/ma/maab/workspace/iows/input"
+    profiler_log_dir = "/var/tmp/maab/iows/input"
     input_workload = RealWorkload(config)
     input_workload.read_logs(scheduler_tag, profiler_tag, scheduler_log_file, profiler_log_dir)
     input_workload.make_plots(plot_tag)

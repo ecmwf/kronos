@@ -52,6 +52,7 @@ def read_allinea_logs(log_dir, jobs_n_bins):
 
         # Threads are not considered for now..
         i_job.ncpus = (json_data['profile']["nodes"] * json_data['profile']["num_physical_cores_per_node"][2])
+        i_job.nnodes = json_data['profile']["nodes"]
 
         # average memory used is taken from sample average of "node_mem_percent"
         mem_val_bk = json_data['profile']['samples']['node_mem_percent']
@@ -65,6 +66,7 @@ def read_allinea_logs(log_dir, jobs_n_bins):
         i_job.jobname = js
         i_job.user = "job-profiler"
         i_job.group = ""
+        i_job.queue_type = ""
 
         # # times relative to start of log
         # profiler jobs are considered as if they were started at T0

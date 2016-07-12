@@ -23,6 +23,7 @@ def test3():
     # scheduler_log_file = "/perm/ma/maab/PBS_log_example/20151123_test_2k"
     scheduler_log_file = "/perm/ma/maab/PBS_log_example/20151123_test_10"
 
+
     profiler_tag = "allinea"
     profiler_log_dir = "/home/ma/maab/workspace/Allinea_examples_files/my_tests/cca_IOR_map_NG_NEWBUILD"
 
@@ -32,7 +33,7 @@ def test3():
     input_workload.make_plots(plot_tag)
 
     # Generator model
-    scaling_factor = 10  # [%] percentage of measured workload
+    scaling_factor = 100  # [%] percentage of measured workload
     model = IOWSModel(config)
     model.set_input_workload(input_workload)
     model.create_scaled_workload("time_plane", "Kmeans", scaling_factor)

@@ -21,14 +21,20 @@ class SyntheticApp(object):
         # application object to be written to JSON
         ker_data = {}
 
-        frames = []
+        # required metadata
+        # "file_read_path": "..."  # (./read_cache)  The directory containing the cached readable files
+        # "file_write_path": "..."  # (./write_cache) The directory to write output into
+        # "num_procs": 123  # (no check)      The number of MPI processes (for error checking)
+        # "start_delay": 230  # (0)             The number of seconds into schedule that a job should be submitted
+        # "mpi_ranks_verbose": true  # (false)  Should all MPI processes write to stdout (by default output suppressed)
+        # "enable_trace": true  # (false)         Enable trace output of synthetic app execution for debugging
+        # "repeat": 123  # (1)             How many times should this job be run (used by the executor)
 
-        # metadata
+        # optional metadata
         md_data = {
             "job_ID": self.jobID,
             "job_name": self.job_name,
             "time_start": self.time_start}
-
         ker_data["metadata"] = md_data
 
         # ------------- FORMAT --------------
@@ -62,8 +68,6 @@ class SyntheticApp(object):
             ker_blocks = {}
             for i_ts in self.time_signals:
 
-                # print i_ts.name, i_ts.ts_group, i_ts.sum
-
                 if supported_synth_apps.count(i_ts.ts_group) != 0:
                     # if i_ts.yvalues_bins[i_bin] >= 1.0:
                     if not ker_blocks.has_key(i_ts.ts_group):
@@ -72,8 +76,10 @@ class SyntheticApp(object):
                         # TODO: remove this as soon as we count #read and #write..
                         if i_ts.ts_group == "file-read":
                             ker_blocks[i_ts.ts_group]["n_read"] = 1
+                            ker_blocks[i_ts.ts_group]["mmap"] = "false"
                         if i_ts.ts_group == "file-write":
                             ker_blocks[i_ts.ts_group]["n_write"] = 1
+                            ker_blocks[i_ts.ts_group]["mmap"] = "false"
                         # -----------------------------------------------------------
 
                     else:
