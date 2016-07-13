@@ -3,6 +3,30 @@ import numpy as np
 
 class RealJob(object):
 
+    required_fields = [
+        'time_created',          ## From logs
+        'time_queued',
+        'time_eligible',
+        'time_end',
+        'time_start',
+        'ncpus',
+        'nnodes',
+        'memory_kb',
+
+        'group',
+        'jobname',
+        'user',
+        'queue_type',
+
+        'runtime',               ## Derived
+        'time_start_0',
+        'time_in_queue',
+
+        'timesignals'           ## Additional,
+        'job_impact_index_rel',
+        '__job_impact_index',
+    ]
+
     def __init__(self):
 
         # from logs
@@ -53,30 +77,9 @@ class RealJob(object):
     #     self.__job_impact_index = value
 
     def check_job(self):
-
-        # from logs
-        if self.time_created is None: raise UserWarning("job: " + self.jobname + ", Qty: time_created")
-        if self.time_queued is None: raise UserWarning("job: " + self.jobname + ", Qty: time_queued")
-        if self.time_eligible is None: raise UserWarning("job: " + self.jobname + ", Qty: time_eligible")
-        if self.time_end is None: raise UserWarning("job: " + self.jobname + ", Qty: time_end")
-        if self.time_start is None: raise UserWarning("job:"  + self.jobname + ", Qty: time_start")
-        if self.ncpus is None: raise UserWarning("job: " + self.jobname + ", Qty: ncpus")
-        if self.nnodes is None: raise UserWarning("job: " + self.jobname + ", Qty: nnodes")
-        if self.memory_kb is None: raise UserWarning("job: " + self.jobname + ", Qty: memory_kb")
-
-        # self.cpu_percent is None
-        if self.group is None: raise UserWarning("job: " + self.jobname + ", Qty: group")
-        if self.jobname is None: raise UserWarning("job: " + self.jobname + ", Qty: jobname")
-        if self.user is None: raise UserWarning("job: " + self.jobname + ", Qty: user")
-        if self.queue_type is None: raise UserWarning("job: " + self.jobname + ", Qty: queue_type")
-
-
-        # derived
-        if self.runtime is None: raise UserWarning("job: " + self.jobname + ", Qty: runtime")
-        if self.time_start_0 is None: raise UserWarning("job: " + self.jobname + ", Qty: time_start_0")
-        if self.time_in_queue is None: raise UserWarning("job: " + self.jobname + ", Qty: time_in_queue")
-
-        # added
-        if self.timesignals is []: raise UserWarning("job: " + self.jobname + ", Qty: timesignals")
-        if self.job_impact_index_rel is None: raise UserWarning("job: " + self.jobname + ", Qty: job_impact_index_rel")
-        if self.__job_impact_index is None: raise UserWarning("job: " + self.jobname + ", Qty: __job_impact_index")
+        """
+        Some quick sanity checks
+        """
+        for field in self.required_fields:
+            if getattr(self, field, None) is None:
+                raise UserWarning("job: {}, missing field: {}".format(self.jobname, field))
