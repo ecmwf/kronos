@@ -10,7 +10,7 @@ import scipy.stats as stats
 
 from tools import *
 from plot_handler import PlotHandler
-from real_job import RealJob
+from jobs import IngestedJob
 
 
 def read_pbs_logs(filename_in):
@@ -91,7 +91,7 @@ def read_pbs_logs(filename_in):
                     else:
                         line_dict["ncpus"] = int(yval_val[1])
 
-            i_job = RealJob()
+            i_job = IngestedJob()
 
             # print 'i_job.time_created ', line_dict['time_created']
             # print 'i_job.time_queued  ', line_dict['time_queued']
@@ -217,7 +217,7 @@ def read_accounting_logs(filename_in):
 
         for line_dict in csv_dict:
 
-            i_job = RealJob()
+            i_job = IngestedJob()
 
             try:
                 i_job.time_queued = (datetime.strptime(line_dict['queue_time'], '%Y-%m-%d %H:%M:%S') -

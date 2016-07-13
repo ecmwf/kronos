@@ -5,7 +5,7 @@ from matplotlib import dates
 from datetime import datetime
 from tools import *
 from plot_handler import PlotHandler
-from real_job import RealJob
+from jobs import IngestedJob
 
 from time_signal import TimeSignal
 from logreader import scheduler_reader

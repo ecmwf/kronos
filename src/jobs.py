@@ -1,7 +1,29 @@
 import numpy as np
 
 
-class RealJob(object):
+class ModelJob(object):
+    """
+    A model job is as fully specified, abstract job, which is output from the combined data ingestion
+    and processing units.
+    """
+    required_fields = [
+
+        'start_time',
+
+        'ncpus',
+        'nnodes',
+    ]
+
+    def check_job(self):
+        """
+        Some quick sanity checks
+        """
+        for field in self.required_fields:
+            if getattr(self, field, None) is None:
+                raise KeyError("job is missing field: {}".format(field))
+
+
+class IngestedJob(object):
 
     required_fields = [
         'time_created',          ## From logs

@@ -6,7 +6,7 @@ from pybrain.tools.shortcuts import buildNetwork
 from pybrain.datasets import SupervisedDataSet
 from pybrain.supervised.trainers import BackpropTrainer
 
-from real_job import RealJob
+from jobs import IngestedJob
 from time_signal import TimeSignal
 
 
@@ -33,7 +33,7 @@ def read_allinea_logs(log_dir, jobs_n_bins):
             json_data = json.load(json_file)
 
         # fill in the workload structure
-        i_job = RealJob()
+        i_job = IngestedJob()
 
         time_start = json_data['profile']['timestamp']
         runtime = float(json_data['profile']['runtime_ms']) / 1000.
