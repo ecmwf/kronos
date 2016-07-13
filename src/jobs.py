@@ -44,9 +44,9 @@ class IngestedJob(object):
         'time_start_0',
         'time_in_queue',
 
-        'timesignals'           ## Additional,
+        'timesignals',           ## Additional,
         'job_impact_index_rel',
-        '__job_impact_index',
+        '_job_impact_index',
     ]
 
     def __init__(self):
@@ -75,7 +75,7 @@ class IngestedJob(object):
         # added
         self.timesignals = []
         self.job_impact_index_rel = None
-        self.__job_impact_index = None
+        self._job_impact_index = None
 
     # aggregate time signals..
     def append_time_signal(self, time_signal_in):
@@ -88,15 +88,15 @@ class IngestedJob(object):
         if not self.timesignals:
             raise UserWarning('no timesignal found! => _impact_idx is set to zero')
         else:
-            self.__job_impact_index = 0
+            self._job_impact_index = 0
             for i_ts in self.timesignals:
-                self.__job_impact_index += np.trapz(abs(i_ts.yvalues), i_ts.xvalues)
+                self._job_impact_index += np.trapz(abs(i_ts.yvalues), i_ts.xvalues)
 
-        return self.__job_impact_index
+        return self._job_impact_index
 
     # @job_impact_index.setter
     # def job_impact_index(self, value):
-    #     self.__job_impact_index = value
+    #     self._job_impact_index = value
 
     def check_job(self):
         """
