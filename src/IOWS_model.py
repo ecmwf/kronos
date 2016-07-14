@@ -1,5 +1,3 @@
-import time
-import json
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -337,27 +335,10 @@ class IOWSModel(object):
 
         json_all_synth_app = {}
 
-        for (ii, i_app) in enumerate(self.syntapp_list):
-            job_entry = i_app.make_kernels_from_ts(n_bins, self.job_signal_dgt, self.supported_synth_apps)
-            # job_entry["mpi_ranks_verbose"] = 'true'
-            # job_entry["enable_trace"] = 'true'
-
-            name_json_file = 'input'+str(ii)+'.json'
-            name_json_file_raw = '_temp_input' + str(ii) + '.json'
-
+        for (idx_app, i_app) in enumerate(self.syntapp_list):
+            i_app.write_sa_json(n_bins, self.job_signal_dgt, self.supported_synth_apps, self.out_dir, idx_app)
+            job_entry = i_app.get_json_formatted_data()
             json_all_synth_app[i_app.job_name] = job_entry
-
-            with open(self.out_dir + '/' + name_json_file_raw, 'w') as f:
-                json.encoder.FLOAT_REPR = lambda o: format(o, '.2f')
-                # json.dump(json_all_synth_app, f, ensure_ascii=True, sort_keys=True, indent=4, separators=(',', ': '))
-                json.dump(job_entry, f, ensure_ascii=True, sort_keys=True, indent=4, separators=(',', ': '))
-
-            # substitute true string..
-            with open(self.out_dir + '/' + name_json_file, "wt") as fout:
-                with open(self.out_dir + '/' + name_json_file_raw, "rt") as fin:
-                    for line in fin:
-                        # fout.write(line.replace('"true"', 'true'))
-                        fout.write(line.replace('"false"', 'false'))
 
         # # Sanity check in/out
         # # < NOTE: this only works for n_bin = 1 >

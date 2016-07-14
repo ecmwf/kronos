@@ -1,3 +1,6 @@
+import json
+import os
+
 
 class SyntheticApp(object):
 
@@ -10,6 +13,7 @@ class SyntheticApp(object):
         self.time_start = None
         self.time_signals = None  # time signals
         self.kernels_seq = []
+        self.ker_data = None
 
     # load time-series in
     def fill_time_series(self, ts_list):
@@ -36,27 +40,6 @@ class SyntheticApp(object):
             "job_name": self.job_name,
             "time_start": self.time_start}
         ker_data["metadata"] = md_data
-
-        # ------------- FORMAT --------------
-        # {
-        #     "mpi_ranks_verbose": true,
-        #     "enable_trace": true,
-        #
-        #     "frames": [{
-        #         "name": "file-read",
-        #         "kb_read": 12345,
-        #         "n_read": 12
-        #     }, {
-        #         "name": "file-read",
-        #         "kb_read": 12345,
-        #         "n_read": 12
-        #     }, {
-        #         "name": "file-write",
-        #         "kb_write": 12345,
-        #         "n_write": 3
-        #     }]
-        # }
-        # -----------------------------------
 
         # digitize all the ts
         for (tt, i_ts) in enumerate(self.time_signals):
@@ -97,3 +80,33 @@ class SyntheticApp(object):
         ker_data["frames"] = ker_blocks_all
 
         return ker_data
+
+    def write_sa_json(self, n_bins, dgt_types, supported_synth_apps, out_dir, idx):
+
+        """ write synthetic apps into json files """
+
+        ker_data = self.make_kernels_from_ts(n_bins, dgt_types, supported_synth_apps)
+        self.ker_data = ker_data
+
+        name_json_file = out_dir + '/' + 'input' + str(idx) + '.json'
+        name_json_file_raw = out_dir + '/' + '_temp_input' + str(idx) + '.json'
+
+        with open(name_json_file_raw, 'w') as f:
+            json.encoder.FLOAT_REPR = lambda o: format(o, '.2f')
+            # json.dump(json_all_synth_app, f, ensure_ascii=True, sort_keys=True, indent=4, separators=(',', ': '))
+            json.dump(ker_data, f, ensure_ascii=True, sort_keys=True, indent=4, separators=(',', ': '))
+
+        # substitute true string..
+        with open(name_json_file, "wt") as fout:
+            with open(name_json_file_raw, "rt") as fin:
+                for line in fin:
+                    # fout.write(line.replace('"true"', 'true'))
+                    fout.write(line.replace('"false"', 'false'))
+
+        os.remove(name_json_file_raw)
+
+    def get_json_formatted_data(self):
+
+        """ Return json formatted data """
+
+        return self.ker_data
