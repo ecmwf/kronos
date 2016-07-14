@@ -21,10 +21,27 @@ Options:
 Input file syntax:
 
     The input file is a JSON. Full documentation can be found on the ECMWF confluence page.
+    The file should contain one complete object, containing the following keys (with fuller explanations
+    given below if required):
+
+    {
+        "profile_sources": [...]   # A list of profiling sources in the format described below
+    }
+
+    profile_sources:
+      A list of tuples describing an arbitrary number of profiling sources to be combined. Each tuple
+      contains (a) a key to describe what type of data this is, and (b) a path to find the data.
+
+      ("allinea", path) - Use data in the format produced by the Allinea MAP tool, in conjunction with
+                          the map2json script. The path may be either a .json file, or a path to a
+                          directory in which all files matching *.json will be considered.
 """
 
 import json
 import sys
+import logreader
+
+from exceptions_iows import *
 
 
 class IOWS(object):
@@ -38,9 +55,21 @@ class IOWS(object):
         """
         self.config = config.copy()
 
-    def run(self):
-        print "Here we are!!!"
+    def ingest_data(self):
+        """
+        Depending on the supplied config, ingest data of various types.
+        """
+        self.job_datasets = []
+        for ingest_type, ingest_path in self.config['profile_sources']:
+            self.job_datasets.append(logreader.ingest_data(ingest_type, ingest_path))
 
+    def run(self):
+        """
+        Main execution routine
+        """
+        self.ingest_data()
+
+        print "[\n" + "\n".join(self.job_datasets) +  "\n]"
 
 if __name__ == "__main__":
 
@@ -60,8 +89,12 @@ if __name__ == "__main__":
         print "Error parsing the supplied input file: {}".format(e)
         sys.exit(-1)
 
-    # And get going!!!
-    app = IOWS(config)
-    app.run()
+    try:
+        # And get going!!!
+        app = IOWS(config)
+        app.run()
+
+    except ConfigurationError as e:
+        print "Error in iows configuration: {}".format(e)
 
 
