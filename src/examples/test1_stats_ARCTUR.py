@@ -7,7 +7,7 @@ os.sys.path.append(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
 from tools import mytools
 from config.config import Config
 from IOWS_model import IOWSModel
-from real_workload import RealWorkload
+from real_workload import ModelWorkload
 from workload_corrector import WorkloadCorrector
 from plot_handler import PlotHandler
 
@@ -39,7 +39,7 @@ def test1_stats_ARCTUR():
     profiler_log_dir = ""
 
     # Initialise the input workload
-    input_workload = RealWorkload(config)
+    input_workload = ModelWorkload(config)
     input_workload.plot_tag = plot_tag
     input_workload.plot_time_tick = "year"
     input_workload.read_logs(scheduler_tag, profiler_tag, scheduler_log_file, profiler_log_dir)

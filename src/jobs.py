@@ -8,11 +8,22 @@ class ModelJob(object):
     """
     required_fields = [
 
-        'start_time',
+        'time_start',
 
         'ncpus',
         'nnodes',
     ]
+
+    def __init__(self, **kwargs):
+        """
+        Set the fields as passed in
+        """
+        for k,v in kwargs.iteritems():
+            assert k in self.required_fields
+
+            setattr(self, k, v)
+
+        self.check_job()
 
     def check_job(self):
         """

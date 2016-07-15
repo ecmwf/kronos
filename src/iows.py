@@ -42,6 +42,8 @@ import sys
 import logreader
 
 from exceptions_iows import *
+from real_workload import ModelWorkload
+from config.config import Config
 
 
 class IOWS(object):
@@ -54,6 +56,7 @@ class IOWS(object):
         TODO: Parse the config for validity --> If there are issues, that should be picked up here.
         """
         self.config = config.copy()
+        self.job_datasets = None
 
     def ingest_data(self):
         """
@@ -63,13 +66,20 @@ class IOWS(object):
         for ingest_type, ingest_path in self.config['profile_sources']:
             self.job_datasets.append(logreader.ingest_data(ingest_type, ingest_path))
 
+    def model_workload(self):
+        workload = ModelWorkload(Config())
+        workload.model_ingested_datasets(self.job_datasets)
+        return workload
+
     def run(self):
         """
         Main execution routine
         """
         self.ingest_data()
+        print "Ingested data sets: [\n" + ",\n".join(["    {}".format(d) for d in self.job_datasets]) +  "\n]"
 
-        print "[\n" + "\n".join(self.job_datasets) +  "\n]"
+        print self.model_workload()
+
 
 if __name__ == "__main__":
 

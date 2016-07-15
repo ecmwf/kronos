@@ -3,7 +3,7 @@ import os
 import json
 import glob
 
-from jobs import IngestedJob
+from jobs import IngestedJob, ModelJob
 from time_signal import TimeSignal
 from exceptions_iows import ConfigurationError
 from logreader.dataset import IngestedDataSet
@@ -146,10 +146,26 @@ def read_allinea_logs(log_dir, jobs_n_bins=None):
 
 
 class AllineaDataSet(IngestedDataSet):
-    pass
+
+    def __init__(self, joblist, *args, **kwargs):
+        super(AllineaDataSet, self).__init__(joblist, *args, **kwargs)
+
+        # The created times are all in seconds since an arbitrary reference, so we want to get
+        # them relative to a zero-time
+        self.global_start_time = min((j.time_created for j in self.joblist))
+
+    def model_jobs(self):
+        for job in self.joblist:
+            assert isinstance(job, IngestedJob)
+
+            yield ModelJob(
+                time_start=job.time_created-self.global_start_time,
+                ncpus=job.ncpus,
+                nnodes=job.nnodes
+            )
 
 
-def ingest_allinea_profiles(path):
+def ingest_allinea_profiles(path, jobs_n_bins=None):
     """
     Does what it says on the tin.
     """
@@ -157,9 +173,9 @@ def ingest_allinea_profiles(path):
         raise ConfigurationError("Specified path to ingest Allinea profiles does not exist: {}".format(path))
 
     if os.path.isdir(path):
-        jobs = read_allinea_logs(path)
+        jobs = read_allinea_logs(path, jobs_n_bins)
     else:
-        jobs = [read_allinea_log(path)]
+        jobs = [read_allinea_log(path, jobs_n_bins)]
 
     return AllineaDataSet(jobs)
 
