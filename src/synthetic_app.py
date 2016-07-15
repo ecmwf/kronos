@@ -41,6 +41,9 @@ class SyntheticApp(object):
             "time_start": self.time_start}
         ker_data["metadata"] = md_data
 
+        # TODO: this need to be changed to proper value..
+        ker_data["num_procs"] = 2
+
         # digitize all the ts
         for (tt, i_ts) in enumerate(self.time_signals):
             i_ts.digitize(n_bins, dgt_types[tt])
@@ -82,13 +85,12 @@ class SyntheticApp(object):
         return ker_data
 
     def write_sa_json(self, n_bins, dgt_types, supported_synth_apps, out_dir, idx):
-
         """ write synthetic apps into json files """
 
         ker_data = self.make_kernels_from_ts(n_bins, dgt_types, supported_synth_apps)
         self.ker_data = ker_data
 
-        name_json_file = out_dir + '/' + 'input' + str(idx) + '.json'
+        name_json_file = out_dir + '/' + 'job-' + str(idx) + '.json'
         name_json_file_raw = out_dir + '/' + '_temp_input' + str(idx) + '.json'
 
         with open(name_json_file_raw, 'w') as f:
@@ -106,7 +108,6 @@ class SyntheticApp(object):
         os.remove(name_json_file_raw)
 
     def get_json_formatted_data(self):
-
         """ Return json formatted data """
 
         return self.ker_data

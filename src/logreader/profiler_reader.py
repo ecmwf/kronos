@@ -101,6 +101,13 @@ def read_allinea_logs(log_dir, jobs_n_bins):
                 t_ext = [0] + sample_times
                 y_val_ext = [0] + y_val
                 y_val = [y_val_ext[tt-1]*(t_ext[tt]-t_ext[tt-1]) for tt in range(1, len(sample_times)+1)]
+                pass
+
+            # Correct the values for "kb_pairwise" and "kb_collective" (as they are recorded as PER SECOND)
+            if (ts_name_std=="n_pairwise") or (ts_name_std=="n_collective"):
+                t_ext = [0] + sample_times
+                y_val_ext = [0] + y_val
+                y_val = [y_val_ext[tt-1]*(t_ext[tt]-t_ext[tt-1]) for tt in range(1, len(sample_times)+1)]
 
             ts = TimeSignal()
             ts.create_ts_from_values(ts_name_std, "float", ker_type, sample_times, y_val)

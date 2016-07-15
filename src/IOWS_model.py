@@ -331,7 +331,7 @@ class IOWSModel(object):
 
     def export_scaled_workload(self):
 
-        n_bins = 2
+        n_bins = 1
 
         json_all_synth_app = {}
 
@@ -340,9 +340,9 @@ class IOWSModel(object):
             job_entry = i_app.get_json_formatted_data()
             json_all_synth_app[i_app.job_name] = job_entry
 
-        # # Sanity check in/out
-        # # < NOTE: this only works for n_bin = 1 >
-        # self.plot_sanity_check(json_all_synth_app)
+        # Sanity check in/out
+        # < NOTE: this only works for n_bin = 1 >
+        self.plot_sanity_check(json_all_synth_app)
 
     def make_plots(self, plt_tag):
         """ Plotting routine """
