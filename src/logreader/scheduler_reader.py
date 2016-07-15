@@ -308,6 +308,7 @@ class PBSDataSet(IngestedDataSet):
     def model_jobs(self):
         for job in self.joblist:
             assert isinstance(job, IngestedJob)
+            assert not job.timesignals
 
             if job.time_created >= 0:
                 submit_time = job.time_created - self.global_created_time
@@ -316,6 +317,7 @@ class PBSDataSet(IngestedDataSet):
 
             yield ModelJob(
                 time_start=submit_time,
+                duration=job.time_end-job.time_start,
                 ncpus=job.ncpus,
                 nnodes=job.nnodes
             )
@@ -348,9 +350,11 @@ class AccountingDataSet(IngestedDataSet):
     def model_jobs(self):
         for job in self.joblist:
             assert isinstance(job, IngestedJob)
+            assert not job.timesignals
 
             yield ModelJob(
                 time_start=job.time_start - self.global_start_time,
+                duration=job.time_end-job.time_start,
                 ncpus=job.ncpus,
                 nnodes=job.nnodes
             )

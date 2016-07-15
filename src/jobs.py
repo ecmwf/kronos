@@ -1,4 +1,5 @@
 import numpy as np
+import time_signal
 
 
 class ModelJob(object):
@@ -9,12 +10,13 @@ class ModelJob(object):
     required_fields = [
 
         'time_start',
+        'duration',
 
         'ncpus',
-        'nnodes',
+        'nnodes'
     ]
 
-    def __init__(self, **kwargs):
+    def __init__(self, time_series=None, **kwargs):
         """
         Set the fields as passed in
         """
@@ -22,6 +24,15 @@ class ModelJob(object):
             assert k in self.required_fields
 
             setattr(self, k, v)
+
+        # Default time series values
+        self.timesignals = {}
+        for series in time_signal.signal_types:
+            self.timesignals[series] = None
+
+        if time_series:
+            for series, values in time_series.iteritems():
+                self.timesignals[series] = values
 
         self.check_job()
 
@@ -32,6 +43,20 @@ class ModelJob(object):
         for field in self.required_fields:
             if getattr(self, field, None) is None:
                 raise KeyError("job is missing field: {}".format(field))
+
+    @property
+    def job_impact_index(self):
+        """
+        This is a naive approach to determining a job impact factor. It is the sum of the integrals of
+        all of the time series --- i.e. the more resources  job uses the higher its "impact.
+
+        A side effect of this is that jobs without profiling data are weighted to zero.
+        """
+        index = 0
+        for series in self.timesignals.values():
+            index += np.trapz(abs(series.yvalues), series.xvalues)
+
+        return index
 
 
 class IngestedJob(object):
@@ -84,13 +109,15 @@ class IngestedJob(object):
         self.idx_in_log = None
 
         # added
-        self.timesignals = []
+        self.timesignals = {}
         self.job_impact_index_rel = None
         self._job_impact_index = None
 
     # aggregate time signals..
     def append_time_signal(self, time_signal_in):
-        self.timesignals.append(time_signal_in)
+        assert time_signal_in.name not in self.timesignals
+
+        self.timesignals[time_signal_in.name] = time_signal_in
 
     # job impact index..
     @property

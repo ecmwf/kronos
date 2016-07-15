@@ -35,33 +35,6 @@ class Config(object):
 
     WORKLOADCORRECTOR_JOBS_NBINS = 10
 
-    # TODO: this needs to be read from time-traces
-    # # time signals = [name, type, "kernel type"]
-    # WORKLOADCORRECTOR_LIST_TIME_NAMES = [('cpu_L1_cache_misses',  'int', 'cpu'),
-    #                                      ('cpu_L2_cache_misses',  'int', 'cpu'),
-    #                                      ('cpu_L3_cache_misses',  'int', 'cpu'),
-    #                                      ('cpu_flops',            'int', 'cpu'),
-    #                                      ('cpu_n_instructions',   'int', 'cpu'),
-    #                                      ('cpu_n_cycles',         'int', 'cpu'),
-    #                                      ('io_n_reads',           'int', 'file-read'),
-    #                                      ('io_bytes_read',        'int', 'file-read'),
-    #                                      ('io_n_writes',          'int', 'file-write'),
-    #                                      ('io_bytes_writes',      'int', 'file-write'),
-    #                                      ('memory_percent',         'int', 'memory'),
-    #                                      ('mpi_n_p2p',            'int', 'mpi'),
-    #                                      ('mpi_bytes_p2p',        'int', 'mpi'),
-    #                                      ('mpi_n_collective',     'int', 'mpi'),
-    #                                      ('mpi_bytes_collective', 'int', 'mpi')]
-
-    # time signals = [name, type, "kernel type", "re-sampling method"] (reduced list  compatible with Allinea metrics)
-    WORKLOADCORRECTOR_LIST_TIME_NAMES = [('flops',               'double', 'cpu',         'sum'),
-                                        ('kb_read',              'double', 'file-read',   'sum'),
-                                        ('kb_write',             'double', 'file-write',  'sum'),
-                                        ('n_pairwise',           'double', 'mpi',         'sum'),
-                                        ('kb_pairwise',          'double', 'mpi',         'sum'),
-                                        ('n_collective',         'double', 'mpi',         'sum'),
-                                        ('kb_collective',        'double', 'mpi',         'sum')]
-
 
     # IOWS Model
     IOWSMODEL_TOTAL_METRICS_NBINS = 10

@@ -1,6 +1,25 @@
 import numpy as np
 import re
 
+
+# The availably types of time-series (or summed/averaged totals) data that we can use
+signal_types = {
+
+    # CPU
+    'flops':         {'type': float, 'category': 'cpu',        'behaviour': 'sum'},
+
+    # (file) I/O
+    'kb_read':       {'type': float, 'category': 'file-read',  'behaviour': 'sum'},
+    'kb_write':      {'type': float, 'category': 'file-write', 'behaviour': 'sum'},
+
+    # MPI activity
+    'n_pairwise':    {'type': float, 'category': 'mpi',        'behaviour': 'sum'},
+    'kb_pairwise':   {'type': float, 'category': 'mpi',        'behaviour': 'sum'},
+    'n_collective':  {'type': float, 'category': 'mpi',        'behaviour': 'sum'},
+    'kb_collective': {'type': float, 'category': 'mpi',        'behaviour': 'sum'}
+}
+
+
 from tools import mytools
 
 

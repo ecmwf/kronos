@@ -1,4 +1,5 @@
 from profiler_reader import ingest_allinea_profiles
+from scheduler_reader import ingest_accounting_logs, ingest_pbs_logs
 
 
 def ingest_data(ingest_type, ingest_path):
@@ -10,7 +11,9 @@ def ingest_data(ingest_type, ingest_path):
     try:
 
         return {
-            'allinea': ingest_allinea_profiles
+            'allinea': ingest_allinea_profiles,
+            'pbs': ingest_pbs_logs,
+            'accounting': ingest_accountincg_logs
         }[ingest_type](ingest_path)
 
     except KeyError as e:

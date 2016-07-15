@@ -160,8 +160,10 @@ class AllineaDataSet(IngestedDataSet):
 
             yield ModelJob(
                 time_start=job.time_created-self.global_start_time,
+                duration=job.time_end-job.time_start,
                 ncpus=job.ncpus,
-                nnodes=job.nnodes
+                nnodes=job.nnodes,
+                time_series=job.timesignals
             )
 
 

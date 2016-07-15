@@ -1,5 +1,6 @@
 from pylab import *
 
+import time_signal
 from logreader.scheduler_reader import AccountingDataSet, PBSDataSet
 from plot_handler import PlotHandler
 
@@ -41,10 +42,6 @@ class ModelWorkload(object):
         self.Ntime = config_options.WORKLOADCORRECTOR_NTIME
         self.Nfreq = config_options.WORKLOADCORRECTOR_NFREQ
         self.jobs_n_bins = config_options.WORKLOADCORRECTOR_JOBS_NBINS
-        self.job_signal_names = [i_ts[0] for i_ts in config_options.WORKLOADCORRECTOR_LIST_TIME_NAMES]
-        self.job_signal_type  = [i_ts[1] for i_ts in config_options.WORKLOADCORRECTOR_LIST_TIME_NAMES]
-        self.job_signal_group = [i_ts[2] for i_ts in config_options.WORKLOADCORRECTOR_LIST_TIME_NAMES]
-        self.job_signal_dgt   = [i_ts[3] for i_ts in config_options.WORKLOADCORRECTOR_LIST_TIME_NAMES]
 
         # plots settings
         self.plot_tag = ""
@@ -79,19 +76,6 @@ class ModelWorkload(object):
 
         self.model_ingested_datasets(datasets)
 
-        ## ORIGINAL
-
-        # Use the corrector to share job profiles to scheduler_tag jobs
-        if self.scheduler_jobs and self.profiler_jobs:
-            corrector = WorkloadCorrector(self.config_options)
-            corrector.train_surrogate_model("ANN", self.profiler_jobs)
-            corrector.ann_visual_check("Surrogate-model-test")
-            self.scheduler_jobs = corrector.apply_surrogate_model(self.scheduler_jobs)
-            self.job_list.extend(self.scheduler_jobs)
-
-        # calculate the derived quantities
-        self.calculate_global_metrics()
-
         # check that all the info are correctly filled in..
         for i_job in self.job_list:
             i_job.check_job()
@@ -109,20 +93,26 @@ class ModelWorkload(object):
         #
         # n.b. We can only cope with _one_ Scheduling dataset.
 
-        set_datasets = set(datasets)
+        # For now, this is somewhat ugly. We can only deal with _one_ scheduler, and _one_
+        # non-scheduler based dataset.
 
-        # The conditional in this should be generalised
-        schedule_data = [d for d in set_datasets if (isinstance(d, PBSDataSet) or isinstance(d, AccountingDataSet))]
+        if len(datasets) == 1:
+            self.job_list = datasets[0].model_jobs()
+        else:
+            assert len(datasets) == 2
 
-        assert len(schedule_data) == 1
-        schedule_data = schedule_data[0]
-        set_datasets.remove(schedule_data)
+            if isinstance(datasets[0], PBSDataSet) or isinstance(datasets[0], AccountingDataSet):
+                scheduler_dataset, profiler_dataset = datasets[0], datasets[1]
+            else:
+                scheduler_dataset, profiler_dataset = datasets[1], datasets[0]
+            assert isinstance(scheduler_dataset, PBSDataSet) or isinstance(scheduler_dataset, AccountingDataSet)
+            assert not (isinstance(profiler_dataset, PBSDataSet) or isinstance(profiler_dataset, AccountingDataSet))
 
-        self.job_list = list(schedule_data.model_jobs())
-        print "JLIST", self.job_list
-
-        # For now, just convert the generator list of model jobs into a list
-        self.job_list = list(datasets[0].model_jobs())
+            corrector = WorkloadCorrector(self.config_options)
+            corrector.train_surrogate_model("ANN", list(profiler_dataset.model_jobs()))
+            corrector.ann_visual_check("Surrogate-model-test")
+            scheduler_jobs = corrector.apply_surrogate_model(list(scheduler_dataset.model_jobs()))
+            self.job_list.extend(scheduler_jobs)
 
         self.calculate_global_metrics()
 
@@ -133,26 +123,21 @@ class ModelWorkload(object):
         self.maxStartTime = max([i_job.time_start for i_job in self.job_list])
         self.maxStartTime_fromT0 = self.maxStartTime - self.minStartTime
 
-        # NOTE: this assumes that all the jobs have the same number and names of Time signals
-        n_ts_in_job = len(self.job_list[0].timesignals)
-        names_ts_in_job = [i_ts.name for i_ts in self.job_list[0].timesignals]
-        ts_types = [i_ts.ts_type for i_ts in self.job_list[0].timesignals]
-        ts_groups = [i_ts.ts_group for i_ts in self.job_list[0].timesignals]
+        # Concatenate all the available time series data for each of the jobs
 
-        # aggregates all the signals (absolute times from T0)
-        times_bins = np.asarray([item+i_job.time_start_0 for i_job in self.job_list for item in i_job.timesignals[0].xvalues_bins])
-        for i_ts in range(0, n_ts_in_job):
-            name_ts = 'total_' + names_ts_in_job[i_ts]
-            yvals = np.asarray([item for iJob in self.job_list for item in iJob.timesignals[i_ts].yvalues_bins])
+        for signal_name, signal_details in time_signal.signal_types.iteritems():
+
+            times_bin = np.concatenate([job.timesignals[signal_name].xvalues_bins for job in self.job_list])
+            data = np.concatenate([job.timesignals[signal_name].yvalues_bins for job in self.job_list])
+
             ts = TimeSignal()
-            ts.create_ts_from_values(name_ts, ts_types[i_ts], ts_groups[i_ts], times_bins, yvals)
+            ts.create_ts_from_values('total_{}'.format(signal_name), signal_details['type'],
+                                     signal_details['category'], times_bin, data)
+            ts.digitize(self.total_metrics_nbins, signal_details['behaviour'])
             self.total_metrics.append(ts)
 
-        for (tt, i_tot) in enumerate(self.total_metrics):
-            i_tot.digitize(self.total_metrics_nbins, self.job_signal_dgt[tt])
-
-        # calculate relative impact factors (0 to 1)....
-        imp_fac_all = [iJob.job_impact_index for iJob in self.job_list]
+        # # calculate relative impact factors (0 to 1)....
+        imp_fac_all = [job.job_impact_index for job in self.job_list]
         max_diff = max(imp_fac_all) - min(imp_fac_all)
         if len(imp_fac_all) > 1:
             if max_diff:
@@ -210,14 +195,14 @@ class ModelWorkload(object):
         #
         #         # NOTE: this assumes that all the jobs have the same number and
         #         # names of Time signals
-        #         n_ts_in_job = len(self.job_list[0].timesignals)
+        #         time_signals_per_job = len(self.job_list[0].timesignals)
         #         names_ts_in_job = [i_ts.name for i_ts in self.job_list[0].timesignals]
         #
         #         # aggregates all the signals
         #         total_time = np.asarray([item for iJob in self.job_list for item in iJob.time_from_t0_vec])
         #
         #         # loop over ts signals of each job
-        #         for i_ts in range(0, n_ts_in_job):
+        #         for i_ts in range(0, time_signals_per_job):
         #             name_ts = 'total_' + names_ts_in_job[i_ts]
         #             values = np.asarray([item for iJob in self.job_list for item in iJob.timesignals[i_ts].yvalues])
         #             ts = TimeSignal()
@@ -246,14 +231,14 @@ class ModelWorkload(object):
         #                 iJob.append_time_signal(ts)
         #
         #         # NOTE: this assumes that all the jobs have the same number and names of Time signals
-        #         n_ts_in_job = len(self.job_list[0].timesignals)
+        #         time_signals_per_job = len(self.job_list[0].timesignals)
         #         names_ts_in_job = [i_ts.name for i_ts in self.job_list[0].timesignals]
         #         ts_types = [i_ts.ts_type for i_ts in self.job_list[0].timesignals]
         #         ts_groups = [i_ts.ts_group for i_ts in self.job_list[0].timesignals]
         #
         #         # aggregates all the signals
         #         times_bins = np.asarray([item for iJob in self.job_list for item in iJob.timesignals[0].xvalues_bins])
-        #         for i_ts in range(0, n_ts_in_job):
+        #         for i_ts in range(0, time_signals_per_job):
         #             name_ts = 'total_' + names_ts_in_job[i_ts]
         #             yvals = np.asarray([item for iJob in self.job_list for item in iJob.timesignals[i_ts].yvalues_bins])
         #             ts = TimeSignal()
