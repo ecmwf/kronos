@@ -47,6 +47,12 @@ class ModelWorkload(object):
         self.plot_tag = ""
         self.plot_time_tick = ""
 
+    def __unicode__(self):
+        return "ModelWorkload - {} jobs".format(len(self.job_list))
+
+    def __str__(self):
+        return unicode(self).encode('utf-8')
+
     def read_logs(self, scheduler_tag="", profiler_tag="", scheduler_log_file="", profiler_log_dir=""):
         """ Read jobs from scheduler and profiler logs"""
 
@@ -113,6 +119,12 @@ class ModelWorkload(object):
             corrector.ann_visual_check("Surrogate-model-test")
             scheduler_jobs = corrector.apply_surrogate_model(list(scheduler_dataset.model_jobs()))
             self.job_list.extend(scheduler_jobs)
+
+        # Ensure that the data is in a reasonable state for further processing
+        for job in self.job_list:
+            for ts in job.timesignals.values():
+                if ts.xvalues_bins is None:
+                    ts.digitize(self.config_options.WORKLOADCORRECTOR_JOBS_NBINS)
 
         self.calculate_global_metrics()
 

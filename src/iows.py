@@ -71,16 +71,22 @@ class IOWS(object):
     def model_workload(self):
         workload = ModelWorkload(Config())
         workload.model_ingested_datasets(self.job_datasets)
-        return workload
+        self.model_jobs = workload
 
     def run(self):
         """
         Main execution routine
         """
+        print "\nBegining data ingestion...\n----------------------------------"
         self.ingest_data()
         print "Ingested data sets: [\n" + ",\n".join(["    {}".format(d) for d in self.job_datasets]) +  "\n]"
 
-        print self.model_workload()
+        print "\nModelling ingested workload...\n----------------------------------"
+        self.model_workload()
+        print "Generated workload model: {}".format(self.model_jobs)
+
+        print "\nScaling model workload...\n----------------------------------"
+        print "\nOutputting synthetic app input...\n----------------------------------"
 
 
 if __name__ == "__main__":
