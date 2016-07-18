@@ -13,7 +13,7 @@ def ingest_data(ingest_type, ingest_path):
         return {
             'allinea': ingest_allinea_profiles,
             'pbs': ingest_pbs_logs,
-            'accounting': ingest_accountincg_logs
+            'accounting': ingest_accounting_logs
         }[ingest_type](ingest_path)
 
     except KeyError as e:
