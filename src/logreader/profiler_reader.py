@@ -94,7 +94,7 @@ def read_allinea_log(filename, jobs_n_bins=None):
             y_val = [y_val_ext[tt-1]*(t_ext[tt]-t_ext[tt-1]) for tt in range(1, len(sample_times)+1)]
 
         ts = TimeSignal()
-        ts.create_ts_from_values(ts_name_std, "float", ker_type, sample_times, y_val)
+        ts.create_ts_from_values(ts_name_std, sample_times, y_val)
         if jobs_n_bins is not None:
             ts.digitize(jobs_n_bins, digit_type)
         i_job.append_time_signal(ts)

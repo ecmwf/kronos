@@ -1,6 +1,5 @@
-import time
 import json
-
+import os
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -8,12 +7,10 @@ import matplotlib.pyplot as plt
 from plot_handler import PlotHandler
 from time_signal import TimeSignal
 from synthetic_app import SyntheticApp
-
+import time_signal
+import model_workload
 
 import clustering
-
-
-from tools import mytools
 
 
 class IOWSModel(object):
@@ -26,9 +23,11 @@ class IOWSModel(object):
       3) scaling factor and redeployment of synthetic apps
     """
 
-    def __init__(self, config_options):
+    def __init__(self, config_options, workload):
 
-        self.input_workload = None
+        assert isinstance(workload, model_workload.ModelWorkload)
+        self.input_workload = workload
+
         self.synth_apps = []
         self.schedule = []
 
@@ -46,7 +45,7 @@ class IOWSModel(object):
         # self.pca = None
         # self.pca_2d = None
 
-        self.aggregated_metrics = {}
+        self.aggregated_metrics = []
         self._n_clusters = None
         self.syntapp_list = []
 
@@ -54,12 +53,8 @@ class IOWSModel(object):
 
         # num of kernels for each synth app, temporarily set as constant (TODO: to change..)
         self.n_kernels = config_options.WORKLOADCORRECTOR_JOBS_NBINS
-        self.n_time_signals = len(config_options.WORKLOADCORRECTOR_LIST_TIME_NAMES)
-        self.ts_names = [i_ts[0] for i_ts in config_options.WORKLOADCORRECTOR_LIST_TIME_NAMES]
-        self.job_signal_dgt = [i_ts[3] for i_ts in config_options.WORKLOADCORRECTOR_LIST_TIME_NAMES]
-
-    def set_input_workload(self, input_workload):
-        self.input_workload = input_workload
+        self.n_time_signals = len(time_signal.signal_types)
+        self.ts_names = time_signal.signal_types.keys()
 
     def create_scaled_workload(self, clustering_key, which_clust, n_clust_pc):
         """ function that creates the scaled workload """
@@ -97,35 +92,34 @@ class IOWSModel(object):
         # self.syntapp_list.append(app)
 
         # ---------- append jobs from clusters to synthetic app list ------------
-        n_bins = len(self.input_workload.LogData[0].timesignals[0].xvalues_bins)
+        n_bins = len(self.input_workload.job_list[0].timesignals[self.ts_names[0]].xvalues_bins)
 
         for iC in range(0, self._n_clusters):
-            pf_ts_list = []
-            for tt in range(0, self.n_time_signals):
-                idx_ts = np.arange(0, n_bins) + n_bins * tt
-                retrieved_yvals = self.cluster_centers[iC, idx_ts]
+            synapp_timeseries = {}
+
+            for i, ts_name in enumerate(self.ts_names):
+
+                idx_ts = np.arange(0, n_bins) + n_bins * i
 
                 # create ts from retrieved_yvals
-                ts_name = self.input_workload.LogData[0].timesignals[tt].name
-                ts_type = self.input_workload.LogData[0].timesignals[tt].ts_type
-                ts_group = self.input_workload.LogData[0].timesignals[tt].ts_group
-                ts_signal_x = np.arange(0, len(retrieved_yvals))*1.0  # just a dummy value (not actually needed..)
-                ts_signal_y = retrieved_yvals
+                ts_signal_y = self.cluster_centers[iC, idx_ts]
+                ts_signal_x = np.arange(0, len(ts_signal_y))*1.0  # just a dummy value (not actually needed..)
                 ts = TimeSignal()
-                ts.create_ts_from_values(ts_name, ts_type, ts_group, ts_signal_x, ts_signal_y)
+                ts.create_ts_from_values(ts_name, ts_signal_x, ts_signal_y)
 
                 # we cannot re-digitize the clusters as xvalues are not meaningful..
                 # ts.digitize(10, 'sum')
-                pf_ts_list.append(ts)
+                synapp_timeseries[ts_name] = ts
 
             # create app from cluster time signals
-            app = SyntheticApp()
-            app.job_name = "JOB-cluster-" + str(iC)
-            app.fill_time_series(pf_ts_list)
+            app = SyntheticApp(
+                job_name="JOB-cluster-{}".format(iC),
+                time_signals=synapp_timeseries
+            )
             self.syntapp_list.append(app)
 
         # # ------ finally append non-clustered jobs ----------
-        # for (jj, i_job) in enumerate(self.input_workload.LogData):
+        # for (jj, i_job) in enumerate(self.input_workload.job_list):
         #     if i_job.job_impact_index_rel >= self.job_impact_index_rel_tsh:
         #         app = SyntheticApp()
         #         app.job_name = "JOB-NON-clustered-" + str(jj)
@@ -141,180 +135,194 @@ class IOWSModel(object):
             i_app.time_start = np.random.random() * maxStartTime_fromT0 * scaling_factor
 
         # Calculate sums of total metrics signals (of the original WL)
-        tot_metrics_sums = np.ndarray(self.n_time_signals)
-        for (ii, i_sign) in enumerate(self.input_workload.total_metrics):
-            tot_metrics_sums[ii] = sum(i_sign.yvalues)
+        tot_metrics_sums = np.array([sum(signal.yvalues) for signal in self.input_workload.total_metrics])
 
         # Calculate sums of synthetic (needed for rescaling each ts to match target scaling factor)
-        clust_metrics_sums = np.ndarray(self.n_time_signals)
-        for (ii, i_ts) in enumerate(self.aggregated_metrics):
-            clust_metrics_sums[ii] = sum(i_ts.yvalues)
+        clust_metrics_sums = np.array([sum(metric.yvalues) for metric in self.aggregated_metrics])
 
         # Now actually apply the scaling factor to all the ts of each synthetic app
-        for (ss, i_app) in enumerate(self.syntapp_list):
-            for (tt, i_ts) in enumerate(i_app.time_signals):
-                if clust_metrics_sums[tt]:
-                    i_ts.yvalues = i_ts.yvalues / (clust_metrics_sums[tt]) * tot_metrics_sums[tt] * scaling_factor
+        for app in self.syntapp_list:
+            for i, ts_name in enumerate(self.ts_names):
+                if clust_metrics_sums[i]:
+                    app.time_signals[ts_name].yvalues /= clust_metrics_sums[i] * tot_metrics_sums[i] * scaling_factor
                 else:
-                    i_ts.yvalues *= 0.0
+                    app.time_signals[ts_name].yvalues *= 0.0
 
     def apply_clustering(self, clustering_key, which_clust, n_clust_pc=-1):
 
         self.clustering_key = clustering_key
-        self._n_clusters = max(1, int(n_clust_pc / 100. * len(self.input_workload.LogData)))
+        self._n_clusters = max(1, int(n_clust_pc / 100. * len(self.input_workload.job_list)))
 
         # do the clustering only if scaling factor is less than 100
         if n_clust_pc < 100.:
 
-            if clustering_key == "spectral":
-                pass
+            clustering_worker = {
+                'spectral': self.apply_spectral_clustering,
+                'time_plane': self.apply_time_plane_clustering
+            }.get(clustering_key, None)
 
-                # # clustering
-                # start = time.clock()
-                #
-                # # NOTE: n_signals assumes that all the jobs signals have the same num of signals
-                # # NOTE: n_bins assumes that all the time signals have the same num of points
-                # n_signals = len(self.input_workload.LogData[0].timesignals)
-                # n_freq = self.input_workload.LogData[0].timesignals[0].freqs.size
-                # data = np.array([]).reshape(0, (n_freq * 3) * n_signals)
-                # for i_job in self.input_workload.LogData:
-                #     data_row = []
-                #     for i_sign in i_job.timesignals:
-                #         data_row = np.hstack((data_row, i_sign.freqs.tolist() + i_sign.ampls.tolist() + i_sign.phases.tolist()))
-                #
-                #     data = np.vstack((data, data_row))
-                #
-                # # clustering
-                # cluster_method = clustering.factory(which_clust, data)
-                # self._n_clusters = cluster_method.train_method(self._n_clusters, self.kmeans_maxiter)
-                # self.cluster_centers = cluster_method.clusters
-                # self.cluster_labels = cluster_method.labels
-                #
-                # # # calculate 2D PCA
-                # # self.pca = PCA(n_components=2).fit(self.cluster_centers)
-                # # self.pca_2d = self.pca.transform(self.cluster_centers)
-                #
-                # # rebuild the centroids signals
-                # idx1 = np.arange(0, n_freq)
-                # cluster_all_output = np.array([]).reshape(len(self.input_workload.LogData[0].timesignals) + 1, 0)
-                #
-                # for (cc, i_job) in enumerate(self.input_workload.LogData):
-                #
-                #     # load the time of this job signal..
-                #     iC = self.cluster_labels[cc]
-                #     job_times = i_job.timesignals[0].xvalues
-                #     block_vec = np.array([]).reshape(0, len(job_times))
-                #     block_vec = np.vstack((block_vec, job_times))
-                #
-                #     # retrieve the appropriate time signal from cluster set (only if the impact index is low..)
-                #     if i_job.job_impact_index_rel <= self.job_impact_index_rel_tsh:
-                #         for (tt, i_ts_clust) in enumerate(i_job.timesignals):
-                #             idx_f = idx1 + n_freq * 0 + (n_freq * 3 * tt)
-                #             idx_a = idx1 + n_freq * 1 + (n_freq * 3 * tt)
-                #             idx_p = idx1 + n_freq * 2 + (n_freq * 3 * tt)
-                #             retrieved_f = self.cluster_centers[iC, idx_f]
-                #             retrieved_a = self.cluster_centers[iC, idx_a]
-                #             retrieved_p = self.cluster_centers[iC, idx_p]
-                #             yy=abs(mytools.freq_to_time(job_times - job_times[0], retrieved_f, retrieved_a, retrieved_p))
-                #             block_vec = np.vstack((block_vec, yy))
-                #     else:
-                #         print "i_job:", cc, " is not clustered.."
-                #         for (tt, i_ts_clust) in enumerate(i_job.timesignals):
-                #             yy = i_ts_clust.yvalues
-                #             block_vec = np.vstack((block_vec, yy))
-                #
-                #     cluster_all_output = np.hstack((cluster_all_output, block_vec))
-                # cluster_all_output = cluster_all_output[:, cluster_all_output[0, :].argsort()]
-                #
-                # # calculate the total metrics
-                # ts_names = [i_ts.name for i_ts in self.input_workload.LogData[0].timesignals]
-                # list_signals = []
-                #
-                # for i_ts in range(0, len(ts_names)):
-                #     t_sign = TimeSignal()
-                #     t_sign.create_ts_from_values(ts_names[i_ts], cluster_all_output[0, :], cluster_all_output[i_ts+1, :])
-                #     t_sign.digitize(self.total_metrics_nbins, 'sum')
-                #     list_signals.append(t_sign)
-                #
-                # self.aggregated_metrics = list_signals
-                #
-                # print "elapsed time: ", time.clock() - start
-
-            elif clustering_key == "time_plane":
-
-                # NOTE: n_signals assumes that all the jobs signals have the same num of signals
-                # NOTE: n_bins assumes that all the time signals have the same
-                # num of points
-                data = np.array([]).reshape(0, self.jobs_n_bins * self.n_time_signals)
-
-                for i_job in self.input_workload.LogData:
-                    data_row = [item for i_sign in i_job.timesignals for item in i_sign.yvalues_bins]
-                    data = np.vstack((data, data_row))
-
-                # clustering
-                cluster_method = clustering.factory(which_clust, data)
-                cluster_method.train_method(self._n_clusters, self.kmeans_maxiter)
-                self.cluster_centers = cluster_method.clusters
-                self.cluster_labels = cluster_method.labels
-
-                # # calculate 2D PCA
-                # self.pca = PCA(n_components=2).fit(self.cluster_centers)
-                # self.pca_2d = self.pca.transform(self.cluster_centers)
+            if clustering_worker is None:
+                raise Exception("Clustering method {} not found".format(clustering_key))
 
         else:  # copy jobs directly into clusters list..
 
-            # NOTE: n_signals assumes that all the jobs signals have the same num of signals
-            # NOTE: n_bins assumes that all the time signals have the same
-            # num of points
-            data = np.array([]).reshape(0, self.jobs_n_bins * self.n_time_signals)
-            for i_job in self.input_workload.LogData:
-                data_row = [item for i_sign in i_job.timesignals for item in i_sign.yvalues_bins]
-                data = np.vstack((data, data_row))
+            clustering_worker = self.apply_no_clustering
 
-            self.cluster_centers = data
-            self.cluster_labels = np.arange(0, len(self.input_workload.LogData))
+        # And do the clustering
+        clustering_worker(which_clust, n_clust_pc)
 
     def calculate_total_metrics(self):
         """ Calculate global metrics for all the jobs """
 
         # rebuild the centroids signals
-        cluster_all_output = np.array([]).reshape(len(self.input_workload.LogData[0].timesignals) + 1, 0)
+        cluster_all_output = np.array([]).reshape(len(self.input_workload.job_list[0].timesignals) + 1, 0)
 
-        for (cc, i_job) in enumerate(self.input_workload.LogData):
+        for job, label in zip(self.input_workload.job_list, self.cluster_labels):
 
-            iC = self.cluster_labels[cc]
-            block_vec = np.array([]).reshape(0, len(i_job.timesignals[0].xvalues_bins))
-            block_vec = np.vstack((block_vec, i_job.timesignals[0].xvalues_bins))
+            block_vec = np.array([]).reshape(0, len(job.timesignals[self.ts_names[0]].xvalues_bins))
+            block_vec = np.vstack((block_vec, job.timesignals[self.ts_names[0]].xvalues_bins))
 
             # retrieve the appropriate time signal from cluster set (only if the impact index is low..)
             # if i_job.job_impact_index_rel <= self.job_impact_index_rel_tsh:
-            for (tt, i_ts_clust) in enumerate(i_job.timesignals):
+            for (tt, i_ts_clust) in enumerate(job.timesignals):
                 idx_ts = np.arange(0, self.jobs_n_bins) + self.jobs_n_bins * tt
-                retrieved_yvals = self.cluster_centers[iC, idx_ts]
+                retrieved_yvals = self.cluster_centers[label, idx_ts]
                 block_vec = np.vstack((block_vec, retrieved_yvals))
-            # else:
-            #     print "i_job:", cc, " is not clustered.."
-            #     for (tt, i_ts_clust) in enumerate(i_job.timesignals):
-            #         retrieved_yvals = i_ts_clust.yvalues_bins
-            #         block_vec = np.vstack((block_vec, retrieved_yvals))
 
-            cluster_all_output =np.hstack((cluster_all_output, block_vec))
+            cluster_all_output = np.hstack((cluster_all_output, block_vec))
         cluster_all_output = cluster_all_output[:, cluster_all_output[0, :].argsort()]
 
         # calculate the total metrics
-        ts_names = [i_ts.name for i_ts in self.input_workload.LogData[0].timesignals]
-        ts_types = [i_ts.ts_type for i_ts in self.input_workload.LogData[0].timesignals]
-        ts_groups = [i_ts.ts_group for i_ts in self.input_workload.LogData[0].timesignals]
         list_signals = []
-
-        for tt, i_ts in enumerate(range(0, len(ts_names))):
-            t_sign = TimeSignal()
-            t_sign.create_ts_from_values(ts_names[i_ts], ts_types[i_ts], ts_groups[i_ts],
-                                         cluster_all_output[0, :], cluster_all_output[i_ts + 1, :])
-            t_sign.digitize(self.total_metrics_nbins, self.job_signal_dgt[tt])
-            list_signals.append(t_sign)
+        for i, signal in enumerate(self.ts_names):
+            ts = TimeSignal()
+            ts.create_ts_from_values(signal, cluster_all_output[0, :], cluster_all_output[i+1, :])
+            ts.digitize(self.total_metrics_nbins, time_signal.signal_types[signal]['behaviour'])
+            list_signals.append(ts)
 
         self.aggregated_metrics = list_signals
+
+    def apply_time_plane_clustering(self, which_clust, n_clust_pc=None):
+        """
+        Use the time-plane clustering method
+        :param which_clust: Specify the form of clustering to use. See clustering/__init__.py
+        :param n_clust_pc: The percentage of jobs to retain.
+        :return:
+        """
+
+        # NOTE: n_signals assumes that all the jobs signals have the same num of signals
+        # NOTE: n_bins assumes that all the time signals have the same
+        # num of points
+        data = np.array([]).reshape(0, self.jobs_n_bins * self.n_time_signals)
+
+        for job in self.input_workload.job_list:
+            data_row = np.concatenate([job.timesignals[signal].yvalues_bins for signal in self.ts_names])
+            data = np.vstack((data, data_row))
+
+        # clustering
+        cluster_method = clustering.factory(which_clust, data)
+        cluster_method.train_method(self._n_clusters, self.kmeans_maxiter)
+        self.cluster_centers = cluster_method.clusters
+        self.cluster_labels = cluster_method.labels
+
+        # # calculate 2D PCA
+        # self.pca = PCA(n_components=2).fit(self.cluster_centers)
+        # self.pca_2d = self.pca.transform(self.cluster_centers)
+
+    def apply_no_clustering(self, which_clust, n_clust_pc=None):
+        """
+        A straight-through "clustering" approach (which essentially does nothing).
+        """
+        assert n_clust_pc == 100
+
+        # NOTE: n_signals assumes that all the jobs signals have the same num of signals
+        # NOTE: n_bins assumes that all the time signals have the same
+        # num of points
+
+        data = np.vstack((
+            np.concatenate([job.timesignals[signal].yvalues_bins for signal in self.ts_names])
+            for job in self.input_workload.job_list
+        ))
+
+        self.cluster_centers = data
+        self.cluster_labels = np.arange(0, len(self.input_workload.job_list))
+
+    def apply_spectral_clustering(self, which_clust, n_clust_pc=None):
+        """
+        Use the spectral clustering method
+        """
+        raise NotImplementedError
+        # # clustering
+        # start = time.clock()
+        #
+        # # NOTE: n_signals assumes that all the jobs signals have the same num of signals
+        # # NOTE: n_bins assumes that all the time signals have the same num of points
+        # n_signals = len(self.input_workload.job_list[0].timesignals)
+        # n_freq = self.input_workload.job_list[0].timesignals[0].freqs.size
+        # data = np.array([]).reshape(0, (n_freq * 3) * n_signals)
+        # for i_job in self.input_workload.job_list:
+        #     data_row = []
+        #     for i_sign in i_job.timesignals:
+        #         data_row = np.hstack((data_row, i_sign.freqs.tolist() + i_sign.ampls.tolist() + i_sign.phases.tolist()))
+        #
+        #     data = np.vstack((data, data_row))
+        #
+        # # clustering
+        # cluster_method = clustering.factory(which_clust, data)
+        # self._n_clusters = cluster_method.train_method(self._n_clusters, self.kmeans_maxiter)
+        # self.cluster_centers = cluster_method.clusters
+        # self.cluster_labels = cluster_method.labels
+        #
+        # # # calculate 2D PCA
+        # # self.pca = PCA(n_components=2).fit(self.cluster_centers)
+        # # self.pca_2d = self.pca.transform(self.cluster_centers)
+        #
+        # # rebuild the centroids signals
+        # idx1 = np.arange(0, n_freq)
+        # cluster_all_output = np.array([]).reshape(len(self.input_workload.job_list[0].timesignals) + 1, 0)
+        #
+        # for (cc, i_job) in enumerate(self.input_workload.job_list):
+        #
+        #     # load the time of this job signal..
+        #     iC = self.cluster_labels[cc]
+        #     job_times = i_job.timesignals[0].xvalues
+        #     block_vec = np.array([]).reshape(0, len(job_times))
+        #     block_vec = np.vstack((block_vec, job_times))
+        #
+        #     # retrieve the appropriate time signal from cluster set (only if the impact index is low..)
+        #     if i_job.job_impact_index_rel <= self.job_impact_index_rel_tsh:
+        #         for (tt, i_ts_clust) in enumerate(i_job.timesignals):
+        #             idx_f = idx1 + n_freq * 0 + (n_freq * 3 * tt)
+        #             idx_a = idx1 + n_freq * 1 + (n_freq * 3 * tt)
+        #             idx_p = idx1 + n_freq * 2 + (n_freq * 3 * tt)
+        #             retrieved_f = self.cluster_centers[iC, idx_f]
+        #             retrieved_a = self.cluster_centers[iC, idx_a]
+        #             retrieved_p = self.cluster_centers[iC, idx_p]
+        #             yy=abs(mytools.freq_to_time(job_times - job_times[0], retrieved_f, retrieved_a, retrieved_p))
+        #             block_vec = np.vstack((block_vec, yy))
+        #     else:
+        #         print "i_job:", cc, " is not clustered.."
+        #         for (tt, i_ts_clust) in enumerate(i_job.timesignals):
+        #             yy = i_ts_clust.yvalues
+        #             block_vec = np.vstack((block_vec, yy))
+        #
+        #     cluster_all_output = np.hstack((cluster_all_output, block_vec))
+        # cluster_all_output = cluster_all_output[:, cluster_all_output[0, :].argsort()]
+        #
+        # # calculate the total metrics
+        # ts_names = [i_ts.name for i_ts in self.input_workload.job_list[0].timesignals]
+        # list_signals = []
+        #
+        # for i_ts in range(0, len(ts_names)):
+        #     t_sign = TimeSignal()
+        #     t_sign.create_ts_from_values(ts_names[i_ts], cluster_all_output[0, :], cluster_all_output[i_ts+1, :])
+        #     t_sign.digitize(self.total_metrics_nbins, 'sum')
+        #     list_signals.append(t_sign)
+        #
+        # self.aggregated_metrics = list_signals
+        #
+        # print "elapsed time: ", time.clock() - start
+
 
     # def export_scaled_workload(self):
     #
@@ -334,30 +342,23 @@ class IOWSModel(object):
     def export_scaled_workload(self):
 
         n_bins = 2
+        # json_all_synth_app = {}
 
-        json_all_synth_app = {}
+        for i, app in enumerate(self.syntapp_list):
 
-        for (ii, i_app) in enumerate(self.syntapp_list):
-            job_entry = i_app.make_kernels_from_ts(n_bins, self.job_signal_dgt, self.supported_synth_apps)
+            job_entry = app.make_kernels_from_ts(n_bins, self.supported_synth_apps)
+            name_json_file = 'input{}.json'.format(i)
+            # TODO: Enable debug options to pass through to SynApps
+            #       n.b. This can also be done in the executor
             # job_entry["mpi_ranks_verbose"] = 'true'
             # job_entry["enable_trace"] = 'true'
 
-            name_json_file = 'input'+str(ii)+'.json'
-            name_json_file_raw = '_temp_input' + str(ii) + '.json'
+            # json_all_synth_app[app.job_name] = job_entry
 
-            json_all_synth_app[i_app.job_name] = job_entry
-
-            with open(self.out_dir + '/' + name_json_file_raw, 'w') as f:
-                json.encoder.FLOAT_REPR = lambda o: format(o, '.2f')
+            with open(os.path.join(self.out_dir, name_json_file), 'w') as f:
+                # json.encoder.FLOAT_REPR = lambda o: format(o, '.2f')
                 # json.dump(json_all_synth_app, f, ensure_ascii=True, sort_keys=True, indent=4, separators=(',', ': '))
                 json.dump(job_entry, f, ensure_ascii=True, sort_keys=True, indent=4, separators=(',', ': '))
-
-            # substitute true string..
-            with open(self.out_dir + '/' + name_json_file, "wt") as fout:
-                with open(self.out_dir + '/' + name_json_file_raw, "rt") as fin:
-                    for line in fin:
-                        # fout.write(line.replace('"true"', 'true'))
-                        fout.write(line.replace('"false"', 'false'))
 
         # # Sanity check in/out
         # # < NOTE: this only works for n_bin = 1 >
@@ -367,7 +368,7 @@ class IOWSModel(object):
         """ Plotting routine """
 
         np.random.seed(1)
-        color_vec = np.random.rand(3, len(self.input_workload.LogData[0].timesignals))
+        color_vec = np.random.rand(3, len(self.input_workload.job_list[0].timesignals))
 
         # plot real vs clustered
         i_fig = PlotHandler.get_fig_handle_ID()
@@ -375,7 +376,7 @@ class IOWSModel(object):
         plt.title('time series ' + 'cluster_NC=' + str(self._n_clusters))
         tot_signals = self.aggregated_metrics
 
-        for (cc, i_ts) in enumerate(self.input_workload.LogData[0].timesignals):
+        for (cc, i_ts) in enumerate(self.input_workload.job_list[0].timesignals):
             plt.subplot(len(tot_signals), 1, cc + 1)
             xx = self.input_workload.total_metrics[cc].xedge_bins[:-1]
             yy = self.input_workload.total_metrics[cc].yvalues_bins
@@ -397,7 +398,7 @@ class IOWSModel(object):
         plt.title('time series ERROR' + 'cluster_NC=' + str(self._n_clusters))
         tot_signals = self.aggregated_metrics
 
-        for (cc, i_ts) in enumerate(self.input_workload.LogData[0].timesignals):
+        for (cc, i_ts) in enumerate(self.input_workload.job_list[0].timesignals):
             plt.subplot(len(tot_signals), 1, cc + 1)
             xx = self.input_workload.total_metrics[cc].xedge_bins[:-1]
             yy = self.input_workload.total_metrics[cc].yvalues_bins
@@ -427,7 +428,7 @@ class IOWSModel(object):
         i_fig = PlotHandler.get_fig_handle_ID()
         plt.figure(i_fig, figsize=(12, 20), dpi=80, facecolor='w', edgecolor='k')
 
-        xx = np.arange(0,len(self.input_workload.LogData))
+        xx = np.arange(0,len(self.input_workload.job_list))
         n_time_signals_in = len(self.ts_names)
 
         for tt in np.arange(0, n_time_signals_in):
@@ -435,7 +436,7 @@ class IOWSModel(object):
             ts_name = self.ts_names[tt]
 
             ts_sums_input=[]
-            for i_app in self.input_workload.LogData:
+            for i_app in self.input_workload.job_list:
                 if self.job_signal_dgt[tt] == 'sum':
                     ts_sums_input.append(i_app.timesignals[tt].sum)
                 elif self.job_signal_dgt[tt] == 'mean':

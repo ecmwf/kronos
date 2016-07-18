@@ -44,7 +44,7 @@ import sys
 import logreader
 
 from exceptions_iows import *
-from real_workload import ModelWorkload
+from model_workload import ModelWorkload
 from config.config import Config
 
 

@@ -7,7 +7,7 @@ os.sys.path.append(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
 
 from config.config import Config
 from IOWS_model import IOWSModel
-from real_workload import ModelWorkload
+from model_workload import ModelWorkload
 from plot_handler import PlotHandler
 
 
@@ -32,8 +32,7 @@ def test3():
 
     # Generator model
     scaling_factor = 100  # [%] percentage of measured workload
-    model = IOWSModel(config)
-    model.set_input_workload(input_workload)
+    model = IOWSModel(config, input_workload)
     model.create_scaled_workload("time_plane", "Kmeans", scaling_factor)
     model.export_scaled_workload()
     model.make_plots(plot_tag)

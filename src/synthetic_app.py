@@ -1,22 +1,20 @@
+import time_signal
+
 
 class SyntheticApp(object):
 
     """ Class representing a synthetic app """
 
-    def __init__(self):
+    def __init__(self, job_name=None, time_signals=None):
 
         self.jobID = None
-        self.job_name = None
+        self.job_name = job_name
         self.time_start = None
-        self.time_signals = None  # time signals
+        self.time_signals = time_signals
         self.kernels_seq = []
 
-    # load time-series in
-    def fill_time_series(self, ts_list):
-        self.time_signals = ts_list
-
     # write list ouf output kernels
-    def make_kernels_from_ts(self, n_bins, dgt_types, supported_synth_apps):
+    def make_kernels_from_ts(self, n_bins, supported_synth_apps):
 
         # application object to be written to JSON
         ker_data = {}
@@ -59,31 +57,31 @@ class SyntheticApp(object):
         # -----------------------------------
 
         # digitize all the ts
-        for (tt, i_ts) in enumerate(self.time_signals):
-            i_ts.digitize(n_bins, dgt_types[tt])
+        for ts_name, ts in self.time_signals.iteritems():
+            ts.digitize(n_bins, time_signal.signal_types[ts_name]['behaviour'])
 
         # sort ts by type..
         ker_blocks_all = []
         for i_bin in range(n_bins):
             ker_blocks = {}
-            for i_ts in self.time_signals:
+            for ts_name, ts in self.time_signals.iteritems():
 
-                if supported_synth_apps.count(i_ts.ts_group) != 0:
+                if supported_synth_apps.count(ts.ts_group) != 0:
                     # if i_ts.yvalues_bins[i_bin] >= 1.0:
-                    if not ker_blocks.has_key(i_ts.ts_group):
-                        ker_blocks[i_ts.ts_group] = {i_ts.name: i_ts.yvalues_bins[i_bin], "name": i_ts.ts_group}
+                    if not ker_blocks.has_key(ts.ts_group):
+                        ker_blocks[ts.ts_group] = {ts.name: ts.yvalues_bins[i_bin], "name": ts.ts_group}
 
                         # TODO: remove this as soon as we count #read and #write..
-                        if i_ts.ts_group == "file-read":
-                            ker_blocks[i_ts.ts_group]["n_read"] = 1
-                            ker_blocks[i_ts.ts_group]["mmap"] = "false"
-                        if i_ts.ts_group == "file-write":
-                            ker_blocks[i_ts.ts_group]["n_write"] = 1
-                            ker_blocks[i_ts.ts_group]["mmap"] = "false"
+                        if ts.ts_group == "file-read":
+                            ker_blocks[ts.ts_group]["n_read"] = 1
+                            ker_blocks[ts.ts_group]["mmap"] = False
+                        elif ts.ts_group == "file-write":
+                            ker_blocks[ts.ts_group]["n_write"] = 1
+                            ker_blocks[ts.ts_group]["mmap"] = False
                         # -----------------------------------------------------------
 
                     else:
-                        ker_blocks[i_ts.ts_group][i_ts.name] = i_ts.yvalues_bins[i_bin]
+                        ker_blocks[ts.ts_group][ts.name] = ts.yvalues_bins[i_bin]
 
             # sanitize values in block (e.g. # of mpi calls can't be 0 if kb > 0, etc...)
             ker_blocks['mpi']['n_collective'] = max(1, ker_blocks['mpi']['n_collective'])

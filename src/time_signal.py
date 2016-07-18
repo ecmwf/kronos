@@ -27,9 +27,8 @@ class TimeSignal(object):
 
     def __init__(self):
 
-        self.name = ""
-        self.ts_type = ""
-        self.ts_group = ""
+        self.name = None
+        self.base_signal_name = None
 
         # vals in the time plane
         self.xvalues = None
@@ -46,12 +45,27 @@ class TimeSignal(object):
         self.xedge_bins = None
         self.dx_bins = None
 
+    @property
+    def ts_group(self):
+        assert self.base_signal_name is not None and self.base_signal_name != ""
+        return signal_types[self.base_signal_name]['category']
+
+    @property
+    def ts_type(self):
+        assert self.base_signal_name is not None and self.base_signal_name != ""
+        return signal_types[self.base_signal_name]['type']
+
+    @property
+    def digitization_key(self):
+        assert self.base_signal_name is not None and self.base_signal_name != ""
+        return signal_types[self.base_signal_name]['behaviour']
+
     # create from freq domain
-    def create_ts_from_spectrum(self, name, ts_type, ts_group, time, freqs, ampls, phases):
+    def create_ts_from_spectrum(self, name, time, freqs, ampls, phases, base_signal_name=None):
 
         self.name = name
-        self.ts_type = ts_type
-        self.ts_group = ts_group
+        self.base_signal_name = base_signal_name if base_signal_name else self.name
+        assert self.base_signal_name in signal_types
 
         self.xvalues = time
         self.yvalues = abs(mytools.freq_to_time(time - time[0], freqs, ampls, phases))
@@ -61,17 +75,22 @@ class TimeSignal(object):
         self.phases = phases
 
     # create from time plane
-    def create_ts_from_values(self, name, ts_type, ts_group, xvals, yvals):
+    def create_ts_from_values(self, name, xvals, yvals, base_signal_name=None):
 
         self.name = name
-        self.ts_type = ts_type
-        self.ts_group = ts_group
+        self.base_signal_name = base_signal_name if base_signal_name else self.name
+        assert self.base_signal_name in signal_types
+
         self.xvalues = np.asarray(xvals)
         self.yvalues = np.asarray(yvals)
         self.yvalues = self.yvalues.astype(self.ts_type)
 
     # calculate bins
-    def digitize(self, n_bins, key):
+    def digitize(self, n_bins, key=None):
+
+        # Use a sensible default
+        if key is None:
+            key = self.digitization_key
 
         digitize_eps = 1.0e-6
         # self.xedge_bins = np.linspace(min(self.xvalues)-digitize_eps,
