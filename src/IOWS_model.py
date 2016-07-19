@@ -197,7 +197,7 @@ class IOWSModel(object):
         for i, signal in enumerate(self.ts_names):
             ts = TimeSignal()
             ts.create_ts_from_values(signal, cluster_all_output[0, :], cluster_all_output[i+1, :])
-            ts.digitize(self.total_metrics_nbins, time_signal.signal_types[signal]['behaviour'])
+            ts.digitize(self.total_metrics_nbins)
             list_signals.append(ts)
 
         self.aggregated_metrics = list_signals

@@ -145,7 +145,7 @@ class ModelWorkload(object):
             ts = TimeSignal()
             ts.create_ts_from_values('total_{}'.format(signal_name), times_bin, data,
                                      base_signal_name=signal_name)
-            ts.digitize(self.total_metrics_nbins, signal_details['behaviour'])
+            ts.digitize(self.total_metrics_nbins)
             self.total_metrics.append(ts)
 
         # # calculate relative impact factors (0 to 1)....

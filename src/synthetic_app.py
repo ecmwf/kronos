@@ -58,7 +58,7 @@ class SyntheticApp(object):
 
         # digitize all the ts
         for ts_name, ts in self.time_signals.iteritems():
-            ts.digitize(n_bins, time_signal.signal_types[ts_name]['behaviour'])
+            ts.digitize(n_bins)
 
         # sort ts by type..
         ker_blocks_all = []

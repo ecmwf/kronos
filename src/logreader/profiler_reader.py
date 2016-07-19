@@ -12,13 +12,15 @@ from logreader.dataset import IngestedDataSet
 def read_allinea_log(filename, jobs_n_bins=None):
     """ Collect info from Allinea logs """
 
-    desired2allinea = [('flops',            'instr_fp',             'cpu',          'sum'),
-                       ('kb_read',          'lustre_bytes_read',    'file-read',    'sum'),
-                       ('kb_write',         'lustre_bytes_written', 'file-write',   'sum'),
-                       ('n_pairwise',       'mpi_p2p',              'mpi',          'sum'),
-                       ('kb_pairwise',      'mpi_p2p_bytes',        'mpi',          'sum'),
-                       ('n_collective',     'mpi_collect',          'mpi',          'sum'),
-                       ('kb_collective',    'mpi_collect_bytes',    'mpi',          'sum')]
+    allinea_time_signal_map = {
+        'instr_fp': 'flops',
+        'lustre_bytes_read': 'kb_read',
+        'lustre_bytes_written': 'kb_write',
+        'mpi_p2p': 'n_pairwise',
+        'mpi_p2p_bytes': 'kb_pairwise',
+        'mpi_collect': 'n_collective',
+        'mpi_collect_bytes': 'kb_collective'
+    }
 
     with open(filename) as json_file:
         json_data = json.load(json_file)
@@ -69,19 +71,9 @@ def read_allinea_log(filename, jobs_n_bins=None):
     # convert time in seconds
     sample_times = [t / 1000. for t in sample_times]
 
-    # ts_names_std_list = [row[1] for row in desired2allinea]
-    # for ts_name_allinea in json_data['profile']['samples'].keys():
-    for ts_name_row in desired2allinea:
+    for ts_name_allinea, ts_name_std in allinea_time_signal_map.iteritems():
 
-        # convert name into corresponding desired metrics name..
-        # name_ker_ts_std = [(i_name[0], i_name[2], i_name[3]) for i_name in desired2allinea if i_name[1] == ts_name_allinea]
-
-        ts_name_std = ts_name_row[0]
-        ts_name_allinea = ts_name_row[1]
-        ker_type = ts_name_row[2]
-        digit_type = ts_name_row[3]
-
-        # print ts_name_allinea, ts_name_allinea, ker_type, digit_type
+        # print ts_name_allinea, ts_name_allinea
 
         # if not (name_ker_ts_std == []):
         y_val_bk = json_data['profile']['samples'][ts_name_allinea]
@@ -96,7 +88,7 @@ def read_allinea_log(filename, jobs_n_bins=None):
         ts = TimeSignal()
         ts.create_ts_from_values(ts_name_std, sample_times, y_val)
         if jobs_n_bins is not None:
-            ts.digitize(jobs_n_bins, digit_type)
+            ts.digitize(jobs_n_bins)
         i_job.append_time_signal(ts)
 
         # -- translate allinea metrics into desired metrics

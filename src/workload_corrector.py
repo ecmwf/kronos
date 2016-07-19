@@ -135,7 +135,7 @@ class WorkloadCorrector(object):
                 y_values = np.ones(self.jobs_n_bins)*max(self.eps, ann_response[jj][tt])
 
                 ts.create_ts_from_values(i_ts_name, sample_times, y_values)
-                ts.digitize(self.jobs_n_bins, self.job_signal_digitization_type[tt])
+                ts.digitize(self.jobs_n_bins)
 
                 i_job.timesignals[i_ts_name] = ts
 
