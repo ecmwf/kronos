@@ -1,6 +1,8 @@
 import os
 import json
 
+from exceptions_iows import ConfigurationError
+
 
 class Config(object):
     """
@@ -39,6 +41,15 @@ class Config(object):
     IOWSMODEL_JOB_IMPACT_INDEX_REL_TSH = 0.2
     IOWSMODEL_SUPPORTED_SYNTH_APPS = ['cpu', 'file-read', 'file-write', 'mpi']
 
+    # Directory choices
+
+    dir_output = os.path.join(os.getcwd(), 'output')
+    dir_input = os.path.join(os.getcwd(), 'input')
+
+    # Sources of profiling data
+
+    profile_sources = []
+
     def __init__(self, config_dict=None, config_path=None):
 
         assert config_dict is None or config_path is None
@@ -56,15 +67,17 @@ class Config(object):
 
         config_dict = config_dict if config_dict is not None else {}
 
-        # And initialise using some default values
+        # Update the default values using the supplied configuration dict
 
-        self.dir_output = config_dict.get('dir_output', os.path.join(os.getcwd(), 'output'))
-        self.dir_input = config_dict.get('dir_output', os.path.join(os.getcwd(), 'input'))
+        for k, v in config_dict.iteritems():
+            if not hasattr(self, k):
+                raise ConfigurationError("Unexpected configuration keyword provided - {}:{}".format(k, v))
+            setattr(self, k, v)
+
+        # And any necessary actions
+
         if not os.path.exists(self.dir_output):
             print "Creating output directory: {}".format(self.dir_output)
             os.makedirs(self.dir_output)
 
-        # Sources of profiling data
-
-        self.profile_sources = config_dict.get('profile_sources', [])
 
