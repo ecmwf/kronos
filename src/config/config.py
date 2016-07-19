@@ -43,9 +43,16 @@ class Config(object):
 
         assert config_dict is None or config_path is None
 
+        # If specified, load a config from the given JSON file. Custom modification to the JSON spec
+        # permits lines to be commented out using a '#' character for ease of testing
         if config_path is not None:
             with open(config_path, 'r') as f:
-                config_dict = json.load(f)
+                lines = f.readlines()
+                for i, line in enumerate(lines):
+                    if '#' in line:
+                        lines[i] = line[:line.index('#')]
+
+                config_dict = json.loads(''.join(lines))
 
         config_dict = config_dict if config_dict is not None else {}
 
