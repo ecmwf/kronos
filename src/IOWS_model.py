@@ -31,7 +31,7 @@ class IOWSModel(object):
         self.synth_apps = []
         self.schedule = []
 
-        self.out_dir = config_options.DIR_OUTPUT
+        self.out_dir = config_options.dir_output
 
         self.total_metrics_nbins = config_options.IOWSMODEL_TOTAL_METRICS_NBINS
         self.kmeans_maxiter = config_options.IOWSMODEL_KMEANS_MAXITER

@@ -24,11 +24,11 @@ class ModelWorkload(object):
         self.profiler_jobs = []
         self.job_list = []
 
-        self.input_dir = config_options.DIR_INPUT
-        self.out_dir = config_options.DIR_OUTPUT
+        self.input_dir = config_options.dir_input
+        self.out_dir = config_options.dir_output
         self.total_metrics_nbins = config_options.REALWORKLOAD_TOTAL_METRICS_NBINS
 
-        self.dir_input = config_options.DIR_INPUT
+        self.dir_input = config_options.dir_input
         self.job_output_all = np.array([]).reshape(3, 0)
         self.job_list = []
 

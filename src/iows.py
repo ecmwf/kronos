@@ -57,7 +57,7 @@ class IOWS(object):
         """
         TODO: Parse the config for validity --> If there are issues, that should be picked up here.
         """
-        self.config = config.copy()
+        self.config = config
         self.job_datasets = None
 
     def ingest_data(self):
@@ -65,11 +65,11 @@ class IOWS(object):
         Depending on the supplied config, ingest data of various types.
         """
         self.job_datasets = []
-        for ingest_type, ingest_path in self.config['profile_sources']:
+        for ingest_type, ingest_path in self.config.profile_sources:
             self.job_datasets.append(logreader.ingest_data(ingest_type, ingest_path))
 
     def model_workload(self):
-        workload = ModelWorkload(Config())
+        workload = ModelWorkload(self.config)
         workload.model_ingested_datasets(self.job_datasets)
         self.model_jobs = workload
 
@@ -95,19 +95,19 @@ if __name__ == "__main__":
     print "Using configuration file: {}".format(input_file)
 
     try:
-        with open(input_file, 'r') as f:
-            config = json.load(f)
+        try:
 
-    except (OSError, IOError) as e:
-        print "Error opening input file: {}".format(e)
-        print __doc__
-        sys.exit(-1)
+            config = Config(config_path=input_file)
 
-    except ValueError as e:
-        print "Error parsing the supplied input file: {}".format(e)
-        sys.exit(-1)
+        except (OSError, IOError) as e:
+            print "Error opening input file: {}".format(e)
+            print __doc__
+            sys.exit(-1)
 
-    try:
+        except ValueError as e:
+            print "Error parsing the supplied input file: {}".format(e)
+            sys.exit(-1)
+
         # And get going!!!
         app = IOWS(config)
         app.run()

@@ -24,7 +24,7 @@ class WorkloadCorrector(object):
     def __init__(self, config_param):
 
         # self.Workload = input_wl
-        self.out_dir = config_param.DIR_OUTPUT
+        self.out_dir = config_param.dir_output
 
         # ann configuration params
         self.eps = config_param.WORKLOADCORRECTOR_EPS
