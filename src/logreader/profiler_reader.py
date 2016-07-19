@@ -1,26 +1,41 @@
 from datetime import datetime
+
 import os
 import json
 import glob
+import numpy as np
 
 from jobs import IngestedJob, ModelJob
 from time_signal import TimeSignal
 from exceptions_iows import ConfigurationError
 from logreader.dataset import IngestedDataSet
+import time_signal
 
 
 def read_allinea_log(filename, jobs_n_bins=None):
     """ Collect info from Allinea logs """
 
+    # The time signal map has a number of options for each element in the profile:
+    #
+    # 'name':     What is the name of this signal mapped into IOWS-land (i.e. mapping onto time_signal.signal_types)
+    # 'is_rate':  True if the data is recorded as x-per-second rates, rather than accumulatable values.
+    #             (default False)
+    # 'per_task': Is the value presented per-task, or global. If per-task it needs to be multiplied up.
+    #             (default False)
+
     allinea_time_signal_map = {
-        'instr_fp': 'flops',
-        'lustre_bytes_read': 'kb_read',
-        'lustre_bytes_written': 'kb_write',
-        'mpi_p2p': 'n_pairwise',
-        'mpi_p2p_bytes': 'kb_pairwise',
-        'mpi_collect': 'n_collective',
-        'mpi_collect_bytes': 'kb_collective'
+        'instr_fp':             {'name': 'flops'},
+        'lustre_bytes_read':    {'name': 'kb_read',       'is_rate': True},
+        'lustre_bytes_written': {'name': 'kb_write',      'is_rate': True},
+        'mpi_p2p':              {'name': 'n_pairwise'},
+        'mpi_p2p_bytes':        {'name': 'kb_pairwise'},
+        'mpi_collect':          {'name': 'n_collective'},
+        'mpi_collect_bytes':    {'name': 'kb_collective'}
     }
+
+    # A quick sanity check
+    for value in allinea_time_signal_map.values():
+        assert value['name'] in time_signal.signal_types
 
     with open(filename) as json_file:
         json_data = json.load(json_file)
@@ -46,6 +61,7 @@ def read_allinea_log(filename, jobs_n_bins=None):
     # Threads are not considered for now..
     i_job.ncpus = (json_data['profile']["nodes"] * json_data['profile']["num_physical_cores_per_node"][2])
     i_job.nnodes = json_data['profile']["nodes"]
+    target_procs = json_data['profile']['targetProcs']
 
     # average memory used is taken from sample average of "node_mem_percent"
     mem_val_bk = json_data['profile']['samples']['node_mem_percent']
@@ -66,27 +82,24 @@ def read_allinea_log(filename, jobs_n_bins=None):
     # TODO: find more sensible solution to that..
     i_job.time_start_0 = 0.0
 
-    sample_times = json_data['profile']['sample_times']
+    # Obtain the timestamps for the (end of) each sampling window, converted into seconds.
+    sample_times = np.array(json_data['profile']['sample_times']) / 1000.
 
-    # convert time in seconds
-    sample_times = [t / 1000. for t in sample_times]
+    for ts_name_allinea, ts_config in allinea_time_signal_map.iteritems():
 
-    for ts_name_allinea, ts_name_std in allinea_time_signal_map.iteritems():
+        # The Allinea time-series data is a sequence of tuples of the form: (min, max, mean, variance)
+        # Extract the mean value for each sampling interval.
+        y_vals = np.array([v[2] for v in json_data['profile']['samples'][ts_name_allinea]])
 
-        # print ts_name_allinea, ts_name_allinea
+        # If the data is recorded as a rate (a per-second value), then adjust it to record absolute data volumes
+        # per time interval.
+        if ts_config.get('is_rate', False):
+            y_vals = np.array([v * (sample_times[i] - (sample_times[i-1] if i > 0 else 0)) for i, v in enumerate(y_vals)])
 
-        # if not (name_ker_ts_std == []):
-        y_val_bk = json_data['profile']['samples'][ts_name_allinea]
-        y_val = [v[2] for v in y_val_bk]  # values inside the blocks are: min, max, mean, var
+        if ts_config.get('per_task', False):
+            y_vals *= target_procs
 
-        # Correct the values for "kb_pairwise" and "kb_collective" (as they are recorded as PER SECOND)
-        if (ts_name_std=="kb_pairwise") or (ts_name_std=="kb_collective"):
-            t_ext = [0] + sample_times
-            y_val_ext = [0] + y_val
-            y_val = [y_val_ext[tt-1]*(t_ext[tt]-t_ext[tt-1]) for tt in range(1, len(sample_times)+1)]
-
-        ts = TimeSignal()
-        ts.create_ts_from_values(ts_name_std, sample_times, y_val)
+        ts = TimeSignal.from_values(ts_config['name'], sample_times, y_vals)
         if jobs_n_bins is not None:
             ts.digitize(jobs_n_bins)
         i_job.append_time_signal(ts)

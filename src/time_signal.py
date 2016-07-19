@@ -1,5 +1,5 @@
 import numpy as np
-import re
+import types
 
 
 # The availably types of time-series (or summed/averaged totals) data that we can use
@@ -25,25 +25,32 @@ from tools import mytools
 
 class TimeSignal(object):
 
-    def __init__(self):
+    def __init__(self, name, **kwargs):
 
-        self.name = None
-        self.base_signal_name = None
+        self.name = name
+        self.base_signal_name = kwargs.get('base_signal_name', self.name)
+        if self.base_signal_name is None:
+            self.base_signal_name = self.name
+        assert self.base_signal_name in signal_types
 
         # vals in the time plane
-        self.xvalues = None
-        self.yvalues = None
+        self.xvalues = kwargs.get('xvalues', None)
+        self.yvalues = kwargs.get('yvalues', None)
 
         # vals in freq domain
-        self.freqs = None
-        self.ampls = None
-        self.phases = None
+        self.freqs = kwargs.get('freqs', None)
+        self.ampls = kwargs.get('ampls', None)
+        self.phases = kwargs.get('phases', None)
 
         # digitized vals
         self.xvalues_bins = None
         self.yvalues_bins = None
         self.xedge_bins = None
         self.dx_bins = None
+
+        # A quick sanity check (i.e. that we have used all the arguments)
+        for k in kwargs:
+            assert hasattr(self, k)
 
     @property
     def ts_group(self):
@@ -60,30 +67,36 @@ class TimeSignal(object):
         assert self.base_signal_name is not None and self.base_signal_name != ""
         return signal_types[self.base_signal_name]['behaviour']
 
-    # create from freq domain
-    def create_ts_from_spectrum(self, name, time, freqs, ampls, phases, base_signal_name=None):
+    # Create from frequency domain data
+    @staticmethod
+    def from_spectrum(name, time, freqs, ampls, phases, base_signal_name=None):
+        """
+        A fatory method to construct TimeSignals from the correct elements
+        :return: A newly constructed TimeSignal
+        """
+        return TimeSignal(
+            name,
+            base_signal_name=base_signal_name,
+            xvalues=time,
+            yvalues=abs(mytools.freq_to_time(time - time[0], freqs, ampls, phases)),
+            freqs=freqs,
+            ampls=ampls,
+            phases=phases
+        )
 
-        self.name = name
-        self.base_signal_name = base_signal_name if base_signal_name else self.name
-        assert self.base_signal_name in signal_types
-
-        self.xvalues = time
-        self.yvalues = abs(mytools.freq_to_time(time - time[0], freqs, ampls, phases))
-
-        self.freqs = freqs
-        self.ampls = ampls
-        self.phases = phases
-
-    # create from time plane
-    def create_ts_from_values(self, name, xvals, yvals, base_signal_name=None):
-
-        self.name = name
-        self.base_signal_name = base_signal_name if base_signal_name else self.name
-        assert self.base_signal_name in signal_types
-
-        self.xvalues = np.asarray(xvals)
-        self.yvalues = np.asarray(yvals)
-        self.yvalues = self.yvalues.astype(self.ts_type)
+    # Create from time-series data
+    @staticmethod
+    def from_values(name, xvals, yvals, base_signal_name=None):
+        """
+        A fatory method to construct TimeSignals from the correct elements
+        :return: A newly constructed TimeSignal
+        """
+        return TimeSignal(
+            name,
+            base_signal_name=base_signal_name,
+            xvalues=np.asarray(xvals),
+            yvalues=np.asarray(yvals)
+        )
 
     # calculate bins
     def digitize(self, n_bins, key=None):

@@ -104,8 +104,7 @@ class IOWSModel(object):
                 # create ts from retrieved_yvals
                 ts_signal_y = self.cluster_centers[iC, idx_ts]
                 ts_signal_x = np.arange(0, len(ts_signal_y))*1.0  # just a dummy value (not actually needed..)
-                ts = TimeSignal()
-                ts.create_ts_from_values(ts_name, ts_signal_x, ts_signal_y)
+                ts = TimeSignal.from_values(ts_name, ts_signal_x, ts_signal_y)
 
                 # we cannot re-digitize the clusters as xvalues are not meaningful..
                 # ts.digitize(10, 'sum')
@@ -195,8 +194,7 @@ class IOWSModel(object):
         # calculate the total metrics
         list_signals = []
         for i, signal in enumerate(self.ts_names):
-            ts = TimeSignal()
-            ts.create_ts_from_values(signal, cluster_all_output[0, :], cluster_all_output[i+1, :])
+            ts = TimeSignal.from_values(signal, cluster_all_output[0, :], cluster_all_output[i+1, :])
             ts.digitize(self.total_metrics_nbins)
             list_signals.append(ts)
 

@@ -128,13 +128,11 @@ class WorkloadCorrector(object):
         for (jj, i_job) in enumerate(scheduler_jobs):
             for (tt, i_ts_name) in enumerate(self.ann_name_outputs):
 
-                ts = TimeSignal()
-
                 dt = float(i_job.duration)/self.jobs_n_bins
                 sample_times = np.arange(0, self.jobs_n_bins)*dt+dt/2.0
                 y_values = np.ones(self.jobs_n_bins)*max(self.eps, ann_response[jj][tt])
 
-                ts.create_ts_from_values(i_ts_name, sample_times, y_values)
+                ts = TimeSignal.from_values(i_ts_name, sample_times, y_values)
                 ts.digitize(self.jobs_n_bins)
 
                 i_job.timesignals[i_ts_name] = ts

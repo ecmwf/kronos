@@ -142,9 +142,7 @@ class ModelWorkload(object):
             times_bin = np.concatenate([job.timesignals[signal_name].xvalues_bins for job in self.job_list])
             data = np.concatenate([job.timesignals[signal_name].yvalues_bins for job in self.job_list])
 
-            ts = TimeSignal()
-            ts.create_ts_from_values('total_{}'.format(signal_name), times_bin, data,
-                                     base_signal_name=signal_name)
+            ts = TimeSignal.from_values('total_{}'.format(signal_name), times_bin, data, base_signal_name=signal_name)
             ts.digitize(self.total_metrics_nbins)
             self.total_metrics.append(ts)
 
