@@ -25,7 +25,8 @@ Input file syntax:
     given below if required):
 
     {
-        "profile_sources": [...]   # A list of profiling sources in the format described below
+        "profile_sources": [...],   # A list of profiling sources in the format described below
+        "verbose": False,           # If True, output lots of data for debugging purposes
     }
 
     profile_sources:
@@ -61,6 +62,9 @@ class IOWS(object):
         self.config = config
         self.job_datasets = None
 
+        if self.config.verbose:
+            print "VERBOSE logging enabled"
+
     def ingest_data(self):
         """
         Depending on the supplied config, ingest data of various types.
@@ -74,9 +78,16 @@ class IOWS(object):
         workload.model_ingested_datasets(self.job_datasets)
         self.model_jobs = workload
 
+        if self.config.verbose:
+            print workload.verbose_description()
+
     def scale_workload(self):
         model = IOWSModel(config, self.model_jobs)
-        self.synthetic_apps = model.create_scaled_workload("time_plane", "Kmeans", 100.0)
+        synapps = model.create_scaled_workload("time_plane", "Kmeans", 100.0)
+        self.synthetic_apps = synapps
+
+        if self.config.verbose:
+            print synapps.verbose_description()
 
     def export(self):
         self.synthetic_apps.export(self.config.IOWSMODEL_TOTAL_METRICS_NBINS)

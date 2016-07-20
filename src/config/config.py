@@ -50,6 +50,10 @@ class Config(object):
 
     profile_sources = []
 
+    # Debugging info
+
+    verbose = False
+
     def __init__(self, config_dict=None, config_path=None):
 
         assert config_dict is None or config_path is None

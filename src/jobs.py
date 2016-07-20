@@ -42,6 +42,18 @@ class ModelJob(object):
 
         self.check_job()
 
+    def verbose_description(self):
+        """
+        A verbose output for the modelled workload
+        """
+        output = None
+        for ts_name, ts in self.timesignals.iteritems():
+            if output is None:
+                output = "Num samples: \t{}\n".format(len(ts.xvalues))
+            output += "{}: \t{}\n".format(ts_name, sum(ts.yvalues))
+
+        return output
+
     def check_job(self):
         """
         Some quick sanity checks

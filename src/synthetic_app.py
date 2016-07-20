@@ -15,6 +15,27 @@ class SyntheticWorkload(object):
         self.config = config
         self.app_list = apps
 
+    def __unicode__(self):
+        return "SyntheticWorkload - {} jobs".format(len(self.app_list))
+
+    def __str__(self):
+        return unicode(self).encode('utf-8')
+
+    def verbose_description(self):
+        """
+        A verbose output for the modelled workload
+        """
+        output = "=============================================\n"
+        output += "Verbose (synthetic) workload description: {}\n".format(self)
+
+        for i, app in enumerate(self.app_list):
+            output += '--\nApp {}:\n'.format(i)
+            output += app.verbose_description()
+
+        output += "=============================================\n"
+        return output
+
+
     def export(self, nbins, dir_output=None):
 
         # A default dir, that can be overridden

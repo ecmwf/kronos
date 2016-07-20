@@ -53,6 +53,20 @@ class ModelWorkload(object):
     def __str__(self):
         return unicode(self).encode('utf-8')
 
+    def verbose_description(self):
+        """
+        A verbose output for the modelled workload
+        """
+        output = "=============================================\n"
+        output += "Verbose workload description: {}\n".format(self)
+
+        for i, job in enumerate(self.job_list):
+            output += '--\nJob {}:\n'.format(i)
+            output += job.verbose_description()
+
+        output += "=============================================\n"
+        return output
+
     def read_logs(self, scheduler_tag="", profiler_tag="", scheduler_log_file="", profiler_log_dir=""):
         """ Read jobs from scheduler and profiler logs"""
 
