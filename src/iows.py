@@ -46,6 +46,7 @@ import logreader
 from exceptions_iows import *
 from model_workload import ModelWorkload
 from config.config import Config
+from IOWS_model import IOWSModel
 
 
 class IOWS(object):
@@ -73,6 +74,13 @@ class IOWS(object):
         workload.model_ingested_datasets(self.job_datasets)
         self.model_jobs = workload
 
+    def scale_workload(self):
+        model = IOWSModel(config, self.model_jobs)
+        self.synthetic_apps = model.create_scaled_workload("time_plane", "Kmeans", 100.0)
+
+    def export(self):
+        self.synthetic_apps.export(self.config.IOWSMODEL_TOTAL_METRICS_NBINS)
+
     def run(self):
         """
         Main execution routine
@@ -86,7 +94,11 @@ class IOWS(object):
         print "Generated workload model: {}".format(self.model_jobs)
 
         print "\nScaling model workload...\n----------------------------------"
+        self.scale_workload()
+        print "Scaled workload: {}".format(self.synthetic_apps)
+
         print "\nOutputting synthetic app input...\n----------------------------------"
+        self.export()
 
 
 if __name__ == "__main__":
