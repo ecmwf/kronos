@@ -54,7 +54,14 @@ class RealWorkload(object):
         self.plot_tag = ""
         self.plot_time_tick = ""
 
-    def read_logs(self, scheduler_tag="", profiler_tag="", scheduler_log_file="", profiler_log_dir=""):
+    def read_logs(self,
+                  scheduler_tag="",
+                  profiler_tag="",
+                  scheduler_log_file="",
+                  profiler_log_dir="",
+                  list_json_files=None
+                  ):
+
         """ Read jobs from scheduler and profiler logs"""
 
         if scheduler_tag == "pbs":
@@ -74,7 +81,7 @@ class RealWorkload(object):
             print "scheduler jobs not found.."
 
         if profiler_tag == "allinea":
-            self.profiler_jobs = profiler_reader.read_allinea_logs(profiler_log_dir, self.jobs_n_bins)
+            self.profiler_jobs = profiler_reader.read_allinea_logs(profiler_log_dir, self.jobs_n_bins, list_json_files)
             self.LogData = self.profiler_jobs
         else:
             self.profiler_jobs = []

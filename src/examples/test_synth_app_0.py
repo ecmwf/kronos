@@ -2,7 +2,7 @@
 
 # Add parent directory as search path form modules
 import os
-
+import numpy as np
 os.sys.path.append(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
 
 from tools import mytools
@@ -31,12 +31,24 @@ def test_synth_app_0():
     input_workload.make_plots(plot_tag)
 
     # Generator model
-    scaling_factor = 100  # [%] percentage of measured workload
+    # [%] percentage of measured workload (per each metric)
+    scaling_factor_list = [100.,
+                           100.,
+                           100.,
+                           # 100.,
+                           # 100.,
+                           # 100.,
+                           # 100.,
+                           ]
+
     model = IOWSModel(config)
     model.set_input_workload(input_workload)
-    model.create_scaled_workload("time_plane", "Kmeans", scaling_factor)
+    model.create_scaled_workload("time_plane", "Kmeans", scaling_factor_list)
     model.export_scaled_workload()
     model.make_plots(plot_tag)
+
+    metrics_sums = np.asarray([i_sum.sum for i_sum in input_workload.total_metrics])
+    print "metrics_sums_history (iter=0): ", metrics_sums
 
     # # Run the synthetic apps and profile them with Allinea
     # scheduler_tag = ""

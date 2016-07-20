@@ -64,7 +64,7 @@ class SyntheticApp(object):
                             ker_blocks[i_ts.ts_group]["n_read"] = 1
                             ker_blocks[i_ts.ts_group]["mmap"] = "false"
                         if i_ts.ts_group == "file-write":
-                            ker_blocks[i_ts.ts_group]["n_write"] = 1
+                            ker_blocks[i_ts.ts_group]["n_write"] = 10
                             ker_blocks[i_ts.ts_group]["mmap"] = "false"
                         # -----------------------------------------------------------
 
@@ -72,9 +72,11 @@ class SyntheticApp(object):
                         ker_blocks[i_ts.ts_group][i_ts.name] = i_ts.yvalues_bins[i_bin]
 
             # sanitize values in block (e.g. # of mpi calls can't be 0 if kb > 0, etc...)
-            ker_blocks['mpi']['n_collective'] = max(1, ker_blocks['mpi']['n_collective'])
-            ker_blocks['mpi']['n_pairwise'] = max(1, ker_blocks['mpi']['n_pairwise'])
+            # ker_blocks['mpi']['n_collective'] = max(1, int(ker_blocks['mpi']['n_collective']))
+            # ker_blocks['mpi']['n_pairwise'] = max(1, int(ker_blocks['mpi']['n_pairwise']))
+            # TODO: remove any manual intervention/correction..
             ker_blocks['file-write']['kb_write'] = max(1, ker_blocks['file-write']['kb_write'])
+            ker_blocks['cpu']['flops'] = 1000000000.00
 
             # ker_blocks_all.extend(ker_blocks.values()[:])
             ker_blocks_all.append(ker_blocks.values()[:])

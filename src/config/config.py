@@ -57,10 +57,11 @@ class Config(object):
     WORKLOADCORRECTOR_LIST_TIME_NAMES = [('flops',               'double', 'cpu',         'sum'),
                                         ('kb_read',              'double', 'file-read',   'sum'),
                                         ('kb_write',             'double', 'file-write',  'sum'),
-                                        ('n_pairwise',           'double', 'mpi',         'sum'),
-                                        ('kb_pairwise',          'double', 'mpi',         'sum'),
-                                        ('n_collective',         'double', 'mpi',         'sum'),
-                                        ('kb_collective',        'double', 'mpi',         'sum')]
+                                        # ('n_pairwise',           'double', 'mpi',         'sum'),
+                                        # ('kb_pairwise',          'double', 'mpi',         'sum'),
+                                        # ('n_collective',         'double', 'mpi',         'sum'),
+                                        # ('kb_collective',        'double', 'mpi',         'sum')
+                                         ]
 
 
     # IOWS Model

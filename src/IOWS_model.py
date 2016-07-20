@@ -59,14 +59,16 @@ class IOWSModel(object):
     def set_input_workload(self, input_workload):
         self.input_workload = input_workload
 
-    def create_scaled_workload(self, clustering_key, which_clust, n_clust_pc):
+    def create_scaled_workload(self, clustering_key, which_clust, n_clust_pc_list):
         """ function that creates the scaled workload """
 
         # call the clustering first..
-        self.apply_clustering(clustering_key, which_clust, n_clust_pc)
+        n_clust_pc = float(sum(n_clust_pc_list))/float(len(n_clust_pc_list))
+        self.apply_clustering(clustering_key, which_clust, int(n_clust_pc))
         self.calculate_total_metrics()
 
         scaling_factor = float(n_clust_pc)/100.
+        scaling_factor_list = [float(ii)/100. for ii in n_clust_pc_list]
 
         print "scaling factor: ", scaling_factor
 
@@ -152,7 +154,7 @@ class IOWSModel(object):
         for (ss, i_app) in enumerate(self.syntapp_list):
             for (tt, i_ts) in enumerate(i_app.time_signals):
                 if clust_metrics_sums[tt]:
-                    i_ts.yvalues = i_ts.yvalues / (clust_metrics_sums[tt]) * tot_metrics_sums[tt] * scaling_factor
+                    i_ts.yvalues = i_ts.yvalues / (clust_metrics_sums[tt]) * tot_metrics_sums[tt] * scaling_factor_list[tt]
                 else:
                     i_ts.yvalues *= 0.0
 
