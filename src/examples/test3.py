@@ -31,10 +31,15 @@ def test3():
     input_workload.make_plots(plot_tag)
 
     # Generator model
+    # TODO: Can IOWSModel functionality be incorporated into the ModelWorkload class as an output?
     scaling_factor = 100  # [%] percentage of measured workload
     model = IOWSModel(config, input_workload)
-    model.create_scaled_workload("time_plane", "Kmeans", scaling_factor)
-    model.export_scaled_workload()
+    synthetic_apps = model.create_scaled_workload("time_plane", "Kmeans", scaling_factor)
+
+    # And do the output!
+    synthetic_apps.export(config.IOWSMODEL_TOTAL_METRICS_NBINS)
+
+
     model.make_plots(plot_tag)
 
     # check num plots

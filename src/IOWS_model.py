@@ -2,11 +2,12 @@ import json
 import os
 import numpy as np
 import matplotlib.pyplot as plt
+import random
 
 # from sklearn.decomposition import PCA
 from plot_handler import PlotHandler
 from time_signal import TimeSignal
-from synthetic_app import SyntheticApp
+from synthetic_app import SyntheticApp, SyntheticWorkload
 import time_signal
 import model_workload
 
@@ -27,6 +28,7 @@ class IOWSModel(object):
 
         assert isinstance(workload, model_workload.ModelWorkload)
         self.input_workload = workload
+        self.config = config_options
 
         self.synth_apps = []
         self.schedule = []
@@ -47,7 +49,6 @@ class IOWSModel(object):
 
         self.aggregated_metrics = []
         self._n_clusters = None
-        self.syntapp_list = []
 
         self.clustering_key = None
 
@@ -57,7 +58,9 @@ class IOWSModel(object):
         self.ts_names = time_signal.signal_types.keys()
 
     def create_scaled_workload(self, clustering_key, which_clust, n_clust_pc):
-        """ function that creates the scaled workload """
+        """
+        Create a scaled workload of synthetic apps from all of the (so-far) aggregated data
+        """
 
         # call the clustering first..
         self.apply_clustering(clustering_key, which_clust, n_clust_pc)
@@ -89,49 +92,12 @@ class IOWSModel(object):
         # app = SyntheticApp()
         # app.job_name = "JOB-pareto"
         # app.fill_time_series(pf_ts_list)
-        # self.syntapp_list.append(app)
+        # syntapp_list.append(app)
 
         # ---------- append jobs from clusters to synthetic app list ------------
         n_bins = len(self.input_workload.job_list[0].timesignals[self.ts_names[0]].xvalues_bins)
 
-        for iC in range(0, self._n_clusters):
-            synapp_timeseries = {}
-
-            for i, ts_name in enumerate(self.ts_names):
-
-                idx_ts = np.arange(0, n_bins) + n_bins * i
-
-                # create ts from retrieved_yvals
-                ts_signal_y = self.cluster_centers[iC, idx_ts]
-                ts_signal_x = np.arange(0, len(ts_signal_y))*1.0  # just a dummy value (not actually needed..)
-                ts = TimeSignal.from_values(ts_name, ts_signal_x, ts_signal_y)
-
-                # we cannot re-digitize the clusters as xvalues are not meaningful..
-                # ts.digitize(10, 'sum')
-                synapp_timeseries[ts_name] = ts
-
-            # create app from cluster time signals
-            app = SyntheticApp(
-                job_name="JOB-cluster-{}".format(iC),
-                time_signals=synapp_timeseries
-            )
-            self.syntapp_list.append(app)
-
-        # # ------ finally append non-clustered jobs ----------
-        # for (jj, i_job) in enumerate(self.input_workload.job_list):
-        #     if i_job.job_impact_index_rel >= self.job_impact_index_rel_tsh:
-        #         app = SyntheticApp()
-        #         app.job_name = "JOB-NON-clustered-" + str(jj)
-        #         app.fill_time_series(i_job.timesignals)
-        #         self.syntapp_list.append(app)
-
-        # ------ fill in the synthetic apps metadata --------
         maxStartTime_fromT0 = self.input_workload.maxStartTime_fromT0
-        for (ii, i_app) in enumerate(self.syntapp_list):
-            i_app.jobID = 0
-            i_app.job_name = "appID-"+str(ii)
-            # set start time to a random number (TODO: change this to a more sensible criterion)
-            i_app.time_start = np.random.random() * maxStartTime_fromT0 * scaling_factor
 
         # Calculate sums of total metrics signals (of the original WL)
         tot_metrics_sums = np.array([sum(signal.yvalues) for signal in self.input_workload.total_metrics])
@@ -139,13 +105,53 @@ class IOWSModel(object):
         # Calculate sums of synthetic (needed for rescaling each ts to match target scaling factor)
         clust_metrics_sums = np.array([sum(metric.yvalues) for metric in self.aggregated_metrics])
 
-        # Now actually apply the scaling factor to all the ts of each synthetic app
-        for app in self.syntapp_list:
+        syntapp_list = []
+        for iC in range(0, self._n_clusters):
+
+            # Assemble the time-series
+            synapp_timeseries = {}
             for i, ts_name in enumerate(self.ts_names):
+
+                idx_ts = np.arange(0, n_bins) + n_bins * i
+
+                ts_signal_x = np.arange(0, len(self.cluster_centers[iC, idx_ts])) * 1.0  # just a dummy value (not actually needed..)
                 if clust_metrics_sums[i]:
-                    app.time_signals[ts_name].yvalues /= clust_metrics_sums[i] * tot_metrics_sums[i] * scaling_factor
+                    ts_signal_y = (self.cluster_centers[iC, idx_ts] /
+                                   (clust_metrics_sums[i] * tot_metrics_sums[i] * scaling_factor))
                 else:
-                    app.time_signals[ts_name].yvalues *= 0.0
+                    ts_signal_y = np.zeros(len(ts_signal_x))
+
+                # create ts from retrieved_yvals
+                ts = TimeSignal.from_values(ts_name, ts_signal_x, ts_signal_y)
+
+                # we cannot re-digitize the clusters as xvalues are not meaningful..
+                # ts.digitize(10, 'sum')
+                synapp_timeseries[ts_name] = ts
+
+            # When should the jobs start?
+
+            # create app from cluster time signals
+            # TODO: ncpus and nnodes are hacked in here. Do it properly
+            # TODO: non-random start times
+            app = SyntheticApp(
+                job_name="appID-{}".format(iC),
+                time_signals=synapp_timeseries,
+                ncpus=36,
+                nnodes=1,
+                time_start=random.random() * maxStartTime_fromT0
+            )
+            syntapp_list.append(app)
+
+        # # ------ finally append non-clustered jobs ----------
+        # for (jj, i_job) in enumerate(self.input_workload.job_list):
+        #     if i_job.job_impact_index_rel >= self.job_impact_index_rel_tsh:
+        #         app = SyntheticApp()International Academy of Quantum Molecular Science
+        #         app.job_name = "JOB-NON-clustered-" + str(jj)
+        #         app.fill_time_series(i_job.timesignals)
+        #         self.syntapp_list.append(app)
+
+        return SyntheticWorkload(self.config, apps=syntapp_list)
+
 
     def apply_clustering(self, clustering_key, which_clust, n_clust_pc=-1):
 
@@ -321,21 +327,6 @@ class IOWSModel(object):
         #
         # print "elapsed time: ", time.clock() - start
 
-
-    # def export_scaled_workload(self):
-    #
-    #     # prepare JSON data
-    #     json_all_synth_app = {}
-    #     n_bins = 1
-    #     for i_app in self.syntapp_list:
-    #         job_entry = i_app.make_kernels_from_ts(n_bins, self.job_signal_dgt, self.supported_synth_apps)
-    #         json_all_synth_app[i_app.job_name] = job_entry
-    #
-    #     self.plot_sanity_check(json_all_synth_app)
-    #
-    #     with open(self.out_dir+'/dummy.json', 'w') as f:
-    #         json.encoder.FLOAT_REPR = lambda o: format(o, '.2f')
-    #         json.dump(json_all_synth_app, f, ensure_ascii=True, sort_keys=True, indent=4, separators=(',', ': '))
 
     def export_scaled_workload(self):
 

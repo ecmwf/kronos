@@ -7,10 +7,16 @@ class ModelJob(object):
     A model job is as fully specified, abstract job, which is output from the combined data ingestion
     and processing units.
     """
+    # Declare the fields that have been used (so they can be found by IDEs, etc.)
+    time_start = None
+    ncpus = None
+    nnodes = None
+    duration = None
+
+    # Does what it says on the tin
     required_fields = [
 
         'time_start',
-        'duration',
 
         'ncpus',
         'nnodes'
@@ -20,8 +26,8 @@ class ModelJob(object):
         """
         Set the fields as passed in
         """
-        for k,v in kwargs.iteritems():
-            assert k in self.required_fields
+        for k, v in kwargs.iteritems():
+            assert hasattr(self, k) and getattr(self, k) is None
 
             setattr(self, k, v)
 

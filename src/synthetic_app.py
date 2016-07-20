@@ -1,97 +1,89 @@
 import time_signal
+from jobs import ModelJob
+import json
+import sys
+import os
+
+import app_kernels
 
 
-class SyntheticApp(object):
+class SyntheticWorkload(object):
+    """
+    This is a workload of SyntheticApp objects, described below.
+    """
+    def __init__(self, config, apps=None):
+        self.config = config
+        self.app_list = apps
 
-    """ Class representing a synthetic app """
+    def export(self, nbins, dir_output=None):
 
-    def __init__(self, job_name=None, time_signals=None):
+        # A default dir, that can be overridden
+        dir_output = dir_output or self.config.dir_output
 
-        self.jobID = None
+        # Ensure that the synthetic applications are sorted by start time
+        sorted_apps = sorted(self.app_list, key=lambda a: a.time_start)
+
+        print "Exporting {} synthetic applications to: {}".format(len(sorted_apps), dir_output)
+
+        for i, app in enumerate(sorted_apps):
+            app.export(os.path.join(dir_output, "input{}.json".format(i)), nbins)
+
+        sys.exit(-1)
+
+
+class SyntheticApp(ModelJob):
+    """
+    A type of ModelJob which is used as the output stage (after modelling, scaling, etc.). There is a one-to-one
+    mapping between these SyntheticApp classes and execution runs of the synthetic application (coordinator).
+    """
+    def __init__(self, job_name=None, time_signals=None, **kwargs):
+        super(SyntheticApp, self).__init__(
+            time_series=time_signals,
+            duration=None,  # Duration is not specified for a Synthetic App - that is an output
+            **kwargs
+        )
+
         self.job_name = job_name
-        self.time_start = None
-        self.time_signals = time_signals
-        self.kernels_seq = []
 
-    # write list ouf output kernels
-    def make_kernels_from_ts(self, n_bins, supported_synth_apps):
+    def export(self, filename, nbins):
+        """
+        Produce a json file suitable to control a synthetic application (coordinator)
+        """
+        job_entry = {
+            'num_procs': self.ncpus,
+            'start_delay': self.time_start,
+            'frames': self.frame_data(nbins),
+            'metadata': {
+                'job_name': self.job_name
+            }
+        }
 
-        # application object to be written to JSON
-        ker_data = {}
+        with open(filename, 'w') as f:
+            json.dump(job_entry, f, ensure_ascii=True, sort_keys=True, indent=4, separators=(',', ': '))
 
-        # required metadata
-        # "file_read_path": "..."  # (./read_cache)  The directory containing the cached readable files
-        # "file_write_path": "..."  # (./write_cache) The directory to write output into
-        # "num_procs": 123  # (no check)      The number of MPI processes (for error checking)
-        # "start_delay": 230  # (0)             The number of seconds into schedule that a job should be submitted
-        # "mpi_ranks_verbose": true  # (false)  Should all MPI processes write to stdout (by default output suppressed)
-        # "enable_trace": true  # (false)         Enable trace output of synthetic app execution for debugging
-        # "repeat": 123  # (1)             How many times should this job be run (used by the executor)
+    def frame_data(self, nbins):
+        """
+        Return the cofiguration required for the synthetic app kernels
+        """
+        # (re-)digitize all the time series
+        for ts_name, ts in self.timesignals.iteritems():
+            ts.digitize(nbins)
 
-        # optional metadata
-        md_data = {
-            "job_ID": self.jobID,
-            "job_name": self.job_name,
-            "time_start": self.time_start}
-        ker_data["metadata"] = md_data
+        kernels = []
+        for kernel_type in app_kernels.available_kernels:
 
-        # ------------- FORMAT --------------
-        # {
-        #     "mpi_ranks_verbose": true,
-        #     "enable_trace": true,
-        #
-        #     "frames": [{
-        #         "name": "file-read",
-        #         "kb_read": 12345,
-        #         "n_read": 12
-        #     }, {
-        #         "name": "file-read",
-        #         "kb_read": 12345,
-        #         "n_read": 12
-        #     }, {
-        #         "name": "file-write",
-        #         "kb_write": 12345,
-        #         "n_write": 3
-        #     }]
-        # }
-        # -----------------------------------
+            kernel = kernel_type(self.timesignals)
+            if not kernel.empty:
+                kernels.append(kernel.synapp_config())
 
-        # digitize all the ts
-        for ts_name, ts in self.time_signals.iteritems():
-            ts.digitize(n_bins)
+        # Instead of a list of kernels, each of which contains a time series, we want a time series each of
+        # which contains a list of kernels. Do the inversion!
+        frames = zip(*kernels)
 
-        # sort ts by type..
-        ker_blocks_all = []
-        for i_bin in range(n_bins):
-            ker_blocks = {}
-            for ts_name, ts in self.time_signals.iteritems():
+        # Filter out empty elements from the list of kernels
+        frames = [
+            [kernel for kernel in frame if not kernel.get("empty", False)]
+            for frame in frames
+        ]
 
-                if supported_synth_apps.count(ts.ts_group) != 0:
-                    # if i_ts.yvalues_bins[i_bin] >= 1.0:
-                    if not ker_blocks.has_key(ts.ts_group):
-                        ker_blocks[ts.ts_group] = {ts.name: ts.yvalues_bins[i_bin], "name": ts.ts_group}
-
-                        # TODO: remove this as soon as we count #read and #write..
-                        if ts.ts_group == "file-read":
-                            ker_blocks[ts.ts_group]["n_read"] = 1
-                            ker_blocks[ts.ts_group]["mmap"] = False
-                        elif ts.ts_group == "file-write":
-                            ker_blocks[ts.ts_group]["n_write"] = 1
-                            ker_blocks[ts.ts_group]["mmap"] = False
-                        # -----------------------------------------------------------
-
-                    else:
-                        ker_blocks[ts.ts_group][ts.name] = ts.yvalues_bins[i_bin]
-
-            # sanitize values in block (e.g. # of mpi calls can't be 0 if kb > 0, etc...)
-            ker_blocks['mpi']['n_collective'] = max(1, ker_blocks['mpi']['n_collective'])
-            ker_blocks['mpi']['n_pairwise'] = max(1, ker_blocks['mpi']['n_pairwise'])
-            ker_blocks['file-write']['kb_write'] = max(1, ker_blocks['file-write']['kb_write'])
-
-            # ker_blocks_all.extend(ker_blocks.values()[:])
-            ker_blocks_all.append(ker_blocks.values()[:])
-
-        # return full list of sequences
-        ker_data["frames"] = ker_blocks_all
-
-        return ker_data
+        return frames
