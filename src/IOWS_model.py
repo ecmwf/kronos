@@ -94,8 +94,8 @@ class IOWSModel(object):
 
                 ts_signal_x = np.arange(0, len(self.cluster_centers[iC, idx_ts])) * 1.0  # just a dummy value (not actually needed..)
                 if clust_metrics_sums[i]:
-                    ts_signal_y = (self.cluster_centers[iC, idx_ts] ) #/
-                                   #(clust_metrics_sums[i] * tot_metrics_sums[i] * scaling_factor))
+                    ts_signal_y = (self.cluster_centers[iC, idx_ts] * tot_metrics_sums[i] * scaling_factor /
+                                    clust_metrics_sums[i])
                 else:
                     ts_signal_y = np.zeros(len(ts_signal_x))
 

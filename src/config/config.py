@@ -61,7 +61,6 @@ class Config(object):
         # If specified, load a config from the given JSON file. Custom modification to the JSON spec
         # permits lines to be commented out using a '#' character for ease of testing
         if config_path is not None:
-            print "PATH: ", config_path
             with open(config_path, 'r') as f:
                 lines = f.readlines()
                 for i, line in enumerate(lines):
