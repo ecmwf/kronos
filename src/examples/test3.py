@@ -32,7 +32,7 @@ def test3():
 
     # Generator model
     # TODO: Can IOWSModel functionality be incorporated into the ModelWorkload class as an output?
-    scaling_factor = 100  # [%] percentage of measured workload
+    scaling_factor = 1.0
     model = IOWSModel(config, input_workload)
     synthetic_apps = model.create_scaled_workload("time_plane", "Kmeans", scaling_factor)
 

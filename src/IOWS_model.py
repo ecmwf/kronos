@@ -57,18 +57,18 @@ class IOWSModel(object):
         self.n_time_signals = len(time_signal.signal_types)
         self.ts_names = time_signal.signal_types.keys()
 
-    def create_scaled_workload(self, clustering_key, which_clust, n_clust_pc):
+    def create_scaled_workload(self, clustering_key, which_clust, scaling_factor):
         """
         Create a scaled workload of synthetic apps from all of the (so-far) aggregated data
         """
+
+        assert 0.0 < scaling_factor and 1.0 >= scaling_factor
 
         # call the clustering first..
         print "Apply clustering: {}".format(clustering_key)
         print "Apply clustering: {}".format(which_clust)
         self.apply_clustering(clustering_key, which_clust, n_clust_pc)
         self.calculate_total_metrics()
-
-        scaling_factor = float(n_clust_pc)/100.
 
         print "scaling factor: ", scaling_factor
 

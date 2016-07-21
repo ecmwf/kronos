@@ -31,7 +31,7 @@ def test_synth_app_0():
     input_workload.make_plots(plot_tag)
 
     # Generator model
-    scaling_factor = 100  # [%] percentage of measured workload
+    scaling_factor = 1.0
     model = IOWSModel(config, input_workload)
     model.create_scaled_workload("time_plane", "Kmeans", scaling_factor)
     model.export_scaled_workload()
