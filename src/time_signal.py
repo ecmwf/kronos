@@ -115,7 +115,7 @@ class TimeSignal(object):
         digitized_data = np.digitize(self.xvalues, self.xedge_bins)
         self.xvalues_bins = 0.5 * (self.xedge_bins[1:] + self.xedge_bins[:-1])
 
-        self.yvalues_bins = np.zeros(len(self.xvalues_bins))+digitize_eps
+        self.yvalues_bins = np.zeros(len(self.xvalues_bins)) #+digitize_eps
         for i_bin in range(1, len(self.xvalues_bins)+1):
             if any(self.yvalues[digitized_data == i_bin]):
                 if key == 'mean':

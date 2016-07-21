@@ -63,36 +63,14 @@ class IOWSModel(object):
         """
 
         # call the clustering first..
+        print "Apply clustering: {}".format(clustering_key)
+        print "Apply clustering: {}".format(which_clust)
         self.apply_clustering(clustering_key, which_clust, n_clust_pc)
         self.calculate_total_metrics()
 
         scaling_factor = float(n_clust_pc)/100.
 
         print "scaling factor: ", scaling_factor
-
-        # # -------- create pareto front with points of the WL ----------
-        # wl_time_points = []
-        # for (i_bin, val) in enumerate(self.input_workload.total_metrics[0].yvalues_bins):
-        #     param_in_bin = [iTS.yvalues_bins[i_bin] for iTS in self.input_workload.total_metrics]
-        #     wl_time_points.append(param_in_bin)
-        #
-        # (pareto_points, pareto_idxes, dominated_points) = mytools.simple_cull(wl_time_points, mytools.dominates)
-        #
-        # # create time signals from PF points
-        # pf_ts_list = []
-        # for iTS in self.input_workload.total_metrics:
-        #     ts_name = iTS.name
-        #     ts_signal_x = iTS.xvalues_bins[pareto_idxes]
-        #     ts_signal_y = iTS.yvalues_bins[pareto_idxes]
-        #     ts = TimeSignal()
-        #     ts.create_ts_from_values(ts_name, ts_signal_x, ts_signal_y)
-        #     pf_ts_list.append(ts)
-        #
-        # # append a synthetic job with PF time series to synthetic app list
-        # app = SyntheticApp()
-        # app.job_name = "JOB-pareto"
-        # app.fill_time_series(pf_ts_list)
-        # syntapp_list.append(app)
 
         # ---------- append jobs from clusters to synthetic app list ------------
         n_bins = len(self.input_workload.job_list[0].timesignals[self.ts_names[0]].xvalues_bins)
@@ -116,8 +94,8 @@ class IOWSModel(object):
 
                 ts_signal_x = np.arange(0, len(self.cluster_centers[iC, idx_ts])) * 1.0  # just a dummy value (not actually needed..)
                 if clust_metrics_sums[i]:
-                    ts_signal_y = (self.cluster_centers[iC, idx_ts] /
-                                   (clust_metrics_sums[i] * tot_metrics_sums[i] * scaling_factor))
+                    ts_signal_y = (self.cluster_centers[iC, idx_ts] ) #/
+                                   #(clust_metrics_sums[i] * tot_metrics_sums[i] * scaling_factor))
                 else:
                     ts_signal_y = np.zeros(len(ts_signal_x))
 
@@ -163,7 +141,8 @@ class IOWSModel(object):
 
             clustering_worker = {
                 'spectral': self.apply_spectral_clustering,
-                'time_plane': self.apply_time_plane_clustering
+                'time_plane': self.apply_time_plane_clustering,
+                'none': self.apply_no_clustering
             }.get(clustering_key, None)
 
             if clustering_worker is None:
@@ -217,6 +196,7 @@ class IOWSModel(object):
         # NOTE: n_signals assumes that all the jobs signals have the same num of signals
         # NOTE: n_bins assumes that all the time signals have the same
         # num of points
+        print "TIME PLANE"
         data = np.array([]).reshape(0, self.jobs_n_bins * self.n_time_signals)
 
         for job in self.input_workload.job_list:
@@ -224,10 +204,12 @@ class IOWSModel(object):
             data = np.vstack((data, data_row))
 
         # clustering
+        print "data", data
         cluster_method = clustering.factory(which_clust, data)
         cluster_method.train_method(self._n_clusters, self.kmeans_maxiter)
         self.cluster_centers = cluster_method.clusters
         self.cluster_labels = cluster_method.labels
+
 
         # # calculate 2D PCA
         # self.pca = PCA(n_components=2).fit(self.cluster_centers)
@@ -242,6 +224,11 @@ class IOWSModel(object):
         # NOTE: n_signals assumes that all the jobs signals have the same num of signals
         # NOTE: n_bins assumes that all the time signals have the same
         # num of points
+
+        # for job in self.input_workload.job_list:
+        #     for ts_name, ts in job.timesignals.iteritems():
+        #         print "{} ---- {} -- {}".format(ts_name, sum(ts.yvalues), ts.yvalues)
+        #         print "{} ---- {} -- {}".format(ts_name, sum(ts.yvalues_bins), ts.yvalues_bins)
 
         data = np.vstack((
             np.concatenate([job.timesignals[signal].yvalues_bins for signal in self.ts_names])
@@ -326,32 +313,6 @@ class IOWSModel(object):
         # self.aggregated_metrics = list_signals
         #
         # print "elapsed time: ", time.clock() - start
-
-
-    def export_scaled_workload(self):
-
-        n_bins = 2
-        # json_all_synth_app = {}
-
-        for i, app in enumerate(self.syntapp_list):
-
-            job_entry = app.make_kernels_from_ts(n_bins, self.supported_synth_apps)
-            name_json_file = 'input{}.json'.format(i)
-            # TODO: Enable debug options to pass through to SynApps
-            #       n.b. This can also be done in the executor
-            # job_entry["mpi_ranks_verbose"] = 'true'
-            # job_entry["enable_trace"] = 'true'
-
-            # json_all_synth_app[app.job_name] = job_entry
-
-            with open(os.path.join(self.out_dir, name_json_file), 'w') as f:
-                # json.encoder.FLOAT_REPR = lambda o: format(o, '.2f')
-                # json.dump(json_all_synth_app, f, ensure_ascii=True, sort_keys=True, indent=4, separators=(',', ': '))
-                json.dump(job_entry, f, ensure_ascii=True, sort_keys=True, indent=4, separators=(',', ': '))
-
-        # # Sanity check in/out
-        # # < NOTE: this only works for n_bin = 1 >
-        # self.plot_sanity_check(json_all_synth_app)
 
     def make_plots(self, plt_tag):
         """ Plotting routine """
