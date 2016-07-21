@@ -27,6 +27,13 @@ Input file syntax:
     {
         "profile_sources": [...],   # A list of profiling sources in the format described below
         "verbose": False,           # If True, output lots of data for debugging purposes
+
+        "model_clustering", "none"  # Select the scope of the model profiling. Choices are "none",
+                                    # "spectral" and "time_plane"
+
+        "model_clustering_algorithm": ...,
+                                    # Select the algorithm used or clustering. Currently "Kmeans", "SOM" or "DBSCAN".
+                                    # See clustering/__init__.py
     }
 
     profile_sources:

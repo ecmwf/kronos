@@ -50,6 +50,12 @@ class Config(object):
 
     profile_sources = []
 
+    # Modelling and clustering details
+
+    model_clustering = "none"
+    model_clustering_algorithm = None
+    model_scaling_factor = 1.0
+
     # Debugging info
 
     verbose = False

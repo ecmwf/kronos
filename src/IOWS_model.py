@@ -5,6 +5,7 @@ import matplotlib.pyplot as plt
 import random
 
 # from sklearn.decomposition import PCA
+from exceptions_iows import ConfigurationError
 from plot_handler import PlotHandler
 from time_signal import TimeSignal
 from synthetic_app import SyntheticApp, SyntheticWorkload
@@ -23,6 +24,13 @@ class IOWSModel(object):
       2) visualization
       3) scaling factor and redeployment of synthetic apps
     """
+
+    # A lookup for how to treat different clustering methods
+    clustering_routines = {
+        'spectral': 'apply_spectral_clustering',
+        'time_plane': 'apply_time_plane_clustering',
+        'none': 'apply_no_clustering'
+    }
 
     def __init__(self, config_options, workload):
 
@@ -57,20 +65,52 @@ class IOWSModel(object):
         self.n_time_signals = len(time_signal.signal_types)
         self.ts_names = time_signal.signal_types.keys()
 
-    def create_scaled_workload(self, clustering_key, which_clust, scaling_factor):
+        # Some clustering configuration
+        # TODO: Validate config at this stage too
+        self.scaling_factor = config_options.model_scaling_factor
+        self.clustering_algorithm = config_options.model_clustering_algorithm
+        self.clustering_routine = config_options.model_clustering
+
+        # A quick sanity check
+        for method_name in self.clustering_routines.values():
+            assert getattr(self, method_name, None)
+
+    @staticmethod
+    def validate_config(config):
+        """
+        Provide immediate feedback to the Config object, so that errors can be reported at startup time
+        not later on.
+        """
+        if config.model_clustering_key not in IOWSModel.clustering_routines:
+            raise ConfigurationError("Clustering type not known: {}".format(config.model_clustering_key))
+
+        if config.model_clustering_key == "none":
+            if config.model_clustering_algorithm is not None:
+                raise ConfigurationError("Clustering algorithm not required for no-clustering")
+        else:
+            if config.model_clustering_algorithm not in clustering.clustering_algorithms:
+                raise ConfigurationError(
+                    "Clustering algorithm not recognised: {}".format(config.model_clustering_algorithm))
+
+        if config.model_scaling_factor <= 0.0 or config.model_scaling_factor > 1.0:
+            raise ConfigurationError("Scaling factor must be between 0.0 and 1.0")
+
+    def create_scaled_workload(self, clustering_key, which_clust=None, scaling_factor=None):
         """
         Create a scaled workload of synthetic apps from all of the (so-far) aggregated data
         """
+        which_clust = which_clust or self.clustering_algorithm
+        scaling_factor = scaling_factor or self.scaling_factor
 
         assert 0.0 < scaling_factor and 1.0 >= scaling_factor
 
         # call the clustering first..
         print "Apply clustering: {}".format(clustering_key)
         print "Apply clustering: {}".format(which_clust)
-        self.apply_clustering(clustering_key, which_clust, n_clust_pc)
+        self.apply_clustering(clustering_key, which_clust, scaling_factor)
         self.calculate_total_metrics()
 
-        print "scaling factor: ", scaling_factor
+        print "Scaling factor: ", scaling_factor
 
         # ---------- append jobs from clusters to synthetic app list ------------
         n_bins = len(self.input_workload.job_list[0].timesignals[self.ts_names[0]].xvalues_bins)
@@ -131,29 +171,27 @@ class IOWSModel(object):
         return SyntheticWorkload(self.config, apps=syntapp_list)
 
 
-    def apply_clustering(self, clustering_key, which_clust, n_clust_pc=-1):
+    def apply_clustering(self, clustering_key, which_clust, scaling_factor=None):
 
         self.clustering_key = clustering_key
-        self._n_clusters = max(1, int(n_clust_pc / 100. * len(self.input_workload.job_list)))
+        self._n_clusters = max(1, int(scaling_factor * len(self.input_workload.job_list)))
 
         # do the clustering only if scaling factor is less than 100
-        if n_clust_pc < 100.:
+        if scaling_factor < 1.0:
 
-            clustering_worker = {
-                'spectral': self.apply_spectral_clustering,
-                'time_plane': self.apply_time_plane_clustering,
-                'none': self.apply_no_clustering
-            }.get(clustering_key, None)
-
-            if clustering_worker is None:
+            worker_name = self.clustering_routines.get(clustering_key, None)
+            if worker_name is None:
                 raise Exception("Clustering method {} not found".format(clustering_key))
+
+            clustering_worker = getattr(self, worker_name, None)
+            assert clustering_worker
 
         else:  # copy jobs directly into clusters list..
 
             clustering_worker = self.apply_no_clustering
 
         # And do the clustering
-        clustering_worker(which_clust, n_clust_pc)
+        clustering_worker(which_clust, scaling_factor)
 
     def calculate_total_metrics(self):
         """ Calculate global metrics for all the jobs """
@@ -185,11 +223,11 @@ class IOWSModel(object):
 
         self.aggregated_metrics = list_signals
 
-    def apply_time_plane_clustering(self, which_clust, n_clust_pc=None):
+    def apply_time_plane_clustering(self, which_clust, scaling_factor=None):
         """
         Use the time-plane clustering method
         :param which_clust: Specify the form of clustering to use. See clustering/__init__.py
-        :param n_clust_pc: The percentage of jobs to retain.
+        :param scaling_factor: The fraction of jobs to retain
         :return:
         """
 
@@ -215,11 +253,11 @@ class IOWSModel(object):
         # self.pca = PCA(n_components=2).fit(self.cluster_centers)
         # self.pca_2d = self.pca.transform(self.cluster_centers)
 
-    def apply_no_clustering(self, which_clust, n_clust_pc=None):
+    def apply_no_clustering(self, which_clust, scaling_factor=None):
         """
         A straight-through "clustering" approach (which essentially does nothing).
         """
-        assert n_clust_pc == 100
+        assert scaling_factor == 1.0
 
         # NOTE: n_signals assumes that all the jobs signals have the same num of signals
         # NOTE: n_bins assumes that all the time signals have the same
@@ -238,7 +276,7 @@ class IOWSModel(object):
         self.cluster_centers = data
         self.cluster_labels = np.arange(0, len(self.input_workload.job_list))
 
-    def apply_spectral_clustering(self, which_clust, n_clust_pc=None):
+    def apply_spectral_clustering(self, which_clust, scaling_factor=None):
         """
         Use the spectral clustering method
         """
