@@ -39,14 +39,15 @@ def feedback_loop():
     USER_HOST = "maab@ccb"
 
     # ---- loop settings.. ----
-    n_iterations = 5
-    relaxation_factor = 0.1
+    n_iterations = 10
+    relaxation_factor = 0.5
 
     # initialize the vectors: metric_sums, deltas, etc...
-    metrics_sums_history = np.ndarray([0,len(config.WORKLOADCORRECTOR_LIST_TIME_NAMES)])
-    deltas_vec_history = np.zeros(metrics_sums_history.shape)
+    metrics_sums_history = np.ndarray([0, len(config.WORKLOADCORRECTOR_LIST_TIME_NAMES)])
+    scaling_factors_history = np.zeros(metrics_sums_history.shape)
 
     # [%] percentage of measured workload (per each metric)
+    # TODO: flops not really meaningful for now - (not measured by map anyway..)
     scaling_factor_list = [100.,
                            100.,
                            100.,
@@ -55,6 +56,10 @@ def feedback_loop():
                            # 100.,
                            # 100.,
                            ]
+
+    scaling_factors_history = np.vstack([scaling_factors_history, np.asarray(scaling_factor_list)])
+    scaling_factors_history = np.vstack([scaling_factors_history, np.asarray(scaling_factor_list)])
+    scaling_factors_history = np.vstack([scaling_factors_history, np.asarray(scaling_factor_list)])
 
     # Initialise the input workload
     iter_workload = RealWorkload(config)
@@ -72,7 +77,7 @@ def feedback_loop():
         # Generator model
         model = IOWSModel(config)
         model.set_input_workload(iter_workload)
-        model.create_scaled_workload("time_plane", "Kmeans", scaling_factor_list)
+        model.create_scaled_workload("time_plane", "Kmeans", scaling_factor_list, reduce_jobs_flag=False)
         model.export_scaled_workload()
         model.make_plots(PLOT_TAG)
 
@@ -101,7 +106,7 @@ def feedback_loop():
 
             if jobs_in_queue == []:
                 jobs_completed = True
-                print "jobs_in_queue:", jobs_in_queue
+                print "jobs completed!"
 
             time.sleep(2.0)
         # ----------------------------------------
@@ -134,8 +139,6 @@ def feedback_loop():
         # set list of json for this iteration
         list_json_files = ["job-"+str(ff)+"."+str(i_count+1)+".json" for (ff, file_name) in enumerate(list_map_files)]
 
-        print list_json_files
-
         iter_workload = RealWorkload(config)
         iter_workload.read_logs(SCHEDULER_TAG, PROFILER_TAG, SCHEDULER_LOG_FILE, PROFILER_LOG_DIR, list_json_files)
         iter_workload.make_plots(PLOT_TAG)
@@ -144,31 +147,22 @@ def feedback_loop():
                                 )
 
         # re-calculate scaling factor according to measured deltas..
-        deltas_vec = (metrics_sums_history[-1, :] - metrics_sums_history[-2, :])/metrics_sums_history[-2, :]
-        scaling_factor_vec_norm = np.asarray(scaling_factor_list)/100
-        deltas_vec_relax_norm = np.clip(deltas_vec*relaxation_factor, -2.0, 2.0)
+        sc_factors_vec_raw = (np.asarray(metrics_sums_history[0, :]))/np.asarray(metrics_sums_history[-1, :]) * 100.
 
-        # print "scaling_factor_vec_norm: ", scaling_factor_vec_norm
-        # print "deltas_vec_relax_norm: ", deltas_vec_relax_norm
+        sc_factors_vec = relaxation_factor * sc_factors_vec_raw + \
+                         (1.-relaxation_factor)/2. * scaling_factors_history[-1, :] + \
+                         (1.-relaxation_factor)/2. * scaling_factors_history[-2, :]
+
+        scaling_factors_history = np.vstack([scaling_factors_history, sc_factors_vec_raw])
+        scaling_factor_list = sc_factors_vec.tolist()
+
         print "metrics_sums_history[-1,:]: ", metrics_sums_history[-1, :]
-
-        scaling_factor_list = (scaling_factor_vec_norm - deltas_vec_relax_norm)*100
-        scaling_factor_list = scaling_factor_list.tolist()
-        deltas_vec_history = np.vstack([deltas_vec_history, deltas_vec])
-
-        # restore scaling factor list.. TODO: TO BE REMOVED!!
-        scaling_factor_list = [100.,
-                               100.,
-                               100.,
-                               # 100.,
-                               # 100.,
-                               # 100.,
-                               # 100.,
-                               ]
+        print "scaling_factors_history[-1,:]: ", scaling_factors_history[-1, :]
+        print "scaling_factor_list: ", scaling_factor_list
 
     # -------------------------------
 
-    # ------------ make plot -------------
+    #  make convergence plot -------------
     n_iter = metrics_sums_history.shape[0]
     n_metrics = metrics_sums_history.shape[1]
     metrics_names = [i_ts[0] for i_ts in config.WORKLOADCORRECTOR_LIST_TIME_NAMES]
@@ -177,7 +171,7 @@ def feedback_loop():
     for imetr in range(0, n_metrics):
         plt.subplot(n_metrics, 1, imetr+1)
 
-        ref_vals = metrics_sums_history[0,imetr]*np.ones((n_iter,1))
+        ref_vals = metrics_sums_history[0, imetr]*np.ones((n_iter, 1))
         iter_vals = metrics_sums_history[:, imetr]
 
         plt.plot(np.asarray(range(0, n_iter)), ref_vals,'b')
@@ -186,7 +180,7 @@ def feedback_loop():
         plt.legend(['ref', 'simulated'])
         plt.ylabel(metrics_names[imetr])
         plt.xticks(range(0, n_iter+1))
-        plt.xlim(xmin=0, xmax=n_metrics+1.1)
+        plt.xlim(xmin=0, xmax=n_iter+1.1)
         plt.ylim(ymin=0, ymax=max(iter_vals)*2.0)
 
     plt.savefig(config.DIR_OUTPUT + '/plot_iterations.png')

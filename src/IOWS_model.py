@@ -59,18 +59,16 @@ class IOWSModel(object):
     def set_input_workload(self, input_workload):
         self.input_workload = input_workload
 
-    def create_scaled_workload(self, clustering_key, which_clust, n_clust_pc_list):
+    def create_scaled_workload(self, clustering_key, which_clust, n_clust_pc_list, reduce_jobs_flag=True):
         """ function that creates the scaled workload """
 
         # call the clustering first..
         n_clust_pc = float(sum(n_clust_pc_list))/float(len(n_clust_pc_list))
-        self.apply_clustering(clustering_key, which_clust, int(n_clust_pc))
+        self.apply_clustering(clustering_key, which_clust, reduce_jobs_flag, int(n_clust_pc))
         self.calculate_total_metrics()
 
         scaling_factor = float(n_clust_pc)/100.
         scaling_factor_list = [float(ii)/100. for ii in n_clust_pc_list]
-
-        print "scaling factor: ", scaling_factor
 
         # # -------- create pareto front with points of the WL ----------
         # wl_time_points = []
@@ -154,17 +152,22 @@ class IOWSModel(object):
         for (ss, i_app) in enumerate(self.syntapp_list):
             for (tt, i_ts) in enumerate(i_app.time_signals):
                 if clust_metrics_sums[tt]:
-                    i_ts.yvalues = i_ts.yvalues / (clust_metrics_sums[tt]) * tot_metrics_sums[tt] * scaling_factor_list[tt]
+                    i_ts.yvalues = i_ts.yvalues / clust_metrics_sums[tt] * tot_metrics_sums[tt] * scaling_factor_list[tt]
                 else:
                     i_ts.yvalues *= 0.0
 
-    def apply_clustering(self, clustering_key, which_clust, n_clust_pc=-1):
+    def apply_clustering(self, clustering_key, which_clust, reduce_jobs_flag, n_clust_pc=-1):
 
         self.clustering_key = clustering_key
-        self._n_clusters = max(1, int(n_clust_pc / 100. * len(self.input_workload.LogData)))
+
+        # determine the number of clusters (also according to the flag..)
+        if reduce_jobs_flag:
+            self._n_clusters = max(1, int(n_clust_pc / 100. * len(self.input_workload.LogData)))
+        else:
+            self._n_clusters = len(self.input_workload.LogData)
 
         # do the clustering only if scaling factor is less than 100
-        if n_clust_pc < 100.:
+        if (n_clust_pc < 100.) and reduce_jobs_flag:
 
             if clustering_key == "spectral":
                 pass
@@ -264,8 +267,7 @@ class IOWSModel(object):
         else:  # copy jobs directly into clusters list..
 
             # NOTE: n_signals assumes that all the jobs signals have the same num of signals
-            # NOTE: n_bins assumes that all the time signals have the same
-            # num of points
+            # NOTE: n_bins assumes that all the time signals have the same num of points
             data = np.array([]).reshape(0, self.jobs_n_bins * self.n_time_signals)
             for i_job in self.input_workload.LogData:
                 data_row = [item for i_sign in i_job.timesignals for item in i_sign.yvalues_bins]
@@ -433,10 +435,13 @@ class IOWSModel(object):
                            if i_ker.has_key(ts_name)]
 
             # print "--------"
+            # print "tt=", tt
+            # print "sa_list=", len(sa_list)
             # print len(xx)
             # print len(ts_sums_input)
             # print len(ts_sums_out)
             # print ts_sums_input
+            # print ts_sums_out
 
             plt.subplot(n_time_signals_in, 1, tt + 1)
             plt.plot(xx, ts_sums_input, color='b', linestyle='-')
