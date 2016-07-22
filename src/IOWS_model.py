@@ -48,7 +48,6 @@ class IOWSModel(object):
         self.kmeans_rseed = config_options.IOWSMODEL_KMEANS_KMEANS_RSEED
         self.job_impact_index_rel_tsh = config_options.IOWSMODEL_JOB_IMPACT_INDEX_REL_TSH
         self.jobs_n_bins = config_options.WORKLOADCORRECTOR_JOBS_NBINS
-        self.supported_synth_apps = config_options.IOWSMODEL_SUPPORTED_SYNTH_APPS
 
         self.cluster_centers = {}
         self.cluster_labels = {}
@@ -102,7 +101,7 @@ class IOWSModel(object):
         which_clust = which_clust or self.clustering_algorithm
         scaling_factor = scaling_factor or self.scaling_factor
 
-        assert 0.0 < scaling_factor and 1.0 >= scaling_factor
+        assert 0.0 < scaling_factor <= 1.0
 
         # call the clustering first..
         print "Apply clustering: {}".format(clustering_key)
@@ -135,7 +134,7 @@ class IOWSModel(object):
                 ts_signal_x = np.arange(0, len(self.cluster_centers[iC, idx_ts])) * 1.0  # just a dummy value (not actually needed..)
                 if clust_metrics_sums[i]:
                     ts_signal_y = (self.cluster_centers[iC, idx_ts] * tot_metrics_sums[i] * scaling_factor /
-                                    clust_metrics_sums[i])
+                                   clust_metrics_sums[i])
                 else:
                     ts_signal_y = np.zeros(len(ts_signal_x))
 
@@ -169,7 +168,6 @@ class IOWSModel(object):
         #         self.syntapp_list.append(app)
 
         return SyntheticWorkload(self.config, apps=syntapp_list)
-
 
     def apply_clustering(self, clustering_key, which_clust, scaling_factor=None):
 
@@ -234,7 +232,6 @@ class IOWSModel(object):
         # NOTE: n_signals assumes that all the jobs signals have the same num of signals
         # NOTE: n_bins assumes that all the time signals have the same
         # num of points
-        print "TIME PLANE"
         data = np.array([]).reshape(0, self.jobs_n_bins * self.n_time_signals)
 
         for job in self.input_workload.job_list:
@@ -242,7 +239,6 @@ class IOWSModel(object):
             data = np.vstack((data, data_row))
 
         # clustering
-        print "data", data
         cluster_method = clustering.factory(which_clust, data)
         cluster_method.train_method(self._n_clusters, self.kmeans_maxiter)
         self.cluster_centers = cluster_method.clusters
@@ -388,9 +384,9 @@ class IOWSModel(object):
 
         for (cc, i_ts) in enumerate(self.input_workload.job_list[0].timesignals):
             plt.subplot(len(tot_signals), 1, cc + 1)
-            xx = self.input_workload.total_metrics[cc].xedge_bins[:-1]
+            # xx = self.input_workload.total_metrics[cc].xedge_bins[:-1]
             yy = self.input_workload.total_metrics[cc].yvalues_bins
-            tt_dx = self.input_workload.total_metrics[cc].dx_bins
+            # tt_dx = self.input_workload.total_metrics[cc].dx_bins
             err_vec = [abs((x - y) / max(y,1.e-6) * 100.) for x, y in zip(tot_signals[cc].yvalues_bins, yy)]
             plt.bar(tot_signals[cc].xedge_bins[:-1], [i + 1e-20 for i in err_vec], tot_signals[cc].dx_bins,
                     color=color_vec[:, cc])
@@ -423,7 +419,7 @@ class IOWSModel(object):
 
             ts_name = self.ts_names[tt]
 
-            ts_sums_input=[]
+            ts_sums_input = []
             for i_app in self.input_workload.job_list:
                 if self.job_signal_dgt[tt] == 'sum':
                     ts_sums_input.append(i_app.timesignals[tt].sum)
