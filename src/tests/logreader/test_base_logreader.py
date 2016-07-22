@@ -6,6 +6,7 @@ import shutil
 import os
 
 from logreader.base import LogReader
+from logreader.dataset import IngestedDataSet
 
 
 class BaseLogReaderTest(unittest.TestCase):
@@ -53,7 +54,7 @@ class BaseLogReaderTest(unittest.TestCase):
         with tempfile.NamedTemporaryFile() as f:
 
             lr = LogReader(f.name)
-            assert isinstance(lr.logfiles(), types.GeneratorType)
+            self.assertIsInstance(lr.logfiles(), types.GeneratorType)
             files = [x for x in lr.logfiles()]
 
             self.assertEqual(files, [f.name])
@@ -92,7 +93,7 @@ class BaseLogReaderTest(unittest.TestCase):
                 open(os.path.join(directory, fn), 'a').close()
 
             lr = LogReader(directory)
-            assert isinstance(lr.logfiles(), types.GeneratorType)
+            self.assertIsInstance(lr.logfiles(), types.GeneratorType)
             files = sorted([x for x in lr.logfiles()])
 
             self.assertEqual(files, sorted([os.path.join(directory, fn) for fn in target_files]))
@@ -132,7 +133,7 @@ class BaseLogReaderTest(unittest.TestCase):
                 open(os.path.join(directory, fn), 'a').close()
 
             lr = LogReader(directory, file_pattern="*.log")
-            assert isinstance(lr.logfiles(), types.GeneratorType)
+            self.assertIsInstance(lr.logfiles(), types.GeneratorType)
             files = sorted([x for x in lr.logfiles()])
 
             self.assertEqual(files, sorted([os.path.join(directory, fn) for fn in target_files]))
@@ -169,7 +170,7 @@ class BaseLogReaderTest(unittest.TestCase):
                 open(os.path.join(directory, fn), 'a').close()
 
             lr = LogReader(directory, recursive=True)
-            assert isinstance(lr.logfiles(), types.GeneratorType)
+            self.assertIsInstance(lr.logfiles(), types.GeneratorType)
             files = sorted([x for x in lr.logfiles()])
 
             self.assertEqual(files, sorted([os.path.join(directory, fn) for fn in target_files]))
@@ -211,13 +212,44 @@ class BaseLogReaderTest(unittest.TestCase):
                 open(os.path.join(directory, fn), 'a').close()
 
             lr = LogReader(directory, recursive=True, file_pattern="*.log")
-            assert isinstance(lr.logfiles(), types.GeneratorType)
+            self.assertIsInstance(lr.logfiles(), types.GeneratorType)
             files = sorted([x for x in lr.logfiles()])
 
             self.assertEqual(files, sorted([os.path.join(directory, fn) for fn in target_files]))
 
         finally:
             shutil.rmtree(directory)
+
+    def test_read_log_stubbed(self):
+        """
+        The actual read_log function needs to be implemented by the derived types
+        """
+        lr = LogReader('test-path')
+
+        self.assertRaises(NotImplementedError, lambda: lr.read_log('fake-filename'))
+
+    def test_create_dataset(self):
+
+        class DerivedLogReader(LogReader):
+
+            dataset_class = IngestedDataSet
+
+            def read_log(self, filename):
+                return [filename]
+
+            def logfiles(self):
+                for i in range(10):
+                    yield i
+
+        lr = DerivedLogReader('test-path')
+
+        logs = lr.read_logs()
+
+        self.assertIsInstance(logs, IngestedDataSet)
+        self.assertIsInstance(logs.joblist, list)
+        self.assertEqual(logs.joblist, range(10))
+
+
 
 if __name__ == "__main__":
     unittest.main()

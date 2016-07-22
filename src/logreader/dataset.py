@@ -12,8 +12,8 @@ class IngestedDataSet(object):
     to enable further processing.
     """
     def __init__(self, joblist):
-        assert isinstance(joblist, list)
-        self.joblist = joblist
+        # assert isinstance(joblist, list)
+        self.joblist = list(joblist)
 
     def __unicode__(self):
         return "Dataset({}) - {} jobs".format(self.__class__.__name__, len(self.joblist))

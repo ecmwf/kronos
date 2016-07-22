@@ -1,5 +1,6 @@
 import fnmatch
 import os
+import itertools
 
 from jobs import IngestedJob
 
@@ -65,5 +66,5 @@ class LogReader(object):
         """
         Read all of the logfiles which match the configuration.
         """
-        return self.dataset_class((self.read_log(filename) for filename in self.logfiles()))
+        return self.dataset_class(itertools.chain(*(self.read_log(filename) for filename in self.logfiles())))
 
