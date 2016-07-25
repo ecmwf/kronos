@@ -38,6 +38,8 @@ class IOWSModel(object):
         self.job_impact_index_rel_tsh = config_options.IOWSMODEL_JOB_IMPACT_INDEX_REL_TSH
         self.jobs_n_bins = config_options.WORKLOADCORRECTOR_JOBS_NBINS
         self.supported_synth_apps = config_options.IOWSMODEL_SUPPORTED_SYNTH_APPS
+        self.cpu_frequency = config_options.CPU_FREQUENCY
+        self.config_options = config_options
 
         self.cluster_centers = {}
         self.cluster_labels = {}
@@ -117,7 +119,7 @@ class IOWSModel(object):
                 pf_ts_list.append(ts)
 
             # create app from cluster time signals
-            app = SyntheticApp()
+            app = SyntheticApp(self.config_options)
             app.job_name = "JOB-cluster-" + str(iC)
             app.fill_time_series(pf_ts_list)
             self.syntapp_list.append(app)
@@ -276,6 +278,8 @@ class IOWSModel(object):
             self.cluster_centers = data
             self.cluster_labels = np.arange(0, len(self.input_workload.LogData))
 
+        print "self.cluster_labels: ", self.cluster_labels
+
     def calculate_total_metrics(self):
         """ Calculate global metrics for all the jobs """
 
@@ -346,7 +350,7 @@ class IOWSModel(object):
 
         # Sanity check in/out
         # < NOTE: this only works for n_bin = 1 >
-        self.plot_sanity_check(json_all_synth_app)
+        # self.plot_sanity_check(json_all_synth_app)
 
     def make_plots(self, plt_tag):
         """ Plotting routine """
@@ -412,7 +416,7 @@ class IOWSModel(object):
         i_fig = PlotHandler.get_fig_handle_ID()
         plt.figure(i_fig, figsize=(12, 20), dpi=80, facecolor='w', edgecolor='k')
 
-        xx = np.arange(0,len(self.input_workload.LogData))
+        xx_input = np.arange(0,len(self.input_workload.LogData))
         n_time_signals_in = len(self.ts_names)
 
         for tt in np.arange(0, n_time_signals_in):
@@ -434,18 +438,20 @@ class IOWSModel(object):
                            for i_ker in i_bin
                            if i_ker.has_key(ts_name)]
 
+            xx_output = range(0,len(ts_sums_out))
+
             # print "--------"
             # print "tt=", tt
             # print "sa_list=", len(sa_list)
-            # print len(xx)
+            # print len(xx_input)
             # print len(ts_sums_input)
             # print len(ts_sums_out)
             # print ts_sums_input
             # print ts_sums_out
 
             plt.subplot(n_time_signals_in, 1, tt + 1)
-            plt.plot(xx, ts_sums_input, color='b', linestyle='-')
-            plt.plot(xx, ts_sums_out, color='r', linestyle='', marker='*')
+            plt.plot(xx_input, ts_sums_input, color='b', linestyle='-')
+            plt.plot(xx_output, ts_sums_out, color='r', linestyle='', marker='*')
 
             if tt == 0:
                 plt.title('Sanity check: json input -> json synthetic apps (total values, sc=1)')

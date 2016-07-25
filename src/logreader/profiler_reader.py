@@ -15,9 +15,9 @@ def read_allinea_logs(log_dir, jobs_n_bins, list_json_files=None):
     """ Collect info from Allinea logs """
 
     profiled_jobs = []
-    desired2allinea = [('flops', 'instr_fp', 'cpu', 'sum'),
-                       ('kb_read', 'lustre_bytes_read', 'file-read', 'sum'),
-                       ('kb_write', 'lustre_bytes_written', 'file-write', 'sum'),
+    desired2allinea = [('cpu_time',  'instr_fp',             'cpu',        'sum'),
+                       ('kb_read',   'lustre_bytes_read',    'file-read',  'sum'),
+                       ('kb_write',  'lustre_bytes_written', 'file-write', 'sum'),
                        # ('n_pairwise', 'mpi_p2p', 'mpi', 'sum'),
                        # ('kb_pairwise', 'mpi_p2p_bytes', 'mpi', 'sum'),
                        # ('n_collective', 'mpi_collect', 'mpi', 'sum'),
@@ -104,6 +104,12 @@ def read_allinea_logs(log_dir, jobs_n_bins, list_json_files=None):
             y_val_bk = json_data['profile']['samples'][ts_name_allinea]
             y_val = [v[2] for v in y_val_bk]  # values inside the blocks are: min, max, mean, var
 
+            # Correct the values of cpu_time by multiplying to total runtime
+            if ts_name_std == "cpu_time":
+                t_ext = [0] + sample_times
+                y_val_ext = [0] + y_val
+                y_val = [y_val_ext[tt]*(t_ext[tt]-t_ext[tt-1])/100. for tt in range(1, len(sample_times)+1)]
+
             # Correct the values for "kb_pairwise" and "kb_collective" (as they are recorded as PER SECOND)
             if ts_name_std in ["kb_pairwise", "kb_collective"]:
                 t_ext = [0] + sample_times
@@ -127,7 +133,7 @@ def read_allinea_logs(log_dir, jobs_n_bins, list_json_files=None):
             i_job.append_time_signal(ts)
 
         # append job to the WL list..
-        print "file: ", js, ", read: ", i_job.timesignals[1].sum/1024./1024., " [Gb], write: ", i_job.timesignals[2].sum/1024./1024., " [Gb]"
+        # print "file: ", js, ", read: ", i_job.timesignals[1].sum/1024./1024., " [Gb], write: ", i_job.timesignals[2].sum/1024./1024., " [Gb]"
         profiled_jobs.append(i_job)
 
     return profiled_jobs

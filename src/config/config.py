@@ -54,7 +54,7 @@ class Config(object):
     #                                      ('mpi_bytes_collective', 'int', 'mpi')]
 
     # time signals = [name, type, "kernel type", "re-sampling method"] (reduced list  compatible with Allinea metrics)
-    WORKLOADCORRECTOR_LIST_TIME_NAMES = [('flops',               'double', 'cpu',         'sum'),
+    WORKLOADCORRECTOR_LIST_TIME_NAMES = [('cpu_time',              'double', 'cpu',       'sum'),
                                         ('kb_read',              'double', 'file-read',   'sum'),
                                         ('kb_write',             'double', 'file-write',  'sum'),
                                         # ('n_pairwise',           'double', 'mpi',         'sum'),
@@ -70,3 +70,7 @@ class Config(object):
     IOWSMODEL_KMEANS_KMEANS_RSEED = 170
     IOWSMODEL_JOB_IMPACT_INDEX_REL_TSH = 0.2
     IOWSMODEL_SUPPORTED_SYNTH_APPS = ['cpu', 'file-read', 'file-write', 'mpi']
+
+
+    # hardware
+    CPU_FREQUENCY = 2.3e9  # Hz

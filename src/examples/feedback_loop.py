@@ -25,7 +25,7 @@ def feedback_loop():
 
     # Load config
     config = Config()
-    PLOT_TAG = "replay"
+    PLOT_TAG = "convergence_sa_"
 
     # create dummy workload by synthetic apps
     SCHEDULER_TAG = ""
@@ -35,49 +35,49 @@ def feedback_loop():
 
     # dir for iows and kronos
     IOWS_DIR = "/var/tmp/maab/iows"
+    IOWS_DIR_BACKUP = IOWS_DIR + "/input/" + "last_run_bk"
     KRONOS_RUN_DIR = "/scratch/ma/maab/kronos_run"
     USER_HOST = "maab@ccb"
-    REPLAY_RUN = True
-    REPLAY_RUN_NJOBS = 5
+
+    # ---- replay options -----
+    REPLAY_RUN = False
+    REPLAY_RUN_NJOBS = 9
+    # -------------------------
 
     # ---- loop settings.. ----
-    n_iterations = 10
-    relaxation_factor = 0.5
+    n_iterations = 6
+    relaxation_factor = 0.9
+
+    # initialize the vectors: metric_sums, deltas, etc...
+    # [%] percentage of measured workload (per each metric)
+    scaling_factor_list = [100.,
+                           100.,
+                           100.,
+                           # 100.,
+                           # 100.,
+                           # 100.,
+                           # 100.,
+                           ]
+
+    metrics_sums_history = np.ndarray([0, len(config.WORKLOADCORRECTOR_LIST_TIME_NAMES)])
+    scaling_factors_history_raw = np.zeros(metrics_sums_history.shape)
+    scaling_factors_history_raw = np.vstack([scaling_factors_history_raw, np.asarray(scaling_factor_list)])
+    scaling_factors_history_raw = np.vstack([scaling_factors_history_raw, np.asarray(scaling_factor_list)])
+    scaling_factors_history_raw = np.vstack([scaling_factors_history_raw, np.asarray(scaling_factor_list)])
 
     # run jobs on the cluster
     if not REPLAY_RUN:
-
-        # initialize the vectors: metric_sums, deltas, etc...
-        metrics_sums_history = np.ndarray([0, len(config.WORKLOADCORRECTOR_LIST_TIME_NAMES)])
-        scaling_factors_history = np.zeros(metrics_sums_history.shape)
-
-        # [%] percentage of measured workload (per each metric)
-        # TODO: flops not really meaningful for now - (not measured by map anyway..)
-        scaling_factor_list = [100.,
-                               100.,
-                               100.,
-                               # 100.,
-                               # 100.,
-                               # 100.,
-                               # 100.,
-                               ]
-
-        scaling_factors_history = np.vstack([scaling_factors_history, np.asarray(scaling_factor_list)])
-        scaling_factors_history = np.vstack([scaling_factors_history, np.asarray(scaling_factor_list)])
-        scaling_factors_history = np.vstack([scaling_factors_history, np.asarray(scaling_factor_list)])
 
         # Initialise the input workload
         iter_workload = RealWorkload(config)
         iter_workload.read_logs(SCHEDULER_TAG, PROFILER_TAG, SCHEDULER_LOG_FILE, PROFILER_LOG_DIR)
         iter_workload.make_plots(PLOT_TAG)
-        metrics_sums_history = np.vstack( [metrics_sums_history, np.asarray([i_sum.sum for i_sum in iter_workload.total_metrics])] )
+        reference_metrics_iter0 = np.asarray([i_sum.sum for i_sum in iter_workload.total_metrics])
 
-        print "metrics_sums_history (iter=0): ", metrics_sums_history[-1, :]
+        print "reference_metrics_iter0 (iter=0): ", reference_metrics_iter0
 
         # main loop: iterates to minimize the difference with the initial WL
         for i_count in range(0, n_iterations):
-
-            # print "scaling_factor_list ", scaling_factor_list
 
             # Generator model
             model = IOWSModel(config)
@@ -126,11 +126,12 @@ def feedback_loop():
             list_map_files = ssh_ls_cmd.stdout.readlines()
             for (ff, file_name) in enumerate(list_map_files):
                 file_name_ok = file_name.replace("\n","")
-                subprocess.Popen(["scp", USER_HOST+":"+file_name_ok, IOWS_DIR+"/input/"+"job-"+str(ff)+".map"])
+                proc_scp = subprocess.Popen(["scp", USER_HOST+":"+file_name_ok, IOWS_DIR+"/input/"+"job-"+str(ff)+".map"])
+                proc_scp.wait()
 
-                # TODO: proper check that all the files have been copied over...
-                time.sleep(3.0)
-                subprocess.call(["python", IOWS_DIR+"/input/map2json.py", IOWS_DIR+"/input/"+"job-"+str(ff)+".map"])
+                time.sleep(1.0)
+                proc_m2j = subprocess.Popen(["python", IOWS_DIR+"/input/map2json.py", IOWS_DIR+"/input/"+"job-"+str(ff)+".map"])
+                proc_m2j.wait()
 
             # once all the files have been copied over to local input, rename the host run folder "jobs"
             subprocess.Popen(["ssh",
@@ -155,28 +156,25 @@ def feedback_loop():
             sc_factors_vec_raw = (np.asarray(metrics_sums_history[0, :]))/np.asarray(metrics_sums_history[-1, :]) * 100.
 
             sc_factors_vec = relaxation_factor * sc_factors_vec_raw + \
-                             (1.-relaxation_factor)/2. * scaling_factors_history[-1, :] + \
-                             (1.-relaxation_factor)/2. * scaling_factors_history[-2, :]
+                             (1.-relaxation_factor)/2. * scaling_factors_history_raw[-1, :] + \
+                             (1.-relaxation_factor)/2. * scaling_factors_history_raw[-2, :]
 
-            scaling_factors_history = np.vstack([scaling_factors_history, sc_factors_vec_raw])
+            scaling_factors_history_raw = np.vstack([scaling_factors_history_raw, sc_factors_vec_raw])
             scaling_factor_list = sc_factors_vec.tolist()
 
             print "metrics_sums_history[-1,:]: ", metrics_sums_history[-1, :]
-            print "scaling_factors_history[-1,:]: ", scaling_factors_history[-1, :]
+            print "scaling_factors_history_raw[-1,:]: ", scaling_factors_history_raw[-1, :]
             print "scaling_factor_list: ", scaling_factor_list
 
     else:
 
         print "Replaying run.."
 
-        # Replay run from stored local input values..
-        metrics_sums_history = np.ndarray([0, len(config.WORKLOADCORRECTOR_LIST_TIME_NAMES)])
-
         # set list of json for this iteration
         list_json_files = ["job-" + str(ff) + ".json" for ff in range(0, REPLAY_RUN_NJOBS)]
         iter_workload = RealWorkload(config)
         iter_workload.read_logs(SCHEDULER_TAG, PROFILER_TAG, SCHEDULER_LOG_FILE, PROFILER_LOG_DIR, list_json_files)
-        metrics_sums_history = np.vstack([metrics_sums_history, np.asarray([i_sum.sum for i_sum in iter_workload.total_metrics])])
+        reference_metrics_iter0 = np.asarray([i_sum.sum for i_sum in iter_workload.total_metrics])
 
         for i_count in range(0, n_iterations):
 
@@ -187,7 +185,21 @@ def feedback_loop():
             iter_workload = RealWorkload(config)
             iter_workload.read_logs(SCHEDULER_TAG, PROFILER_TAG, SCHEDULER_LOG_FILE, PROFILER_LOG_DIR, list_json_files)
             metrics_sums_history = np.vstack([metrics_sums_history, np.asarray([i_sum.sum for i_sum in iter_workload.total_metrics])])
+
             print "metrics_sums: ", metrics_sums_history[-1, :]
+
+            # re-calculate scaling factor according to measured deltas..
+            sc_factors_vec_raw = (np.asarray(metrics_sums_history[0, :])) / np.asarray(
+                metrics_sums_history[-1, :]) * 100.
+
+            sc_factors_vec = relaxation_factor * sc_factors_vec_raw + \
+                             (1. - relaxation_factor) / 2. * scaling_factors_history_raw[-1, :] + \
+                             (1. - relaxation_factor) / 2. * scaling_factors_history_raw[-2, :]
+
+            print "sc_factors_vec: ", sc_factors_vec
+
+            scaling_factors_history_raw = np.vstack([scaling_factors_history_raw, sc_factors_vec_raw])
+
 
     # ------------- make convergence plot -------------
     n_iter = metrics_sums_history.shape[0]
@@ -198,7 +210,7 @@ def feedback_loop():
     for imetr in range(0, n_metrics):
         plt.subplot(n_metrics, 1, imetr+1)
 
-        ref_vals = metrics_sums_history[0, imetr]*np.ones((n_iter, 1))
+        ref_vals = reference_metrics_iter0[imetr]*np.ones((n_iter))
         iter_vals = metrics_sums_history[:, imetr]
 
         plt.plot(np.asarray(range(0, n_iter)), ref_vals,'b')
@@ -208,10 +220,17 @@ def feedback_loop():
         plt.ylabel(metrics_names[imetr])
         plt.xticks(range(0, n_iter+1))
         plt.xlim(xmin=0, xmax=n_iter+1.1)
-        plt.ylim(ymin=0, ymax=max(iter_vals)*2.0)
+        plt.ylim(ymin=0, ymax=max( np.hstack((iter_vals, ref_vals)))*1.1)
 
     plt.savefig(config.DIR_OUTPUT + "/" + PLOT_TAG + "_plot_iterations.png")
     # ------------------------------------
+
+    # ------------------------------- write log file -------------------------------------
+    if not os.path.exists(IOWS_DIR_BACKUP):
+        os.makedirs(IOWS_DIR_BACKUP)
+    np.savetxt(IOWS_DIR_BACKUP + '/metrics_sums.txt', metrics_sums_history, delimiter=",")
+    np.savetxt(IOWS_DIR_BACKUP + '/scaling_factors_raw.txt', scaling_factors_history_raw, delimiter=",")
+    # ------------------------------------------------------------------------------------
 
     # check num plots
     PlotHandler.print_fig_handle_ID()

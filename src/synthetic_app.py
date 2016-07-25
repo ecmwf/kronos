@@ -6,7 +6,7 @@ class SyntheticApp(object):
 
     """ Class representing a synthetic app """
 
-    def __init__(self):
+    def __init__(self, config_options):
 
         self.jobID = None
         self.job_name = None
@@ -14,6 +14,7 @@ class SyntheticApp(object):
         self.time_signals = None  # time signals
         self.kernels_seq = []
         self.ker_data = None
+        self.cpu_freq = config_options.CPU_FREQUENCY
 
     # load time-series in
     def fill_time_series(self, ts_list):
@@ -57,7 +58,15 @@ class SyntheticApp(object):
                 if supported_synth_apps.count(i_ts.ts_group) != 0:
                     # if i_ts.yvalues_bins[i_bin] >= 1.0:
                     if not ker_blocks.has_key(i_ts.ts_group):
-                        ker_blocks[i_ts.ts_group] = {i_ts.name: i_ts.yvalues_bins[i_bin], "name": i_ts.ts_group}
+
+                        # Estimated flops from cpu time..
+                        if i_ts.name == "cpu_time":
+                            sa_name = "flops"
+                            FLOPS_GHZ_FACTOR = 4.0
+                            ker_blocks[i_ts.ts_group] = {sa_name: i_ts.yvalues_bins[i_bin]*self.cpu_freq/FLOPS_GHZ_FACTOR, "name": i_ts.ts_group}
+                            # print "here"
+                        else:
+                            ker_blocks[i_ts.ts_group] = {i_ts.name: i_ts.yvalues_bins[i_bin], "name": i_ts.ts_group}
 
                         # TODO: remove this as soon as we count #read and #write..
                         if i_ts.ts_group == "file-read":
@@ -76,7 +85,7 @@ class SyntheticApp(object):
             # ker_blocks['mpi']['n_pairwise'] = max(1, int(ker_blocks['mpi']['n_pairwise']))
             # TODO: remove any manual intervention/correction..
             ker_blocks['file-write']['kb_write'] = max(1, ker_blocks['file-write']['kb_write'])
-            ker_blocks['cpu']['flops'] = 1000000000.00
+            # ker_blocks['cpu']['flops'] = 1000000000.00
 
             # ker_blocks_all.extend(ker_blocks.values()[:])
             ker_blocks_all.append(ker_blocks.values()[:])
