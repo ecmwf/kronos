@@ -78,7 +78,7 @@ class IOWS(object):
         """
         self.job_datasets = []
         for ingest_type, ingest_path in self.config.profile_sources:
-            self.job_datasets.append(logreader.ingest_data(ingest_type, ingest_path))
+            self.job_datasets.append(logreader.ingest_data(ingest_type, ingest_path, self.config))
 
     def model_workload(self):
         workload = ModelWorkload(self.config)

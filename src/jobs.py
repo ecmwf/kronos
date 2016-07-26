@@ -103,7 +103,7 @@ class IngestedJob(object):
         '_job_impact_index',
     ]
 
-    def __init__(self):
+    def __init__(self, label=None):
 
         # from logs
         self.time_created = None
@@ -130,6 +130,8 @@ class IngestedJob(object):
         self.timesignals = {}
         self.job_impact_index_rel = None
         self._job_impact_index = None
+
+        self.label = label
 
     # aggregate time signals..
     def append_time_signal(self, time_signal_in):

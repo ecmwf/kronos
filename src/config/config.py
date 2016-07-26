@@ -49,6 +49,8 @@ class Config(object):
 
     profile_sources = []
 
+    ingestion = {}
+
     # Modelling and clustering details
 
     model_clustering = "none"

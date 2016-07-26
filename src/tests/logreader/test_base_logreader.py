@@ -5,6 +5,7 @@ import tempfile
 import shutil
 import os
 
+from exceptions_iows import ConfigurationError
 from logreader.base import LogReader
 from logreader.dataset import IngestedDataSet
 
@@ -25,20 +26,29 @@ class BaseLogReaderTest(unittest.TestCase):
         self.assertIsNone(lr.dataset_class)
         self.assertIsNone(lr.file_pattern)
         self.assertFalse(lr.recursive)
+        self.assertIsNone(lr.label_method)
 
         # Test that we can override with the things we provide
-        lr = LogReader('fake-path', recursive=True, file_pattern="*.pattern")
+        lr = LogReader('fake-path', recursive=True, file_pattern="*.pattern", label_method="directory")
         self.assertEqual(lr.path, 'fake-path')
         self.assertIsNone(lr.dataset_class)
         self.assertEqual(lr.file_pattern, "*.pattern")
         self.assertTrue(lr.recursive)
+        self.assertEqual(lr.label_method, "directory")
 
         # Test that file_pattern is using the class default if not overridden.
         class LogReaderSubclass(LogReader):
             file_pattern = "default_pattern"
+            label_method = "directory"
+            recursive = True
 
         lr = LogReaderSubclass('fake-path')
         self.assertEqual(lr.file_pattern, "default_pattern")
+        self.assertEqual(lr.label_method, "directory")
+        self.assertTrue(lr.recursive)
+
+        # Check that the validity of the label_method is tested
+        self.assertRaises(ConfigurationError, lambda: LogReader('fake-path', label_method="invalid"))
 
     def test_logfiles_nonexistent(self):
         """
@@ -226,7 +236,7 @@ class BaseLogReaderTest(unittest.TestCase):
         """
         lr = LogReader('test-path')
 
-        self.assertRaises(NotImplementedError, lambda: lr.read_log('fake-filename'))
+        self.assertRaises(NotImplementedError, lambda: lr.read_log('fake-filename', None))
 
     def test_create_dataset(self):
 
@@ -234,7 +244,7 @@ class BaseLogReaderTest(unittest.TestCase):
 
             dataset_class = IngestedDataSet
 
-            def read_log(self, filename):
+            def read_log(self, filename, suggested_label):
                 return [filename]
 
             def logfiles(self):
@@ -249,6 +259,13 @@ class BaseLogReaderTest(unittest.TestCase):
         self.assertIsInstance(logs.joblist, list)
         self.assertEqual(logs.joblist, range(10))
 
+    def test_suggested_labels(self):
+
+        lr = LogReader('test-path')
+        self.assertIsNone(lr.suggest_label("a/file/path.test"))
+
+        lr = LogReader('test-path', label_method="directory")
+        self.assertEqual(lr.suggest_label("a/file/path.test"), "a/file")
 
 
 if __name__ == "__main__":

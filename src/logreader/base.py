@@ -1,7 +1,9 @@
 import fnmatch
 import os
+import sys
 import itertools
 
+from exceptions_iows import ConfigurationError
 from jobs import IngestedJob
 
 
@@ -14,10 +16,24 @@ class LogReader(object):
     job_class = IngestedJob
     dataset_class = None
     file_pattern = None
+    label_method = None
+    recursive = False
 
-    def __init__(self, path, recursive=False, file_pattern=None):
+    # How may the job be labelled (for combining with other profiling data, automatically)
+    available_label_methods = [
+        None,
+        'directory'
+    ]
+
+    def __init__(self, path, recursive=None, file_pattern=None, label_method=None):
         self.path = path
-        self.recursive = recursive
+
+        self.label_method = label_method if label_method is not None else self.label_method
+        self.recursive = recursive if recursive is not None else self.recursive
+
+        # Some checks
+        if self.label_method not in self.available_label_methods:
+            raise ConfigurationError("Configuring LogReader with unavailable label method ({})".format(label_method))
 
         # Only override the file pattern if it is supplied.
         if file_pattern:
@@ -35,6 +51,7 @@ class LogReader(object):
         iterate through the matching
         :return:
         """
+        print "Iterating logfiles"
         if not os.path.exists(self.path):
             raise IOError("Path {} does not exist (specified for {})".format(self.path, self))
 
@@ -59,12 +76,49 @@ class LogReader(object):
                 if os.path.isfile(fn) and (pattern is None or fnmatch.fnmatch(fn, pattern)):
                     yield fn
 
-    def read_log(self, filename):
+    def suggest_label(self, filename):
+        """
+        Do we have a suggested label?
+        """
+        if self.label_method == "directory":
+            return os.path.dirname(filename)
+
+        return None
+
+    def read_log(self, filename, suggested_label):
         raise NotImplementedError
+
+    def read_logs_generator(self):
+        """
+        This routine is an internal part of read_logs, and iterates through read_log for each job
+        """
+        # This should be roughly equivalent to:
+
+        for i, filename in enumerate(self.logfiles()):
+
+            # In case some really whacky stuff is passed in, this is not the exception we would choose to throw
+            try:
+                p = os.path.basename(filename)
+            except:
+                p = filename
+
+            # if i % 17 == 0:
+            if True:
+                sys.stdout.write("\r{:d} files processed - {:100s}".format(i+1, str(p)))
+                sys.stdout.flush()
+
+            ingested_jobs = self.read_log(filename, self.suggest_label(filename))
+
+            for job in ingested_jobs:
+                yield job
+
+        sys.stdout.write("\n")
 
     def read_logs(self):
         """
         Read all of the logfiles which match the configuration.
         """
-        return self.dataset_class(itertools.chain(*(self.read_log(filename) for filename in self.logfiles())))
+        # return self.dataset_class(itertools.chain(*(self.read_log(filename, self.suggest_label(filename)) for filename in self.logfiles())))
+
+        return self.dataset_class(self.read_logs_generator())
 
