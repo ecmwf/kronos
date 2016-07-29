@@ -3,6 +3,7 @@ from pylab import *
 import time_signal
 from logreader.scheduler_reader import AccountingDataSet, PBSDataSet
 from plot_handler import PlotHandler
+from sds.print_colour import print_colour
 
 from time_signal import TimeSignal
 from logreader import scheduler_reader
@@ -155,12 +156,16 @@ class ModelWorkload(object):
 
         for signal_name, signal_details in time_signal.signal_types.iteritems():
 
-            times_bin = np.concatenate([job.timesignals[signal_name].xvalues_bins for job in self.job_list])
-            data = np.concatenate([job.timesignals[signal_name].yvalues_bins for job in self.job_list])
+            try:
+                times_bin = np.concatenate([job.timesignals[signal_name].xvalues_bins for job in self.job_list if job.timesignals[signal_name] is not None])
+                data = np.concatenate([job.timesignals[signal_name].yvalues_bins for job in self.job_list if job.timesignals[signal_name] is not None])
 
-            ts = TimeSignal.from_values('total_{}'.format(signal_name), times_bin, data, base_signal_name=signal_name)
-            ts.digitize(self.total_metrics_nbins)
-            self.total_metrics.append(ts)
+                ts = TimeSignal.from_values('total_{}'.format(signal_name), times_bin, data, base_signal_name=signal_name)
+                ts.digitize(self.total_metrics_nbins)
+                self.total_metrics.append(ts)
+
+            except ValueError:
+                print_colour("orange", "No jobs found with time series for {}".format(signal_name))
 
         # # calculate relative impact factors (0 to 1)....
         imp_fac_all = [job.job_impact_index for job in self.job_list]

@@ -48,9 +48,10 @@ class ModelJob(object):
         """
         output = None
         for ts_name, ts in self.timesignals.iteritems():
-            if output is None:
-                output = "Num samples: \t{}\n".format(len(ts.xvalues))
-            output += "{}: \t{}\n".format(ts_name, sum(ts.yvalues))
+            if ts is not None:
+                if output is None:
+                    output = "Num samples: \t{}\n".format(len(ts.xvalues))
+                output += "{}: \t{}\n".format(ts_name, sum(ts.yvalues))
 
         return output
 
@@ -72,7 +73,8 @@ class ModelJob(object):
         """
         index = 0
         for series in self.timesignals.values():
-            index += np.trapz(abs(series.yvalues), series.xvalues)
+            if series is not None:
+                index += np.trapz(abs(series.yvalues), series.xvalues)
 
         return index
 
