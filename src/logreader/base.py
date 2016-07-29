@@ -96,6 +96,10 @@ class LogReader(object):
 
         for i, filename in enumerate(self.logfiles()):
 
+            if i > 300:
+                print "DEBUG BREAK OUT"
+                break
+
             # In case some really whacky stuff is passed in, this is not the exception we would choose to throw
             try:
                 p = os.path.basename(filename)

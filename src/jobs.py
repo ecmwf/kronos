@@ -103,35 +103,43 @@ class IngestedJob(object):
         '_job_impact_index',
     ]
 
-    def __init__(self, label=None):
+    # from logs
+    time_created = None
+    time_queued = None
+    time_eligible = None
+    time_end = None
+    time_start = None
+    ncpus = None
+    nnodes = None
+    memory_kb = None
 
-        # from logs
-        self.time_created = None
-        self.time_queued = None
-        self.time_eligible = None
-        self.time_end = None
-        self.time_start = None
-        self.ncpus = None
-        self.nnodes = None
-        self.memory_kb = None
-        # self.cpu_percent = None
-        self.group = None
-        self.jobname = None
-        self.user = None
-        self.queue_type = None
+    # self.cpu_percent = None
+    group = None
+    jobname = None
+    user = None
+    queue_type = None
 
-        # derived
-        self.runtime = None
-        self.time_start_0 = None
-        self.time_in_queue = None
-        self.idx_in_log = None
+    # derived
+    runtime = None
+    time_start_0 = None
+    time_in_queue = None
+    idx_in_log = None
 
-        # added
-        self.timesignals = {}
-        self.job_impact_index_rel = None
-        self._job_impact_index = None
+    # added
+    job_impact_index_rel = None
+    _job_impact_index = None
+
+    def __init__(self, label=None, **kwargs):
 
         self.label = label
+        self.timesignals = {}
+
+        # Other parameters to update
+        for key, value in kwargs.iteritems():
+            if not hasattr(self, key):
+                raise AttributeError("Attribute {} of {} is unknown".format(key, self.__class__.__name__))
+            else:
+                setattr(self, key, value)
 
     # aggregate time signals..
     def append_time_signal(self, time_signal_in):

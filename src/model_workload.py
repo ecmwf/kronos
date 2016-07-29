@@ -117,7 +117,9 @@ class ModelWorkload(object):
         # non-scheduler based dataset.
 
         if len(datasets) == 1:
+            print "Modelling 1"
             self.job_list = list(datasets[0].model_jobs())
+            print "job list", self.job_list
         else:
             assert len(datasets) == 2
 
