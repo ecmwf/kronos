@@ -24,6 +24,30 @@ class DarshanDataSet(IngestedDataSet):
         for job in self.joblist:
             yield job.model_job(global_start_time)
 
+class DarshanIngestedJobFile(object):
+    """
+    An object to represent the file information available in a Darshan job
+
+    This is a separate class, rather than being inside DarshanIngestedJob, as we need to pickle data to send it
+    between processes, and pickling fails for nested classes.
+    """
+    def __init__(self, name):
+        self.name = name
+
+        self.bytes_read = 0
+        self.bytes_written = 0
+        self.open_count = 0
+        self.write_count = 0
+        self.read_count = 0
+
+        self.read_time = None
+        self.write_time = None
+
+    def __unicode__(self):
+        return "DarshanFile({} reads, {} bytes, {} writes, {} bytes)".format(self.read_count, self.bytes_read, self.write_count, self.bytes_written)
+
+    def __str__(self):
+        return unicode(self).encode('utf-8')
 
 class DarshanIngestedJob(IngestedJob):
     """
@@ -35,28 +59,6 @@ class DarshanIngestedJob(IngestedJob):
     nprocs = None
     jobid = None
     log_version = None
-
-    class File(object):
-        """
-        An object to represent the file information available in a Darshan job
-        """
-        def __init__(self, name):
-            self.name = name
-
-            self.bytes_read = 0
-            self.bytes_written = 0
-            self.open_count = 0
-            self.write_count = 0
-            self.read_count = 0
-
-            self.read_time = None
-            self.write_time = None
-
-        def __unicode__(self):
-            return "File({} reads, {} bytes, {} writes, {} bytes)".format(self.read_count, self.bytes_read, self.write_count, self.bytes_written)
-
-        def __str__(self):
-            return unicode(self).encode('utf-8')
 
     def __init__(self, label=None, file_details=None, **kwargs):
         super(DarshanIngestedJob, self).__init__(label, **kwargs)
@@ -209,7 +211,7 @@ class DarshanLogReader(LogReader):
 
                 # Add the file to the map if required
                 if file not in files:
-                    files[file] = DarshanIngestedJob.File(file)
+                    files[file] = DarshanIngestedJobFile(file)
 
                 file_elem = self.file_params.get(bits[2], None)
                 if file_elem is not None:

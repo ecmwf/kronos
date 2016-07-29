@@ -1,10 +1,40 @@
 import fnmatch
 import os
 import sys
-import itertools
+from multiprocessing import Pool
 
 from exceptions_iows import ConfigurationError
 from jobs import IngestedJob
+
+
+# TODO: Tidy this up. The work should be done inside the class. Global state is ugly.
+
+global_storage = None
+
+def internal_worker(filename_tuple):
+    i, filename = filename_tuple
+
+    # print "WORKER: ", i, filename
+
+    # In case some really whacky stuff is passed in, this is not the exception we would choose to throw
+    try:
+        p = os.path.basename(filename)
+    except:
+        p = filename
+
+    # if i % 17 == 0:
+    if True:
+        sys.stdout.write("\r{:d} files processed - {:100s}".format(i+1, str(p)))
+        sys.stdout.flush()
+
+    return global_storage.read_log(filename, global_storage.suggest_label(filename))
+
+
+def internal_initializer(args):
+
+    print "Initialising worker!!!"
+    global global_storage
+    global_storage = args
 
 
 class LogReader(object):
@@ -18,6 +48,7 @@ class LogReader(object):
     file_pattern = None
     label_method = None
     recursive = False
+    pool_readers = 10
 
     # How may the job be labelled (for combining with other profiling data, automatically)
     available_label_methods = [
@@ -25,11 +56,12 @@ class LogReader(object):
         'directory'
     ]
 
-    def __init__(self, path, recursive=None, file_pattern=None, label_method=None):
+    def __init__(self, path, recursive=None, file_pattern=None, label_method=None, pool_readers=None):
         self.path = path
 
         self.label_method = label_method if label_method is not None else self.label_method
         self.recursive = recursive if recursive is not None else self.recursive
+        self.pool_readers = pool_readers if pool_readers is not None else self.pool_readers
 
         # Some checks
         if self.label_method not in self.available_label_methods:
@@ -92,24 +124,13 @@ class LogReader(object):
         """
         This routine is an internal part of read_logs, and iterates through read_log for each job
         """
-        # This should be roughly equivalent to:
+        pool = Pool(processes=self.pool_readers, initializer=internal_initializer, initargs=(self,))
+        self.stdout = sys.stdout
 
-        for i, filename in enumerate(self.logfiles()):
+        list_of_job_lists = pool.imap_unordered(internal_worker, enumerate(self.logfiles()))
 
-            # In case some really whacky stuff is passed in, this is not the exception we would choose to throw
-            try:
-                p = os.path.basename(filename)
-            except:
-                p = filename
-
-            # if i % 17 == 0:
-            if True:
-                sys.stdout.write("\r{:d} files processed - {:100s}".format(i+1, str(p)))
-                sys.stdout.flush()
-
-            ingested_jobs = self.read_log(filename, self.suggest_label(filename))
-
-            for job in ingested_jobs:
+        for job_list in list_of_job_lists:
+            for job in job_list:
                 yield job
 
         sys.stdout.write("\n")
