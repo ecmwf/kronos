@@ -48,7 +48,7 @@ class ModelJob(object):
         """
         output = None
         for ts_name, ts in self.timesignals.iteritems():
-            if ts is not None:
+            if ts is not None and ts.sum != 0:
                 if output is None:
                     output = "Num samples: \t{}\n".format(len(ts.xvalues))
                 output += "{}: \t{}\n".format(ts_name, sum(ts.yvalues))

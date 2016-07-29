@@ -118,9 +118,7 @@ class ModelWorkload(object):
         # non-scheduler based dataset.
 
         if len(datasets) == 1:
-            print "Modelling 1"
             self.job_list = list(datasets[0].model_jobs())
-            print "job list", self.job_list
         else:
             assert len(datasets) == 2
 
@@ -138,9 +136,18 @@ class ModelWorkload(object):
             self.job_list.extend(scheduler_jobs)
 
         # Ensure that the data is in a reasonable state for further processing
+        #
+        # It all needs to be sufficiently standardised.
+        # TODO: We should maybe do this in ModelJobs? Or do the digitization on the fly?
         for job in self.job_list:
-            for ts in job.timesignals.values():
-                if ts is not None and ts.xvalues_bins is None:
+            for ts_name, ts in job.timesignals.iteritems():
+
+                # If there is no data for a time series, fill it in with a blank
+                if ts is None:
+                    job.timesignals[ts_name] = TimeSignal.from_values(ts_name, [0.0], [0.0])
+                    ts = job.timesignals[ts_name]
+
+                if ts.xvalues_bins is None:
                     ts.digitize(self.config_options.WORKLOADCORRECTOR_JOBS_NBINS)
 
         self.calculate_global_metrics()
