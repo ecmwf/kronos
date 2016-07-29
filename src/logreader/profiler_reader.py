@@ -133,7 +133,7 @@ def read_allinea_logs(log_dir, jobs_n_bins, list_json_files=None):
             i_job.append_time_signal(ts)
 
         # append job to the WL list..
-        # print "file: ", js, ", read: ", i_job.timesignals[1].sum/1024./1024., " [Gb], write: ", i_job.timesignals[2].sum/1024./1024., " [Gb]"
+        print "file: ", js, ", read: ", i_job.timesignals[1].sum, " [Kb], write: ", i_job.timesignals[2].sum, " [Kb]"
         profiled_jobs.append(i_job)
 
     return profiled_jobs

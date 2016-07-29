@@ -76,6 +76,13 @@ class RealWorkload(object):
                                                   self.plot_tag,
                                                   self.out_dir,
                                                   date_ticks=self.plot_time_tick)
+        elif scheduler_tag == "epcc_csv":
+            self.scheduler_jobs = scheduler_reader.read_csv_logs(scheduler_log_file)
+            scheduler_reader.make_scheduler_plots(self.scheduler_jobs,
+                                                  self.plot_tag,
+                                                  self.out_dir,
+                                                  date_ticks=self.plot_time_tick)
+
         else:
             self.scheduler_jobs = []
             print "scheduler jobs not found.."

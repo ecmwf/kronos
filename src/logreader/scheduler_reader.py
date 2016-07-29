@@ -291,6 +291,108 @@ def read_accounting_logs(filename_in):
     return accounting_jobs
 
 
+def read_csv_logs(filename_in):
+
+    """ read CSV logs from EPCC.. """
+
+    csv_jobs = []
+
+    with open(filename_in, 'rb') as csvfile:
+
+        csv_dict = csv.DictReader(csvfile, delimiter=',', quotechar='"')
+
+        for line_dict in csv_dict:
+
+            i_job = IngestedJob()
+
+            # if isinstance(line_dict['ctime'], str):
+            #     # i_job.time_queued = int(line_dict['ctime'])
+            #     i_job.time_queued = int(line_dict['start']) + 999  # will be removed later..
+            # else:
+            #     print "line_dict['ctime']: ", line_dict['ctime']
+            #     i_job.time_queued = int(line_dict['start']) + 999 #  will be removed later..
+
+            try:
+                i_job.time_queued = int(line_dict['ctime'])
+            except:
+                print("I didn't recognize ctime {0} as a number".format(line_dict['ctime']))
+                i_job.time_queued = -1
+
+            try:
+                i_job.time_end = int(line_dict['end'])
+            except:
+                print("I didn't recognize end {0} as a number".format(line_dict['end']))
+                i_job.time_end = -1
+
+            try:
+                i_job.time_start = int(line_dict['start'])
+            except:
+                print("I didn't recognize start {0} as a number".format(line_dict['start']))
+                i_job.time_start = -1
+
+            try:
+                i_job.ncpus = int(line_dict['ncpus'])
+            except:
+                print("I didn't recognize start {0} as a number".format(line_dict['ncpus']))
+                i_job.ncpus = -1
+
+            try:
+                i_job.nnodes = int(line_dict['node_count'])
+            except:
+                print("I didn't recognize start {0} as a number".format(line_dict['node_count']))
+                i_job.nnodes = -1
+
+            # i_job.group = line_dict['group'].strip()
+            i_job.group = ''
+
+            if line_dict['jobname']:
+                i_job.jobname = line_dict['jobname'].strip()
+            else:
+                i_job.jobname = ''
+
+            if line_dict['jobname']:
+                i_job.user = line_dict['UserID'].strip()
+            else:
+                i_job.user = ''
+
+            if line_dict['jobname']:
+                i_job.queue_type = line_dict['queue'].strip()
+            else:
+                i_job.queue_type = ''
+
+            # info not available
+            i_job.time_created = -1
+            i_job.time_eligible = -1
+            i_job.memory_kb = -1
+
+            csv_jobs.append(i_job)
+
+    # remove invalid entries
+    csv_jobs[:] = [i_job for i_job in csv_jobs if i_job.time_start != -1]
+    csv_jobs[:] = [i_job for i_job in csv_jobs if i_job.time_end != -1]
+    csv_jobs[:] = [i_job for i_job in csv_jobs if i_job.time_end >= i_job.time_start]
+    csv_jobs[:] = [i_job for i_job in csv_jobs if i_job.time_queued != -1]
+    csv_jobs[:] = [i_job for i_job in csv_jobs if i_job.time_start >= i_job.time_queued]
+    csv_jobs[:] = [i_job for i_job in csv_jobs if i_job.ncpus > 0]
+    csv_jobs[:] = [i_job for i_job in csv_jobs if i_job.nnodes > 0]
+
+    # store the original idx of each job..
+    for (ii, i_job) in enumerate(csv_jobs):
+        i_job.idx_in_log = ii
+
+    csv_jobs.sort(key=lambda x: x.time_start, reverse=False)
+
+    # times relative to start of log
+    min_start_time = min([i_job.time_start for i_job in csv_jobs])
+    for i_job in csv_jobs:
+        # print type(i_job.time_queued), type(i_job.time_end), type(i_job.time_start)
+        i_job.runtime = float(i_job.time_end) - float(i_job.time_start)
+        i_job.time_start_0 = i_job.time_start - min_start_time
+        i_job.time_in_queue = i_job.time_start - i_job.time_queued
+
+    return csv_jobs
+
+
 def make_scheduler_plots(list_jobs, plot_tag, out_dir, date_ticks="month"):
 
     """ prepare plots"""
@@ -314,6 +416,16 @@ def make_scheduler_plots(list_jobs, plot_tag, out_dir, date_ticks="month"):
 
         # all jobs..
         plotter(list_jobs, "fractional", plot_tag, out_dir, date_ticks)
+
+    if plot_tag == "EPCC":
+
+        # fractional jobs
+        list_jobs_fractional = [i_job for i_job in list_jobs if i_job.queue_type in ['serial']]
+        plotter(list_jobs_fractional, "fractional", plot_tag, out_dir, date_ticks)
+
+        # parallel jobs
+        list_jobs_parallel = [i_job for i_job in list_jobs if i_job.queue_type in ['standard', 'low']]
+        plotter(list_jobs_parallel, "parallel", plot_tag, out_dir, date_ticks)
 
 
 def plotter(list_jobs, queue_type_plot_tag, plot_tag, out_dir, date_ticks="month"):
@@ -350,8 +462,8 @@ def plotter(list_jobs, queue_type_plot_tag, plot_tag, out_dir, date_ticks="month
         # ["Day", [i_job for i_job in list_jobs_day if i_job.queue_type[0] != "o"], 'b'],
         # ["Night", [i_job for i_job in list_jobs_night if i_job.queue_type[0] != "o"], 'r'],
         # ["Week end", [i_job for i_job in list_jobs_weekend if i_job.queue_type[0] != "o"], 'g'],
-        ["normal", [i_job for i_job in list_jobs if i_job.queue_type[0] != "o"], 'b'],
-        ["operational", [i_job for i_job in list_jobs if (i_job.queue_type[0] == "o" and i_job.queue_type != "opencl")], 'k']
+        ["normal queue", [i_job for i_job in list_jobs if i_job.queue_type[0] != "o"], 'b'],
+        ["operational queue", [i_job for i_job in list_jobs if (i_job.queue_type[0] == "o" and i_job.queue_type != "opencl")], 'k']
     ]
 
     iFig = PlotHandler.get_fig_handle_ID()
@@ -428,7 +540,7 @@ def plotter(list_jobs, queue_type_plot_tag, plot_tag, out_dir, date_ticks="month
                 ax = plt.gca()
                 if date_ticks == "month":
                     ax.xaxis.set_major_locator(dates.MonthLocator())
-                    hfmt = dates.DateFormatter('%Y-%m')
+                    hfmt = dates.DateFormatter('%m')
                 elif date_ticks == "hour":
                     ax.xaxis.set_major_locator(dates.HourLocator())
                     hfmt = dates.DateFormatter('%H')
@@ -457,7 +569,7 @@ def plotter(list_jobs, queue_type_plot_tag, plot_tag, out_dir, date_ticks="month
                 ax = plt.gca()
                 if date_ticks == "month":
                     ax.xaxis.set_major_locator(dates.MonthLocator())
-                    hfmt = dates.DateFormatter('%Y-%m')
+                    hfmt = dates.DateFormatter('%m')
                 elif date_ticks == "hour":
                     ax.xaxis.set_major_locator(dates.HourLocator())
                     hfmt = dates.DateFormatter('%H')
@@ -486,7 +598,7 @@ def plotter(list_jobs, queue_type_plot_tag, plot_tag, out_dir, date_ticks="month
                 ax = plt.gca()
                 if date_ticks == "month":
                     ax.xaxis.set_major_locator(dates.MonthLocator())
-                    hfmt = dates.DateFormatter('%Y-%m')
+                    hfmt = dates.DateFormatter('%m')
                 elif date_ticks == "hour":
                     ax.xaxis.set_major_locator(dates.HourLocator())
                     hfmt = dates.DateFormatter('%H')
@@ -520,7 +632,7 @@ def plotter(list_jobs, queue_type_plot_tag, plot_tag, out_dir, date_ticks="month
                 ax = plt.gca()
                 if date_ticks == "month":
                     ax.xaxis.set_major_locator(dates.MonthLocator())
-                    hfmt = dates.DateFormatter('%Y-%m')
+                    hfmt = dates.DateFormatter('%m')
                 elif date_ticks == "hour":
                     ax.xaxis.set_major_locator(dates.HourLocator())
                     hfmt = dates.DateFormatter('%m/%d %H:%M')
@@ -549,7 +661,7 @@ def plotter(list_jobs, queue_type_plot_tag, plot_tag, out_dir, date_ticks="month
                 ax = plt.gca()
                 if date_ticks == "month":
                     ax.xaxis.set_major_locator(dates.MonthLocator())
-                    hfmt = dates.DateFormatter('%Y-%m')
+                    hfmt = dates.DateFormatter('%m')
                 elif date_ticks == "hour":
                     ax.xaxis.set_major_locator(dates.HourLocator())
                     hfmt = dates.DateFormatter('%m/%d %H:%M')
@@ -566,21 +678,26 @@ def plotter(list_jobs, queue_type_plot_tag, plot_tag, out_dir, date_ticks="month
                 ax.xaxis.set_major_formatter(hfmt)
                 # ----------------------------------------
 
-    if queue_type_plot_tag == "parallel":
-        plt.subplot(3, 1, 1)
-        # plt.legend(lgd_list)
-        lgd = plt.legend(lgd_list, loc=2, bbox_to_anchor=(1, 0.5))
-    elif queue_type_plot_tag == "fractional":
-        plt.subplot(2, 1, 1)
-        # plt.legend(lgd_list)
-        lgd = plt.legend(lgd_list, loc=2, bbox_to_anchor=(1, 0.5))
-
+    # ---------------------- plot name ---------------------------
     name_fig = out_dir + "/" + plot_tag + "_plot_" + queue_type_plot_tag + "_x=time.png"
     name_fig = name_fig.replace(" ", "_")
-    # plt.savefig(name_fig)
     print name_fig
-    plt.savefig(name_fig, bbox_extra_artists=(lgd,), bbox_inches='tight')
-    plt.close(iFig)
+
+    if plot_tag != "EPCC":
+        if queue_type_plot_tag == "parallel":
+            plt.subplot(3, 1, 1)
+            # plt.legend(lgd_list)
+            lgd = plt.legend(lgd_list, loc=2, bbox_to_anchor=(1, 0.5))
+        elif queue_type_plot_tag == "fractional":
+            plt.subplot(2, 1, 1)
+            # plt.legend(lgd_list)
+            lgd = plt.legend(lgd_list, loc=2, bbox_to_anchor=(1, 0.5))
+        plt.savefig(name_fig, bbox_extra_artists=(lgd,), bbox_inches='tight')
+        plt.close(iFig)
+
+    else:
+        plt.savefig(name_fig)
+        plt.close(iFig)
     # ------------------------------------------------------------
 
     # -----------------------  PDF plots -------------------------
@@ -595,7 +712,7 @@ def plotter(list_jobs, queue_type_plot_tag, plot_tag, out_dir, date_ticks="month
             ["Runtime [hr] (operational)", np.asarray([y.runtime / 3600. for y in list_jobs_op]), 'r'],
             ["Queuing time [hr] (operational)", np.asarray([y.time_in_queue / 3600. for y in list_jobs_op]), 'g'],
         ]
-    elif "ARCTUR" in plot_tag:
+    elif ("ARCTUR" in plot_tag) or ("EPCC" in plot_tag):
         list_jobs_normal = list_jobs
         plot_data_list = [
             ["ncpus", np.asarray([y.ncpus for y in list_jobs_normal]), 'b'],

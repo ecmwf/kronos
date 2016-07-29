@@ -32,24 +32,23 @@ def test_synth_app_0():
 
     # Generator model
     # [%] percentage of measured workload (per each metric)
-    # scaling_factor_list = [35.,
-    #                        35.,
-    #                        35.,
-    #                        # 100.,
-    #                        # 100.,
-    #                        # 100.,
-    #                        # 100.,
+    # scaling_factor_list = [.35,
+    #                        .35,
+    #                        .35,
+    #                        # 1.,
+    #                        # 1.,
+    #                        # 1.,
+    #                        # 1.,
     #                        ]
 
-    scaling_factor_list = [100.,
-                           100.,
-                           100.,
-                           # 100.,
-                           # 100.,
-                           # 100.,
-                           # 100.,
+    scaling_factor_list = [1.,
+                           1.,
+                           1.,
+                           # 1.,
+                           # 1.,
+                           # 1.,
+                           # 1.,
                            ]
-
 
     model = IOWSModel(config)
     model.set_input_workload(input_workload)
