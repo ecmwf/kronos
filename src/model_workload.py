@@ -139,7 +139,7 @@ class ModelWorkload(object):
         # Ensure that the data is in a reasonable state for further processing
         for job in self.job_list:
             for ts in job.timesignals.values():
-                if ts.xvalues_bins is None:
+                if ts is not None and ts.xvalues_bins is None:
                     ts.digitize(self.config_options.WORKLOADCORRECTOR_JOBS_NBINS)
 
         self.calculate_global_metrics()

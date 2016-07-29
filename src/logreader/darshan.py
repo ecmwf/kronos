@@ -102,14 +102,14 @@ class DarshanIngestedJob(IngestedJob):
             total_reads += file.read_count
             total_writes += file.write_count
 
-        return [
-            TimeSignal.from_values('kb_read', [0.0], [float(total_read) / 1024.0]),
-            TimeSignal.from_values('kb_write', [0.0], [float(total_written) / 1024.0])
+        return {
+            'kb_read': TimeSignal.from_values('kb_read', [0.0], [float(total_read) / 1024.0]),
+            'kb_write': TimeSignal.from_values('kb_write', [0.0], [float(total_written) / 1024.0])
 
             # TODO: Make use of read/write counts
             # TimeSignal.from_values('n_read', [0.0], [float(total_reads)]),
             # TimeSignal.from_values('n_write', [0.0], [float(total_writes)]),
-        ]
+        }
 
 
 class DarshanLogReader(LogReader):

@@ -52,6 +52,12 @@ class TimeSignal(object):
         for k in kwargs:
             assert hasattr(self, k)
 
+    def __unicode__(self):
+        return "TimeSignal({})".format(self.name if self.name else "???")
+
+    def __str__(self):
+        return unicode(self).encode('utf-8')
+
     @property
     def ts_group(self):
         assert self.base_signal_name is not None and self.base_signal_name != ""
