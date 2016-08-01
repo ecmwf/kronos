@@ -8,6 +8,7 @@ ii) A modified imap, which has a hook to report when each object has finished pr
 import signal
 
 from multiprocessing.pool import Pool, IMapIterator, RUN, mapstar
+from tools.print_colour import print_colour
 
 # The worker processes are only used for one task. We store the global data here to ensure that we
 # don't have to worry about pickling the objects at any point other than initialisation, whilst retaining
@@ -29,9 +30,6 @@ def _internal_initialiser(data, processing_fn):
     assert _processing_fn is None
     _processing_fn = processing_fn
 
-    # Disable the Ctrl-C handler (this should only be in the parent)
-    signal.signal(signal.SIGINT, signal.SIG_IGN)
-
 
 def _internal_worker(object):
     """
@@ -39,7 +37,14 @@ def _internal_worker(object):
     """
     global _processing_fn
     global _global_data
-    return _processing_fn(object, _global_data)
+    try:
+
+        return _processing_fn(object, _global_data)
+
+    except KeyboardInterrupt:
+        # Catch and throw away KeyboardInterrupts, so that they propagate back to the master processes,
+        # which can correctly terminate the workers
+        pass
 
 
 
@@ -80,24 +85,18 @@ class ProcessingPool(Pool):
         """
         Equivalent of `itertools.imap()` -- can be MUCH slower than `Pool.map()`
         """
-        try:
-            assert self._state == RUN
-            if chunksize == 1:
-                result = IMapIteratorLocal(self.callback, self._cache)
-                self._taskqueue.put((((result._job, i, _internal_worker, (x,), {})
-                                      for i, x in enumerate(iterable)), result._set_length))
-                return result
-            else:
-                assert chunksize > 1
-                task_batches = Pool._get_tasks(_internal_worker, iterable, chunksize)
-                result = IMapIteratorLocal(self.callback, self._cache)
-                self._taskqueue.put((((result._job, i, mapstar, (x,), {})
-                                      for i, x in enumerate(task_batches)), result._set_length))
-                return (item for chunk in result for item in chunk)
-
-        except KeyboardInterrupt:
-            print "CAUGHT SIGINT"
-            self.terminate()
-            self.join()
+        assert self._state == RUN
+        if chunksize == 1:
+            result = IMapIteratorLocal(self.callback, self._cache)
+            self._taskqueue.put((((result._job, i, _internal_worker, (x,), {})
+                                  for i, x in enumerate(iterable)), result._set_length))
+            return result
+        else:
+            assert chunksize > 1
+            task_batches = Pool._get_tasks(_internal_worker, iterable, chunksize)
+            result = IMapIteratorLocal(self.callback, self._cache)
+            self._taskqueue.put((((result._job, i, mapstar, (x,), {})
+                                  for i, x in enumerate(task_batches)), result._set_length))
+            return (item for chunk in result for item in chunk)
 
 
