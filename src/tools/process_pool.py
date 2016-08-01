@@ -5,10 +5,7 @@ i) A sensible notion of "global" data
 ii) A modified imap, which has a hook to report when each object has finished processing (even when
     it has not been returned by the generator, as it is waiting for other objects to complete).
 """
-import signal
-
 from multiprocessing.pool import Pool, IMapIterator, RUN, mapstar
-from tools.print_colour import print_colour
 
 # The worker processes are only used for one task. We store the global data here to ensure that we
 # don't have to worry about pickling the objects at any point other than initialisation, whilst retaining
@@ -31,7 +28,7 @@ def _internal_initialiser(data, processing_fn):
     _processing_fn = processing_fn
 
 
-def _internal_worker(object):
+def _internal_worker(obj):
     """
     Make the global data available to the processing function
     """
@@ -39,13 +36,12 @@ def _internal_worker(object):
     global _global_data
     try:
 
-        return _processing_fn(object, _global_data)
+        return _processing_fn(obj, _global_data)
 
     except KeyboardInterrupt:
         # Catch and throw away KeyboardInterrupts, so that they propagate back to the master processes,
         # which can correctly terminate the workers
         pass
-
 
 
 class IMapIteratorLocal(IMapIterator):
