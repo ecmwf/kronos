@@ -1,32 +1,11 @@
 import fnmatch
 import os
 import sys
-from multiprocessing import Pool
 
 from exceptions_iows import ConfigurationError
 from jobs import IngestedJob
+from tools.process_pool import ProcessingPool
 
-
-############################################################################################################
-#
-# Working with multiple processes introduces a bit of complexity.
-#
-# i) Everything that is passed to the worker thread
-#
-
-global_storage = None
-
-def _internal_worker(filename):
-
-    return global_storage.read_log(filename, global_storage.suggest_label(filename))
-
-
-def _internal_initializer(args):
-
-    global global_storage
-    global_storage = args
-
-############################################################################################################
 
 class LogReader(object):
     """
@@ -111,27 +90,42 @@ class LogReader(object):
     def read_log(self, filename, suggested_label):
         raise NotImplementedError
 
+    @staticmethod
+    def _read_log_wrapper(filename, reader):
+        return reader.read_log(filename, reader.suggest_label(filename))
+
+    @staticmethod
+    def _progress_printer(completed_count, element_num, read_log_output):
+        try:
+            p = os.path.basename(read_log_output[0].filename)
+
+        except IndexError:
+            # If an empty processing list has been returned, then skip printing
+            return
+
+        except:
+            # If something whacky goes wrong, we don't want to be raising an exception based on this
+            p = "Unknown"
+
+        sys.stdout.write("\r{:d} files processed - {:100s}".format(completed_count, str(p)))
+        sys.stdout.flush()
+
     def read_logs_generator(self):
         """
         This routine is an internal part of read_logs, and iterates through read_log for each job
         """
         print "Reading {} logs using {} workers".format(self.log_type_name, self.pool_readers)
-        pool = Pool(processes=self.pool_readers, initializer=_internal_initializer, initargs=(self,))
 
-        #list_of_job_lists = pool.imap_unordered(_internal_worker, self.logfiles())
-        list_of_job_lists = pool.imap(_internal_worker, self.logfiles())
+        pool = ProcessingPool(
+            self._read_log_wrapper,
+            self._progress_printer,
+            processes=self.pool_readers,
+            global_data=self)
 
-        i = 0
+        list_of_job_lists = pool.imap(self.logfiles())
+
         for job_list in list_of_job_lists:
             for job in job_list:
-                i += 1
-                # In case some really whacky stuff is passed in, this is not the exception we would choose to throw
-                try:
-                    p = os.path.basename(job.filename)
-                except:
-                    p = job.filename
-                sys.stdout.write("\r{:d} files processed - {:100s}".format(i+1, str(p)))
-                sys.stdout.flush()
                 yield job
 
         sys.stdout.write("\n")
