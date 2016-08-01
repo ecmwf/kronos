@@ -114,6 +114,7 @@ class IngestedJob(object):
     ncpus = None
     nnodes = None
     memory_kb = None
+    filename = None
 
     # self.cpu_percent = None
     group = None

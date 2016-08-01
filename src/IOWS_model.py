@@ -162,7 +162,7 @@ class IOWSModel(object):
         # # ------ finally append non-clustered jobs ----------
         # for (jj, i_job) in enumerate(self.input_workload.job_list):
         #     if i_job.job_impact_index_rel >= self.job_impact_index_rel_tsh:
-        #         app = SyntheticApp()International Academy of Quantum Molecular Science
+        #         app = SyntheticApp()
         #         app.job_name = "JOB-NON-clustered-" + str(jj)
         #         app.fill_time_series(i_job.timesignals)
         #         self.syntapp_list.append(app)

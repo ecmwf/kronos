@@ -7,35 +7,26 @@ from exceptions_iows import ConfigurationError
 from jobs import IngestedJob
 
 
-# TODO: Tidy this up. The work should be done inside the class. Global state is ugly.
+############################################################################################################
+#
+# Working with multiple processes introduces a bit of complexity.
+#
+# i) Everything that is passed to the worker thread
+#
 
 global_storage = None
 
-def internal_worker(filename_tuple):
-    i, filename = filename_tuple
-
-    # print "WORKER: ", i, filename
-
-    # In case some really whacky stuff is passed in, this is not the exception we would choose to throw
-    try:
-        p = os.path.basename(filename)
-    except:
-        p = filename
-
-    # if i % 17 == 0:
-    if True:
-        sys.stdout.write("\r{:d} files processed - {:100s}".format(i+1, str(p)))
-        sys.stdout.flush()
+def _internal_worker(filename):
 
     return global_storage.read_log(filename, global_storage.suggest_label(filename))
 
 
-def internal_initializer(args):
+def _internal_initializer(args):
 
-    print "Initialising worker!!!"
     global global_storage
     global_storage = args
 
+############################################################################################################
 
 class LogReader(object):
     """
@@ -44,6 +35,7 @@ class LogReader(object):
     --> Provide file iteration and dataset handling.
     """
     job_class = IngestedJob
+    log_type_name = "(Unknown)"
     dataset_class = None
     file_pattern = None
     label_method = None
@@ -83,7 +75,6 @@ class LogReader(object):
         iterate through the matching
         :return:
         """
-        print "Iterating logfiles"
         if not os.path.exists(self.path):
             raise IOError("Path {} does not exist (specified for {})".format(self.path, self))
 
@@ -124,13 +115,23 @@ class LogReader(object):
         """
         This routine is an internal part of read_logs, and iterates through read_log for each job
         """
-        pool = Pool(processes=self.pool_readers, initializer=internal_initializer, initargs=(self,))
-        self.stdout = sys.stdout
+        print "Reading {} logs using {} workers".format(self.log_type_name, self.pool_readers)
+        pool = Pool(processes=self.pool_readers, initializer=_internal_initializer, initargs=(self,))
 
-        list_of_job_lists = pool.imap_unordered(internal_worker, enumerate(self.logfiles()))
+        #list_of_job_lists = pool.imap_unordered(_internal_worker, self.logfiles())
+        list_of_job_lists = pool.imap(_internal_worker, self.logfiles())
 
+        i = 0
         for job_list in list_of_job_lists:
             for job in job_list:
+                i += 1
+                # In case some really whacky stuff is passed in, this is not the exception we would choose to throw
+                try:
+                    p = os.path.basename(job.filename)
+                except:
+                    p = job.filename
+                sys.stdout.write("\r{:d} files processed - {:100s}".format(i+1, str(p)))
+                sys.stdout.flush()
                 yield job
 
         sys.stdout.write("\n")

@@ -1,6 +1,7 @@
 from profiler_reader import ingest_allinea_profiles
 from scheduler_reader import ingest_accounting_logs, ingest_pbs_logs
 from darshan import DarshanLogReader
+from ipm import IPMLogReader
 
 
 def ingest_data(ingest_type, ingest_path, global_config=None):
@@ -25,13 +26,12 @@ def ingest_data(ingest_type, ingest_path, global_config=None):
         try:
 
             lr_class = {
-                'darshan': DarshanLogReader
+                'darshan': DarshanLogReader,
+                'ipm': IPMLogReader
             }[ingest_type]
 
             # Did we supply any custom configuration?
             cfg = global_config.ingestion.get(ingest_type, {}) if global_config else {}
-
-
 
             lr = lr_class(ingest_path, **cfg)
 

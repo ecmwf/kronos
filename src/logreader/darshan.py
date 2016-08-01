@@ -73,6 +73,9 @@ class DarshanIngestedJob(IngestedJob):
         """
         assert self.label == job.label
 
+        # for file in job.file_details:
+        #     assert file not in self.file_details
+
     def model_job(self, first_start_time):
         """
         Return a ModelJob from the supplied information
@@ -118,6 +121,7 @@ class DarshanLogReader(LogReader):
 
     job_class = DarshanIngestedJob
     dataset_class = DarshanDataSet
+    log_type_name = "Darshan"
     file_pattern = "*.gz"
 
     # By default we end up with a whole load of darshan logfiles within a directory.
@@ -188,7 +192,8 @@ class DarshanLogReader(LogReader):
 
         files = {}
         params = {
-            'label': suggested_label
+            'label': suggested_label,
+            'filename': filename
         }
 
         for line in output.splitlines():
