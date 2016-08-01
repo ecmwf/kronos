@@ -16,8 +16,10 @@ class KernelBase(object):
         """
         Return True if this kernel would do nothing (and can therefore be omitted from the list)
         """
-        # TODO: empty elements of the time series should be filterable-out
-        return False
+        return all((
+            all(ts.yvalues_bins == 0) if getattr(ts, 'yvalues_bins', None) is not None else True
+            for ts in self.timesignals.values()
+        ))
 
     def extra_data(self, **kwargs):
         data = {'name': self.name}
