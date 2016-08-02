@@ -375,7 +375,6 @@ class FakeJob(object):
         self.names += other.names
 
 
-
 class DarshanLogReaderTest(unittest.TestCase):
 
     def test_initialisation(self):
@@ -410,8 +409,8 @@ class DarshanLogReaderTest(unittest.TestCase):
         """
         class LogReaderLocal(DarshanLogReader):
             def logfiles(self):
-                for file in ['dir1/file1', 'dir1/file2', 'dir1/file3', 'dir2/file4']:
-                    yield file
+                for file_path in ['dir1/file1', 'dir1/file2', 'dir1/file3', 'dir2/file4']:
+                    yield file_path
 
             def read_log(self, filename, suggested_label):
                 return [FakeJob(filename, suggested_label)]
@@ -426,7 +425,6 @@ class DarshanLogReaderTest(unittest.TestCase):
 
         self.assertEqual(logs[0].names, ['dir1/file1', 'dir1/file2', 'dir1/file3'])
         self.assertEqual(logs[1].names, ['dir2/file4'])
-
 
 
 if __name__ == "__main__":
