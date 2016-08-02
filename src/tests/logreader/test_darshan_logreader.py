@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 import unittest
 
-from logreader.darshan import DarshanIngestedJobFile, DarshanIngestedJob
+from logreader.darshan import DarshanIngestedJobFile, DarshanIngestedJob, DarshanLogReaderError
 
 
 class DarshanIngestedJobFileTest(unittest.TestCase):
@@ -226,7 +226,7 @@ class DarshanIngestedJobTest(unittest.TestCase):
         # We should be able to aggregate the jobs!
         job1.aggregate(job2)
         self.assertEqual(len(job1.file_details), 3)
-        self.assertEqual(set(["file1", "file2", "file3"]), set(job1.file_details.keys()))
+        self.assertEqual({"file1", "file2", "file3"}, set(job1.file_details.keys()))
 
         f1 = job1.file_details["file1"]
         self.assertEqual(f1.read_count, 7)
@@ -248,6 +248,117 @@ class DarshanIngestedJobTest(unittest.TestCase):
         self.assertEqual(f3.open_count, 4)
         self.assertEqual(f3.bytes_read, 12)
         self.assertEqual(f3.bytes_written, 234)
+
+    def test_model_job(self):
+        """
+        Test that we capture the totals correctly.
+        """
+        # Log versions > 2 are required
+        job = DarshanIngestedJob(
+            label="job",
+            file_details={},
+            log_version="0.1"
+        )
+        self.assertRaises(DarshanLogReaderError, lambda: job.model_job(0))
+
+        # If there are no files associated with the job, then the totals should all be zeros.
+        job1 = DarshanIngestedJob(
+            label="jobA",
+            log_version="2.6",
+            file_details={},
+            time_start=99,
+            time_end=123,
+            nprocs=17,
+            jobid=666,
+            uid=777
+        )
+
+        m = job1.model_job(11)
+
+        self.assertEqual(m.time_start, 99-11)
+        self.assertEqual(m.ncpus, 17)
+        self.assertEqual(m.timesignals['kb_read'].sum, 0)
+        self.assertEqual(m.timesignals['kb_write'].sum, 0)
+
+        # Otherwise, there should be time-series created with the correct totals
+        file1 = DarshanIngestedJobFile(name="file1")
+        file2 = DarshanIngestedJobFile(name="file2")
+
+        file1.bytes_read = 1024 * 99
+        file2.bytes_read = 1024 * 100
+        file1.bytes_written = 1024 * 101
+        file2.bytes_written = 1024 * 102
+
+        job1 = DarshanIngestedJob(
+            label="jobA",
+            log_version="2.6",
+            file_details={"file1": file1, "file2": file2},
+            time_start=99,
+            time_end=123,
+            nprocs=17,
+            jobid=666,
+            uid=777
+        )
+
+        m = job1.model_job(11)
+
+        self.assertEqual(m.timesignals['kb_read'].sum, 199)
+        self.assertEqual(m.timesignals['kb_write'].sum, 203)
+
+    def test_model_time_series(self):
+        """
+        For now we only consider the totals, and consider them to be offset by "zero" from the start.
+        """
+        job = DarshanIngestedJob(label="job", file_details={})
+
+        # With no file data, we should end up with empty time seriesl
+        series = job.model_time_series()
+        self.assertIn('kb_read', series)
+        self.assertIn('kb_write', series)
+        reads = series['kb_read']
+        writes = series['kb_write']
+
+        self.assertEqual(reads.sum, 0)
+        self.assertEqual(writes.sum, 0)
+        self.assertEqual(len(reads.xvalues), 1)
+        self.assertEqual(len(writes.xvalues), 1)
+        self.assertEqual(len(reads.yvalues), 1)
+        self.assertEqual(len(writes.yvalues), 1)
+        self.assertEqual(reads.xvalues[0], 0.0)
+        self.assertEqual(writes.xvalues[0], 0.0)
+        self.assertEqual(reads.yvalues[0], 0.0)
+        self.assertEqual(writes.yvalues[0], 0.0)
+
+        # Otherwise, there should be time-series created with the correct totals
+
+        file1 = DarshanIngestedJobFile(name="file1")
+        file2 = DarshanIngestedJobFile(name="file2")
+
+        file1.bytes_read = 1024 * 99
+        file2.bytes_read = 1024 * 100
+        file1.bytes_written = 1024 * 101
+        file2.bytes_written = 1024 * 102
+
+        job.file_details = {"file1": file1, "file2": file2}
+
+        series = job.model_time_series()
+        self.assertIn('kb_read', series)
+        self.assertIn('kb_write', series)
+        reads = series['kb_read']
+        writes = series['kb_write']
+
+        self.assertEqual(reads.sum, 199)
+        self.assertEqual(writes.sum, 203)
+        self.assertEqual(len(reads.xvalues), 1)
+        self.assertEqual(len(writes.xvalues), 1)
+        self.assertEqual(len(reads.yvalues), 1)
+        self.assertEqual(len(writes.yvalues), 1)
+        self.assertEqual(reads.xvalues[0], 0.0)
+        self.assertEqual(writes.xvalues[0], 0.0)
+        self.assertEqual(reads.yvalues[0], 199.0)
+        self.assertEqual(writes.yvalues[0], 203.0)
+
+
 
 if __name__ == "__main__":
     unittest.main()

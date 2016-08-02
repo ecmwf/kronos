@@ -10,6 +10,10 @@ from time_signal import TimeSignal
 from tools.print_colour import print_colour
 
 
+class DarshanLogReaderError(Exception):
+    pass
+
+
 class DarshanDataSet(IngestedDataSet):
 
     def model_jobs(self):
@@ -108,7 +112,8 @@ class DarshanIngestedJob(IngestedJob):
         """
         Return a ModelJob from the supplied information
         """
-        assert(float(self.log_version) > 2.0)
+        if float(self.log_version) <= 2.0:
+            raise DarshanLogReaderError("Darshan log version unsupported")
 
         return ModelJob(
             time_start=self.time_start - first_start_time,
