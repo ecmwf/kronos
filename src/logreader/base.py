@@ -118,9 +118,14 @@ class LogReader(object):
         """
         print "Reading {} logs using {} workers".format(self.log_type_name, self.pool_readers)
 
+        # n.b. There are constraints on what can be passed as arguments to this routine. The use of global data in
+        #      the processing pool, and the use of static functions, is to (a) minimise the data being transferred
+        #      between processes using the multiprocessing functionality, and (b) ensure that all of the transferred
+        #      data can be pickeled (which is required).
+
         pool = ProcessingPool(
-            self._read_log_wrapper,
-            self._progress_printer,
+            self._read_log_wrapper, # Read the log. Note that "self" is passed to this as an argument
+            self._progress_printer, # Callback called after each element is processed
             processes=self.pool_readers,
             global_data=self)
 
