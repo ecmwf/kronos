@@ -1,6 +1,5 @@
 from pylab import *
 
-import os
 import subprocess
 
 from jobs import IngestedJob, ModelJob
@@ -27,6 +26,7 @@ class DarshanDataSet(IngestedDataSet):
 
         for job in self.joblist:
             yield job.model_job(global_start_time)
+
 
 class DarshanIngestedJobFile(object):
     """
@@ -134,11 +134,11 @@ class DarshanIngestedJob(IngestedJob):
         total_reads = 0
         total_writes = 0
 
-        for file in self.file_details.values():
-            total_read += file.bytes_read
-            total_written += file.bytes_written
-            total_reads += file.read_count
-            total_writes += file.write_count
+        for model_file in self.file_details.values():
+            total_read += model_file.bytes_read
+            total_written += model_file.bytes_written
+            total_reads += model_file.read_count
+            total_writes += model_file.write_count
 
         return {
             'kb_read': TimeSignal.from_values('kb_read', [0.0], [float(total_read) / 1024.0]),
@@ -237,20 +237,20 @@ class DarshanLogReader(LogReader):
             if len(trimmed_line) == 0:
                 pass
             elif trimmed_line[0] == '#':
-                split = trimmed_line.split(':', 1)
-                key = split[0][1:].strip()
-                job_key, key_type = self.darshan_params.get(key, (None, None))
+                bits = trimmed_line.split(':', 1)
+                parameter_key = bits[0][1:].strip()
+                job_key, key_type = self.darshan_params.get(parameter_key, (None, None))
                 if job_key:
                     params[job_key] = key_type(split[1].split()[0].strip())
             else:
                 # A data line
                 bits = trimmed_line.split()
                 # file = ' '.join(bits[4:])
-                file = bits[4]
+                filename = bits[4]
 
                 # Add the file to the map if required
-                if file not in files:
-                    files[file] = DarshanIngestedJobFile(file)
+                if filename not in files:
+                    files[filename] = DarshanIngestedJobFile(filename)
 
                 file_elem = self.file_params.get(bits[2], None)
                 if file_elem is not None:
@@ -281,4 +281,3 @@ class DarshanLogReader(LogReader):
         # And when we are at the end of the list, yield the current job
         if current_job is not None:
             yield current_job
-
