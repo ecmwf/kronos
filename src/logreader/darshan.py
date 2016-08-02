@@ -98,8 +98,11 @@ class DarshanIngestedJob(IngestedJob):
         """
         assert self.label == job.label
 
-        # for file in job.file_details:
-        #     assert file not in self.file_details
+        for filename, file_detail in job.file_details.iteritems():
+            if filename in self.file_details:
+                self.file_details[filename].aggregate(file_detail)
+            else:
+                self.file_details[filename] = file_detail
 
     def model_job(self, first_start_time):
         """
