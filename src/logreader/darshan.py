@@ -224,13 +224,17 @@ class DarshanLogReader(LogReader):
             # else, so there won't be a blank.
             return []
 
+        return self._read_log_internal(output, filename, suggested_label)
+
+    def _read_log_internal(self, parser_output, filename, suggested_label):
+
         files = {}
         params = {
             'label': suggested_label,
             'filename': filename
         }
 
-        for line in output.splitlines():
+        for line in parser_output.splitlines():
 
             trimmed_line = line.strip()
 
@@ -241,7 +245,7 @@ class DarshanLogReader(LogReader):
                 parameter_key = bits[0][1:].strip()
                 job_key, key_type = self.darshan_params.get(parameter_key, (None, None))
                 if job_key:
-                    params[job_key] = key_type(split[1].split()[0].strip())
+                    params[job_key] = key_type(bits[1].split()[0].strip())
             else:
                 # A data line
                 bits = trimmed_line.split()
@@ -254,7 +258,7 @@ class DarshanLogReader(LogReader):
 
                 file_elem = self.file_params.get(bits[2], None)
                 if file_elem is not None:
-                    setattr(files[file], file_elem, getattr(files[file], file_elem) + int(bits[3]))
+                    setattr(files[filename], file_elem, getattr(files[filename], file_elem) + int(bits[3]))
 
         return [self.job_class(file_details=files, **params)]
 

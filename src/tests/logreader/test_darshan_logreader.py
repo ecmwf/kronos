@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 import unittest
 import types
+import os
 
 from logreader.base import LogReader
 from logreader.darshan import (DarshanIngestedJobFile, DarshanIngestedJob, DarshanLogReaderError, DarshanLogReader,
@@ -426,6 +427,59 @@ class DarshanLogReaderTest(unittest.TestCase):
         self.assertEqual(logs[0].names, ['dir1/file1', 'dir1/file2', 'dir1/file3'])
         self.assertEqual(logs[1].names, ['dir2/file4'])
 
+    def test_read_parser_output(self):
+        """
+        Given some (correct) output from darshan-parser, do we interpret it properly?
+        """
+        with open(os.path.join(os.path.dirname(os.path.realpath(__file__)), 'parsed-darshan-log'), 'r') as f:
+            data = f.read()
+
+        lr = DarshanLogReader('test-path')
+
+        ingested = lr._read_log_internal(data, 'a-file', 'a-label')
+
+        # We return an array of jobs, which in this case will contain only one
+        self.assertIsInstance(ingested, list)
+        self.assertEqual(len(ingested), 1)
+        ingested = ingested[0]
+        self.assertIsInstance(ingested, DarshanIngestedJob)
+
+        self.assertEqual(ingested.filename, "a-file")
+        self.assertEqual(ingested.jobid, 0)
+        self.assertEqual(ingested.label, "a-label")
+        self.assertEqual(ingested.log_version, "2.06")
+        self.assertEqual(ingested.time_start, 1469134177)
+        self.assertEqual(ingested.uid, 1801)
+
+        # We should have parsed the file details correctly
+        self.assertEqual(len(ingested.file_details), 3)
+
+        self.assertIn(".../lus/snx11062/TMP/JTMP/41/emos.3083647.ccbpp1.20160721T204925/<stderr>", ingested.file_details)
+        f = ingested.file_details[".../lus/snx11062/TMP/JTMP/41/emos.3083647.ccbpp1.20160721T204925/<stderr>"]
+        self.assertEqual(f.name, ".../lus/snx11062/TMP/JTMP/41/emos.3083647.ccbpp1.20160721T204925/<stderr>")
+        self.assertEqual(f.open_count, 1)
+        self.assertEqual(f.bytes_read, 0)
+        self.assertEqual(f.bytes_written, 0)
+        self.assertEqual(f.read_count, 0)
+        self.assertEqual(f.write_count, 0)
+
+        self.assertIn(".../lus/snx11062/TMP/JTMP/41/emos.3083647.ccbpp1.20160721T204925/<stdout>", ingested.file_details)
+        f = ingested.file_details[".../lus/snx11062/TMP/JTMP/41/emos.3083647.ccbpp1.20160721T204925/<stdout>"]
+        self.assertEqual(f.name, ".../lus/snx11062/TMP/JTMP/41/emos.3083647.ccbpp1.20160721T204925/<stdout>")
+        self.assertEqual(f.open_count, 1)
+        self.assertEqual(f.bytes_read, 0)
+        self.assertEqual(f.bytes_written, 35)
+        self.assertEqual(f.read_count, 0)
+        self.assertEqual(f.write_count, 2)
+
+        self.assertIn(".../lus/snx11062/TMP/JTMP/41/emos.3083647.ccbpp1.20160721T204925/<stdin>", ingested.file_details)
+        f = ingested.file_details[".../lus/snx11062/TMP/JTMP/41/emos.3083647.ccbpp1.20160721T204925/<stdin>"]
+        self.assertEqual(f.name, ".../lus/snx11062/TMP/JTMP/41/emos.3083647.ccbpp1.20160721T204925/<stdin>")
+        self.assertEqual(f.open_count, 1)
+        self.assertEqual(f.bytes_read, 0)
+        self.assertEqual(f.bytes_written, 0)
+        self.assertEqual(f.read_count, 0)
+        self.assertEqual(f.write_count, 0)
 
 if __name__ == "__main__":
     unittest.main()
