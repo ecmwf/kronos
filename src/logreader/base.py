@@ -113,6 +113,8 @@ class LogReader(object):
     def read_logs_generator(self):
         """
         This routine is an internal part of read_logs, and iterates through read_log for each job
+
+        --> Returns a generator of job objects, depending on the list of files to parse from self.logfiles()
         """
         print "Reading {} logs using {} workers".format(self.log_type_name, self.pool_readers)
 
