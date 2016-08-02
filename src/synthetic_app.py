@@ -1,124 +1,110 @@
+import time_signal
+from jobs import ModelJob
 import json
+import sys
 import os
 
+import app_kernels
 
-class SyntheticApp(object):
 
-    """ Class representing a synthetic app """
+class SyntheticWorkload(object):
+    """
+    This is a workload of SyntheticApp objects, described below.
+    """
+    def __init__(self, config, apps=None):
+        self.config = config
+        self.app_list = apps
 
-    def __init__(self, config_options):
+    def __unicode__(self):
+        return "SyntheticWorkload - {} jobs".format(len(self.app_list))
 
-        self.jobID = None
-        self.job_name = None
-        self.time_start = None
-        self.time_signals = None  # time signals
-        self.kernels_seq = []
-        self.ker_data = None
-        self.cpu_freq = config_options.CPU_FREQUENCY
+    def __str__(self):
+        return unicode(self).encode('utf-8')
 
-    # load time-series in
-    def fill_time_series(self, ts_list):
-        self.time_signals = ts_list
+    def verbose_description(self):
+        """
+        A verbose output for the modelled workload
+        """
+        output = "=============================================\n"
+        output += "Verbose (synthetic) workload description: {}\n".format(self)
 
-    # write list ouf output kernels
-    def make_kernels_from_ts(self, n_bins, dgt_types, supported_synth_apps):
+        for i, app in enumerate(self.app_list):
+            output += '--\nApp {}:\n'.format(i)
+            output += app.verbose_description()
 
-        # application object to be written to JSON
-        ker_data = {}
+        output += "=============================================\n"
+        return output
 
-        # required metadata
-        # "file_read_path": "..."  # (./read_cache)  The directory containing the cached readable files
-        # "file_write_path": "..."  # (./write_cache) The directory to write output into
-        # "num_procs": 123  # (no check)      The number of MPI processes (for error checking)
-        # "start_delay": 230  # (0)             The number of seconds into schedule that a job should be submitted
-        # "mpi_ranks_verbose": true  # (false)  Should all MPI processes write to stdout (by default output suppressed)
-        # "enable_trace": true  # (false)         Enable trace output of synthetic app execution for debugging
-        # "repeat": 123  # (1)             How many times should this job be run (used by the executor)
 
-        # optional metadata
-        md_data = {
-            "job_ID": self.jobID,
-            "job_name": self.job_name,
-            "time_start": self.time_start}
-        ker_data["metadata"] = md_data
+    def export(self, nbins, dir_output=None):
 
-        # TODO: this need to be changed to proper value..
-        ker_data["num_procs"] = 2
+        # A default dir, that can be overridden
+        dir_output = dir_output or self.config.dir_output
 
-        # digitize all the ts
-        for (tt, i_ts) in enumerate(self.time_signals):
-            i_ts.digitize(n_bins, dgt_types[tt])
+        # Ensure that the synthetic applications are sorted by start time
+        sorted_apps = sorted(self.app_list, key=lambda a: a.time_start)
 
-        # sort ts by type..
-        ker_blocks_all = []
-        for i_bin in range(n_bins):
-            ker_blocks = {}
-            for i_ts in self.time_signals:
+        print "Exporting {} synthetic applications to: {}".format(len(sorted_apps), dir_output)
 
-                if supported_synth_apps.count(i_ts.ts_group) != 0:
-                    # if i_ts.yvalues_bins[i_bin] >= 1.0:
-                    if not ker_blocks.has_key(i_ts.ts_group):
+        for i, app in enumerate(sorted_apps):
+            app.export(os.path.join(dir_output, "input{}.json".format(i)), nbins)
 
-                        # Estimated flops from cpu time..
-                        if i_ts.name == "cpu_time":
-                            sa_name = "flops"
-                            FLOPS_GHZ_FACTOR = 4.0
-                            ker_blocks[i_ts.ts_group] = {sa_name: i_ts.yvalues_bins[i_bin]*self.cpu_freq/FLOPS_GHZ_FACTOR, "name": i_ts.ts_group}
-                            # print "here"
-                        else:
-                            ker_blocks[i_ts.ts_group] = {i_ts.name: i_ts.yvalues_bins[i_bin], "name": i_ts.ts_group}
+        sys.exit(-1)
 
-                        # TODO: remove this as soon as we count #read and #write..
-                        if i_ts.ts_group == "file-read":
-                            ker_blocks[i_ts.ts_group]["n_read"] = 1
-                            ker_blocks[i_ts.ts_group]["mmap"] = "false"
-                        if i_ts.ts_group == "file-write":
-                            ker_blocks[i_ts.ts_group]["n_write"] = 10
-                            ker_blocks[i_ts.ts_group]["mmap"] = "false"
-                        # -----------------------------------------------------------
 
-                    else:
-                        ker_blocks[i_ts.ts_group][i_ts.name] = i_ts.yvalues_bins[i_bin]
+class SyntheticApp(ModelJob):
+    """
+    A type of ModelJob which is used as the output stage (after modelling, scaling, etc.). There is a one-to-one
+    mapping between these SyntheticApp classes and execution runs of the synthetic application (coordinator).
+    """
+    def __init__(self, job_name=None, time_signals=None, **kwargs):
+        super(SyntheticApp, self).__init__(
+            time_series=time_signals,
+            duration=None,  # Duration is not specified for a Synthetic App - that is an output
+            **kwargs
+        )
 
-            # sanitize values in block (e.g. # of mpi calls can't be 0 if kb > 0, etc...)
-            # ker_blocks['mpi']['n_collective'] = max(1, int(ker_blocks['mpi']['n_collective']))
-            # ker_blocks['mpi']['n_pairwise'] = max(1, int(ker_blocks['mpi']['n_pairwise']))
-            # TODO: remove any manual intervention/correction..
-            ker_blocks['file-write']['kb_write'] = max(1, ker_blocks['file-write']['kb_write'])
-            # ker_blocks['cpu']['flops'] = 1000000000.00
+        self.job_name = job_name
 
-            # ker_blocks_all.extend(ker_blocks.values()[:])
-            ker_blocks_all.append(ker_blocks.values()[:])
+    def export(self, filename, nbins):
+        """
+        Produce a json file suitable to control a synthetic application (coordinator)
+        """
+        job_entry = {
+            'num_procs': self.ncpus,
+            'start_delay': self.time_start,
+            'frames': self.frame_data(nbins),
+            'metadata': {
+                'job_name': self.job_name
+            }
+        }
 
-        # return full list of sequences
-        ker_data["frames"] = ker_blocks_all
+        with open(filename, 'w') as f:
+            json.dump(job_entry, f, ensure_ascii=True, sort_keys=True, indent=4, separators=(',', ': '))
 
-        return ker_data
+    def frame_data(self, nbins):
+        """
+        Return the cofiguration required for the synthetic app kernels
+        """
+        # (re-)digitize all the time series
+        for ts_name, ts in self.timesignals.iteritems():
+            ts.digitize(nbins)
 
-    def write_sa_json(self, n_bins, dgt_types, supported_synth_apps, out_dir, idx):
-        """ write synthetic apps into json files """
+        kernels = []
+        for kernel_type in app_kernels.available_kernels:
 
-        ker_data = self.make_kernels_from_ts(n_bins, dgt_types, supported_synth_apps)
-        self.ker_data = ker_data
+            kernel = kernel_type(self.timesignals)
+            if not kernel.empty:
+                kernels.append(kernel.synapp_config())
 
-        name_json_file = out_dir + '/' + 'job-' + str(idx) + '.json'
-        name_json_file_raw = out_dir + '/' + '_temp_input' + str(idx) + '.json'
+        # Instead of a list of kernels, each of which contains a time series, we want a time series each of
+        # which contains a list of kernels. Do the inversion!
+        frames = zip(*kernels)
 
-        with open(name_json_file_raw, 'w') as f:
-            json.encoder.FLOAT_REPR = lambda o: format(o, '.2f')
-            # json.dump(json_all_synth_app, f, ensure_ascii=True, sort_keys=True, indent=4, separators=(',', ': '))
-            json.dump(ker_data, f, ensure_ascii=True, sort_keys=True, indent=4, separators=(',', ': '))
+        # Filter out empty elements from the list of kernels
+        frames = [
+            [kernel for kernel in frame if not kernel.get("empty", False)]
+            for frame in frames
+        ]
 
-        # substitute true string..
-        with open(name_json_file, "wt") as fout:
-            with open(name_json_file_raw, "rt") as fin:
-                for line in fin:
-                    # fout.write(line.replace('"true"', 'true'))
-                    fout.write(line.replace('"false"', 'false'))
-
-        os.remove(name_json_file_raw)
-
-    def get_json_formatted_data(self):
-        """ Return json formatted data """
-
-        return self.ker_data
+        return frames

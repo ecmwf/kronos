@@ -2,13 +2,13 @@
 
 # Add parent directory as search path form modules
 import os
-import numpy as np
+
 os.sys.path.append(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
 
 from tools import mytools
 from config.config import Config
 from IOWS_model import IOWSModel
-from real_workload import RealWorkload
+from model_workload import ModelWorkload
 from plot_handler import PlotHandler
 
 
@@ -26,7 +26,7 @@ def test_synth_app_0():
     scheduler_log_file = ""
     profiler_tag = "allinea"
     profiler_log_dir = "/var/tmp/maab/iows/input"
-    input_workload = RealWorkload(config)
+    input_workload = ModelWorkload(config)
     input_workload.read_logs(scheduler_tag, profiler_tag, scheduler_log_file, profiler_log_dir)
     input_workload.make_plots(plot_tag)
 
@@ -52,7 +52,7 @@ def test_synth_app_0():
 
     model = IOWSModel(config)
     model.set_input_workload(input_workload)
-    model.create_scaled_workload("time_plane", "Kmeans", scaling_factor_list, reduce_jobs_flag=True)
+    model.create_scaled_workload("time_plane", "Kmeans", scaling_factor)
     model.export_scaled_workload()
     model.make_plots(plot_tag)
 

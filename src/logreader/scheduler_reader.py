@@ -1,3 +1,5 @@
+import os
+
 from matplotlib import dates
 import csv
 
@@ -8,12 +10,14 @@ from datetime import datetime
 
 import scipy.stats as stats
 
+from exceptions_iows import ConfigurationError
+from logreader.dataset import IngestedDataSet
 from tools import *
 from plot_handler import PlotHandler
-from jobs import IngestedJob
+from jobs import IngestedJob, ModelJob
 
 
-def read_pbs_logs(filename_in):
+def read_pbs_log(filename_in):
 
     pbs_jobs = []
 
@@ -392,6 +396,85 @@ def read_csv_logs(filename_in):
 
     return csv_jobs
 
+
+class PBSDataSet(IngestedDataSet):
+
+    def __init__(self, joblist, *args, **kwargs):
+        super(PBSDataSet, self).__init__(joblist, *args, **kwargs)
+
+        # The created times are all in seconds since an arbitrary reference, so we want to get
+        # them relative to a zero-time
+        self.global_created_time = min((j.time_created for j in self.joblist if j.time_created >= 0))
+        self.global_start_time = min((j.time_start for j in self.joblist if j.time_start >= 0))
+
+    def model_jobs(self):
+        for job in self.joblist:
+            assert isinstance(job, IngestedJob)
+            assert not job.timesignals
+
+            if job.time_created >= 0:
+                submit_time = job.time_created - self.global_created_time
+            else:
+                submit_time = job.time_start - self.global_start_time
+
+            yield ModelJob(
+                time_start=submit_time,
+                duration=job.time_end-job.time_start,
+                ncpus=job.ncpus,
+                nnodes=job.nnodes
+            )
+
+
+def ingest_pbs_logs(path):
+    """
+    Read PBS logs into a dataset
+    """
+    if not os.path.exists(path):
+        raise ConfigurationError("Specified path to ingest PBS profiles does not exist: {}".format(path))
+
+    if not os.path.isfile(path):
+        raise ConfigurationError("Specified path for PBS schedule is not a file")
+
+    jobs = read_pbs_log(path)
+
+    return PBSDataSet(jobs)
+
+
+class AccountingDataSet(IngestedDataSet):
+
+    def __init__(self, joblist, *args, **kwargs):
+        super(AccountingDataSet, self).__init__(joblist, *args, **kwargs)
+
+        # The created times are all in seconds since an arbitrary reference, so we want to get
+        # them relative to a zero-time
+        self.global_start_time = min((j.time_start for j in self.joblist if j.time_start >= 0))
+
+    def model_jobs(self):
+        for job in self.joblist:
+            assert isinstance(job, IngestedJob)
+            assert not job.timesignals
+
+            yield ModelJob(
+                time_start=job.time_start - self.global_start_time,
+                duration=job.time_end-job.time_start,
+                ncpus=job.ncpus,
+                nnodes=job.nnodes
+            )
+
+
+def ingest_accounting_logs(path):
+    """
+    Read PBS logs into a dataset
+    """
+    if not os.path.exists(path):
+        raise ConfigurationError("Specified path to ingest accounting profiles does not exist: {}".format(path))
+
+    if not os.path.isfile(path):
+        raise ConfigurationError("Specified path for accounting log is not a file")
+
+    jobs = read_accounting_logs(path)
+
+    return PBSDataSet(jobs)
 
 def make_scheduler_plots(list_jobs, plot_tag, out_dir, date_ticks="month"):
 

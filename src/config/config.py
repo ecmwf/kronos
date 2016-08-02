@@ -1,15 +1,13 @@
 import os
+import json
+
+from exceptions_iows import ConfigurationError
 
 
 class Config(object):
-    """temporary quick&dirty solution to store config keys (TODO)"""
-
-    # --------- directories ----------
-    DIR_OUTPUT = os.path.join(os.getcwd(), "/var/tmp/maab/iows/output")
-    DIR_INPUT = os.path.join(os.getcwd(), "/var/tmp/maab/iows/input")
-    if not os.path.exists(DIR_OUTPUT):
-        os.mkdir(DIR_OUTPUT)
-
+    """
+    A storage place for global configuration, including parsing of input JSON, and error checking
+    """
     # DIR_LOG_OUTPUT = "/perm/ma/maab/temp/test_logs"
     # DIR_DARSHAN_LIB = "/usr/local/apps/darshan/2.3.1-ecm1.1/lib64"
     # DIR_OPENMPI_SRC = "/usr/lib64/mpi/gcc/openmpi/include"
@@ -35,42 +33,62 @@ class Config(object):
 
     WORKLOADCORRECTOR_JOBS_NBINS = 10
 
-    # TODO: this needs to be read from time-traces
-    # # time signals = [name, type, "kernel type"]
-    # WORKLOADCORRECTOR_LIST_TIME_NAMES = [('cpu_L1_cache_misses',  'int', 'cpu'),
-    #                                      ('cpu_L2_cache_misses',  'int', 'cpu'),
-    #                                      ('cpu_L3_cache_misses',  'int', 'cpu'),
-    #                                      ('cpu_flops',            'int', 'cpu'),
-    #                                      ('cpu_n_instructions',   'int', 'cpu'),
-    #                                      ('cpu_n_cycles',         'int', 'cpu'),
-    #                                      ('io_n_reads',           'int', 'file-read'),
-    #                                      ('io_bytes_read',        'int', 'file-read'),
-    #                                      ('io_n_writes',          'int', 'file-write'),
-    #                                      ('io_bytes_writes',      'int', 'file-write'),
-    #                                      ('memory_percent',         'int', 'memory'),
-    #                                      ('mpi_n_p2p',            'int', 'mpi'),
-    #                                      ('mpi_bytes_p2p',        'int', 'mpi'),
-    #                                      ('mpi_n_collective',     'int', 'mpi'),
-    #                                      ('mpi_bytes_collective', 'int', 'mpi')]
-
-    # time signals = [name, type, "kernel type", "re-sampling method"] (reduced list  compatible with Allinea metrics)
-    WORKLOADCORRECTOR_LIST_TIME_NAMES = [('cpu_time',              'double', 'cpu',       'sum'),
-                                        ('kb_read',              'double', 'file-read',   'sum'),
-                                        ('kb_write',             'double', 'file-write',  'sum'),
-                                        # ('n_pairwise',           'double', 'mpi',         'sum'),
-                                        # ('kb_pairwise',          'double', 'mpi',         'sum'),
-                                        # ('n_collective',         'double', 'mpi',         'sum'),
-                                        # ('kb_collective',        'double', 'mpi',         'sum')
-                                         ]
-
-
     # IOWS Model
+
     IOWSMODEL_TOTAL_METRICS_NBINS = 10
     IOWSMODEL_KMEANS_MAXITER = 8000
     IOWSMODEL_KMEANS_KMEANS_RSEED = 170
     IOWSMODEL_JOB_IMPACT_INDEX_REL_TSH = 0.2
-    IOWSMODEL_SUPPORTED_SYNTH_APPS = ['cpu', 'file-read', 'file-write', 'mpi']
+
+    # Directory choices
+
+    dir_output = os.path.join(os.getcwd(), 'output')
+    dir_input = os.path.join(os.getcwd(), 'input')
+
+    # Sources of profiling data
+
+    profile_sources = []
+
+    ingestion = {}
+
+    # Modelling and clustering details
+
+    model_clustering = "none"
+    model_clustering_algorithm = None
+    model_scaling_factor = 1.0
+
+    # Debugging info
+
+    verbose = False
+
+    def __init__(self, config_dict=None, config_path=None):
+
+        assert config_dict is None or config_path is None
+
+        # If specified, load a config from the given JSON file. Custom modification to the JSON spec
+        # permits lines to be commented out using a '#' character for ease of testing
+        if config_path is not None:
+            with open(config_path, 'r') as f:
+                lines = f.readlines()
+                for i, line in enumerate(lines):
+                    if '#' in line:
+                        lines[i] = line[:line.index('#')]
+
+                config_dict = json.loads(''.join(lines))
+
+        config_dict = config_dict if config_dict is not None else {}
+
+        # Update the default values using the supplied configuration dict
+
+        for k, v in config_dict.iteritems():
+            if not hasattr(self, k):
+                raise ConfigurationError("Unexpected configuration keyword provided - {}:{}".format(k, v))
+            setattr(self, k, v)
+
+        # And any necessary actions
+
+        if not os.path.exists(self.dir_output):
+            print "Creating output directory: {}".format(self.dir_output)
+            os.makedirs(self.dir_output)
 
 
-    # hardware
-    CPU_FREQUENCY = 2.3e9  # Hz

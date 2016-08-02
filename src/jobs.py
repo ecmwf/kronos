@@ -1,4 +1,5 @@
 import numpy as np
+import time_signal
 
 
 class ModelJob(object):
@@ -6,13 +7,53 @@ class ModelJob(object):
     A model job is as fully specified, abstract job, which is output from the combined data ingestion
     and processing units.
     """
+    # Declare the fields that have been used (so they can be found by IDEs, etc.)
+    time_start = None
+    ncpus = None
+    nnodes = None
+    duration = None
+
+    # Does what it says on the tin
     required_fields = [
 
-        'start_time',
+        'time_start',
 
         'ncpus',
-        'nnodes',
+        'nnodes'
     ]
+
+    def __init__(self, time_series=None, **kwargs):
+        """
+        Set the fields as passed in
+        """
+        for k, v in kwargs.iteritems():
+            assert hasattr(self, k) and getattr(self, k) is None
+
+            setattr(self, k, v)
+
+        # Default time series values
+        self.timesignals = {}
+        for series in time_signal.signal_types:
+            self.timesignals[series] = None
+
+        if time_series:
+            for series, values in time_series.iteritems():
+                self.timesignals[series] = values
+
+        self.check_job()
+
+    def verbose_description(self):
+        """
+        A verbose output for the modelled workload
+        """
+        output = None
+        for ts_name, ts in self.timesignals.iteritems():
+            if ts is not None and ts.sum != 0:
+                if output is None:
+                    output = "Num samples: \t{}\n".format(len(ts.xvalues))
+                output += "{}: \t{}\n".format(ts_name, sum(ts.yvalues))
+
+        return output
 
     def check_job(self):
         """
@@ -21,6 +62,21 @@ class ModelJob(object):
         for field in self.required_fields:
             if getattr(self, field, None) is None:
                 raise KeyError("job is missing field: {}".format(field))
+
+    @property
+    def job_impact_index(self):
+        """
+        This is a naive approach to determining a job impact factor. It is the sum of the integrals of
+        all of the time series --- i.e. the more resources  job uses the higher its "impact.
+
+        A side effect of this is that jobs without profiling data are weighted to zero.
+        """
+        index = 0
+        for series in self.timesignals.values():
+            if series is not None:
+                index += np.trapz(abs(series.yvalues), series.xvalues)
+
+        return index
 
 
 class IngestedJob(object):
@@ -49,37 +105,49 @@ class IngestedJob(object):
         '_job_impact_index',
     ]
 
-    def __init__(self):
+    # from logs
+    time_created = None
+    time_queued = None
+    time_eligible = None
+    time_end = None
+    time_start = None
+    ncpus = None
+    nnodes = None
+    memory_kb = None
 
-        # from logs
-        self.time_created = None
-        self.time_queued = None
-        self.time_eligible = None
-        self.time_end = None
-        self.time_start = None
-        self.ncpus = None
-        self.nnodes = None
-        self.memory_kb = None
-        # self.cpu_percent = None
-        self.group = None
-        self.jobname = None
-        self.user = None
-        self.queue_type = None
+    # self.cpu_percent = None
+    group = None
+    jobname = None
+    user = None
+    queue_type = None
 
-        # derived
-        self.runtime = None
-        self.time_start_0 = None
-        self.time_in_queue = None
-        self.idx_in_log = None
+    # derived
+    runtime = None
+    time_start_0 = None
+    time_in_queue = None
+    idx_in_log = None
 
-        # added
-        self.timesignals = []
-        self.job_impact_index_rel = None
-        self._job_impact_index = None
+    # added
+    job_impact_index_rel = None
+    _job_impact_index = None
+
+    def __init__(self, label=None, **kwargs):
+
+        self.label = label
+        self.timesignals = {}
+
+        # Other parameters to update
+        for key, value in kwargs.iteritems():
+            if not hasattr(self, key):
+                raise AttributeError("Attribute {} of {} is unknown".format(key, self.__class__.__name__))
+            else:
+                setattr(self, key, value)
 
     # aggregate time signals..
     def append_time_signal(self, time_signal_in):
-        self.timesignals.append(time_signal_in)
+        assert time_signal_in.name not in self.timesignals
+
+        self.timesignals[time_signal_in.name] = time_signal_in
 
     # job impact index..
     @property

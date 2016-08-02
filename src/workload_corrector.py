@@ -8,6 +8,7 @@ from pybrain.supervised.trainers import BackpropTrainer
 
 from plot_handler import PlotHandler
 from time_signal import TimeSignal
+import time_signal
 
 
 class WorkloadCorrector(object):
@@ -23,16 +24,15 @@ class WorkloadCorrector(object):
     def __init__(self, config_param):
 
         # self.Workload = input_wl
-        self.out_dir = config_param.DIR_OUTPUT
-        self.ts_name_type = config_param.WORKLOADCORRECTOR_LIST_TIME_NAMES
+        self.out_dir = config_param.dir_output
 
         # ann configuration params
         self.eps = config_param.WORKLOADCORRECTOR_EPS
         self.ann_name_inputs = config_param.WORKLOADCORRECTOR_ANN_INPUT_NAMES
         self.ann_n_inputs = len(self.ann_name_inputs)
-        self.ann_name_outputs = [i_name[0] for i_name in config_param.WORKLOADCORRECTOR_LIST_TIME_NAMES]
-        self.job_signal_dgt = [i_ts[3] for i_ts in config_param.WORKLOADCORRECTOR_LIST_TIME_NAMES]
-        self.ann_n_outputs = len(self.ts_name_type)
+        self.ann_name_outputs = time_signal.signal_types.keys()
+        self.job_signal_digitization_type = [time_signal.signal_types[x]['behaviour'] for x in time_signal.signal_types]
+        self.ann_n_outputs = len(self.ann_name_outputs)
         self.ann_n_neurons = config_param.WORKLOADCORRECTOR_ANN_NNEURONS
         self.ann_learning_rate = config_param.WORKLOADCORRECTOR_ANN_LEARNINGRATE
         self.ann_momentum = config_param.WORKLOADCORRECTOR_ANN_MOMENTUM
@@ -60,8 +60,8 @@ class WorkloadCorrector(object):
             self.ann_net = buildNetwork(self.ann_n_inputs, self.ann_n_neurons, self.ann_n_outputs, bias=True)
             ann_dataset_all = SupervisedDataSet(self.ann_n_inputs, self.ann_n_outputs)
 
-            ann_input_data = [[i_job.ncpus, float(i_job.time_end-i_job.time_start)] for i_job in profiler_jobs]
-            ann_output_data = [[i_ts.sum for i_ts in i_job.timesignals] for i_job in profiler_jobs]
+            ann_input_data = [[i_job.ncpus, float(i_job.duration)] for i_job in profiler_jobs]
+            ann_output_data = [[i_job.timesignals[elem].sum for elem in self.ann_name_outputs] for i_job in profiler_jobs]
 
             # normalize the output
             ann_output_data_max = [max(row) for row in ann_output_data]
@@ -119,7 +119,7 @@ class WorkloadCorrector(object):
 
         ann_input_ds = UnsupervisedDataSet(self.ann_n_inputs)
         for i_job in scheduler_jobs:
-            ann_input_ds.addSample([i_job.ncpus, float(i_job.time_end-i_job.time_start)])
+            ann_input_ds.addSample([i_job.ncpus, float(i_job.duration)])
 
         # activate ann on scheduler jobs
         ann_response = self.ann_net.activateOnDataset(ann_input_ds)
@@ -128,17 +128,13 @@ class WorkloadCorrector(object):
         for (jj, i_job) in enumerate(scheduler_jobs):
             for (tt, i_ts_name) in enumerate(self.ann_name_outputs):
 
-                ts = TimeSignal()
-
-                dt = float(i_job.time_end-i_job.time_start)/self.jobs_n_bins
+                dt = float(i_job.duration)/self.jobs_n_bins
                 sample_times = np.arange(0, self.jobs_n_bins)*dt+dt/2.0
                 y_values = np.ones(self.jobs_n_bins)*max(self.eps, ann_response[jj][tt])
 
-                ts_type = self.ts_name_type[tt][1]
-                ts_ker_type = self.ts_name_type[tt][2]
+                ts = TimeSignal.from_values(i_ts_name, sample_times, y_values)
+                ts.digitize(self.jobs_n_bins)
 
-                ts.create_ts_from_values(i_ts_name, ts_type, ts_ker_type, sample_times, y_values)
-                ts.digitize(self.jobs_n_bins, self.job_signal_dgt[tt])
-                i_job.append_time_signal(ts)
+                i_job.timesignals[i_ts_name] = ts
 
         return scheduler_jobs
