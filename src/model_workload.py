@@ -5,7 +5,7 @@ from matplotlib import dates
 import time_signal
 from logreader.scheduler_reader import AccountingDataSet, PBSDataSet
 from plot_handler import PlotHandler
-from sds.print_colour import print_colour
+from tools.print_colour import print_colour
 
 from time_signal import TimeSignal
 from logreader import scheduler_reader
@@ -33,7 +33,6 @@ class ModelWorkload(object):
 
         self.dir_input = config_options.dir_input
         self.job_output_all = np.array([]).reshape(3, 0)
-        self.job_list = []
 
         # total metrics and parameters
         self.total_metrics = []
@@ -79,32 +78,25 @@ class ModelWorkload(object):
                   ):
 
         """ Read jobs from scheduler and profiler logs"""
-
-        ## TODO
-
-        ## Remember to include the plot functionality
-
         datasets = []
         if scheduler_tag == "pbs":
             datasets.append(scheduler_reader.ingest_pbs_logs(scheduler_log_file))
-            scheduler_reader.make_scheduler_plots(self.scheduler_jobs,
+            scheduler_reader.make_scheduler_plots(datasets[0].joblist,
                                                   self.plot_tag,
                                                   self.out_dir,
                                                   date_ticks=self.plot_time_tick)
         elif scheduler_tag == "accounting":
             datasets.append(scheduler_reader.ingest_accounting_logs(scheduler_log_file))
-            scheduler_reader.make_scheduler_plots(self.scheduler_jobs,
+            scheduler_reader.make_scheduler_plots(datasets[0].joblist,
                                                   self.plot_tag,
                                                   self.out_dir,
                                                   date_ticks=self.plot_time_tick)
         elif scheduler_tag == "epcc_csv":
-            self.scheduler_jobs = scheduler_reader.read_csv_logs(scheduler_log_file)
-			datasets.append(scheduler_reader.ingest_accounting_logs(scheduler_log_file))
-            scheduler_reader.make_scheduler_plots(self.scheduler_jobs,
+            datasets.append(scheduler_reader.ingest_epcc_csv_logs(scheduler_log_file))
+            scheduler_reader.make_scheduler_plots(datasets[0].joblist,
                                                   self.plot_tag,
                                                   self.out_dir,
                                                   date_ticks=self.plot_time_tick)
-
         else:
             print "Scheduler jobs not found"
 
@@ -178,7 +170,7 @@ class ModelWorkload(object):
         self.calculate_global_metrics()
 
         # check that all the info are correctly filled in..
-        for i_job in self.LogData:
+        for i_job in self.job_list:
             i_job.check_job()
 
     def calculate_global_metrics(self):

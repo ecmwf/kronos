@@ -295,7 +295,7 @@ def read_accounting_logs(filename_in):
     return accounting_jobs
 
 
-def read_csv_logs(filename_in):
+def read_epcc_csv_logs(filename_in):
 
     """ read CSV logs from EPCC.. """
 
@@ -404,8 +404,15 @@ class PBSDataSet(IngestedDataSet):
 
         # The created times are all in seconds since an arbitrary reference, so we want to get
         # them relative to a zero-time
-        self.global_created_time = min((j.time_created for j in self.joblist if j.time_created >= 0))
-        self.global_start_time = min((j.time_start for j in self.joblist if j.time_start >= 0))
+        created_time_list = [j.time_created for j in self.joblist if j.time_created >= 0]
+        self.global_created_time = 0.0
+        if created_time_list:
+            self.global_created_time = min(created_time_list)
+
+        start_time_list = [j.time_created for j in self.joblist if j.time_created >= 0]
+        self.global_start_time = 0.0
+        if start_time_list:
+            self.global_start_time = min(start_time_list)
 
     def model_jobs(self):
         for job in self.joblist:
@@ -436,6 +443,21 @@ def ingest_pbs_logs(path):
         raise ConfigurationError("Specified path for PBS schedule is not a file")
 
     jobs = read_pbs_log(path)
+
+    return PBSDataSet(jobs)
+
+
+def ingest_epcc_csv_logs(path):
+    """
+    Read PBS logs into a dataset
+    """
+    if not os.path.exists(path):
+        raise ConfigurationError("Specified path to ingest CSV profiles does not exist: {}".format(path))
+
+    if not os.path.isfile(path):
+        raise ConfigurationError("Specified path for CSV schedule is not a file")
+
+    jobs = read_epcc_csv_logs(path)
 
     return PBSDataSet(jobs)
 
@@ -475,6 +497,7 @@ def ingest_accounting_logs(path):
     jobs = read_accounting_logs(path)
 
     return PBSDataSet(jobs)
+
 
 def make_scheduler_plots(list_jobs, plot_tag, out_dir, date_ticks="month"):
 

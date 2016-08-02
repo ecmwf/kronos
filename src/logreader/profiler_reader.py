@@ -23,8 +23,8 @@ def read_allinea_log(filename, jobs_n_bins=None):
     # 'per_task': Is the value presented per-task, or global. If per-task it needs to be multiplied up.
     #             (default False)
 
-  allinea_time_signal_map = {
-        'instr_fp':             {'name': 'cpu_time'},
+    allinea_time_signal_map = {
+        'instr_fp':             {'name': 'flops'},
         'lustre_bytes_read':    {'name': 'kb_read',       'is_rate': True},
         'lustre_bytes_written': {'name': 'kb_write',      'is_rate': True},
 #        'mpi_p2p':              {'name': 'n_pairwise'},
@@ -122,12 +122,12 @@ def read_allinea_logs(log_dir, jobs_n_bins=None, list_json_files=None):
     """
   # pick up the list of json files to process
     if list_json_files is None:
-		json_files = glob.glob(os.path.join(os.path.realpath(log_dir), "*.json"))
-		print "reading json files..."
+        json_files = glob.glob(os.path.join(os.path.realpath(log_dir), "*.json"))
+        print "reading json files..."
         json_files.sort()
     else:
         json_files = list_json_files
-		print "reading json files..."
+        print "reading json files..."
         json_files.sort()
 
     return [ read_allinea_log(filename, jobs_n_bins) for filename in json_files ]

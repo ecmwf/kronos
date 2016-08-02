@@ -14,6 +14,7 @@ class SyntheticWorkload(object):
     def __init__(self, config, apps=None):
         self.config = config
         self.app_list = apps
+        self.__metrics_tot = [0] * len(apps)
 
     def __unicode__(self):
         return "SyntheticWorkload - {} jobs".format(len(self.app_list))
@@ -35,7 +36,6 @@ class SyntheticWorkload(object):
         output += "=============================================\n"
         return output
 
-
     def export(self, nbins, dir_output=None):
 
         # A default dir, that can be overridden
@@ -47,9 +47,17 @@ class SyntheticWorkload(object):
         print "Exporting {} synthetic applications to: {}".format(len(sorted_apps), dir_output)
 
         for i, app in enumerate(sorted_apps):
-            app.export(os.path.join(dir_output, "input{}.json".format(i)), nbins)
+            app.export(os.path.join(dir_output, "job-{}.json".format(i)), nbins)
 
-        sys.exit(-1)
+    @property
+    def total_metrics(self):
+
+        # loop oer synthetic apps and return sums of time signals
+        for app in self.app_list:
+            for i,ts in enumerate(app.timesignals.values()):
+                self.__metrics_tot[i] += ts.sum
+
+        return self.__metrics_tot
 
 
 class SyntheticApp(ModelJob):

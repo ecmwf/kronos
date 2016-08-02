@@ -2,6 +2,7 @@
 
 # Add parent directory as search path form modules
 import os
+import numpy as np
 
 os.sys.path.append(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
 
@@ -30,6 +31,8 @@ def test_synth_app_0():
     input_workload.read_logs(scheduler_tag, profiler_tag, scheduler_log_file, profiler_log_dir)
     input_workload.make_plots(plot_tag)
 
+    print "input_workload metrics_sums: ", np.asarray([i_sum.sum for i_sum in input_workload.total_metrics])
+
     # Generator model
     # [%] percentage of measured workload (per each metric)
     # scaling_factor_list = [.35,
@@ -50,24 +53,12 @@ def test_synth_app_0():
                            # 1.,
                            ]
 
-    model = IOWSModel(config)
-    model.set_input_workload(input_workload)
-    model.create_scaled_workload("time_plane", "Kmeans", scaling_factor)
-    model.export_scaled_workload()
-    model.make_plots(plot_tag)
+    model = IOWSModel(config, input_workload)
 
-    metrics_sums = np.asarray([i_sum.sum for i_sum in input_workload.total_metrics])
-    print "metrics_sums_history (iter=0): ", metrics_sums
+    synthetic_apps = model.create_scaled_workload("time_plane", "Kmeans", scaling_factor_list, reduce_jobs_flag=True)
+    synthetic_apps.export(config.IOWSMODEL_TOTAL_METRICS_NBINS)
 
-    # # Run the synthetic apps and profile them with Allinea
-    # scheduler_tag = ""
-    # scheduler_log_file = ""
-    # profiler_tag = "allinea"
-    # profiler_log_dir = "/home/ma/maab/workspace/iows/input/run_sa/"
-    # sa_workload = RealWorkload(config)
-    # sa_workload.read_logs(scheduler_tag, profiler_tag, scheduler_log_file, profiler_log_dir)
-
-    # Create plots by comparing the logs..
+    print "synthetic apps time signals sums: ", synthetic_apps.total_metrics
 
     # check num plots
     PlotHandler.print_fig_handle_ID()

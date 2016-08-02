@@ -66,7 +66,6 @@ class IOWSModel(object):
 
         # num of kernels for each synth app, temporarily set as constant (TODO: to change..)
         self.n_kernels = config_options.WORKLOADCORRECTOR_JOBS_NBINS
-        self.n_time_signals = len(config_options.WORKLOADCORRECTOR_LIST_TIME_NAMES)
         self.n_time_signals = len(time_signal.signal_types)
         self.ts_names = time_signal.signal_types.keys()
 
@@ -75,6 +74,9 @@ class IOWSModel(object):
         self.scaling_factor = config_options.model_scaling_factor
         self.clustering_algorithm = config_options.model_clustering_algorithm
         self.clustering_routine = config_options.model_clustering
+
+        self.cpu_frequency = config_options.CPU_FREQUENCY
+        self.config_options = config_options
 
         # A quick sanity check
         for method_name in self.clustering_routines.values():
@@ -100,11 +102,12 @@ class IOWSModel(object):
         if config.model_scaling_factor <= 0.0 or config.model_scaling_factor > 1.0:
             raise ConfigurationError("Scaling factor must be between 0.0 and 1.0")
 
-    def create_scaled_workload(self, clustering_key, which_clust=None, scaling_factor=None):
+    def create_scaled_workload(self, clustering_key, which_clust=None, scaling_factor_list=None, reduce_jobs_flag=True):
         """
         Create a scaled workload of synthetic apps from all of the (so-far) aggregated data
         """
         which_clust = which_clust or self.clustering_algorithm
+        scaling_factor = float(sum(scaling_factor_list)) / float(len(scaling_factor_list))
         scaling_factor = scaling_factor or self.scaling_factor
 
         assert 0.0 < scaling_factor <= 1.0
@@ -112,7 +115,7 @@ class IOWSModel(object):
         # call the clustering first..
         print "Apply clustering: {}".format(clustering_key)
         print "Apply clustering: {}".format(which_clust)
-        self.apply_clustering(clustering_key, which_clust, scaling_factor)
+        self.apply_clustering(clustering_key, which_clust, reduce_jobs_flag, scaling_factor)
         self.calculate_total_metrics()
 
         print "Scaling factor: ", scaling_factor
@@ -175,31 +178,18 @@ class IOWSModel(object):
 
         return SyntheticWorkload(self.config, apps=syntapp_list)
 
-        # Calculate sums of total metrics signals (of the original WL)
-        tot_metrics_sums = np.ndarray(self.n_time_signals)
-        for (ii, i_sign) in enumerate(self.input_workload.total_metrics):
-            tot_metrics_sums[ii] = sum(i_sign.yvalues)
-
-        # Calculate sums of synthetic (needed for rescaling each ts to match target scaling factor)
-        clust_metrics_sums = np.ndarray(self.n_time_signals)
-        for (ii, i_ts) in enumerate(self.aggregated_metrics):
-            clust_metrics_sums[ii] = sum(i_ts.yvalues)
-
-        # Now actually apply the scaling factor to all the ts of each synthetic app
-        for (ss, i_app) in enumerate(self.syntapp_list):
-            for (tt, i_ts) in enumerate(i_app.time_signals):
-                if clust_metrics_sums[tt]:
-                    i_ts.yvalues = i_ts.yvalues / (clust_metrics_sums[tt]) * tot_metrics_sums[tt] * scaling_factor
-                else:
-                    i_ts.yvalues *= 0.0
-
-    def apply_clustering(self, clustering_key, which_clust, n_clust_pc=-1):
+    def apply_clustering(self, clustering_key, which_clust, reduce_jobs_flag, scaling_factor):
 
         self.clustering_key = clustering_key
-        self._n_clusters = max(1, int(n_clust_pc / 100. * len(self.input_workload.LogData)))
+
+        # determine the number of clusters (also according to the flag..)
+        if reduce_jobs_flag:
+            self._n_clusters = max(1, int(scaling_factor * len(self.input_workload.job_list)))
+        else:
+            self._n_clusters = len(self.input_workload.job_list)
 
         # do the clustering only if scaling factor is less than 100
-        if scaling_factor < 1.0:
+        if (self._n_clusters < 100.) and reduce_jobs_flag:
 
             worker_name = self.clustering_routines.get(clustering_key, None)
             if worker_name is None:
