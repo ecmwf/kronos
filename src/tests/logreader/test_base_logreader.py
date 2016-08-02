@@ -6,6 +6,7 @@ import shutil
 import os
 
 from exceptions_iows import ConfigurationError
+from jobs import IngestedJob
 from logreader.base import LogReader
 from logreader.dataset import IngestedDataSet
 
@@ -27,14 +28,18 @@ class BaseLogReaderTest(unittest.TestCase):
         self.assertIsNone(lr.file_pattern)
         self.assertFalse(lr.recursive)
         self.assertIsNone(lr.label_method)
+        self.assertEqual(lr.job_class, IngestedJob)
+        self.assertEqual(lr.log_type_name, '(Unknown)')
+        self.assertEqual(lr.pool_readers, 10)
 
         # Test that we can override with the things we provide
-        lr = LogReader('fake-path', recursive=True, file_pattern="*.pattern", label_method="directory")
+        lr = LogReader('fake-path', recursive=True, file_pattern="*.pattern", label_method="directory", pool_readers=99)
         self.assertEqual(lr.path, 'fake-path')
         self.assertIsNone(lr.dataset_class)
         self.assertEqual(lr.file_pattern, "*.pattern")
         self.assertTrue(lr.recursive)
         self.assertEqual(lr.label_method, "directory")
+        self.assertEqual(lr.pool_readers, 99)
 
         # Test that file_pattern is using the class default if not overridden.
         class LogReaderSubclass(LogReader):

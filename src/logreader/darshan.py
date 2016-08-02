@@ -156,6 +156,7 @@ class DarshanLogReader(LogReader):
     dataset_class = DarshanDataSet
     log_type_name = "Darshan"
     file_pattern = "*.gz"
+    recursive = True
 
     # By default we end up with a whole load of darshan logfiles within a directory.
     label_method = "directory"

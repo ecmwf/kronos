@@ -1,7 +1,10 @@
 #!/usr/bin/env python
 import unittest
+import types
 
-from logreader.darshan import DarshanIngestedJobFile, DarshanIngestedJob, DarshanLogReaderError
+from logreader.base import LogReader
+from logreader.darshan import (DarshanIngestedJobFile, DarshanIngestedJob, DarshanLogReaderError, DarshanLogReader,
+                               DarshanDataSet)
 
 
 class DarshanIngestedJobFileTest(unittest.TestCase):
@@ -357,6 +360,72 @@ class DarshanIngestedJobTest(unittest.TestCase):
         self.assertEqual(writes.xvalues[0], 0.0)
         self.assertEqual(reads.yvalues[0], 199.0)
         self.assertEqual(writes.yvalues[0], 203.0)
+
+
+class FakeJob(object):
+    """
+    This is a mocked-up ingested job. It only exists as a file-level class so that it is picklable, which
+    makes it work happily with the multiprocessing module.
+    """
+    def __init__(self, name, label):
+        self.names = [name]
+        self.label = label
+
+    def aggregate(self, other):
+        self.names += other.names
+
+
+
+class DarshanLogReaderTest(unittest.TestCase):
+
+    def test_initialisation(self):
+        """
+        Check that we have sensible (overridable) defaults. N.b. inherits from LogReader
+        """
+        # With standard defaults
+        lr = DarshanLogReader('test-path')
+
+        self.assertEqual(lr.parser_command, 'darshan-parser')
+        self.assertEqual(lr.path, 'test-path')
+        self.assertEqual(lr.dataset_class, DarshanDataSet)
+        self.assertEqual(lr.file_pattern, "*.gz")
+        self.assertTrue(lr.recursive)
+        self.assertEqual(lr.label_method, 'directory')
+        self.assertEqual(lr.job_class, DarshanIngestedJob)
+        self.assertEqual(lr.log_type_name, 'Darshan')
+        self.assertEqual(lr.pool_readers, 10)
+        self.assertIsInstance(lr, LogReader)
+
+        # And these are overridable?
+        lr = DarshanLogReader('test-path', parser='a-parser')
+
+        self.assertEqual(lr.parser_command, 'a-parser')
+
+    def test_read_logs_generator(self):
+        """
+        Should return a generator of the output of read_log depending on the results of logfiles.
+
+        For Darshan, we get multiple logfiles per job (as one is produces per command that is contained in the
+        submit script). Assume that thee are grouped per directory, and aggregate is called on the job class.
+        """
+        class LogReaderLocal(DarshanLogReader):
+            def logfiles(self):
+                for file in ['dir1/file1', 'dir1/file2', 'dir1/file3', 'dir2/file4']:
+                    yield file
+
+            def read_log(self, filename, suggested_label):
+                return [FakeJob(filename, suggested_label)]
+
+        lr = LogReaderLocal('test-path')
+
+        logs = lr.read_logs_generator()
+        self.assertIsInstance(logs, types.GeneratorType)
+
+        logs = list(logs)
+        self.assertEqual(len(logs), 2)
+
+        self.assertEqual(logs[0].names, ['dir1/file1', 'dir1/file2', 'dir1/file3'])
+        self.assertEqual(logs[1].names, ['dir2/file4'])
 
 
 
