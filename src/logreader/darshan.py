@@ -49,6 +49,31 @@ class DarshanIngestedJobFile(object):
     def __str__(self):
         return unicode(self).encode('utf-8')
 
+    def aggregate(self, other):
+        """
+        Combine the data contents of two file objects
+        """
+        assert self.name == other.name
+
+        self.bytes_read += other.bytes_read
+        self.bytes_written += other.bytes_written
+        self.open_count += other.open_count
+        self.write_count += other.write_count
+        self.read_count += other.read_count
+
+        if self.read_time is not None:
+            if other.read_time is not None:
+                self.read_time = min(self.read_time, other.read_time)
+        else:
+            self.read_time = other.read_time
+
+        if self.write_time is not None:
+            if other.write_time is not None:
+                self.write_time = min(self.write_time, other.write_time)
+        else:
+            self.write_time = other.write_time
+
+
 class DarshanIngestedJob(IngestedJob):
     """
     N.B. Darshan may produce MULTIPLE output files for each of the actual HPC jobs (as it produces one per command
