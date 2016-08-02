@@ -2,12 +2,11 @@ from pylab import *
 
 import os
 import subprocess
+import xml.etree.ElementTree as ET
 
 from jobs import IngestedJob, ModelJob
 from logreader.base import LogReader
 from logreader.dataset import IngestedDataSet
-from time_signal import TimeSignal
-from tools.print_colour import print_colour
 
 
 class IPMDataSet(IngestedDataSet):
@@ -67,11 +66,12 @@ class IPMLogReader(LogReader):
         Read a darshan log!
         """
         print "LOG: {}".format(filename)
+        root = ET.parse(filename).getroot()
         return []
 
     def read_logs_generator(self):
         """
-        In the same way as Darshan, IPM roduces one log per command executed in the script. This results in multiple
+        In the same way as Darshan, IPM produces one log per command executed in the script. This results in multiple
         IPM files per job, which need to be aggregated. Each of the jobs will be sequential, so we combine them.
         """
 
