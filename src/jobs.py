@@ -53,7 +53,7 @@ class ModelJob(object):
                     output = "Num samples: \t{}\n".format(len(ts.xvalues))
                 output += "{}: \t{}\n".format(ts_name, sum(ts.yvalues))
 
-        return output
+        return output or ""
 
     def check_job(self):
         """

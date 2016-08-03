@@ -1,12 +1,11 @@
 from pylab import *
 
-import os
-import subprocess
 import xml.etree.ElementTree as ET
 
 from jobs import IngestedJob, ModelJob
 from logreader.base import LogReader
 from logreader.dataset import IngestedDataSet
+from time_signal import TimeSignal
 
 
 class IPMDataSet(IngestedDataSet):
@@ -69,12 +68,66 @@ class IPMIngestedJob(IngestedJob):
         """
         Return a ModelJob from the supplied information
         """
-        return ModelJob()
+        return ModelJob(
+            time_series=self.model_time_series(),
+            time_start=-1,
+            ncpus=-1,
+            nnodes=-1
+        )
 
     def aggregate(self, rhs):
 
         # We want to include all of the tasks that have been IPM'd
         self.tasks += rhs.tasks
+
+    def model_time_series(self):
+
+        total_mpi_pairwise_count_send = 0
+        total_mpi_pairwise_bytes_send = 0
+        total_mpi_pairwise_count_recv = 0
+        total_mpi_pairwise_bytes_recv = 0
+
+        total_mpi_collective_count = 0
+        total_mpi_collective_bytes = 0
+
+        total_read_count = 0
+        total_write_count = 0
+        total_bytes_read = 0
+        total_bytes_written = 0
+
+        for task in self.tasks:
+            total_mpi_pairwise_count_send += task.mpi_pairwise_count_send
+            total_mpi_pairwise_bytes_send += task.mpi_pairwise_bytes_send
+            total_mpi_pairwise_count_recv += task.mpi_pairwise_count_recv
+            total_mpi_pairwise_bytes_recv += task.mpi_pairwise_bytes_recv
+
+            total_mpi_collective_count += task.mpi_collective_count
+            total_mpi_collective_bytes += task.mpi_collective_bytes
+
+            total_read_count += task.read_count
+            total_write_count += task.write_count
+            total_bytes_read += task.bytes_read
+            total_bytes_written += task.bytes_written
+
+        # n.b. only using the pairwise send data. Recv should be largely a duplicate, but slightly smaller
+        #      as MPI_Sendrecv is only being counted under send for now. If we used both send and recv data
+        #      from _all_ tasks we would double count the transfers.
+
+        return {
+            'n_collective': TimeSignal.from_values('n_collective', [0.0], [total_mpi_collective_count]),
+            'kb_collective': TimeSignal.from_values('kb_collective', [0.0],
+                                                    [float(total_mpi_collective_bytes) / 1024.0]),
+
+            'n_pairwise': TimeSignal.from_values('n_pairwise', [0.0], [total_mpi_pairwise_count_send]),
+            'kb_pairwise': TimeSignal.from_values('kb_pairwise', [0.0],
+                                                  [float(total_mpi_pairwise_bytes_send) / 1024.0]),
+
+            'kb_read': TimeSignal.from_values('kb_read', [0.0], [float(total_bytes_read) / 1024.0]),
+            'kb_write': TimeSignal.from_values('kb_write', [0.0], [float(total_bytes_written) / 1024.0]),
+
+            # TODO: Make use of read/write counts
+        }
+
 
 
 class IPMLogReader(LogReader):
@@ -261,7 +314,11 @@ class IPMLogReader(LogReader):
         assert ntasks > 0
         task_info = [self.parse_task(task, ntasks) for task in tasks]
 
-        return [IPMIngestedJob(tasks=task_info, label=suggested_label)]
+        return [IPMIngestedJob(
+            tasks=task_info,
+            label=suggested_label,
+            filename=filename
+        )]
 
     def read_logs_generator(self):
         """
