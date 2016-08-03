@@ -71,28 +71,51 @@ class ProcessingPool(Pool):
         _global_parent = True
 
         self.callback = callback
+        self.processes = processes
 
-        super(ProcessingPool, self).__init__(
-            processes=processes,
-            initializer=_internal_initialiser,
-            initargs=(global_data, processing_fn))
+        # If we are only using one processor, then we don't need this machinery. Do things manually to
+        # avoid the overhead, and keep error reporting/exceptions/assertions in line.
+        if processes == 1:
+            self.global_data = global_data
+            self.processing_fn = processing_fn
+        else:
+            super(ProcessingPool, self).__init__(
+                processes=processes,
+                initializer=_internal_initialiser,
+                initargs=(global_data, processing_fn))
+
+    def imap_trivial(self, iterable):
+        """
+        If we are only using one process, we can use a trivial imap. This is only in a separate function
+        as we cannot have a yield in the imap() function below.
+        """
+        for i, elem in enumerate(iterable):
+            obj = self.processing_fn(elem, self.global_data)
+            self.callback(i, i, obj)
+            yield obj
 
     def imap(self, iterable, chunksize=1):
         """
         Equivalent of `itertools.imap()` -- can be MUCH slower than `Pool.map()`
         """
-        assert self._state == RUN
-        if chunksize == 1:
-            result = IMapIteratorLocal(self.callback, self._cache)
-            self._taskqueue.put((((result._job, i, _internal_worker, (x,), {})
-                                  for i, x in enumerate(iterable)), result._set_length))
-            return result
+        if self.processes == 1:
+
+            return self.imap_trivial(iterable)
+
         else:
-            assert chunksize > 1
-            task_batches = Pool._get_tasks(_internal_worker, iterable, chunksize)
-            result = IMapIteratorLocal(self.callback, self._cache)
-            self._taskqueue.put((((result._job, i, mapstar, (x,), {})
-                                  for i, x in enumerate(task_batches)), result._set_length))
-            return (item for chunk in result for item in chunk)
+            # This is derived from super().imap, but using IMapIteratorLocal instead of IMapIterator
+            assert self._state == RUN
+            if chunksize == 1:
+                result = IMapIteratorLocal(self.callback, self._cache)
+                self._taskqueue.put((((result._job, i, _internal_worker, (x,), {})
+                                      for i, x in enumerate(iterable)), result._set_length))
+                return result
+            else:
+                assert chunksize > 1
+                task_batches = Pool._get_tasks(_internal_worker, iterable, chunksize)
+                result = IMapIteratorLocal(self.callback, self._cache)
+                self._taskqueue.put((((result._job, i, mapstar, (x,), {})
+                                      for i, x in enumerate(task_batches)), result._set_length))
+                return (item for chunk in result for item in chunk)
 
 
