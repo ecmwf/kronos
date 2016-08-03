@@ -58,14 +58,31 @@ class IPMLogReader(LogReader):
         "MPI_Comm_rank": None,
         "MPI_Comm_size": None,
         "MPI_Wait": None,
+        "MPI_Waitall": None,
         "MPI_Waitany": None,
+        "MPI_Waitsome": None,
         "MPI_Buffer_attach": None,
         "MPI_Buffer_detach": None,
         "MPI_Barrier": None,
+        "MPI_Probe": None,
+        "MPI_Iprobe": None,
+        "MPI_Send_init": None,
+        "MPI_Ssend_init": None,
+        "MPI_Rsend_init": None,
+        "MPI_Bsend_init": None,
+        "MPI_Recv_init": None,
         "MPI_Comm_group": None,
         "MPI_Comm_compare": None,
         "MPI_Comm_dup": None,
         "MPI_Comm_create": None,
+        "MPI_Comm_split": None,
+        "MPI_Comm_free": None,
+        "MPI_Test": None,
+        "MPI_Testany": None,
+        "MPI_Testall": None,
+        "MPI_Testsome": None,
+        "MPI_Start": None,
+        "MPI_Startall": None,
 
         "MPI_Send": ('mpi_pairwise_count_send', 'mpi_pairwise_bytes_send'),
         "MPI_Bsend": ('mpi_pairwise_count_send', 'mpi_pairwise_bytes_send'),
@@ -76,14 +93,27 @@ class IPMLogReader(LogReader):
         "MPI_Irsend": ('mpi_pairwise_count_send', 'mpi_pairwise_bytes_send'),
         "MPI_Ibsend": ('mpi_pairwise_count_send', 'mpi_pairwise_bytes_send'),
 
+        # TODO: How should we account for _sendrecv?
+        "MPI_Sendrecv": ('mpi_pairwise_count_send', 'mpi_pairwise_bytes_send'),
+        "MPI_Sendrecv_replace": ('mpi_pairwise_count_send', 'mpi_pairwise_bytes_send'),
+
         "MPI_Recv": ('mpi_pairwise_count_recv', 'mpi_pairwise_bytes_recv'),
         "MPI_Irecv": ('mpi_pairwise_count_recv', 'mpi_pairwise_bytes_recv'),
 
+        # Todo: Do we need to scale all-all and all-one collecvise seperately
         "MPI_Bcast": ('mpi_collective_count', 'mpi_collective_bytes'),
+        "MPI_Gather": ('mpi_collective_count', 'mpi_collective_bytes'),
         "MPI_Gatherv": ('mpi_collective_count', 'mpi_collective_bytes'),
+        "MPI_Allgather": ('mpi_collective_count', 'mpi_collective_bytes'),
         "MPI_Allgatherv": ('mpi_collective_count', 'mpi_collective_bytes'),
         "MPI_Allreduce": ('mpi_collective_count', 'mpi_collective_bytes'),
-        "MPI_Alltoallv": ('mpi_collective_count', 'mpi_collective_bytes')
+        "MPI_Alltoallv": ('mpi_collective_count', 'mpi_collective_bytes'),
+        "MPI_Alltoall": ('mpi_collective_count', 'mpi_collective_bytes'),
+        "MPI_Reduce": ('mpi_collective_count', 'mpi_collective_bytes'),
+        "MPI_Reduce_scatter": ('mpi_collective_count', 'mpi_collective_bytes'),
+        "MPI_Scatter": ('mpi_collective_count', 'mpi_collective_bytes'),
+        "MPI_Scatterv": ('mpi_collective_count', 'mpi_collective_bytes'),
+        "MPI_Scan": ('mpi_collective_count', 'mpi_collective_bytes')
     }
 
     def __init__(self, path, **kwargs):
