@@ -24,6 +24,38 @@ class IPMDataSet(IngestedDataSet):
             yield job.model_job()
 
 
+class IPMTaskInfo(object):
+    """
+    Store the information aggregated in an IPM task.
+    """
+    def __init__(self):
+
+        self.mpi_pairwise_count_send = 0
+        self.mpi_pairwise_bytes_send = 0
+        self.mpi_pairwise_count_recv = 0
+        self.mpi_pairwise_bytes_recv = 0
+
+        self.mpi_collective_count = 0
+        self.mpi_collective_bytes = 0
+
+        self.open_count = 0
+        self.read_count = 0
+        self.write_count = 0
+        self.bytes_read = 0
+        self.bytes_written = 0
+
+    def __unicode__(self):
+        return "IPMTaskInfo({} MPI events, {} MPI bytes, {} IO events, {} IO bytes)".format(
+            self.mpi_pairwise_count_send + self.mpi_pairwise_count_recv + self.mpi_collective_count,
+            self.mpi_pairwise_bytes_send + self.mpi_pairwise_bytes_recv + self.mpi_collective_bytes,
+            self.open_count + self.read_count + self.write_count,
+            self.bytes_read + self.bytes_written
+        )
+
+    def __str__(self):
+        return unicode(self).encode('utf-8')
+
+
 class IPMIngestedJob(IngestedJob):
     """
     N.B. Darshan may produce MULTIPLE output files for each of the actual HPC jobs (as it produces one per command
@@ -31,14 +63,18 @@ class IPMIngestedJob(IngestedJob):
     """
     # What fields are used by IPM (that are different to the defaults in IngestedJob)
 
-    def model_job(self, first_start_time):
+    tasks = []
+
+    def model_job(self):
         """
         Return a ModelJob from the supplied information
         """
         return ModelJob()
 
     def aggregate(self, rhs):
-        raise NotImplementedError
+
+        # We want to include all of the tasks that have been IPM'd
+        self.tasks += rhs.tasks
 
 
 class IPMLogReader(LogReader):
@@ -84,36 +120,65 @@ class IPMLogReader(LogReader):
         "MPI_Start": None,
         "MPI_Startall": None,
 
-        "MPI_Send": ('mpi_pairwise_count_send', 'mpi_pairwise_bytes_send'),
-        "MPI_Bsend": ('mpi_pairwise_count_send', 'mpi_pairwise_bytes_send'),
-        "MPI_Rsend": ('mpi_pairwise_count_send', 'mpi_pairwise_bytes_send'),
-        "MPI_Ssend": ('mpi_pairwise_count_send', 'mpi_pairwise_bytes_send'),
-        "MPI_Isend": ('mpi_pairwise_count_send', 'mpi_pairwise_bytes_send'),
-        "MPI_Issend": ('mpi_pairwise_count_send', 'mpi_pairwise_bytes_send'),
-        "MPI_Irsend": ('mpi_pairwise_count_send', 'mpi_pairwise_bytes_send'),
-        "MPI_Ibsend": ('mpi_pairwise_count_send', 'mpi_pairwise_bytes_send'),
+        "MPI_Send": {"count": 'mpi_pairwise_count_send', "bytes": 'mpi_pairwise_bytes_send'},
+        "MPI_Bsend": {"count": 'mpi_pairwise_count_send', "bytes": 'mpi_pairwise_bytes_send'},
+        "MPI_Rsend": {"count": 'mpi_pairwise_count_send', "bytes": 'mpi_pairwise_bytes_send'},
+        "MPI_Ssend": {"count": 'mpi_pairwise_count_send', "bytes": 'mpi_pairwise_bytes_send'},
+        "MPI_Isend": {"count": 'mpi_pairwise_count_send', "bytes": 'mpi_pairwise_bytes_send'},
+        "MPI_Issend": {"count": 'mpi_pairwise_count_send', "bytes": 'mpi_pairwise_bytes_send'},
+        "MPI_Irsend": {"count": 'mpi_pairwise_count_send', "bytes": 'mpi_pairwise_bytes_send'},
+        "MPI_Ibsend": {"count": 'mpi_pairwise_count_send', "bytes": 'mpi_pairwise_bytes_send'},
 
         # TODO: How should we account for _sendrecv?
-        "MPI_Sendrecv": ('mpi_pairwise_count_send', 'mpi_pairwise_bytes_send'),
-        "MPI_Sendrecv_replace": ('mpi_pairwise_count_send', 'mpi_pairwise_bytes_send'),
+        "MPI_Sendrecv": {"count": 'mpi_pairwise_count_send', "bytes": 'mpi_pairwise_bytes_send'},
+        "MPI_Sendrecv_replace": {"count": 'mpi_pairwise_count_send', "bytes": 'mpi_pairwise_bytes_send'},
 
-        "MPI_Recv": ('mpi_pairwise_count_recv', 'mpi_pairwise_bytes_recv'),
-        "MPI_Irecv": ('mpi_pairwise_count_recv', 'mpi_pairwise_bytes_recv'),
+        "MPI_Recv": {"count": 'mpi_pairwise_count_recv', "bytes": 'mpi_pairwise_bytes_recv'},
+        "MPI_Irecv": {"count": 'mpi_pairwise_count_recv', "bytes": 'mpi_pairwise_bytes_recv'},
 
         # Todo: Do we need to scale all-all and all-one collecvise seperately
-        "MPI_Bcast": ('mpi_collective_count', 'mpi_collective_bytes'),
-        "MPI_Gather": ('mpi_collective_count', 'mpi_collective_bytes'),
-        "MPI_Gatherv": ('mpi_collective_count', 'mpi_collective_bytes'),
-        "MPI_Allgather": ('mpi_collective_count', 'mpi_collective_bytes'),
-        "MPI_Allgatherv": ('mpi_collective_count', 'mpi_collective_bytes'),
-        "MPI_Allreduce": ('mpi_collective_count', 'mpi_collective_bytes'),
-        "MPI_Alltoallv": ('mpi_collective_count', 'mpi_collective_bytes'),
-        "MPI_Alltoall": ('mpi_collective_count', 'mpi_collective_bytes'),
-        "MPI_Reduce": ('mpi_collective_count', 'mpi_collective_bytes'),
-        "MPI_Reduce_scatter": ('mpi_collective_count', 'mpi_collective_bytes'),
-        "MPI_Scatter": ('mpi_collective_count', 'mpi_collective_bytes'),
-        "MPI_Scatterv": ('mpi_collective_count', 'mpi_collective_bytes'),
-        "MPI_Scan": ('mpi_collective_count', 'mpi_collective_bytes')
+        "MPI_Bcast": {"count": 'mpi_collective_count', "bytes": 'mpi_collective_bytes'},
+        "MPI_Gather": {"count": 'mpi_collective_count', "bytes": 'mpi_collective_bytes'},
+        "MPI_Gatherv": {"count": 'mpi_collective_count', "bytes": 'mpi_collective_bytes'},
+        "MPI_Allgather": {"count": 'mpi_collective_count', "bytes": 'mpi_collective_bytes'},
+        "MPI_Allgatherv": {"count": 'mpi_collective_count', "bytes": 'mpi_collective_bytes'},
+        "MPI_Allreduce": {"count": 'mpi_collective_count', "bytes": 'mpi_collective_bytes'},
+        "MPI_Alltoallv": {"count": 'mpi_collective_count', "bytes": 'mpi_collective_bytes'},
+        "MPI_Alltoall": {"count": 'mpi_collective_count', "bytes": 'mpi_collective_bytes'},
+        "MPI_Reduce": {"count": 'mpi_collective_count', "bytes": 'mpi_collective_bytes'},
+        "MPI_Reduce_scatter": {"count": 'mpi_collective_count', "bytes": 'mpi_collective_bytes'},
+        "MPI_Scatter": {"count": 'mpi_collective_count', "bytes": 'mpi_collective_bytes'},
+        "MPI_Scatterv": {"count": 'mpi_collective_count', "bytes": 'mpi_collective_bytes'},
+        "MPI_Scan": {"count": 'mpi_collective_count', "bytes": 'mpi_collective_bytes'},
+
+        # And now for the POSIXIO ones
+        "fopen": {"count": 'open_count'},
+        "fdopen": {"count": 'open_count'},
+        "freopen": {"count": 'open_count'},
+        "fclose": None,
+        "fflush": None,
+        "fread": {"count": 'read_count', "bytes": "bytes_read"},
+        "fwrite": {"count": "write_count", "bytes": "bytes_written"},
+        "fseek": None,
+        "ftell": None,
+        "rewind": None,
+        "fgetpos": None,
+        "fsetpos": None,
+        "fgetc": {"count": 'read_count', "bytes": "bytes_read"},
+        "getc": {"count": 'read_count', "bytes": "bytes_read"},
+        "ungetc": None,
+        "read": {"count": 'read_count', "bytes": "bytes_read"},
+        "write": {"count": 'read_count', "bytes": "bytes_read"},
+        "open": {"count": "open_count"},
+        "open64": {"count": "open_count"},
+        "creat": None,
+        "close": None,
+        "truncate": None,
+        "ftruncate": None,
+        "truncate64": None,
+        "ftruncate64": None,
+        "lseek": None,
+        "lseek64": None
     }
 
     def __init__(self, path, **kwargs):
@@ -137,32 +202,48 @@ class IPMLogReader(LogReader):
             entries = section.findall('entry')
             assert len(entries) == int(section.get('nentries'))
             for entry in entries:
-                print "{} : {}".format(module, entry.get('name'))
+                name = entry.get('name')
 
                 if entry.get('name') not in self.func_mapping:
+                    # TODO: A proper exception here...
                     raise Exception("Oh no... {} {}".format(module, entry.get('name')))
 
 
-    def parse_tasks(self, tasks):
+    def parse_task(self, task, ntasks):
 
-        assert len(tasks) > 0
+        assert int(task.get('mpi_size')) == ntasks
+        assert int(task.find('job').get('ntasks')) == ntasks
 
-        for task in tasks:
+        regions_container = task.find('regions')
+        nregions = int(regions_container.get('n'))
 
-            assert int(task.get('mpi_size')) == len(tasks)
-            assert int(task.find('job').get('ntasks')) == len(tasks)
+        regions = regions_container.findall('region')
+        assert len(regions) == nregions
 
-            regions_container = task.find('regions')
-            nregions = int(regions_container.get('n'))
+        task = IPMTaskInfo()
 
-            regions = regions_container.findall('region')
-            assert len(regions) == nregions
+        for region in regions:
 
-            for region in regions:
+            funcs = region.findall('func')
+            for func in funcs:
 
-                funcs = region.findall('func')
-                for func in funcs:
-                    print "F: {} {} {}".format(func.get('name'), func.get('count'), func.get('bytes'))
+                # n.b. We have checked all available function names in parse_calltable above. If one is
+                #      not in the lookup, this is a bug.
+                name = func.get('name')
+                assert name in self.func_mapping
+
+                mapping = self.func_mapping.get(name, None)
+                if mapping is not None:
+                    for key, task_attr in mapping.items():
+
+                        val = float(func.get(key))
+                        assert val.is_integer()
+
+                        # Keep track of the counters
+                        assert hasattr(task, task_attr)
+                        setattr(task, task_attr, getattr(task, task_attr) + int(val))
+
+        return task
 
     def read_log(self, filename, suggested_label):
         """
@@ -175,9 +256,12 @@ class IPMLogReader(LogReader):
 
         self.parse_calltable(root.find('calltable'))
 
-        self.parse_tasks(root.findall('task'))
+        tasks = root.findall('task')
+        ntasks = len(tasks)
+        assert ntasks > 0
+        task_info = [self.parse_task(task, ntasks) for task in tasks]
 
-        return []
+        return [IPMIngestedJob(tasks=task_info, label=suggested_label)]
 
     def read_logs_generator(self):
         """
