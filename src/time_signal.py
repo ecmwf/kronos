@@ -5,7 +5,7 @@ import types
 # The availably types of time-series (or summed/averaged totals) data that we can use
 signal_types = {
 
-    # CPU
+    # # CPU
     'flops':         {'type': float, 'category': 'cpu',        'behaviour': 'sum'},
 
     # (file) I/O

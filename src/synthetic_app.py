@@ -14,7 +14,6 @@ class SyntheticWorkload(object):
     def __init__(self, config, apps=None):
         self.config = config
         self.app_list = apps
-        self.__metrics_tot = [0] * len(apps)
 
     def __unicode__(self):
         return "SyntheticWorkload - {} jobs".format(len(self.app_list))
@@ -50,14 +49,25 @@ class SyntheticWorkload(object):
             app.export(os.path.join(dir_output, "job-{}.json".format(i)), nbins)
 
     @property
-    def total_metrics(self):
+    def total_metrics_dict(self):
+
+        tot = {}
 
         # loop oer synthetic apps and return sums of time signals
         for app in self.app_list:
-            for i,ts in enumerate(app.timesignals.values()):
-                self.__metrics_tot[i] += ts.sum
+            for ts in app.timesignals.values():
+                if ts.name in tot:
+                    tot[ts.name] += ts.sum
+                else:
+                    tot[ts.name] = ts.sum
 
-        return self.__metrics_tot
+        return tot
+
+
+    def print_metrics_sums(self):
+
+        for metric in self.total_metrics_dict.keys():
+            print "[synth apps]: sum of {} = {}".format(metric, self.total_metrics_dict[metric])
 
 
 class SyntheticApp(ModelJob):

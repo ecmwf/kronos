@@ -101,7 +101,7 @@ class ModelWorkload(object):
             print "Scheduler jobs not found"
 
         if profiler_tag == "allinea":
-            datasets.append(profiler_reader.ingest_allinea_profiles(profiler_log_dir, self.jobs_n_bins))
+            datasets.append(profiler_reader.ingest_allinea_profiles(profiler_log_dir, self.jobs_n_bins, list_json_files))
         else:
             raise ValueError("No profiler jobs have been found")
 
@@ -188,7 +188,7 @@ class ModelWorkload(object):
                 times_bin = np.concatenate([job.timesignals[signal_name].xvalues_bins for job in self.job_list if job.timesignals[signal_name] is not None])
                 data = np.concatenate([job.timesignals[signal_name].yvalues_bins for job in self.job_list if job.timesignals[signal_name] is not None])
 
-                ts = TimeSignal.from_values('total_{}'.format(signal_name), times_bin, data, base_signal_name=signal_name)
+                ts = TimeSignal.from_values(signal_name, times_bin, data, base_signal_name=signal_name)
                 ts.digitize(self.total_metrics_nbins)
                 self.total_metrics.append(ts)
 
@@ -205,6 +205,19 @@ class ModelWorkload(object):
             else:
                 for iJob in self.job_list:
                     iJob.job_impact_index_rel = 0.0
+
+    def print_global_sums(self):
+        for glob_metric in self.total_metrics:
+            print "[input jobs]: sum of {} = {}".format(glob_metric.name, glob_metric.sum)
+
+
+    def total_metrics_sum_dict(self):
+        dd = {}
+        for m in  self.total_metrics:
+            dd[m.name] = m.sum
+        return dd
+
+
 
     def make_plots(self, plot_tag):
         """ Make plots"""

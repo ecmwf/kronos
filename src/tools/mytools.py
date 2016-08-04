@@ -123,4 +123,5 @@ def dominates(row, another_row):
 #         os.system(run_str)
 
 
-
+def sort_dict_list(d, sorted_keys_list):
+    return [d[i] for i in sorted_keys_list]

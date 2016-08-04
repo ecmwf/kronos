@@ -24,13 +24,13 @@ def read_allinea_log(filename, jobs_n_bins=None):
     #             (default False)
 
     allinea_time_signal_map = {
-        'instr_fp':             {'name': 'flops'},
-        'lustre_bytes_read':    {'name': 'kb_read',       'is_rate': True},
-        'lustre_bytes_written': {'name': 'kb_write',      'is_rate': True},
-#        'mpi_p2p':              {'name': 'n_pairwise'},
-#        'mpi_p2p_bytes':        {'name': 'kb_pairwise'},
-#        'mpi_collect':          {'name': 'n_collective'},
-#        'mpi_collect_bytes':    {'name': 'kb_collective'}
+        'cpu_time_percentage':  {'name': 'flops'},
+        'lustre_bytes_read':    {'name': 'kb_read',       'is_rate': True, 'scale_factor': 1./1024.},
+        'lustre_bytes_written': {'name': 'kb_write',      'is_rate': True, 'scale_factor': 1./1024.},
+        'mpi_p2p':              {'name': 'n_pairwise'},
+        'mpi_p2p_bytes':        {'name': 'kb_pairwise',                     'scale_factor': 1./1024.},
+        'mpi_collect':          {'name': 'n_collective'},
+        'mpi_collect_bytes':    {'name': 'kb_collective',                   'scale_factor': 1./1024.}
     }
 
     # A quick sanity check
@@ -67,9 +67,8 @@ def read_allinea_log(filename, jobs_n_bins=None):
     i_job.time_in_queue = i_job.time_start - i_job.time_queued
 
     # Threads are not considered for now..
-    command_line = json_data['profile']["commandLine"]
-    i_job.ncpus = int( command_line.split()[command_line.split().index('-n') + 1])
-    i_job.nnodes = int( command_line.split()[command_line.split().index('-N') + 1])
+    i_job.nnodes = json_data['profile']["nodes"]
+    i_job.ncpus = json_data['profile']['targetProcs']
 
     # average memory used is taken from sample average of "node_mem_percent"
     mem_val_bk = json_data['profile']['samples']['node_mem_percent']
@@ -95,9 +94,11 @@ def read_allinea_log(filename, jobs_n_bins=None):
 
     for ts_name_allinea, ts_config in allinea_time_signal_map.iteritems():
 
+        scale_factor = ts_config.get('scale_factor', 1.0)
+
         # The Allinea time-series data is a sequence of tuples of the form: (min, max, mean, variance)
         # Extract the mean value for each sampling interval.
-        y_vals = np.array([v[2] for v in json_data['profile']['samples'][ts_name_allinea]])
+        y_vals = np.array([v[2] * scale_factor for v in json_data['profile']['samples'][ts_name_allinea]])
 
         # If the data is recorded as a rate (a per-second value), then adjust it to record absolute data volumes
         # per time interval.
@@ -105,7 +106,7 @@ def read_allinea_log(filename, jobs_n_bins=None):
             y_vals = np.array([v * (sample_times[i] - (sample_times[i-1] if i > 0 else 0)) for i, v in enumerate(y_vals)])
 
         if ts_config.get('per_task', False):
-            y_vals *= target_procs
+            y_vals *= i_job.ncpus
 
         ts = TimeSignal.from_values(ts_config['name'], sample_times, y_vals)
         if jobs_n_bins is not None:
@@ -155,17 +156,20 @@ class AllineaDataSet(IngestedDataSet):
             )
 
 
-def ingest_allinea_profiles(path, jobs_n_bins=None):
+def ingest_allinea_profiles(path, jobs_n_bins=None, list_json_files=None):
     """
     Does what it says on the tin.
     """
     if not os.path.exists(path):
         raise ConfigurationError("Specified path to ingest Allinea profiles does not exist: {}".format(path))
 
-    if os.path.isdir(path):
-        jobs = read_allinea_logs(path, jobs_n_bins)
+    if not list_json_files:
+        if os.path.isdir(path):
+            jobs = read_allinea_logs(path, jobs_n_bins)
+        else:
+            jobs = [read_allinea_log(path, jobs_n_bins)]
     else:
-        jobs = [read_allinea_log(path, jobs_n_bins)]
+        jobs = read_allinea_logs(path, jobs_n_bins, list_json_files)
 
     return AllineaDataSet(jobs)
 

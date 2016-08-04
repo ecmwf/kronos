@@ -11,6 +11,7 @@ from config.config import Config
 from IOWS_model import IOWSModel
 from model_workload import ModelWorkload
 from plot_handler import PlotHandler
+import time_signal
 
 
 def test_synth_app_0():
@@ -30,35 +31,26 @@ def test_synth_app_0():
     input_workload = ModelWorkload(config)
     input_workload.read_logs(scheduler_tag, profiler_tag, scheduler_log_file, profiler_log_dir)
     input_workload.make_plots(plot_tag)
+    input_workload.print_global_sums()
 
-    print "input_workload metrics_sums: ", np.asarray([i_sum.sum for i_sum in input_workload.total_metrics])
-
-    # Generator model
-    # [%] percentage of measured workload (per each metric)
-    # scaling_factor_list = [.35,
-    #                        .35,
-    #                        .35,
-    #                        # 1.,
-    #                        # 1.,
-    #                        # 1.,
-    #                        # 1.,
-    #                        ]
-
-    scaling_factor_list = [1.,
-                           1.,
-                           1.,
-                           # 1.,
-                           # 1.,
-                           # 1.,
-                           # 1.,
-                           ]
+    # ----------- initialize the vectors: metric_sums, deltas, etc... -----------
+    ts_names = time_signal.signal_types.keys()
+    scaling_factor_dict = {'kb_collective': 1,
+                     'n_collective': 1,
+                     'n_pairwise': 1,
+                     'kb_write': 1,
+                     'kb_read': 0.3,
+                     'flops': 0,
+                     'kb_pairwise': 1,
+                     }
+    # ---------------------------------------------------------
 
     model = IOWSModel(config, input_workload)
 
-    synthetic_apps = model.create_scaled_workload("time_plane", "Kmeans", scaling_factor_list, reduce_jobs_flag=True)
+    synthetic_apps = model.create_scaled_workload("time_plane", "Kmeans", scaling_factor_dict, reduce_jobs_flag=False)
     synthetic_apps.export(config.IOWSMODEL_TOTAL_METRICS_NBINS)
 
-    print "synthetic apps time signals sums: ", synthetic_apps.total_metrics
+    synthetic_apps.print_metrics_sums()
 
     # check num plots
     PlotHandler.print_fig_handle_ID()
