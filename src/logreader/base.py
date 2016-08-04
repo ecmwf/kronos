@@ -86,18 +86,12 @@ class LogReader(object):
 
             # Remove the common base from the files, so that they can be compared from different ingestion sources.
             label = os.path.relpath(os.path.dirname(filename), self.path)
-            print
-            print "RELNAME: ".format(label)
 
             # If the basename is "parallel" or "serial", remove it.
             if self.label_method == "directory-no-par-serial":
                 basename = os.path.basename(label)
-                print "BASENAME", basename
                 if basename == "parallel" or basename == "serial":
                     label = os.path.dirname(label)
-
-            print "LM: =={}=={}=={}--".format(self.label_method, filename, label)
-            print
 
             return label
 
