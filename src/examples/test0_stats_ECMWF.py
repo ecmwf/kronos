@@ -15,15 +15,26 @@ from plot_handler import PlotHandler
 #////////////////////////////////////////////////////////////////
 def test0_stats_ECMWF():
 
-    # #================================================================
-    # ConfigOptions = Config()
-    # plot_tag = "test0_stats_ECMWF"
-    # #================================================================
-    # InputWorkload = RealWorkload(ConfigOptions)
-    # # InputWorkload.read_PBS_logs("/perm/ma/maab/PBS_log_example/20151123_test100")
-    # InputWorkload.read_pbs_logs("/perm/ma/maab/PBS_log_example/20151123")
-    # InputWorkload.calculate_derived_quantities()
-    # InputWorkload.make_plots(plot_tag, "hour")
+
+    plot_dict = [
+        {
+         'type': 'time series',
+         'title': 'ECMWF nodes and jobs (parallel jobs)',
+         'subplots': ['nodes', 'jobs'],
+         'queue_type': [(['np'], 'normal queue', 'b'), (['op'], 'operational queue', 'k')],
+         'time format': '%d',
+         'out_dir': '/var/tmp/maab/iows/output',
+         },
+        {
+         'type': 'time series',
+         'title': 'ECMWF nodes and jobs (fractional jobs)',
+         'subplots': ['nodes', 'jobs'],
+         'queue_type': [(['nf'], 'normal queue', 'b'), (['of'], 'operational queue', 'k')],
+         'time format': '%m',
+         'out_dir': '/var/tmp/maab/iows/output',
+         },
+    ]
+
 
     # Load config
     config = Config()
@@ -46,7 +57,7 @@ def test0_stats_ECMWF():
     input_workload = ModelWorkload(config)
     input_workload.plot_tag = plot_tag
     input_workload.plot_time_tick = "day"
-    input_workload.read_logs(scheduler_tag, profiler_tag, scheduler_log_file, profiler_log_dir)
+    input_workload.read_logs(scheduler_tag, profiler_tag, scheduler_log_file, profiler_log_dir, plot_dict=plot_dict)
 
 
 if __name__ == '__main__':

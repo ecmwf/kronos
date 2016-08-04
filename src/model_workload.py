@@ -74,31 +74,32 @@ class ModelWorkload(object):
                   profiler_tag="",
                   scheduler_log_file="",
                   profiler_log_dir="",
-                  list_json_files=None
+                  list_json_files=None,
+                  plot_dict=None
                   ):
 
         """ Read jobs from scheduler and profiler logs"""
+
         datasets = []
         if scheduler_tag == "pbs":
             datasets.append(scheduler_reader.ingest_pbs_logs(scheduler_log_file))
-            scheduler_reader.make_scheduler_plots(datasets[0].joblist,
-                                                  self.plot_tag,
-                                                  self.out_dir,
-                                                  date_ticks=self.plot_time_tick)
+
         elif scheduler_tag == "accounting":
             datasets.append(scheduler_reader.ingest_accounting_logs(scheduler_log_file))
-            scheduler_reader.make_scheduler_plots(datasets[0].joblist,
-                                                  self.plot_tag,
-                                                  self.out_dir,
-                                                  date_ticks=self.plot_time_tick)
+
         elif scheduler_tag == "epcc_csv":
             datasets.append(scheduler_reader.ingest_epcc_csv_logs(scheduler_log_file))
+
+        else:
+            print "Scheduler jobs not found"
+
+        if scheduler_tag != "":
             scheduler_reader.make_scheduler_plots(datasets[0].joblist,
                                                   self.plot_tag,
                                                   self.out_dir,
-                                                  date_ticks=self.plot_time_tick)
-        else:
-            print "Scheduler jobs not found"
+                                                  plot_dict,
+                                                  date_ticks=self.plot_time_tick,
+                                                  )
 
         if profiler_tag == "allinea":
             datasets.append(profiler_reader.ingest_allinea_profiles(profiler_log_dir, self.jobs_n_bins, list_json_files))
@@ -106,11 +107,6 @@ class ModelWorkload(object):
             raise ValueError("No profiler jobs have been found")
 
         print "Ingested data sets: [\n" + ",\n".join(["    {}".format(d) for d in datasets]) +  "\n]"
-
-        #scheduler_reader.make_scheduler_plots(self.scheduler_jobs,
-        #                                      self.plot_tag,
-        #                                      self.out_dir,
-        #                                      date_ticks=self.plot_time_tick)
 
         self.model_ingested_datasets(datasets)
 
@@ -222,9 +218,9 @@ class ModelWorkload(object):
     def make_plots(self, plot_tag):
         """ Make plots"""
 
-        # scheduler specific plots..
-        if self.scheduler_jobs:
-            scheduler_reader.make_scheduler_plots(self.scheduler_jobs, plot_tag, self.out_dir)
+        # # scheduler specific plots..
+        # if self.scheduler_jobs:
+        #     scheduler_reader.make_scheduler_plots(self.scheduler_jobs, plot_tag, self.out_dir)
 
         # WL total metrics plots
         i_fig = PlotHandler.get_fig_handle_ID()
