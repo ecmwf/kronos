@@ -23,7 +23,8 @@ class LogReader(object):
     # How may the job be labelled (for combining with other profiling data, automatically)
     available_label_methods = [
         None,
-        'directory'
+        'directory',
+        'directory-no-par-serial'
     ]
 
     def __init__(self, path, recursive=None, file_pattern=None, label_method=None, pool_readers=None):
@@ -81,8 +82,24 @@ class LogReader(object):
         """
         Do we have a suggested label?
         """
-        if self.label_method == "directory":
-            return os.path.dirname(filename)
+        if self.label_method == "directory" or self.label_method == "directory-no-par-serial":
+
+            # Remove the common base from the files, so that they can be compared from different ingestion sources.
+            label = os.path.relpath(os.path.dirname(filename), self.path)
+            print
+            print "RELNAME: ".format(label)
+
+            # If the basename is "parallel" or "serial", remove it.
+            if self.label_method == "directory-no-par-serial":
+                basename = os.path.basename(label)
+                print "BASENAME", basename
+                if basename == "parallel" or basename == "serial":
+                    label = os.path.dirname(label)
+
+            print "LM: =={}=={}=={}--".format(self.label_method, filename, label)
+            print
+
+            return label
 
         return None
 

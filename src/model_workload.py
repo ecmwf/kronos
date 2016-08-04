@@ -109,6 +109,12 @@ class ModelWorkload(object):
         For now, ASSERT that we only have data that has been brought in from Allinea.
         """
 
+        for ds in datasets:
+            print "DDDDDD"
+            for job in ds.joblist:
+                print "{}".format(job.label)
+
+
         # TODO: Consider the scheduler jobs first, then update the job list with information
         #       from the (various) profiling options that have taken place.
         #

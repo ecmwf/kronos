@@ -33,9 +33,6 @@ def ingest_data(ingest_type, ingest_path, global_config=None):
             # Did we supply any custom configuration?
             cfg = global_config.ingestion.get(ingest_type, {}) if global_config else {}
 
-            import pdb
-            pdb.set_trace()
-
             return dataset_class.from_logs_path(ingest_path, cfg)
 
         except KeyError as e:
