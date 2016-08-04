@@ -15,7 +15,6 @@ class LogReader(object):
     """
     job_class = IngestedJob
     log_type_name = "(Unknown)"
-    dataset_class = None
     file_pattern = None
     label_method = None
     recursive = False
@@ -110,9 +109,9 @@ class LogReader(object):
         sys.stdout.write("\r{:d} files processed - {:100s}".format(completed_count, str(p)))
         sys.stdout.flush()
 
-    def read_logs_generator(self):
+    def read_logs(self):
         """
-        This routine is an internal part of read_logs, and iterates through read_log for each job
+        Iterate through read_log for each job
 
         --> Returns a generator of job objects, depending on the list of files to parse from self.logfiles()
         """
@@ -121,7 +120,7 @@ class LogReader(object):
         # n.b. There are constraints on what can be passed as arguments to this routine. The use of global data in
         #      the processing pool, and the use of static functions, is to (a) minimise the data being transferred
         #      between processes using the multiprocessing functionality, and (b) ensure that all of the transferred
-        #      data can be pickeled (which is required).
+        #      data can be pickled (which is required).
 
         pool = ProcessingPool(
             self._read_log_wrapper, # Read the log. Note that "self" is passed to this as an argument
@@ -137,11 +136,4 @@ class LogReader(object):
 
         sys.stdout.write("\n")
 
-    def read_logs(self):
-        """
-        Read all of the logfiles which match the configuration.
-        """
-        # return self.dataset_class(itertools.chain(*(self.read_log(filename, self.suggest_label(filename)) for filename in self.logfiles())))
-
-        return self.dataset_class(self.read_logs_generator())
 

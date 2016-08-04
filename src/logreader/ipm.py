@@ -8,21 +8,6 @@ from logreader.dataset import IngestedDataSet
 from time_signal import TimeSignal
 
 
-class IPMDataSet(IngestedDataSet):
-
-    def model_jobs(self):
-        """
-        Model the Darshan jobs, given a list of injested jobs
-
-        """
-        # The created times are all in seconds since an arbitrary reference, so we want to get
-        # them relative to a zero-time
-        # global_start_time = min((j.time_start for j in self.joblist))
-
-        for job in self.joblist:
-            yield job.model_job()
-
-
 class IPMTaskInfo(object):
     """
     Store the information aggregated in an IPM task.
@@ -133,7 +118,6 @@ class IPMIngestedJob(IngestedJob):
 class IPMLogReader(LogReader):
 
     job_class = IPMIngestedJob
-    dataset_class = IPMDataSet
     log_type_name = "IPM"
     file_pattern = "*.xml"
 
@@ -261,7 +245,6 @@ class IPMLogReader(LogReader):
                     # TODO: A proper exception here...
                     raise Exception("Oh no... {} {}".format(module, entry.get('name')))
 
-
     def parse_task(self, task, ntasks):
 
         assert int(task.get('mpi_size')) == ntasks
@@ -320,7 +303,7 @@ class IPMLogReader(LogReader):
             filename=filename
         )]
 
-    def read_logs_generator(self):
+    def read_logs(self):
         """
         In the same way as Darshan, IPM produces one log per command executed in the script. This results in multiple
         IPM files per job, which need to be aggregated. Each of the jobs will be sequential, so we combine them.
@@ -328,7 +311,7 @@ class IPMLogReader(LogReader):
 
         current_job = None
 
-        for job in super(IPMLogReader, self).read_logs_generator():
+        for job in super(IPMLogReader, self).read_logs():
 
             if current_job is None:
                 current_job = job
@@ -344,3 +327,7 @@ class IPMLogReader(LogReader):
         if current_job is not None:
             yield current_job
 
+
+class IPMDataSet(IngestedDataSet):
+
+    log_reader_class = IPMLogReader

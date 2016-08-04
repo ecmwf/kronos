@@ -13,21 +13,6 @@ class DarshanLogReaderError(Exception):
     pass
 
 
-class DarshanDataSet(IngestedDataSet):
-
-    def model_jobs(self):
-        """
-        Model the Darshan jobs, given a list of injested jobs
-
-        """
-        # The created times are all in seconds since an arbitrary reference, so we want to get
-        # them relative to a zero-time
-        global_start_time = min((j.time_start for j in self.joblist))
-
-        for job in self.joblist:
-            yield job.model_job(global_start_time)
-
-
 class DarshanIngestedJobFile(object):
     """
     An object to represent the file information available in a Darshan job
@@ -153,7 +138,6 @@ class DarshanIngestedJob(IngestedJob):
 class DarshanLogReader(LogReader):
 
     job_class = DarshanIngestedJob
-    dataset_class = DarshanDataSet
     log_type_name = "Darshan"
     file_pattern = "*.gz"
     recursive = True
@@ -262,7 +246,7 @@ class DarshanLogReader(LogReader):
 
         return [self.job_class(file_details=files, **params)]
 
-    def read_logs_generator(self):
+    def read_logs(self):
         """
         Darshan produces one log per command executed in the script. This results in multiple Darshan files per
         job, which need to be aggregated. Each of the jobs will be sequential, so we combine them.
@@ -270,7 +254,7 @@ class DarshanLogReader(LogReader):
 
         current_job = None
 
-        for job in super(DarshanLogReader, self).read_logs_generator():
+        for job in super(DarshanLogReader, self).read_logs():
 
             if current_job is None:
                 current_job = job
@@ -285,3 +269,22 @@ class DarshanLogReader(LogReader):
         # And when we are at the end of the list, yield the current job
         if current_job is not None:
             yield current_job
+
+
+class DarshanDataSet(IngestedDataSet):
+
+    log_reader_class = DarshanLogReader
+
+    def model_jobs(self):
+        """
+        Model the Darshan jobs, given a list of injested jobs
+
+        """
+        # The created times are all in seconds since an arbitrary reference, so we want to get
+        # them relative to a zero-time
+        global_start_time = min((j.time_start for j in self.joblist))
+
+        for job in self.joblist:
+            yield job.model_job(global_start_time)
+
+
