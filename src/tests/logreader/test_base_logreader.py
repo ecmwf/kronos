@@ -6,6 +6,7 @@ import shutil
 import os
 
 from exceptions_iows import ConfigurationError
+from jobs import IngestedJob
 from logreader.base import LogReader
 from logreader.dataset import IngestedDataSet
 
@@ -27,14 +28,18 @@ class BaseLogReaderTest(unittest.TestCase):
         self.assertIsNone(lr.file_pattern)
         self.assertFalse(lr.recursive)
         self.assertIsNone(lr.label_method)
+        self.assertEqual(lr.job_class, IngestedJob)
+        self.assertEqual(lr.log_type_name, '(Unknown)')
+        self.assertEqual(lr.pool_readers, 10)
 
         # Test that we can override with the things we provide
-        lr = LogReader('fake-path', recursive=True, file_pattern="*.pattern", label_method="directory")
+        lr = LogReader('fake-path', recursive=True, file_pattern="*.pattern", label_method="directory", pool_readers=99)
         self.assertEqual(lr.path, 'fake-path')
         self.assertIsNone(lr.dataset_class)
         self.assertEqual(lr.file_pattern, "*.pattern")
         self.assertTrue(lr.recursive)
         self.assertEqual(lr.label_method, "directory")
+        self.assertEqual(lr.pool_readers, 99)
 
         # Test that file_pattern is using the class default if not overridden.
         class LogReaderSubclass(LogReader):
@@ -243,6 +248,7 @@ class BaseLogReaderTest(unittest.TestCase):
         class DerivedLogReader(LogReader):
 
             dataset_class = IngestedDataSet
+            generator_called = False
 
             def read_log(self, filename, suggested_label):
                 return [filename]
@@ -251,6 +257,10 @@ class BaseLogReaderTest(unittest.TestCase):
                 for i in range(10):
                     yield i
 
+            def read_logs_generator(self):
+                self.generator_called = True
+                return super(DerivedLogReader, self).read_logs_generator()
+
         lr = DerivedLogReader('test-path')
 
         logs = lr.read_logs()
@@ -258,6 +268,7 @@ class BaseLogReaderTest(unittest.TestCase):
         self.assertIsInstance(logs, IngestedDataSet)
         self.assertIsInstance(logs.joblist, list)
         self.assertEqual(logs.joblist, range(10))
+        self.assertTrue(lr.generator_called)
 
     def test_suggested_labels(self):
 
@@ -266,6 +277,30 @@ class BaseLogReaderTest(unittest.TestCase):
 
         lr = LogReader('test-path', label_method="directory")
         self.assertEqual(lr.suggest_label("a/file/path.test"), "a/file")
+
+    def test_read_logs_generator(self):
+        """
+        Should return a generator of the output of read_log depending on the results of logfiles.
+        """
+        class LogReaderLocal(LogReader):
+            def logfiles(self):
+                for file in ['file1', 'file2', 'file3', 'file4']:
+                    yield file
+
+            def read_log(self, filename, suggested_label):
+                return [{'name': filename, 'label': suggested_label}]
+
+        lr = LogReaderLocal('test-path')
+
+        logs = lr.read_logs_generator()
+
+        imax = 0
+        for i, l in enumerate(logs):
+            self.assertIsInstance(l, dict)
+            self.assertEqual(l['name'], 'file{}'.format(i+1))
+            imax = i
+
+        self.assertEqual(imax, 3)
 
 
 if __name__ == "__main__":

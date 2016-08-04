@@ -1,6 +1,7 @@
 from profiler_reader import ingest_allinea_profiles
 from scheduler_reader import ingest_accounting_logs, ingest_pbs_logs
-from darshan import DarshanLogReader
+from darshan import DarshanDataSet
+from ipm import IPMDataSet
 
 
 def ingest_data(ingest_type, ingest_path, global_config=None):
@@ -24,18 +25,18 @@ def ingest_data(ingest_type, ingest_path, global_config=None):
 
         try:
 
-            lr_class = {
-                'darshan': DarshanLogReader
+            dataset_class = {
+                'darshan': DarshanDataSet,
+                'ipm': IPMDataSet
             }[ingest_type]
 
             # Did we supply any custom configuration?
             cfg = global_config.ingestion.get(ingest_type, {}) if global_config else {}
 
+            import pdb
+            pdb.set_trace()
 
-
-            lr = lr_class(ingest_path, **cfg)
-
-            return lr.read_logs()
+            return dataset_class.from_logs_path(ingest_path, cfg)
 
         except KeyError as e:
             raise ValueError("Ingestion type unknown in config: {}".format(ingest_type))

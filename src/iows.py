@@ -40,11 +40,13 @@ Input file syntax:
       A list of tuples describing an arbitrary number of profiling sources to be combined. Each tuple
       contains (a) a key to describe what type of data this is, and (b) a path to find the data.
 
-      ("allinea", path)    - Use data in the format produced by the Allinea MAP tool, in conjunction with
+      ["allinea", path]    - Use data in the format produced by the Allinea MAP tool, in conjunction with
                              the map2json script. The path may be either a .json file, or a path to a
                              directory in which all files matching *.json will be considered.
-      ("pbs", path)        - Use data from the PBS logs.
-      ("accounting", path) - Use data from the HPC accounting logs
+      ["pbs", path]        - Use data from the PBS logs.
+      ["accounting", path] - Use data from the HPC accounting logs
+      ["darshan", path]    - Use darshan logs (n.b. multiple logs per job, sorted by directory)
+      ["ipm", path]        - Use ipm logs (n.b. multiple logs per job, sorted by directory)
 """
 
 import json

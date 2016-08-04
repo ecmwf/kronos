@@ -53,7 +53,7 @@ class ModelJob(object):
                     output = "Num samples: \t{}\n".format(len(ts.xvalues))
                 output += "{}: \t{}\n".format(ts_name, sum(ts.yvalues))
 
-        return output
+        return output or ""
 
     def check_job(self):
         """
@@ -114,6 +114,7 @@ class IngestedJob(object):
     ncpus = None
     nnodes = None
     memory_kb = None
+    filename = None
 
     # self.cpu_percent = None
     group = None

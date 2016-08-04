@@ -1,6 +1,5 @@
 from pylab import *
 
-import os
 import subprocess
 
 from jobs import IngestedJob, ModelJob
@@ -10,19 +9,9 @@ from time_signal import TimeSignal
 from tools.print_colour import print_colour
 
 
-class DarshanDataSet(IngestedDataSet):
+class DarshanLogReaderError(Exception):
+    pass
 
-    def model_jobs(self):
-        """
-        Model the Darshan jobs, given a list of injested jobs
-
-        """
-        # The created times are all in seconds since an arbitrary reference, so we want to get
-        # them relative to a zero-time
-        global_start_time = min((j.time_start for j in self.joblist))
-
-        for job in self.joblist:
-            yield job.model_job(global_start_time)
 
 class DarshanIngestedJobFile(object):
     """
@@ -49,6 +38,31 @@ class DarshanIngestedJobFile(object):
     def __str__(self):
         return unicode(self).encode('utf-8')
 
+    def aggregate(self, other):
+        """
+        Combine the data contents of two file objects
+        """
+        assert self.name == other.name
+
+        self.bytes_read += other.bytes_read
+        self.bytes_written += other.bytes_written
+        self.open_count += other.open_count
+        self.write_count += other.write_count
+        self.read_count += other.read_count
+
+        if self.read_time is not None:
+            if other.read_time is not None:
+                self.read_time = min(self.read_time, other.read_time)
+        else:
+            self.read_time = other.read_time
+
+        if self.write_time is not None:
+            if other.write_time is not None:
+                self.write_time = min(self.write_time, other.write_time)
+        else:
+            self.write_time = other.write_time
+
+
 class DarshanIngestedJob(IngestedJob):
     """
     N.B. Darshan may produce MULTIPLE output files for each of the actual HPC jobs (as it produces one per command
@@ -73,11 +87,18 @@ class DarshanIngestedJob(IngestedJob):
         """
         assert self.label == job.label
 
+        for filename, file_detail in job.file_details.iteritems():
+            if filename in self.file_details:
+                self.file_details[filename].aggregate(file_detail)
+            else:
+                self.file_details[filename] = file_detail
+
     def model_job(self, first_start_time):
         """
         Return a ModelJob from the supplied information
         """
-        assert(float(self.log_version) > 2.0)
+        if float(self.log_version) <= 2.0:
+            raise DarshanLogReaderError("Darshan log version unsupported")
 
         return ModelJob(
             time_start=self.time_start - first_start_time,
@@ -98,11 +119,11 @@ class DarshanIngestedJob(IngestedJob):
         total_reads = 0
         total_writes = 0
 
-        for file in self.file_details.values():
-            total_read += file.bytes_read
-            total_written += file.bytes_written
-            total_reads += file.read_count
-            total_writes += file.write_count
+        for model_file in self.file_details.values():
+            total_read += model_file.bytes_read
+            total_written += model_file.bytes_written
+            total_reads += model_file.read_count
+            total_writes += model_file.write_count
 
         return {
             'kb_read': TimeSignal.from_values('kb_read', [0.0], [float(total_read) / 1024.0]),
@@ -117,8 +138,9 @@ class DarshanIngestedJob(IngestedJob):
 class DarshanLogReader(LogReader):
 
     job_class = DarshanIngestedJob
-    dataset_class = DarshanDataSet
+    log_type_name = "Darshan"
     file_pattern = "*.gz"
+    recursive = True
 
     # By default we end up with a whole load of darshan logfiles within a directory.
     label_method = "directory"
@@ -186,40 +208,45 @@ class DarshanLogReader(LogReader):
             # else, so there won't be a blank.
             return []
 
+        return self._read_log_internal(output, filename, suggested_label)
+
+    def _read_log_internal(self, parser_output, filename, suggested_label):
+
         files = {}
         params = {
-            'label': suggested_label
+            'label': suggested_label,
+            'filename': filename
         }
 
-        for line in output.splitlines():
+        for line in parser_output.splitlines():
 
             trimmed_line = line.strip()
 
             if len(trimmed_line) == 0:
                 pass
             elif trimmed_line[0] == '#':
-                split = trimmed_line.split(':', 1)
-                key = split[0][1:].strip()
-                job_key, key_type = self.darshan_params.get(key, (None, None))
+                bits = trimmed_line.split(':', 1)
+                parameter_key = bits[0][1:].strip()
+                job_key, key_type = self.darshan_params.get(parameter_key, (None, None))
                 if job_key:
-                    params[job_key] = key_type(split[1].split()[0].strip())
+                    params[job_key] = key_type(bits[1].split()[0].strip())
             else:
                 # A data line
                 bits = trimmed_line.split()
                 # file = ' '.join(bits[4:])
-                file = bits[4]
+                filename = bits[4]
 
                 # Add the file to the map if required
-                if file not in files:
-                    files[file] = DarshanIngestedJobFile(file)
+                if filename not in files:
+                    files[filename] = DarshanIngestedJobFile(filename)
 
                 file_elem = self.file_params.get(bits[2], None)
                 if file_elem is not None:
-                    setattr(files[file], file_elem, getattr(files[file], file_elem) + int(bits[3]))
+                    setattr(files[filename], file_elem, getattr(files[filename], file_elem) + int(bits[3]))
 
         return [self.job_class(file_details=files, **params)]
 
-    def read_logs_generator(self):
+    def read_logs(self):
         """
         Darshan produces one log per command executed in the script. This results in multiple Darshan files per
         job, which need to be aggregated. Each of the jobs will be sequential, so we combine them.
@@ -227,7 +254,7 @@ class DarshanLogReader(LogReader):
 
         current_job = None
 
-        for job in super(DarshanLogReader, self).read_logs_generator():
+        for job in super(DarshanLogReader, self).read_logs():
 
             if current_job is None:
                 current_job = job
@@ -242,4 +269,22 @@ class DarshanLogReader(LogReader):
         # And when we are at the end of the list, yield the current job
         if current_job is not None:
             yield current_job
+
+
+class DarshanDataSet(IngestedDataSet):
+
+    log_reader_class = DarshanLogReader
+
+    def model_jobs(self):
+        """
+        Model the Darshan jobs, given a list of injested jobs
+
+        """
+        # The created times are all in seconds since an arbitrary reference, so we want to get
+        # them relative to a zero-time
+        global_start_time = min((j.time_start for j in self.joblist))
+
+        for job in self.joblist:
+            yield job.model_job(global_start_time)
+
 

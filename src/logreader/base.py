@@ -1,40 +1,10 @@
 import fnmatch
 import os
 import sys
-from multiprocessing import Pool
 
 from exceptions_iows import ConfigurationError
 from jobs import IngestedJob
-
-
-# TODO: Tidy this up. The work should be done inside the class. Global state is ugly.
-
-global_storage = None
-
-def internal_worker(filename_tuple):
-    i, filename = filename_tuple
-
-    # print "WORKER: ", i, filename
-
-    # In case some really whacky stuff is passed in, this is not the exception we would choose to throw
-    try:
-        p = os.path.basename(filename)
-    except:
-        p = filename
-
-    # if i % 17 == 0:
-    if True:
-        sys.stdout.write("\r{:d} files processed - {:100s}".format(i+1, str(p)))
-        sys.stdout.flush()
-
-    return global_storage.read_log(filename, global_storage.suggest_label(filename))
-
-
-def internal_initializer(args):
-
-    print "Initialising worker!!!"
-    global global_storage
-    global_storage = args
+from tools.process_pool import ProcessingPool
 
 
 class LogReader(object):
@@ -44,7 +14,7 @@ class LogReader(object):
     --> Provide file iteration and dataset handling.
     """
     job_class = IngestedJob
-    dataset_class = None
+    log_type_name = "(Unknown)"
     file_pattern = None
     label_method = None
     recursive = False
@@ -83,7 +53,6 @@ class LogReader(object):
         iterate through the matching
         :return:
         """
-        print "Iterating logfiles"
         if not os.path.exists(self.path):
             raise IOError("Path {} does not exist (specified for {})".format(self.path, self))
 
@@ -120,14 +89,46 @@ class LogReader(object):
     def read_log(self, filename, suggested_label):
         raise NotImplementedError
 
-    def read_logs_generator(self):
-        """
-        This routine is an internal part of read_logs, and iterates through read_log for each job
-        """
-        pool = Pool(processes=self.pool_readers, initializer=internal_initializer, initargs=(self,))
-        self.stdout = sys.stdout
+    @staticmethod
+    def _read_log_wrapper(filename, reader):
+        return reader.read_log(filename, reader.suggest_label(filename))
 
-        list_of_job_lists = pool.imap_unordered(internal_worker, enumerate(self.logfiles()))
+    @staticmethod
+    def _progress_printer(completed_count, element_num, read_log_output):
+        try:
+            p = os.path.basename(read_log_output[0].filename)
+
+        except IndexError:
+            # If an empty processing list has been returned, then skip printing
+            return
+
+        except:
+            # If something whacky goes wrong, we don't want to be raising an exception based on this
+            p = "Unknown"
+
+        sys.stdout.write("\r{:d} files processed - {:100s}".format(completed_count, str(p)))
+        sys.stdout.flush()
+
+    def read_logs(self):
+        """
+        Iterate through read_log for each job
+
+        --> Returns a generator of job objects, depending on the list of files to parse from self.logfiles()
+        """
+        print "Reading {} logs using {} workers".format(self.log_type_name, self.pool_readers)
+
+        # n.b. There are constraints on what can be passed as arguments to this routine. The use of global data in
+        #      the processing pool, and the use of static functions, is to (a) minimise the data being transferred
+        #      between processes using the multiprocessing functionality, and (b) ensure that all of the transferred
+        #      data can be pickled (which is required).
+
+        pool = ProcessingPool(
+            self._read_log_wrapper, # Read the log. Note that "self" is passed to this as an argument
+            self._progress_printer, # Callback called after each element is processed
+            processes=self.pool_readers,
+            global_data=self)
+
+        list_of_job_lists = pool.imap(self.logfiles())
 
         for job_list in list_of_job_lists:
             for job in job_list:
@@ -135,11 +136,4 @@ class LogReader(object):
 
         sys.stdout.write("\n")
 
-    def read_logs(self):
-        """
-        Read all of the logfiles which match the configuration.
-        """
-        # return self.dataset_class(itertools.chain(*(self.read_log(filename, self.suggest_label(filename)) for filename in self.logfiles())))
-
-        return self.dataset_class(self.read_logs_generator())
 
