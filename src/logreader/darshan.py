@@ -105,7 +105,8 @@ class DarshanIngestedJob(IngestedJob):
             duration=self.time_end - self.time_start,
             ncpus=self.nprocs,
             nnodes=1,
-            time_series=self.model_time_series()
+            time_series=self.model_time_series(),
+            label=self.label
         )
 
     def model_time_series(self):

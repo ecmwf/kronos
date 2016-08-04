@@ -71,6 +71,7 @@ class IngestedDataSet(object):
                     raise
 
             if dataset:
+
                 if dataset.ingest_config != ingest_config:
                     print_colour("red", "Log reader configuration doesn't match cache file")
                     print_colour("orange", "Reader: {}".format(ingest_config))
@@ -91,6 +92,6 @@ class IngestedDataSet(object):
             if ingest_config.get('cache', True):
                 print "Writing cache file: {}".format(cache_file)
                 with open(cache_file, "w") as f:
-                    pickle.dump(object, f)
+                    pickle.dump(dataset, f)
 
         return dataset
