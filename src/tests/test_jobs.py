@@ -7,7 +7,10 @@ from jobs import ModelJob
 class ModelJobTest(unittest.TestCase):
 
     def test_initialisation(self):
-        self.assertFalse(True)
+        raise NotImplementedError
+
+    def test_merge(self):
+        raise NotImplementedError
 
     def test_is_valid(self):
         """
@@ -32,12 +35,15 @@ class ModelJobTest(unittest.TestCase):
 
 
 class IngestedJobTest(unittest.TestCase):
-
+    """
+    Note that the functionality of IngestedJob base class is too broad as it stands. This should be highly redacted
+    once the input parsers have all been migrated to the LogReader formulation.
+    """
     def test_initialisation(self):
         """
         Check that we have sensible (overridable) defaults. N.b. inherits from LogReader
         """
-        self.assertFalse(True)
+        raise NotImplementedError
 
 
 if __name__ == "__main__":
