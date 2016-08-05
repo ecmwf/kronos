@@ -592,7 +592,7 @@ def plot_from_dictionary(plot_dict, list_jobs):
 
             # initialize the figure
             iFig = PlotHandler.get_fig_handle_ID()
-            Fhdl = plt.figure(iFig)
+            fig = plt.figure(iFig)
             lgd_list = []
 
             n_subplots = len(plot_subplots_list)
@@ -601,7 +601,7 @@ def plot_from_dictionary(plot_dict, list_jobs):
 
                 yname = i_subplot_name
                 queue_types = plot['queue_type']
-                plt.subplot(n_subplots, 1, ss+1)
+                subplt_hdl = plt.subplot(n_subplots, 1, ss+1)
 
                 for i_queue in queue_types:
 
@@ -637,10 +637,11 @@ def plot_from_dictionary(plot_dict, list_jobs):
                         (t_dates, t_vals_vec) = get_running_vectors(time_start_vec, time_end_vec, node_vec)
                         plt.plot(t_dates, t_vals_vec[:, 1], queue_col)
 
-                    plt.ylim(ymin=0)
-                    plt.ylabel( yname )
+                    subplt_hdl.set_ylim(ymin=0)
+                    subplt_hdl.set_ylabel( yname )
+                    subplt_hdl.set_xlabel("time")
                     if t_date_job0:
-                        plt.xlim(xmin=t_date_job0, xmax=t_date_job_end)
+                        subplt_hdl.set_xlim(xmin=t_date_job0, xmax=t_date_job_end)
 
                     ax = plt.gca()
                     ax.xaxis.set_major_locator(dates.MonthLocator())
@@ -651,6 +652,7 @@ def plot_from_dictionary(plot_dict, list_jobs):
             name_fig = plot_out_dir + "/" + plot_title.replace(" ", "_") + "_x=time.png"
             plt.subplot(n_subplots, 1, 1)
             plt.title(plot_title)
+            fig.tight_layout()
             lgd = plt.legend(lgd_list, loc=2, bbox_to_anchor=(1, 0.5))
             plt.savefig(name_fig, bbox_extra_artists=(lgd,), bbox_inches='tight')
             plt.close(iFig)
@@ -664,17 +666,19 @@ def plot_from_dictionary(plot_dict, list_jobs):
 
             # initialize the figure
             iFig = PlotHandler.get_fig_handle_ID()
-            Fhdl = plt.figure(iFig)
+            fig = plt.figure(iFig)
             lgd_list = []
 
             n_subplots = len(plot_subplots_list)
+            subplt_hdl_list = []
 
             # get the filtered jobs
             for ss, i_subplot_name in enumerate(plot_subplots_list):
 
                 yname = i_subplot_name
                 queue_types = plot['queue_type']
-                plt.subplot(n_subplots, 1, ss + 1)
+                subplt_hdl = plt.subplot(n_subplots, 1, ss + 1)
+                subplt_hdl_list.append(subplt_hdl)
 
                 for i_queue in queue_types:
 
@@ -703,14 +707,15 @@ def plot_from_dictionary(plot_dict, list_jobs):
                     hh, bin_edges = np.histogram(y_values, bins=n_bins, density=False)
                     plt.bar(bin_edges[:-1], hh, pylb.diff(bin_edges), color=queue_col)
 
-                    plt.yscale('log')
-                    plt.ylim(ymin=0)
-                    plt.ylabel(yname)
+                    subplt_hdl.set_xlabel(i_subplot_name)
+                    subplt_hdl.set_yscale('log')
+                    subplt_hdl.set_ylabel('# jobs')
 
             # ------------- finish plot ---------------
             name_fig = plot_out_dir + "/" + plot_title.replace(" ", "_") + "_x=time.png"
             plt.subplot(n_subplots, 1, 1)
             plt.title(plot_title)
+            fig.tight_layout()
             lgd = plt.legend(lgd_list, loc=2, bbox_to_anchor=(1, 0.5))
             plt.savefig(name_fig, bbox_extra_artists=(lgd,), bbox_inches='tight')
             plt.close(iFig)
@@ -720,7 +725,6 @@ def plot_from_dictionary(plot_dict, list_jobs):
             # for xx, yy in zip(xx, hh):
             #     dd = {yname: xx, "N": yy}
             #     list_dict_y.append(dd)
-
             # list_dict_y_sorted = sorted(list_dict_y, key=lambda k: k[yname])
             # # list_dict_y_sorted = sorted(list_dict_y, key=lambda k: k[yname], reverse=True)
             # f = open(name_fig + ".csv", 'w')
