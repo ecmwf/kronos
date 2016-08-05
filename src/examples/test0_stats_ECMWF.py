@@ -15,23 +15,38 @@ from plot_handler import PlotHandler
 #////////////////////////////////////////////////////////////////
 def test0_stats_ECMWF():
 
-
     plot_dict = [
         {
-         'type': 'time series',
-         'title': 'ECMWF nodes and jobs (parallel jobs)',
-         'subplots': ['nodes', 'jobs'],
-         'queue_type': [(['np'], 'normal queue', 'b'), (['op'], 'operational queue', 'k')],
-         'time format': '%d',
-         'out_dir': '/var/tmp/maab/iows/output',
+            'type': 'time series',
+            'title': 'ECMWF nodes and jobs (parallel jobs)',
+            'subplots': ['nodes', 'jobs'],
+            'queue_type': [(['np'], 'normal queue', 'b'), (['op'], 'operational queue', 'k')],
+            'time format': '%d',
+            'out_dir': '/var/tmp/maab/iows/output',
          },
         {
-         'type': 'time series',
-         'title': 'ECMWF nodes and jobs (fractional jobs)',
-         'subplots': ['nodes', 'jobs'],
-         'queue_type': [(['nf'], 'normal queue', 'b'), (['of'], 'operational queue', 'k')],
-         'time format': '%m',
-         'out_dir': '/var/tmp/maab/iows/output',
+            'type': 'time series',
+            'title': 'ECMWF nodes and jobs (fractional jobs)',
+            'subplots': ['nodes', 'jobs'],
+            'queue_type': [(['nf'], 'normal queue', 'b'), (['of'], 'operational queue', 'k')],
+            'time format': '%m',
+            'out_dir': '/var/tmp/maab/iows/output',
+         },
+        {
+            'type': 'histogram',
+            'n_bins': 30,
+            'title': 'ECMWF histograms (parallel jobs)',
+            'subplots': ['ncpus', 'run-time', 'queue-time'],
+            'queue_type': [(['np'], 'normal queue', 'b'), (['op'], 'operational queue', 'k')],
+            'out_dir': '/var/tmp/maab/iows/output',
+         },
+        {
+            'type': 'histogram',
+            'n_bins': 30,
+            'title': 'ECMWF histograms (fractional jobs)',
+            'subplots': ['ncpus', 'run-time', 'queue-time'],
+            'queue_type': [(['nf'], 'normal queue', 'b'), (['of'], 'operational queue', 'k')],
+            'out_dir': '/var/tmp/maab/iows/output',
          },
     ]
 
@@ -47,8 +62,8 @@ def test0_stats_ECMWF():
     # profiler_log_dir = ""
 
     scheduler_tag = "accounting"
-    scheduler_log_file = "/perm/ma/maab/ngio_logs/ECMWF/cca-jobs-20160201.csv"
-    # scheduler_log_file = "/perm/ma/maab/ngio_logs/ECMWF/cca-jobs-20160201_test.csv"
+    # scheduler_log_file = "/perm/ma/maab/ngio_logs/ECMWF/cca-jobs-20160201.csv"
+    scheduler_log_file = "/perm/ma/maab/ngio_logs/ECMWF/cca-jobs-20160201_test.csv"
     # scheduler_log_file = "/perm/ma/maab/ngio_logs/ECMWF/cca-jobs-20160201_test_0.csv"
     profiler_tag = ""
     profiler_log_dir = ""

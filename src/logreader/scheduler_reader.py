@@ -539,6 +539,7 @@ def make_scheduler_plots(list_jobs, plot_tag, out_dir, plot_dict=None, date_tick
 
     else:
 
+        # time series plots
         plot_from_dictionary(plot_dict, list_jobs)
 
 
@@ -582,175 +583,148 @@ def plot_from_dictionary(plot_dict, list_jobs):
 
         plot_title = plot['title']
         plot_subplots_list = plot['subplots']
-        plot_time_format = plot['time format']
         plot_out_dir = plot['out_dir']
 
-        # initialize the figure
-        iFig = PlotHandler.get_fig_handle_ID()
-        Fhdl = plt.figure(iFig)
-        lgd_list = []
+        # ----------- titls a time series plot.. -------------
+        if plot['type'] == 'time series':
 
-        n_subplots = len(plot_subplots_list)
+            plot_time_format = plot['time format']
 
-        for ss, i_subplot_name in enumerate(plot_subplots_list):
+            # initialize the figure
+            iFig = PlotHandler.get_fig_handle_ID()
+            Fhdl = plt.figure(iFig)
+            lgd_list = []
 
-            yname = i_subplot_name
+            n_subplots = len(plot_subplots_list)
+
+            for ss, i_subplot_name in enumerate(plot_subplots_list):
+
+                yname = i_subplot_name
+                queue_types = plot['queue_type']
+                plt.subplot(n_subplots, 1, ss+1)
+
+                for i_queue in queue_types:
+
+                    queue_label = i_queue[0]
+                    queue_legend = i_queue[1]
+                    queue_col = i_queue[2]
+
+                    if ss == 0:
+                        lgd_list.append(queue_legend)
+
+                    list_jobs_queue = [i_job for i_job in list_jobs if i_job.queue_type in queue_label]
+
+                    # take relevant vectors..
+                    time_start_vec = np.asarray([i_job.time_start for i_job in list_jobs_queue])
+                    time_end_vec = np.asarray([i_job.time_end for i_job in list_jobs_queue])
+
+                    cpus_vec = np.asarray([i_job.ncpus for i_job in list_jobs_queue])
+                    node_vec = np.asarray([i_job.nnodes for i_job in list_jobs_queue])
+                    jobs_vec = np.ones(len(cpus_vec))
+
+                    if i_subplot_name == 'jobs':
+
+                        (t_dates, t_vals_vec) = get_running_vectors(time_start_vec, time_end_vec, jobs_vec)
+                        plt.plot(t_dates, t_vals_vec[:, 1], queue_col)
+
+                    elif i_subplot_name == 'nodes':
+
+                        (t_dates, t_vals_vec) = get_running_vectors(time_start_vec, time_end_vec, node_vec)
+                        plt.plot(t_dates, t_vals_vec[:, 1], queue_col)
+
+                    elif i_subplot_name == 'cpus':
+
+                        (t_dates, t_vals_vec) = get_running_vectors(time_start_vec, time_end_vec, node_vec)
+                        plt.plot(t_dates, t_vals_vec[:, 1], queue_col)
+
+                    plt.ylim(ymin=0)
+                    plt.ylabel( yname )
+                    if t_date_job0:
+                        plt.xlim(xmin=t_date_job0, xmax=t_date_job_end)
+
+                    ax = plt.gca()
+                    ax.xaxis.set_major_locator(dates.MonthLocator())
+                    hfmt = dates.DateFormatter(plot_time_format)
+                    ax.xaxis.set_major_formatter(hfmt)
+
+            # ------------- finish plot ---------------
+            name_fig = plot_out_dir + "/" + plot_title.replace(" ", "_") + "_x=time.png"
+            plt.subplot(n_subplots, 1, 1)
+            plt.title(plot_title)
+            lgd = plt.legend(lgd_list, loc=2, bbox_to_anchor=(1, 0.5))
+            plt.savefig(name_fig, bbox_extra_artists=(lgd,), bbox_inches='tight')
+            plt.close(iFig)
+            # ----------------------------------------
+
+        # ----------- titls a histogram plot.. -------------
+        elif plot['type'] == 'histogram':
+
             queue_types = plot['queue_type']
-            plt.subplot(n_subplots, 1, ss+1)
+            n_bins = plot['n_bins']
 
-            for i_queue in queue_types:
+            # initialize the figure
+            iFig = PlotHandler.get_fig_handle_ID()
+            Fhdl = plt.figure(iFig)
+            lgd_list = []
 
-                queue_label = i_queue[0]
-                queue_legend = i_queue[1]
-                queue_col = i_queue[2]
+            n_subplots = len(plot_subplots_list)
 
-                if ss == 0:
-                    lgd_list.append(queue_legend)
+            # get the filtered jobs
+            for ss, i_subplot_name in enumerate(plot_subplots_list):
 
-                list_jobs_queue = [i_job for i_job in list_jobs if i_job.queue_type in queue_label]
+                yname = i_subplot_name
+                queue_types = plot['queue_type']
+                plt.subplot(n_subplots, 1, ss + 1)
 
-                # take relevant vectors..
-                time_start_vec = np.asarray([i_job.time_start for i_job in list_jobs_queue])
-                time_end_vec = np.asarray([i_job.time_end for i_job in list_jobs_queue])
+                for i_queue in queue_types:
 
-                cpus_vec = np.asarray([i_job.ncpus for i_job in list_jobs_queue])
-                node_vec = np.asarray([i_job.nnodes for i_job in list_jobs_queue])
-                jobs_vec = np.ones(len(cpus_vec))
+                    queue_label = i_queue[0]
+                    queue_legend = i_queue[1]
+                    queue_col = i_queue[2]
 
-                if i_subplot_name == 'jobs':
+                    if ss == 0:
+                        lgd_list.append(queue_legend)
 
-                    (t_dates, t_vals_vec) = get_running_vectors(time_start_vec, time_end_vec, jobs_vec)
-                    plt.plot(t_dates, t_vals_vec[:, 1], queue_col)
+                    list_jobs_queue = [i_job for i_job in list_jobs if i_job.queue_type in queue_label]
 
-                elif i_subplot_name == 'nodes':
+                    if i_subplot_name == 'ncpus':
+                        y_values = np.asarray([y.ncpus for y in list_jobs_queue])
 
-                    (t_dates, t_vals_vec) = get_running_vectors(time_start_vec, time_end_vec, node_vec)
-                    plt.plot(t_dates, t_vals_vec[:, 1], queue_col)
+                    elif i_subplot_name == 'run-time':
+                        y_values = np.asarray([y.runtime for y in list_jobs_queue])
 
-                elif i_subplot_name == 'cpus':
+                    elif i_subplot_name == 'queue-time':
+                        y_values = np.asarray([y.time_in_queue for y in list_jobs_queue])
 
-                    (t_dates, t_vals_vec) = get_running_vectors(time_start_vec, time_end_vec, node_vec)
-                    plt.plot(t_dates, t_vals_vec[:, 1], queue_col)
+                    else:
+                        raise KeyError(" subplot type ['ncpus', 'runtime' or 'queuetime'] not recognized: {}".format(i_subplot_name))
 
-                plt.ylim(ymin=0)
-                plt.ylabel( yname )
-                if t_date_job0:
-                    plt.xlim(xmin=t_date_job0, xmax=t_date_job_end)
+                    iFig = PlotHandler.get_fig_handle_ID()
+                    hh, bin_edges = np.histogram(y_values, bins=n_bins, density=False)
+                    plt.bar(bin_edges[:-1], hh, pylb.diff(bin_edges), color=queue_col)
 
-                ax = plt.gca()
-                ax.xaxis.set_major_locator(dates.MonthLocator())
-                hfmt = dates.DateFormatter(plot_time_format)
-                ax.xaxis.set_major_formatter(hfmt)
+                    plt.yscale('log')
+                    plt.ylim(ymin=0)
+                    plt.ylabel(yname)
 
-        # ------------- finish plot ---------------
-        name_fig = plot_out_dir + "/" + plot_title.replace(" ", "_") + "_x=time.png"
-        plt.subplot(n_subplots, 1, 1)
-        plt.title(plot_title)
-        lgd = plt.legend(lgd_list, loc=2, bbox_to_anchor=(1, 0.5))
-        plt.savefig(name_fig, bbox_extra_artists=(lgd,), bbox_inches='tight')
-        plt.close(iFig)
-        # ----------------------------------------
+            # ------------- finish plot ---------------
+            name_fig = plot_out_dir + "/" + plot_title.replace(" ", "_") + "_x=time.png"
+            plt.subplot(n_subplots, 1, 1)
+            plt.title(plot_title)
+            lgd = plt.legend(lgd_list, loc=2, bbox_to_anchor=(1, 0.5))
+            plt.savefig(name_fig, bbox_extra_artists=(lgd,), bbox_inches='tight')
+            plt.close(iFig)
+            # ----------------------------------------
 
+            # list_dict_y = []
+            # for xx, yy in zip(xx, hh):
+            #     dd = {yname: xx, "N": yy}
+            #     list_dict_y.append(dd)
 
-
-
-
-
-    #
-    #
-    #
-    #
-    # # -----------------------  PDF plots -------------------------
-    # if "ECMWF" in plot_tag:
-    #     list_jobs_op = [i_job for i_job in list_jobs if (i_job.queue_type[0] == "o" and i_job.queue_type != "opencl")]
-    #     list_jobs_normal = [i_job for i_job in list_jobs if (i_job.queue_type == "np")]
-    #     plot_data_list = [
-    #         ["ncpus", np.asarray([y.ncpus for y in list_jobs_normal]), 'b'],
-    #         ["Runtime [hr]", np.asarray([y.runtime / 3600. for y in list_jobs_normal]), 'r'],
-    #         ["Queuing time [hr]", np.asarray([y.time_in_queue / 3600. for y in list_jobs_normal]), 'g'],
-    #         ["ncpus (operational)", np.asarray([y.ncpus for y in list_jobs_op]), 'b'],
-    #         ["Runtime [hr] (operational)", np.asarray([y.runtime / 3600. for y in list_jobs_op]), 'r'],
-    #         ["Queuing time [hr] (operational)", np.asarray([y.time_in_queue / 3600. for y in list_jobs_op]), 'g'],
-    #     ]
-    # elif ("ARCTUR" in plot_tag) or ("EPCC" in plot_tag):
-    #     list_jobs_normal = list_jobs
-    #     plot_data_list = [
-    #         ["ncpus", np.asarray([y.ncpus for y in list_jobs_normal]), 'b'],
-    #         ["Runtime [hr]", np.asarray([y.runtime / 3600. for y in list_jobs_normal]), 'r'],
-    #         ["Queuing time [hr]", np.asarray([y.time_in_queue / 3600. for y in list_jobs_normal]), 'g'],
-    #     ]
-    #
-    # print "------------- " + queue_type_plot_tag
-    #
-    # n_bins = 30
-    # for (iPDF, name_y_values) in enumerate(plot_data_list):
-    #
-    #     yname = name_y_values[0]
-    #
-    #     yname_file = yname.replace(" ", "-").replace("(", "").replace(")", "").replace("[", "").replace("]", "")
-    #     y_value_list = name_y_values[1]
-    #
-    #     # # print y_value_list
-    #     # print type(y_value_list)
-    #     #
-    #     # if isinstance(y_value_list, list):
-    #     #     # print plot_data_list
-    #     #     pass
-    #
-    #     if y_value_list.size:
-    #
-    #         print yname, " max=", max(y_value_list), " min=", min(y_value_list)
-    #
-    #         n_y_values = len(y_value_list)
-    #         col = name_y_values[2]
-    #
-    #         iFig = PlotHandler.get_fig_handle_ID()
-    #         hh, bin_edges = np.histogram(y_value_list, bins=n_bins, density=False)
-    #         # hh, bin_edges = np.histogram(y_value_list, bins='auto', density=False)
-    #         # histogram_scaling = sum(hh) * (bin_edges[1] - bin_edges[0])
-    #
-    #         # figure
-    #         plt.figure(iFig)
-    #         plt.title(yname + " - #Jobs: " + str(n_y_values) + " " + queue_type_plot_tag)
-    #         xx = (bin_edges[1:] + bin_edges[:-1]) / 2
-    #
-    #         # # fit gamma distribution
-    #         # fit_shape, fit_loc, fit_scale = stats.gamma.fit(y_value_list)
-    #         # gg_pdf = stats.gamma.pdf(xx, fit_shape, fit_loc, fit_scale)
-    #
-    #         # # plotting..
-    #         # line1 = plt.bar(bin_edges[:-1], hh, pylb.diff(bin_edges), color=col)
-    #         # line2, = plt.plot(bin_edges[:-1], gg_pdf * histogram_scaling, 'k-')
-    #         # lgd = plt.legend([line1, line2],
-    #         #                  ['raw data', 'Gamma model:\nk=%.3f\nl=%.3f\nsc=%.3f' % (fit_shape, fit_loc, fit_scale)],
-    #         #                  loc=2,
-    #         #                  bbox_to_anchor=(1, 0.5))
-    #
-    #         # plotting..
-    #         plt.bar(bin_edges[:-1], hh, pylb.diff(bin_edges), color=col)
-    #         # print yname_file + '_' + queue_type_plot_tag + ': ', bin_edges[:5]
-    #
-    #         plt.yscale('log')
-    #         plt.xlabel(yname)
-    #         plt.xlim([0, max(bin_edges)*1.1])
-    #
-    #         name_fig = out_dir + '/' + plot_tag + '_plot_' + '_y=' + yname_file + '_' + queue_type_plot_tag + '_pdf.png'
-    #         name_fig = name_fig.replace(" ", "_")
-    #         # plt.savefig(name_fig, bbox_extra_artists=(lgd,), bbox_inches='tight')
-    #         plt.savefig(name_fig)
-    #         plt.close(iFig)
-    #
-    #         # --------- save CSV file ------------
-    #         list_dict_y = []
-    #         for xx, yy in zip(xx, hh):
-    #             dd = {yname: xx, "N": yy}
-    #             list_dict_y.append(dd)
-    #
-    #         list_dict_y_sorted = sorted(list_dict_y, key=lambda k: k[yname])
-    #         # list_dict_y_sorted = sorted(list_dict_y, key=lambda k: k[yname], reverse=True)
-    #         f = open(name_fig + ".csv", 'w')
-    #         w = csv.DictWriter(f, [yname, "N"])
-    #         w.writeheader()
-    #         w.writerows(list_dict_y_sorted)
-    #         f.close()
-    #         # --------------------------------------------------------------
+            # list_dict_y_sorted = sorted(list_dict_y, key=lambda k: k[yname])
+            # # list_dict_y_sorted = sorted(list_dict_y, key=lambda k: k[yname], reverse=True)
+            # f = open(name_fig + ".csv", 'w')
+            # w = csv.DictWriter(f, [yname, "N"])
+            # w.writeheader()
+            # w.writerows(list_dict_y_sorted)
+            # f.close()
