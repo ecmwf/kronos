@@ -108,8 +108,15 @@ def plot_from_dictionary(plot_dict, list_jobs):
                     if t_date_job0:
                         subplt_hdl.set_xlim(xmin=t_date_job0, xmax=t_date_job_end)
 
+                    if plot_time_format in ['%d']:
+                        locator = dates.DayLocator()
+                    elif plot_time_format in ['%b', '%m']:
+                        locator = dates.MonthLocator()
+                    else:
+                        locator = dates.DayLocator()
+
                     ax = plt.gca()
-                    ax.xaxis.set_major_locator(dates.MonthLocator())
+                    ax.xaxis.set_major_locator(locator)
                     hfmt = dates.DateFormatter(plot_time_format)
                     ax.xaxis.set_major_formatter(hfmt)
 

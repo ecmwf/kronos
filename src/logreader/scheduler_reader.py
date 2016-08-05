@@ -392,7 +392,8 @@ def read_epcc_csv_logs(filename_in):
 class PBSDataSet(IngestedDataSet):
 
     def __init__(self, joblist, *args, **kwargs):
-        super(PBSDataSet, self).__init__(joblist, *args, **kwargs)
+
+        super(PBSDataSet, self).__init__(joblist, '.', {'cache':False})
 
         # The created times are all in seconds since an arbitrary reference, so we want to get
         # them relative to a zero-time
@@ -457,7 +458,7 @@ def ingest_epcc_csv_logs(path):
 class AccountingDataSet(IngestedDataSet):
 
     def __init__(self, joblist, *args, **kwargs):
-        super(AccountingDataSet, self).__init__(joblist, *args, **kwargs)
+        super(AccountingDataSet, self).__init__(joblist, '.', {'cache':False})
 
         # The created times are all in seconds since an arbitrary reference, so we want to get
         # them relative to a zero-time

@@ -17,7 +17,7 @@ def test1_stats_ARCTUR():
             'title': 'ARCTUR cpus and jobs',
             'subplots': ['ncpus', 'jobs'],
             'queue_type': [(['fat', 'highprio', 'medium', 'small'], 'normal queue', 'b')],
-            'time format': '%m',
+            'time format': '%b',
             'out_dir': '/var/tmp/maab/iows/output',
         },
         {

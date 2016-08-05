@@ -137,7 +137,7 @@ def read_allinea_logs(log_dir, jobs_n_bins=None, list_json_files=None):
 class AllineaDataSet(IngestedDataSet):
 
     def __init__(self, joblist, *args, **kwargs):
-        super(AllineaDataSet, self).__init__(joblist, *args, **kwargs)
+        super(AllineaDataSet, self).__init__(joblist, '.', {'cache':False})
 
         # The created times are all in seconds since an arbitrary reference, so we want to get
         # them relative to a zero-time
