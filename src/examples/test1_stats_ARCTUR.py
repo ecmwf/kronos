@@ -4,45 +4,37 @@ import os
 
 os.sys.path.append(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
 
-from tools import mytools
-from config.config import Config
-from IOWS_model import IOWSModel
-from model_workload import ModelWorkload
-from workload_corrector import WorkloadCorrector
-from plot_handler import PlotHandler
+from logreader import ingest_data
+from plotter.plotter import Plotter
 
 
 #////////////////////////////////////////////////////////////////
 def test1_stats_ARCTUR():
 
-    # #================================================================
-    # ConfigOptions = Config()
-    # plot_tag = "test1_stats_ARCTUR"
-    #
-    # #================================================================
-    # InputWorkload = RealWorkload(ConfigOptions)
-    # InputWorkload.read_pbs_logs("/perm/ma/maab/PBS_logs_from_ARCTUR/Arctur-1.accounting.logs")
-    # # InputWorkload.read_PBS_logs("/perm/ma/maab/PBS_logs_from_ARCTUR/Arctur-1.accounting.logs_test")
-    # # InputWorkload.read_PBS_logs("/perm/ma/maab/PBS_log_example/20151123_test100")
-    # InputWorkload.calculate_derived_quantities()
-    # InputWorkload.make_plots(plot_tag)
-
-
-    # Load config
-    config = Config()
-    plot_tag = "ARCTUR"
+    plot_dict = [
+        {
+            'type': 'time series',
+            'title': 'ARCTUR cpus and jobs',
+            'subplots': ['ncpus', 'jobs'],
+            'queue_type': [(['fat', 'highprio', 'medium', 'small'], 'normal queue', 'b')],
+            'time format': '%m',
+            'out_dir': '/var/tmp/maab/iows/output',
+        },
+        {
+            'type': 'histogram',
+            'n_bins': 30,
+            'title': 'ARCTUR histograms',
+            'subplots': ['ncpus', 'run-time', 'queue-time'],
+            'queue_type': [(['fat', 'highprio', 'medium', 'small'], 'normal queue', 'b')],
+            'out_dir': '/var/tmp/maab/iows/output',
+        },
+    ]
 
     scheduler_tag = "pbs"
     scheduler_log_file = "/perm/ma/maab/ngio_logs/ARCTUR/Arctur-1.accounting.logs"
-    # scheduler_log_file = "/perm/ma/maab/ngio_logs/ARCTUR/Arctur-1.accounting.logs_test"
-    profiler_tag = ""
-    profiler_log_dir = ""
 
-    # Initialise the input workload
-    input_workload = ModelWorkload(config)
-    input_workload.plot_tag = plot_tag
-    input_workload.plot_time_tick = "year"
-    input_workload.read_logs(scheduler_tag, profiler_tag, scheduler_log_file, profiler_log_dir)
+    aPlotter = Plotter(ingest_data(scheduler_tag, scheduler_log_file))
+    aPlotter.make_plots(plot_dict)
 
 
 if __name__ == '__main__' and __package__ is None:

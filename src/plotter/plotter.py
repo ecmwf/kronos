@@ -94,9 +94,9 @@ def plot_from_dictionary(plot_dict, list_jobs):
                         (t_dates, t_vals_vec) = get_running_vectors(time_start_vec, time_end_vec, node_vec)
                         plt.plot(t_dates, t_vals_vec[:, 1], queue_col)
 
-                    elif i_subplot_name == 'cpus':
+                    elif i_subplot_name == 'ncpus':
 
-                        (t_dates, t_vals_vec) = get_running_vectors(time_start_vec, time_end_vec, node_vec)
+                        (t_dates, t_vals_vec) = get_running_vectors(time_start_vec, time_end_vec, cpus_vec)
                         plt.plot(t_dates, t_vals_vec[:, 1], queue_col)
 
                     subplt_hdl.set_ylim(ymin=0)
