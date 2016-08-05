@@ -33,6 +33,7 @@ class IngestedDataSet(object):
         for job in self.joblist:
             yield job.model_job()
 
+
     @classmethod
     def from_logs_path(cls, ingest_path, ingest_config):
         """
