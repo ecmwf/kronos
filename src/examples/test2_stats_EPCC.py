@@ -4,33 +4,37 @@ import os
 
 os.sys.path.append(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
 
-from tools import mytools
-from config.config import Config
-from IOWS_model import IOWSModel
-from real_workload import RealWorkload
-from model_workload import ModelWorkload
-from plot_handler import PlotHandler
+from logreader import ingest_data
+from plotter.plotter import Plotter
 
 
 #////////////////////////////////////////////////////////////////
 def test2_stats_EPCC():
 
-
-    # Load config
-    config = Config()
-    plot_tag = "EPCC"
+    plot_dict = [
+        {
+            'type': 'time series',
+            'title': 'EPCC cpus and jobs',
+            'subplots': ['nodes', 'jobs'],
+            'queue_type': [(['debug', 'largemem', 'long', 'low', 'parallel', 'serial', 'standard'], 'normal queue', 'b')],
+            'time format': '%m',
+            'out_dir': '/var/tmp/maab/iows/output',
+        },
+        {
+            'type': 'histogram',
+            'n_bins': 30,
+            'title': 'EPCC histograms',
+            'subplots': ['ncpus', 'run-time', 'queue-time'],
+            'queue_type': [(['debug', 'largemem', 'long', 'low', 'parallel', 'serial', 'standard'], 'normal queue', 'b')],
+            'out_dir': '/var/tmp/maab/iows/output',
+        },
+    ]
 
     scheduler_tag = "epcc_csv"
-    # scheduler_log_file = "/var/tmp/maab/iows/input/sample_epcc.csv"
     scheduler_log_file = "/var/tmp/maab/iows/input/2015_ARCHER.csv"
-    profiler_tag = ""
-    profiler_log_dir = ""
 
-    # Initialise the input workload
-    input_workload = ModelWorkload(config)
-    input_workload.plot_tag = plot_tag
-    input_workload.plot_time_tick = "month"
-    input_workload.read_logs(scheduler_tag, profiler_tag, scheduler_log_file, profiler_log_dir)
+    aPlotter = Plotter(ingest_data(scheduler_tag, scheduler_log_file))
+    aPlotter.make_plots(plot_dict)
 
 
 if __name__ == '__main__':

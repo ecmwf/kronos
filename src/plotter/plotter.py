@@ -23,8 +23,11 @@ class Plotter(object):
     def make_plots(self, plot_dict):
 
         if isinstance(self.dataset, AccountingDataSet) or isinstance(self.dataset, PBSDataSet):
+
             plot_from_dictionary(plot_dict, self.dataset.joblist)
+
         else:
+
             print_colour("orange", "plotter for {} dataset not implemented!".format(type(self.dataset)))
 
 
