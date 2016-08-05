@@ -317,7 +317,7 @@ class DarshanIngestedJobTest(unittest.TestCase):
         """
         job = DarshanIngestedJob(label="job", file_details={})
 
-        # With no file data, we should end up with empty time seriesl
+        # With no file data, we should end up with empty time series
         series = job.model_time_series()
         self.assertIn('kb_read', series)
         self.assertIn('kb_write', series)

@@ -2,7 +2,7 @@
 import unittest
 import types
 
-from logreader.ipm import IPMTaskInfo, IPMLogReader
+from logreader.ipm import IPMTaskInfo, IPMLogReader, IPMIngestedJob
 
 
 class IPMTaskInfoTest(unittest.TestCase):
@@ -73,7 +73,133 @@ class IPMIngestedJobTest(unittest.TestCase):
     """
     def test_initialisation(self):
 
-        self.assertFalse(True)
+        # Check defaults
+        job = IPMIngestedJob()
+        self.assertEqual(job.tasks, [])
+        self.assertIsNone(job.label)
+        self.assertIsNone(job.filename)
+
+        # Check that the defaults can be correctly overridden
+        job = IPMIngestedJob(
+            tasks=[1, 2, 3],
+            label="a-label",
+            filename="a-filename"
+        )
+        self.assertEqual(job.tasks, [1, 2, 3])
+        self.assertEqual(job.label, "a-label")
+        self.assertEqual(job.filename, "a-filename")
+
+    def test_aggregation_different_jobs(self):
+        """
+        We should only be able to aggregate two job records that correspond to the same job
+        """
+        job1 = IPMIngestedJob(
+            tasks=[1, 2, 3],
+            label='label1'
+        )
+        job2 = IPMIngestedJob(
+            tasks=[4, 5, 6],
+            label='label2'
+        )
+
+        self.assertRaises(AssertionError, job1.aggregate(job2))
+
+    def test_aggregation(self):
+        """
+        The lists of profiled tasks should be aggregated. For now, that is all that is being returned by IPM, but
+        clearly the global data will need to be checked (and ensure that there aren't conflicts...).
+        """
+        job1 = IPMIngestedJob(
+            tasks=[1, 2, 3],
+            label='label1'
+        )
+        job2 = IPMIngestedJob(
+            tasks=[4, 5, 6],
+            label='label1'
+        )
+
+        # If jobs can be aggregated, their task lists should be combined
+        job1.aggregate(job2)
+        for t in range(1, 7):
+            self.assertIn(t, job1.tasks)
+
+    def test_model_time_series(self):
+        """
+        For now, we only consider the totals, and consider them to be offset by "zero" from the start.
+        """
+        expected_series = [
+            'n_collective',
+            'kb_collective',
+            'n_pairwise',
+            'kb_pairwise',
+            'kb_read',
+            'kb_write'
+            # 'n_read'
+            # 'n_write'
+        ]
+
+        # With no data, we should end up with empty time series
+        job = IPMIngestedJob()
+        series = job.model_time_series()
+
+        self.assertEqual(set(expected_series), set(series.keys()))
+        for s in series.values():
+            self.assertEqual(s.sum, 0)
+            self.assertEqual(len(s.xvalues), 1)
+            self.assertEqual(len(s.yvalues), 1)
+            self.assertEqual(s.xvalues[0], 0.0)
+            self.assertEqual(s.yvalues[0], 0.0)
+
+        # Otherwise, there should be time-series created with the correct totals
+        # N.B. The MPI pairwise RECV data is ignored (as it duplicates some/most of the SEND data).
+
+        task1 = IPMTaskInfo()
+        task1.mpi_pairwise_bytes_send = 123 * 1024
+        task1.mpi_pairwise_bytes_recv = 456 * 1024
+        task1.mpi_collective_bytes = 789 * 1024
+        task1.bytes_read = 12 * 1024
+        task1.bytes_written = 345 * 1024
+
+        task1.mpi_pairwise_count_send = 12
+        task1.mpi_pairwise_count_recv = 34
+        task1.mpi_collective_count = 56
+        task1.open_count = 78
+        task1.read_count = 90
+        task1.write_count = 12
+
+        task2 = IPMTaskInfo()
+        task2.mpi_pairwise_bytes_send = 345 * 1024
+        task2.mpi_pairwise_bytes_recv = 678 * 1024
+        task2.mpi_collective_bytes = 901 * 1024
+        task2.bytes_read = 234 * 1024
+        task2.bytes_written = 567 * 1024
+
+        task2.mpi_pairwise_count_send = 89
+        task2.mpi_pairwise_count_recv = 1
+        task2.mpi_collective_count = 23
+        task2.open_count = 45
+        task2.read_count = 67
+        task2.write_count = 89
+
+        job = IPMIngestedJob(tasks=[task1, task2])
+        series = job.model_time_series()
+
+        totals = {
+            'n_collective': 79,
+            'kb_collective': 1690,
+            'n_pairwise': 101,
+            'kb_pairwise': 468,
+            'kb_read':246,
+            'kb_write': 912
+        }
+
+        self.assertEqual(set(expected_series), set(series.keys()))
+        for nm, s in series.iteritems():
+            self.assertEqual(s.sum, totals[nm])
+            self.assertEqual(len(s.xvalues), 1)
+            self.assertEqual(len(s.yvalues), 1)
+            self.assertEqual(s.xvalues[0], 0.0)
+            self.assertEqual(s.yvalues[0], totals[nm])
 
 
 class FakeJob(object):
