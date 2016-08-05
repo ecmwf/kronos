@@ -9,35 +9,35 @@ from plotter.plotter import Plotter
 
 
 #////////////////////////////////////////////////////////////////
-def test1_stats_ARCTUR():
+def test2_stats_EPCC():
 
     plot_dict = [
         {
             'type': 'time series',
-            'title': 'ARCTUR cpus and jobs',
-            'subplots': ['ncpus', 'jobs'],
-            'queue_type': [(['fat', 'highprio', 'medium', 'small'], 'normal queue', 'b')],
-            'time format': '%b',
+            'title': 'EPCC cpus and jobs',
+            'subplots': ['nodes', 'jobs'],
+            'queue_type': [(['debug', 'largemem', 'long', 'low', 'parallel', 'serial', 'standard'], 'normal queue', 'b')],
+            'time format': '%m',
             'out_dir': '/var/tmp/maab/iows/output',
         },
         {
             'type': 'histogram',
             'n_bins': 30,
-            'title': 'ARCTUR histograms',
+            'title': 'EPCC histograms',
             'subplots': ['ncpus', 'run-time', 'queue-time'],
-            'queue_type': [(['fat', 'highprio', 'medium', 'small'], 'normal queue', 'b')],
+            'queue_type': [(['debug', 'largemem', 'long', 'low', 'parallel', 'serial', 'standard'], 'normal queue', 'b')],
             'out_dir': '/var/tmp/maab/iows/output',
         },
     ]
 
-    scheduler_tag = "pbs"
-    scheduler_log_file = "/perm/ma/maab/ngio_logs/ARCTUR/Arctur-1.accounting.logs"
+    scheduler_tag = "epcc_csv"
+    scheduler_log_file = "/var/tmp/maab/iows/input/2015_ARCHER.csv"
 
     aPlotter = Plotter(ingest_data(scheduler_tag, scheduler_log_file))
     aPlotter.make_plots(plot_dict)
 
 
-if __name__ == '__main__' and __package__ is None:
+if __name__ == '__main__':
 
-    test1_stats_ARCTUR()
+    test2_stats_EPCC()
 

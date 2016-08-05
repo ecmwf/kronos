@@ -35,10 +35,11 @@ class Config(object):
 
     # IOWS Model
 
-    IOWSMODEL_TOTAL_METRICS_NBINS = 10
+    IOWSMODEL_TOTAL_METRICS_NBINS = 1
     IOWSMODEL_KMEANS_MAXITER = 8000
     IOWSMODEL_KMEANS_KMEANS_RSEED = 170
     IOWSMODEL_JOB_IMPACT_INDEX_REL_TSH = 0.2
+    IOWSMODEL_SUPPORTED_SYNTH_APPS = ['cpu', 'file-read', 'file-write', 'mpi']
 
     # Directory choices
 
@@ -56,6 +57,10 @@ class Config(object):
     model_clustering = "none"
     model_clustering_algorithm = None
     model_scaling_factor = 1.0
+
+    # hardware
+
+    CPU_FREQUENCY = 2.3e9  # Hz
 
     # Debugging info
 

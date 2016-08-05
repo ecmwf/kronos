@@ -11,8 +11,12 @@ from time_signal import TimeSignal
 from synthetic_app import SyntheticApp, SyntheticWorkload
 import time_signal
 import model_workload
+from tools.print_colour import print_colour
 
 import clustering
+
+
+from tools import mytools
 
 
 class IOWSModel(object):
@@ -48,6 +52,7 @@ class IOWSModel(object):
         self.kmeans_rseed = config_options.IOWSMODEL_KMEANS_KMEANS_RSEED
         self.job_impact_index_rel_tsh = config_options.IOWSMODEL_JOB_IMPACT_INDEX_REL_TSH
         self.jobs_n_bins = config_options.WORKLOADCORRECTOR_JOBS_NBINS
+        self.supported_synth_apps = config_options.IOWSMODEL_SUPPORTED_SYNTH_APPS
 
         self.cluster_centers = {}
         self.cluster_labels = {}
@@ -56,6 +61,7 @@ class IOWSModel(object):
 
         self.aggregated_metrics = []
         self._n_clusters = None
+        self.syntapp_list = []
 
         self.clustering_key = None
 
@@ -69,6 +75,9 @@ class IOWSModel(object):
         self.scaling_factor = config_options.model_scaling_factor
         self.clustering_algorithm = config_options.model_clustering_algorithm
         self.clustering_routine = config_options.model_clustering
+
+        self.cpu_frequency = config_options.CPU_FREQUENCY
+        self.config_options = config_options
 
         # A quick sanity check
         for method_name in self.clustering_routines.values():
@@ -94,19 +103,24 @@ class IOWSModel(object):
         if config.model_scaling_factor <= 0.0 or config.model_scaling_factor > 1.0:
             raise ConfigurationError("Scaling factor must be between 0.0 and 1.0")
 
-    def create_scaled_workload(self, clustering_key, which_clust=None, scaling_factor=None):
+    def create_scaled_workload(self, clustering_key, which_clust=None, scaling_factor_dict=None, reduce_jobs_flag=True):
         """
         Create a scaled workload of synthetic apps from all of the (so-far) aggregated data
         """
         which_clust = which_clust or self.clustering_algorithm
+        scaling_factor = float(sum(scaling_factor_dict.values())) / float(len(scaling_factor_dict.values()))
         scaling_factor = scaling_factor or self.scaling_factor
 
-        assert 0.0 < scaling_factor <= 1.0
+        assert scaling_factor > 0.
+
+        if scaling_factor >= 100.:
+            print_colour("orange", "high scaling_factor value! sc={}".format(scaling_factor))
+
 
         # call the clustering first..
         print "Apply clustering: {}".format(clustering_key)
         print "Apply clustering: {}".format(which_clust)
-        self.apply_clustering(clustering_key, which_clust, scaling_factor)
+        self.apply_clustering(clustering_key, which_clust, reduce_jobs_flag, scaling_factor)
         self.calculate_total_metrics()
 
         print "Scaling factor: ", scaling_factor
@@ -130,10 +144,11 @@ class IOWSModel(object):
             for i, ts_name in enumerate(self.ts_names):
 
                 idx_ts = np.arange(0, n_bins) + n_bins * i
-
                 ts_signal_x = np.arange(0, len(self.cluster_centers[iC, idx_ts])) * 1.0  # just a dummy value (not actually needed..)
+
                 if clust_metrics_sums[i]:
-                    ts_signal_y = (self.cluster_centers[iC, idx_ts] * tot_metrics_sums[i] * scaling_factor /
+                    ts_scaling = scaling_factor_dict[ts_name]
+                    ts_signal_y = (self.cluster_centers[iC, idx_ts] * tot_metrics_sums[i] * ts_scaling /
                                    clust_metrics_sums[i])
                 else:
                     ts_signal_y = np.zeros(len(ts_signal_x))
@@ -153,14 +168,14 @@ class IOWSModel(object):
             app = SyntheticApp(
                 job_name="appID-{}".format(iC),
                 time_signals=synapp_timeseries,
-                ncpus=36,
+                ncpus=2,
                 nnodes=1,
                 time_start=random.random() * maxStartTime_fromT0
             )
             syntapp_list.append(app)
 
         # # ------ finally append non-clustered jobs ----------
-        # for (jj, i_job) in enumerate(self.input_workload.job_list):
+        # for (jj, i_job) in enumerate(self.input_workload.LogData):
         #     if i_job.job_impact_index_rel >= self.job_impact_index_rel_tsh:
         #         app = SyntheticApp()
         #         app.job_name = "JOB-NON-clustered-" + str(jj)
@@ -169,13 +184,18 @@ class IOWSModel(object):
 
         return SyntheticWorkload(self.config, apps=syntapp_list)
 
-    def apply_clustering(self, clustering_key, which_clust, scaling_factor=None):
+    def apply_clustering(self, clustering_key, which_clust, reduce_jobs_flag, scaling_factor):
 
         self.clustering_key = clustering_key
-        self._n_clusters = max(1, int(scaling_factor * len(self.input_workload.job_list)))
+
+        # determine the number of clusters (also according to the flag..)
+        if reduce_jobs_flag:
+            self._n_clusters = max(1, int(scaling_factor * len(self.input_workload.job_list)))
+        else:
+            self._n_clusters = len(self.input_workload.job_list)
 
         # do the clustering only if scaling factor is less than 100
-        if scaling_factor < 1.0:
+        if (self._n_clusters < 100.) and reduce_jobs_flag:
 
             worker_name = self.clustering_routines.get(clustering_key, None)
             if worker_name is None:
@@ -253,7 +273,6 @@ class IOWSModel(object):
         """
         A straight-through "clustering" approach (which essentially does nothing).
         """
-        assert scaling_factor == 1.0
 
         # NOTE: n_signals assumes that all the jobs signals have the same num of signals
         # NOTE: n_bins assumes that all the time signals have the same

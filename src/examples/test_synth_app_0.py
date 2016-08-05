@@ -2,6 +2,7 @@
 
 # Add parent directory as search path form modules
 import os
+import numpy as np
 
 os.sys.path.append(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
 
@@ -10,6 +11,7 @@ from config.config import Config
 from IOWS_model import IOWSModel
 from model_workload import ModelWorkload
 from plot_handler import PlotHandler
+import time_signal
 
 
 def test_synth_app_0():
@@ -29,23 +31,26 @@ def test_synth_app_0():
     input_workload = ModelWorkload(config)
     input_workload.read_logs(scheduler_tag, profiler_tag, scheduler_log_file, profiler_log_dir)
     input_workload.make_plots(plot_tag)
+    input_workload.print_global_sums()
 
-    # Generator model
-    scaling_factor = 1.0
+    # ----------- initialize the vectors: metric_sums, deltas, etc... -----------
+    ts_names = time_signal.signal_types.keys()
+    scaling_factor_dict = {'kb_collective': 1,
+                     'n_collective': 1,
+                     'n_pairwise': 1,
+                     'kb_write': 1,
+                     'kb_read': 0.3,
+                     'flops': 0,
+                     'kb_pairwise': 1,
+                     }
+    # ---------------------------------------------------------
+
     model = IOWSModel(config, input_workload)
-    model.create_scaled_workload("time_plane", "Kmeans", scaling_factor)
-    model.export_scaled_workload()
-    model.make_plots(plot_tag)
 
-    # # Run the synthetic apps and profile them with Allinea
-    # scheduler_tag = ""
-    # scheduler_log_file = ""
-    # profiler_tag = "allinea"
-    # profiler_log_dir = "/home/ma/maab/workspace/iows/input/run_sa/"
-    # sa_workload = RealWorkload(config)
-    # sa_workload.read_logs(scheduler_tag, profiler_tag, scheduler_log_file, profiler_log_dir)
+    synthetic_apps = model.create_scaled_workload("time_plane", "Kmeans", scaling_factor_dict, reduce_jobs_flag=False)
+    synthetic_apps.export(config.IOWSMODEL_TOTAL_METRICS_NBINS)
 
-    # Create plots by comparing the logs..
+    synthetic_apps.print_metrics_sums()
 
     # check num plots
     PlotHandler.print_fig_handle_ID()

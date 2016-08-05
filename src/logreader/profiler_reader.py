@@ -24,13 +24,13 @@ def read_allinea_log(filename, jobs_n_bins=None):
     #             (default False)
 
     allinea_time_signal_map = {
-        'instr_fp':             {'name': 'flops'},
-        'lustre_bytes_read':    {'name': 'kb_read',       'is_rate': True},
-        'lustre_bytes_written': {'name': 'kb_write',      'is_rate': True},
+        'cpu_time_percentage':  {'name': 'flops'},
+        'lustre_bytes_read':    {'name': 'kb_read',       'is_rate': True, 'scale_factor': 1./1024.},
+        'lustre_bytes_written': {'name': 'kb_write',      'is_rate': True, 'scale_factor': 1./1024.},
         'mpi_p2p':              {'name': 'n_pairwise'},
-        'mpi_p2p_bytes':        {'name': 'kb_pairwise'},
+        'mpi_p2p_bytes':        {'name': 'kb_pairwise',                     'scale_factor': 1./1024.},
         'mpi_collect':          {'name': 'n_collective'},
-        'mpi_collect_bytes':    {'name': 'kb_collective'}
+        'mpi_collect_bytes':    {'name': 'kb_collective',                   'scale_factor': 1./1024.}
     }
 
     # A quick sanity check
@@ -39,6 +39,14 @@ def read_allinea_log(filename, jobs_n_bins=None):
 
     with open(filename) as json_file:
         json_data = json.load(json_file)
+
+    # fill in the workload structure
+    i_job = IngestedJob()
+
+    time_start = json_data['profile']['timestamp']
+    runtime = float(json_data['profile']['runtime_ms']) / 1000.
+    time_start_epoch = (datetime.strptime(time_start, "%a %b %d %H:%M:%S %Y") -
+                        datetime(1970, 1, 1)).total_seconds()
 
     # fill in the workload structure
     i_job = IngestedJob()
@@ -59,9 +67,8 @@ def read_allinea_log(filename, jobs_n_bins=None):
     i_job.time_in_queue = i_job.time_start - i_job.time_queued
 
     # Threads are not considered for now..
-    i_job.ncpus = (json_data['profile']["nodes"] * json_data['profile']["num_physical_cores_per_node"][2])
     i_job.nnodes = json_data['profile']["nodes"]
-    target_procs = json_data['profile']['targetProcs']
+    i_job.ncpus = json_data['profile']['targetProcs']
 
     # average memory used is taken from sample average of "node_mem_percent"
     mem_val_bk = json_data['profile']['samples']['node_mem_percent']
@@ -72,7 +79,7 @@ def read_allinea_log(filename, jobs_n_bins=None):
 
     i_job.cpu_percent = 0
 
-    i_job.jobname = os.path.basename(filename)
+    i_job.jobname = filename
     i_job.user = "job-profiler"
     i_job.group = ""
     i_job.queue_type = ""
@@ -87,9 +94,11 @@ def read_allinea_log(filename, jobs_n_bins=None):
 
     for ts_name_allinea, ts_config in allinea_time_signal_map.iteritems():
 
+        scale_factor = ts_config.get('scale_factor', 1.0)
+
         # The Allinea time-series data is a sequence of tuples of the form: (min, max, mean, variance)
         # Extract the mean value for each sampling interval.
-        y_vals = np.array([v[2] for v in json_data['profile']['samples'][ts_name_allinea]])
+        y_vals = np.array([v[2] * scale_factor for v in json_data['profile']['samples'][ts_name_allinea]])
 
         # If the data is recorded as a rate (a per-second value), then adjust it to record absolute data volumes
         # per time interval.
@@ -97,55 +106,30 @@ def read_allinea_log(filename, jobs_n_bins=None):
             y_vals = np.array([v * (sample_times[i] - (sample_times[i-1] if i > 0 else 0)) for i, v in enumerate(y_vals)])
 
         if ts_config.get('per_task', False):
-            y_vals *= target_procs
+            y_vals *= i_job.ncpus
 
         ts = TimeSignal.from_values(ts_config['name'], sample_times, y_vals)
         if jobs_n_bins is not None:
             ts.digitize(jobs_n_bins)
         i_job.append_time_signal(ts)
 
-        # -- translate allinea metrics into desired metrics
-        # 'mpi_call_time',
-        # 'nvidia_memory_sys_usage',
-        # 'mpi_collect',
-        # 'mpi_p2p_bytes',
-        # 'rchar_total',
-        # 'mpi_recv',
-        # 'instr_branch',
-        # 'wchar_total',
-        # 'instr_scalar_int',
-        # 'instr_vector_fp',
-        # 'instr_vector_int',
-        # 'lustre_bytes_written',
-        # 'nvidia_memory_used',
-        # 'rapl_energy',
-        # 'node_mem_percent',
-        # 'mpi_sent',
-        # 'involuntary_context_switches',
-        # 'system_time_percentage',
-        # 'instr_other',
-        # 'bytes_read',
-        # 'lustre_bytes_read',
-        # 'instr_fp',
-        # 'system_energy',
-        # 'instr_scalar_fp',
-        # 'nvidia_temp',
-        # 'system_power',
-        # 'instr_implicit_mem',
-        # 'nvidia_memory_used_percent',
-        # 'user_time_percentage',
-        # 'rss',
-
     return i_job
 
 
-def read_allinea_logs(log_dir, jobs_n_bins=None):
+def read_allinea_logs(log_dir, jobs_n_bins=None, list_json_files=None):
+
     """
     Collect info from Allinea logs
     """
-    json_files = glob.glob(os.path.join(os.path.realpath(log_dir), "*.json"))
-
-    print "reading json files..."
+  # pick up the list of json files to process
+    if list_json_files is None:
+        json_files = glob.glob(os.path.join(os.path.realpath(log_dir), "*.json"))
+        print "reading json files..."
+        json_files.sort()
+    else:
+        json_files = list_json_files
+        print "reading json files..."
+        json_files.sort()
 
     return [ read_allinea_log(filename, jobs_n_bins) for filename in json_files ]
 
@@ -153,7 +137,7 @@ def read_allinea_logs(log_dir, jobs_n_bins=None):
 class AllineaDataSet(IngestedDataSet):
 
     def __init__(self, joblist, *args, **kwargs):
-        super(AllineaDataSet, self).__init__(joblist, *args, **kwargs)
+        super(AllineaDataSet, self).__init__(joblist, '.', {'cache':False})
 
         # The created times are all in seconds since an arbitrary reference, so we want to get
         # them relative to a zero-time
@@ -172,17 +156,20 @@ class AllineaDataSet(IngestedDataSet):
             )
 
 
-def ingest_allinea_profiles(path, jobs_n_bins=None):
+def ingest_allinea_profiles(path, jobs_n_bins=None, list_json_files=None):
     """
     Does what it says on the tin.
     """
     if not os.path.exists(path):
         raise ConfigurationError("Specified path to ingest Allinea profiles does not exist: {}".format(path))
 
-    if os.path.isdir(path):
-        jobs = read_allinea_logs(path, jobs_n_bins)
+    if not list_json_files:
+        if os.path.isdir(path):
+            jobs = read_allinea_logs(path, jobs_n_bins)
+        else:
+            jobs = [read_allinea_log(path, jobs_n_bins)]
     else:
-        jobs = [read_allinea_log(path, jobs_n_bins)]
+        jobs = read_allinea_logs(path, jobs_n_bins, list_json_files)
 
     return AllineaDataSet(jobs)
 

@@ -1,5 +1,5 @@
 from profiler_reader import ingest_allinea_profiles
-from scheduler_reader import ingest_accounting_logs, ingest_pbs_logs
+from scheduler_reader import ingest_accounting_logs, ingest_pbs_logs, ingest_epcc_csv_logs
 from darshan import DarshanDataSet
 from ipm import IPMDataSet
 
@@ -16,6 +16,7 @@ def ingest_data(ingest_type, ingest_path, global_config=None):
             'allinea': ingest_allinea_profiles,
             'pbs': ingest_pbs_logs,
             'accounting': ingest_accounting_logs,
+            'epcc_csv': ingest_epcc_csv_logs,
         }[ingest_type](ingest_path)
 
     except KeyError as e:

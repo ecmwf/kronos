@@ -1,9 +1,11 @@
+import numpy as np
 from pylab import *
+from matplotlib import dates
 
 import time_signal
 from logreader.scheduler_reader import AccountingDataSet, PBSDataSet
 from plot_handler import PlotHandler
-from sds.print_colour import print_colour
+from tools.print_colour import print_colour
 
 from time_signal import TimeSignal
 from logreader import scheduler_reader
@@ -24,6 +26,7 @@ class ModelWorkload(object):
         self.scheduler_jobs = []
         self.profiler_jobs = []
         self.job_list = []
+        self.datasets = None
 
         self.input_dir = config_options.dir_input
         self.out_dir = config_options.dir_output
@@ -31,7 +34,6 @@ class ModelWorkload(object):
 
         self.dir_input = config_options.dir_input
         self.job_output_all = np.array([]).reshape(3, 0)
-        self.job_list = []
 
         # total metrics and parameters
         self.total_metrics = []
@@ -68,34 +70,39 @@ class ModelWorkload(object):
         output += "=============================================\n"
         return output
 
-    def read_logs(self, scheduler_tag="", profiler_tag="", scheduler_log_file="", profiler_log_dir=""):
+    def read_logs(self,
+                  scheduler_tag="",
+                  profiler_tag="",
+                  scheduler_log_file="",
+                  profiler_log_dir="",
+                  list_json_files=None,
+                  ):
+
         """ Read jobs from scheduler and profiler logs"""
-
-        ## TODO
-
-        ## Remember to include the plot functionality
 
         datasets = []
         if scheduler_tag == "pbs":
             datasets.append(scheduler_reader.ingest_pbs_logs(scheduler_log_file))
+
         elif scheduler_tag == "accounting":
             datasets.append(scheduler_reader.ingest_accounting_logs(scheduler_log_file))
+
+        elif scheduler_tag == "epcc_csv":
+            datasets.append(scheduler_reader.ingest_epcc_csv_logs(scheduler_log_file))
+
         else:
             print "Scheduler jobs not found"
 
         if profiler_tag == "allinea":
-            datasets.append(profiler_reader.ingest_allinea_profiles(profiler_log_dir, self.jobs_n_bins))
+            datasets.append(profiler_reader.ingest_allinea_profiles(profiler_log_dir, self.jobs_n_bins, list_json_files))
         else:
             raise ValueError("No profiler jobs have been found")
 
         print "Ingested data sets: [\n" + ",\n".join(["    {}".format(d) for d in datasets]) +  "\n]"
 
-        #scheduler_reader.make_scheduler_plots(self.scheduler_jobs,
-        #                                      self.plot_tag,
-        #                                      self.out_dir,
-        #                                      date_ticks=self.plot_time_tick)
-
         self.model_ingested_datasets(datasets)
+
+        self.datasets = datasets
 
         # check that all the info are correctly filled in..
         for i_job in self.job_list:
@@ -174,6 +181,10 @@ class ModelWorkload(object):
 
         self.calculate_global_metrics()
 
+        # check that all the info are correctly filled in..
+        for i_job in self.job_list:
+            i_job.check_job()
+
     def calculate_global_metrics(self):
         """ Calculate all the relevant global metrics from the totals """
 
@@ -189,7 +200,7 @@ class ModelWorkload(object):
                 times_bin = np.concatenate([job.timesignals[signal_name].xvalues_bins for job in self.job_list if job.timesignals[signal_name] is not None])
                 data = np.concatenate([job.timesignals[signal_name].yvalues_bins for job in self.job_list if job.timesignals[signal_name] is not None])
 
-                ts = TimeSignal.from_values('total_{}'.format(signal_name), times_bin, data, base_signal_name=signal_name)
+                ts = TimeSignal.from_values(signal_name, times_bin, data, base_signal_name=signal_name)
                 ts.digitize(self.total_metrics_nbins)
                 self.total_metrics.append(ts)
 
@@ -207,12 +218,24 @@ class ModelWorkload(object):
                 for iJob in self.job_list:
                     iJob.job_impact_index_rel = 0.0
 
+    def print_global_sums(self):
+        for glob_metric in self.total_metrics:
+            print "[input jobs]: sum of {} = {}".format(glob_metric.name, glob_metric.sum)
+
+
+    def total_metrics_sum_dict(self):
+        dd = {}
+        for m in  self.total_metrics:
+            dd[m.name] = m.sum
+        return dd
+
+
     def make_plots(self, plot_tag):
         """ Make plots"""
 
-        # scheduler specific plots..
-        if self.scheduler_jobs:
-            scheduler_reader.make_scheduler_plots(self.scheduler_jobs, plot_tag, self.out_dir)
+        # # scheduler specific plots..
+        # if self.scheduler_jobs:
+        #     scheduler_reader.make_scheduler_plots(self.scheduler_jobs, plot_tag, self.out_dir)
 
         # WL total metrics plots
         i_fig = PlotHandler.get_fig_handle_ID()
