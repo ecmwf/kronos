@@ -178,9 +178,6 @@ class DarshanLogReader(LogReader):
 
     def __init__(self, path, **kwargs):
 
-        # TODO: Configure the darshan paths (need darshan-parser)
-        print "Darshan Log Reader"
-
         # Custom configuration:
         self.parser_command = kwargs.pop('parser', 'darshan-parser')
 

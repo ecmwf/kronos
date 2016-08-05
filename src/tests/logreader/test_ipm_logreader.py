@@ -1,8 +1,11 @@
 #!/usr/bin/env python
 import unittest
 import types
+import mock
 
-from logreader.ipm import IPMTaskInfo, IPMLogReader, IPMIngestedJob
+from jobs import IngestedJob
+from logreader.base import LogReader
+from logreader.ipm import IPMTaskInfo, IPMLogReader, IPMIngestedJob, IPMDataSet
 
 
 class IPMTaskInfoTest(unittest.TestCase):
@@ -243,7 +246,30 @@ class IPMLogReaderTest(unittest.TestCase):
         """
         Check that we have sensible (overridable) defaults. N.b. inherits from LogReader
         """
-        self.assertFalse(True)
+        # With standard defaults
+        lr = IPMLogReader('test-path')
+
+        self.assertEqual(lr.path, 'test-path')
+        self.assertEqual(lr.file_pattern, "*.xml")
+        self.assertTrue(lr.recursive)
+        self.assertEqual(lr.label_method, 'directory')
+        self.assertEqual(lr.job_class, IPMIngestedJob)
+        self.assertEqual(lr.log_type_name, 'IPM')
+        self.assertEqual(lr.pool_readers, 10)
+        self.assertIsInstance(lr, LogReader)
+
+        # And these are overridable?
+        lr = IPMLogReader(
+            'test-path',
+            recursive=False,
+            file_pattern="blah.*",
+            label_method="directory-no-par-serial",
+            pool_readers=1)
+
+        self.assertEqual(lr.file_pattern, "blah.*")
+        self.assertFalse(lr.recursive)
+        self.assertEqual(lr.label_method, 'directory-no-par-serial')
+        self.assertEqual(lr.pool_readers, 1)
 
     def test_read_logs(self):
         """
@@ -270,6 +296,38 @@ class IPMLogReaderTest(unittest.TestCase):
 
         self.assertEqual(logs[0].names, ['dir1/file1', 'dir1/file2', 'dir1/file3'])
         self.assertEqual(logs[1].names, ['dir2/file4'])
+
+
+class IPMDataSetTest(unittest.TestCase):
+
+    def test_initialisation(self):
+
+        ds = IPMDataSet([1, 2, 3], 'a-path', {"A": "Config"})
+
+        self.assertEqual(ds.log_reader_class, IPMLogReader)
+        self.assertEqual(ds.joblist, [1, 2, 3])
+        self.assertEqual(ds.ingest_path, 'a-path')
+        self.assertEqual(ds.ingest_config, {"A": "Config"})
+
+    def test_model_job(self):
+        """
+        Check that that modelling is deferred to the job class
+        """
+
+        class FakeJob(IngestedJob):
+            def __init__(self):
+                super(FakeJob, self).__init__()
+                self.model_job = mock.Mock()
+                self.model_job.return_value = 123
+
+        jobs = [FakeJob(), FakeJob(), FakeJob()]
+
+        ds = IPMDataSet(jobs, "a-path", {})
+
+        [self.assertEqual(j.model_job.call_count, 0) for j in jobs]
+        results = list(ds.model_jobs())
+        [self.assertEqual(j.model_job.call_count, 1) for j in jobs]
+        [self.assertEqual(r, 123) for r in results]
 
 
 if __name__ == "__main__":

@@ -121,6 +121,7 @@ class IPMLogReader(LogReader):
     job_class = IPMIngestedJob
     log_type_name = "IPM"
     file_pattern = "*.xml"
+    recursive = True
 
     # By default we end up with a whole load of darshan logfiles within a directory.
     label_method = "directory"
@@ -218,16 +219,6 @@ class IPMLogReader(LogReader):
         "lseek": None,
         "lseek64": None
     }
-
-    def __init__(self, path, **kwargs):
-
-        # TODO: Configure the darshan paths (need darshan-parser)
-        print "IPM Log Reader"
-
-        # Custom configuration:
-        # self.parser_command = kwargs.pop('parser', 'darshan-parser')
-
-        super(IPMLogReader, self).__init__(path, **kwargs)
 
     def parse_calltable(self, calltable):
         """

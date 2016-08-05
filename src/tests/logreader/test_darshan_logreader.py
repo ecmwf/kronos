@@ -485,7 +485,7 @@ class DarshanLogReaderTest(unittest.TestCase):
         self.assertEqual(f.write_count, 0)
 
 
-class DarshanDataSetReaderTest(unittest.TestCase):
+class DarshanDataSetTest(unittest.TestCase):
 
     def test_initialisation(self):
 
