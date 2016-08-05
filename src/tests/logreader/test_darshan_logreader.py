@@ -2,7 +2,9 @@
 import unittest
 import types
 import os
+import mock
 
+from jobs import IngestedJob
 from logreader.base import LogReader
 from logreader.darshan import (DarshanIngestedJobFile, DarshanIngestedJob, DarshanLogReaderError, DarshanLogReader,
                                DarshanDataSet)
@@ -387,7 +389,6 @@ class DarshanLogReaderTest(unittest.TestCase):
 
         self.assertEqual(lr.parser_command, 'darshan-parser')
         self.assertEqual(lr.path, 'test-path')
-        self.assertEqual(lr.dataset_class, DarshanDataSet)
         self.assertEqual(lr.file_pattern, "*.gz")
         self.assertTrue(lr.recursive)
         self.assertEqual(lr.label_method, 'directory')
@@ -401,7 +402,7 @@ class DarshanLogReaderTest(unittest.TestCase):
 
         self.assertEqual(lr.parser_command, 'a-parser')
 
-    def test_read_logs_generator(self):
+    def test_read_logs(self):
         """
         Should return a generator of the output of read_log depending on the results of logfiles.
 
@@ -418,7 +419,7 @@ class DarshanLogReaderTest(unittest.TestCase):
 
         lr = LogReaderLocal('test-path')
 
-        logs = lr.read_logs_generator()
+        logs = lr.read_logs()
         self.assertIsInstance(logs, types.GeneratorType)
 
         logs = list(logs)
@@ -480,6 +481,43 @@ class DarshanLogReaderTest(unittest.TestCase):
         self.assertEqual(f.bytes_written, 0)
         self.assertEqual(f.read_count, 0)
         self.assertEqual(f.write_count, 0)
+
+
+class DarshanDataSetReaderTest(unittest.TestCase):
+
+    def test_initialisation(self):
+
+        ds = DarshanDataSet([1, 2, 3], 'a-path', {"A": "Config"})
+
+        self.assertEqual(ds.log_reader_class, DarshanLogReader)
+        self.assertEqual(ds.joblist, [1, 2, 3])
+        self.assertEqual(ds.ingest_path, 'a-path')
+        self.assertEqual(ds.ingest_config, {"A": "Config"})
+
+    def test_model_job_start_time(self):
+        """
+        Check that:
+          i) The DarshanDataSet correctly extracts the earliest time as the start time
+          ii) THis is passed to the job's model_job routine (and the result returned)
+        """
+
+        class FakeJob(IngestedJob):
+            def __init__(self, time):
+                super(FakeJob, self).__init__()
+                self.time_start = time
+                self.model_job = mock.Mock()
+                self.model_job.return_value = 123
+
+        jobs = [FakeJob(5), FakeJob(10), FakeJob(15)]
+
+        ds = DarshanDataSet(jobs, "a-path", {})
+
+        [self.assertEqual(j.model_job.call_count, 0) for j in jobs]
+        results = list(ds.model_jobs())
+        [self.assertEqual(j.model_job.call_count, 1) for j in jobs]
+        [self.assertEqual(j.model_job.call_args[0][0], 5) for j in jobs]
+        [self.assertEqual(r, 123) for r in results]
+
 
 if __name__ == "__main__":
     unittest.main()

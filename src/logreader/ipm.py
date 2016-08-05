@@ -54,6 +54,7 @@ class IPMIngestedJob(IngestedJob):
         Return a ModelJob from the supplied information
         """
         return ModelJob(
+            label=self.label,
             time_series=self.model_time_series(),
             time_start=-1,
             ncpus=-1,

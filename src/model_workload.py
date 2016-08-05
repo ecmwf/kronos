@@ -116,6 +116,28 @@ class ModelWorkload(object):
         For now, ASSERT that we only have data that has been brought in from Allinea.
         """
 
+        print "Merging DataSets..."
+        job_dict = {}
+        unlabelled_jobs = []
+
+        for ds in datasets:
+            for job in ds.model_jobs():
+                if job.label is None:
+                    unlabelled_jobs.append(job)
+                elif job.label in job_dict:
+                    job_dict[job.label].merge(job)
+                else:
+                    job_dict[job.label] = job
+
+        for job in job_dict.values():
+            job.check_job()
+
+        print "    {} labelled jobs".format(len(job_dict))
+        print "    {} unlabelled jobs".format(len(unlabelled_jobs))
+
+        sys.exit(-1)
+
+
         # TODO: Consider the scheduler jobs first, then update the job list with information
         #       from the (various) profiling options that have taken place.
         #

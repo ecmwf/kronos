@@ -1,5 +1,6 @@
 import numpy as np
 import time_signal
+from exceptions_iows import ModellingError
 
 
 class ModelJob(object):
@@ -12,6 +13,7 @@ class ModelJob(object):
     ncpus = None
     nnodes = None
     duration = None
+    label = None
 
     # Does what it says on the tin
     required_fields = [
@@ -40,7 +42,30 @@ class ModelJob(object):
             for series, values in time_series.iteritems():
                 self.timesignals[series] = values
 
-        self.check_job()
+        # n.b. We do NOT call check_job here. It is perfectly reasonably for the required data to come from
+        #      multiple sources, and be merged in. Or added in with regression processes. check_job() should be
+        #      called immediately before the first time the ModelJob is to be USED where validity would be required.
+
+    def merge(self, other):
+        """
+        Merge together two ModelJobs that are (trying) to represent the same actual job. They likely come from
+        separate sets of profiling.
+        """
+        assert self.label == other.label
+
+        for ts_name in time_signal.signal_types:
+
+            # There is nothing to copy in, if the other time signal is not valid...
+            other_valid = other.timesignals[ts_name] is not None and other.timesignals[ts_name].sum != 0
+            if other_valid:
+
+                self_valid = self.timesignals[ts_name] is not None and self.timesignals[ts_name].sum != 0
+                if self_valid:
+                    raise ModellingError("Valid timeseries in both model jobs for {}: {}".format(
+                        ts_name, self.label
+                    ))
+                else:
+                    self.timesignals[ts_name] = other.timesignals[ts_name]
 
     def verbose_description(self):
         """

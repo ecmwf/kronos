@@ -108,7 +108,7 @@ class IOWS(object):
         """
         print "\nBegining data ingestion...\n----------------------------------"
         self.ingest_data()
-        print "Ingested data sets: [\n" + ",\n".join(["    {}".format(d) for d in self.job_datasets]) +  "\n]"
+        print "\nIngested data sets: [\n" + ",\n".join(["    {}".format(d) for d in self.job_datasets]) +  "\n]"
 
         print "\nModelling ingested workload...\n----------------------------------"
         self.model_workload()
