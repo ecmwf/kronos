@@ -281,6 +281,7 @@ class DarshanIngestedJobTest(unittest.TestCase):
 
         m = job1.model_job(11)
 
+        self.assertEqual(m.label, "jobA")
         self.assertEqual(m.time_start, 99-11)
         self.assertEqual(m.ncpus, 17)
         self.assertEqual(m.timesignals['kb_read'].sum, 0)
@@ -296,7 +297,7 @@ class DarshanIngestedJobTest(unittest.TestCase):
         file2.bytes_written = 1024 * 102
 
         job1 = DarshanIngestedJob(
-            label="jobA",
+            label="jobB",
             log_version="2.6",
             file_details={"file1": file1, "file2": file2},
             time_start=99,
@@ -308,6 +309,7 @@ class DarshanIngestedJobTest(unittest.TestCase):
 
         m = job1.model_job(11)
 
+        self.assertEqual(m.label, "jobB")
         self.assertEqual(m.timesignals['kb_read'].sum, 199)
         self.assertEqual(m.timesignals['kb_write'].sum, 203)
 

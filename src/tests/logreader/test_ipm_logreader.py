@@ -71,6 +71,17 @@ class IPMIngestedJobTest(unittest.TestCase):
     """
     The DarshanIngestedJobFile class contains the information about each file logged by Darshan, within a job
     """
+    expected_series = [
+        'n_collective',
+        'kb_collective',
+        'n_pairwise',
+        'kb_pairwise',
+        'kb_read',
+        'kb_write'
+        # 'n_read'
+        # 'n_write'
+    ]
+
     def test_initialisation(self):
 
         # Check defaults
@@ -123,26 +134,37 @@ class IPMIngestedJobTest(unittest.TestCase):
         for t in range(1, 7):
             self.assertIn(t, job1.tasks)
 
+    def test_model_job(self):
+        """
+        n.b. We don't test the time series in detail (that is the following test), but we check that they are
+             translated correctly into the ModelJob
+        """
+        # TODO: Is there a required version of IPM for the parsing we are doing?
+
+        task1 = IPMTaskInfo()
+        task1.mpi_pairwise_bytes_send = 123 * 1024
+        task1.mpi_pairwise_count_send = 12
+        job = IPMIngestedJob(label="a-label", tasks=[task1])
+
+        m = job.model_job()
+
+        self.assertEqual(m.label, "a-label")
+        for s in self.expected_series:
+            self.assertIsNotNone(m.timesignals.get(s, None))
+            self.assertEqual(len(m.timesignals[s].xvalues), 1)
+            self.assertEqual(len(m.timesignals[s].yvalues), 1)
+        self.assertEqual(m.timesignals['kb_pairwise'].sum, 123)
+        self.assertEqual(m.timesignals['n_pairwise'].sum, 12)
+
     def test_model_time_series(self):
         """
         For now, we only consider the totals, and consider them to be offset by "zero" from the start.
         """
-        expected_series = [
-            'n_collective',
-            'kb_collective',
-            'n_pairwise',
-            'kb_pairwise',
-            'kb_read',
-            'kb_write'
-            # 'n_read'
-            # 'n_write'
-        ]
-
         # With no data, we should end up with empty time series
         job = IPMIngestedJob()
         series = job.model_time_series()
 
-        self.assertEqual(set(expected_series), set(series.keys()))
+        self.assertEqual(set(self.expected_series), set(series.keys()))
         for s in series.values():
             self.assertEqual(s.sum, 0)
             self.assertEqual(len(s.xvalues), 1)
@@ -193,7 +215,7 @@ class IPMIngestedJobTest(unittest.TestCase):
             'kb_write': 912
         }
 
-        self.assertEqual(set(expected_series), set(series.keys()))
+        self.assertEqual(set(self.expected_series), set(series.keys()))
         for nm, s in series.iteritems():
             self.assertEqual(s.sum, totals[nm])
             self.assertEqual(len(s.xvalues), 1)
