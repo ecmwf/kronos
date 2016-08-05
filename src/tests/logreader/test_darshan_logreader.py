@@ -387,7 +387,6 @@ class DarshanLogReaderTest(unittest.TestCase):
 
         self.assertEqual(lr.parser_command, 'darshan-parser')
         self.assertEqual(lr.path, 'test-path')
-        self.assertEqual(lr.dataset_class, DarshanDataSet)
         self.assertEqual(lr.file_pattern, "*.gz")
         self.assertTrue(lr.recursive)
         self.assertEqual(lr.label_method, 'directory')
@@ -401,7 +400,7 @@ class DarshanLogReaderTest(unittest.TestCase):
 
         self.assertEqual(lr.parser_command, 'a-parser')
 
-    def test_read_logs_generator(self):
+    def test_read_logs(self):
         """
         Should return a generator of the output of read_log depending on the results of logfiles.
 
@@ -418,7 +417,7 @@ class DarshanLogReaderTest(unittest.TestCase):
 
         lr = LogReaderLocal('test-path')
 
-        logs = lr.read_logs_generator()
+        logs = lr.read_logs()
         self.assertIsInstance(logs, types.GeneratorType)
 
         logs = list(logs)

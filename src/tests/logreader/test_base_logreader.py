@@ -24,7 +24,6 @@ class BaseLogReaderTest(unittest.TestCase):
         # Test the available defaults
         lr = LogReader('fake-path')
         self.assertEqual(lr.path, 'fake-path')
-        self.assertIsNone(lr.dataset_class)
         self.assertIsNone(lr.file_pattern)
         self.assertFalse(lr.recursive)
         self.assertIsNone(lr.label_method)
@@ -35,7 +34,6 @@ class BaseLogReaderTest(unittest.TestCase):
         # Test that we can override with the things we provide
         lr = LogReader('fake-path', recursive=True, file_pattern="*.pattern", label_method="directory", pool_readers=99)
         self.assertEqual(lr.path, 'fake-path')
-        self.assertIsNone(lr.dataset_class)
         self.assertEqual(lr.file_pattern, "*.pattern")
         self.assertTrue(lr.recursive)
         self.assertEqual(lr.label_method, "directory")
@@ -243,42 +241,15 @@ class BaseLogReaderTest(unittest.TestCase):
 
         self.assertRaises(NotImplementedError, lambda: lr.read_log('fake-filename', None))
 
-    def test_create_dataset(self):
-
-        class DerivedLogReader(LogReader):
-
-            dataset_class = IngestedDataSet
-            generator_called = False
-
-            def read_log(self, filename, suggested_label):
-                return [filename]
-
-            def logfiles(self):
-                for i in range(10):
-                    yield i
-
-            def read_logs_generator(self):
-                self.generator_called = True
-                return super(DerivedLogReader, self).read_logs_generator()
-
-        lr = DerivedLogReader('test-path')
-
-        logs = lr.read_logs()
-
-        self.assertIsInstance(logs, IngestedDataSet)
-        self.assertIsInstance(logs.joblist, list)
-        self.assertEqual(logs.joblist, range(10))
-        self.assertTrue(lr.generator_called)
-
     def test_suggested_labels(self):
 
         lr = LogReader('test-path')
         self.assertIsNone(lr.suggest_label("a/file/path.test"))
 
-        lr = LogReader('test-path', label_method="directory")
-        self.assertEqual(lr.suggest_label("a/file/path.test"), "a/file")
+        lr = LogReader('a', label_method="directory")
+        self.assertEqual(lr.suggest_label("a/file/path.test"), "file")
 
-    def test_read_logs_generator(self):
+    def test_read_logs(self):
         """
         Should return a generator of the output of read_log depending on the results of logfiles.
         """
@@ -292,7 +263,7 @@ class BaseLogReaderTest(unittest.TestCase):
 
         lr = LogReaderLocal('test-path')
 
-        logs = lr.read_logs_generator()
+        logs = lr.read_logs()
 
         imax = 0
         for i, l in enumerate(logs):
