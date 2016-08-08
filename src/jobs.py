@@ -109,7 +109,7 @@ class ModelJob(object):
         """
         for field in self.required_fields:
             if getattr(self, field, None) is None:
-                print_colour("red", "Job is oncomplete. Missing field: {}".format(field))
+                print_colour("red", "Job is incomplete. Missing field: {}".format(field))
                 return False
 
         return True

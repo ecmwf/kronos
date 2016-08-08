@@ -2,7 +2,7 @@
 import unittest
 
 from exceptions_iows import ModellingError
-from jobs import ModelJob
+from jobs import ModelJob, IngestedJob
 import time_signal
 
 
@@ -172,7 +172,77 @@ class IngestedJobTest(unittest.TestCase):
         """
         Check that we have sensible (overridable) defaults. N.b. inherits from LogReader
         """
-        raise NotImplementedError
+        job = IngestedJob()
+
+        for attr in [
+            'label',
+            'time_created',
+            'time_eligible',
+            'time_end',
+            'time_start',
+            'ncpus',
+            'nnodes',
+            'filename',
+            'group',
+            'jobname',
+            'user',
+            'queue_type',
+            'runtime']:
+            self.assertTrue(hasattr(job, attr))
+            self.assertIsNone(getattr(job, attr))
+
+        # Check that we can override things
+        job = IngestedJob(
+            label="a-label",
+            time_created=123,
+            time_eligible=456,
+            time_end=789,
+            time_start=12,
+            ncpus=34,
+            nnodes=5,
+            filename="a-filename",
+            group=67,
+            jobname="job-name",
+            user=89,
+            queue_type="np",
+            runtime=123
+        )
+
+        self.assertEqual(job.label, "a-label")
+        self.assertEqual(job.time_created, 123)
+        self.assertEqual(job.time_eligible, 456)
+        self.assertEqual(job.time_end, 789)
+        self.assertEqual(job.time_start, 12)
+        self.assertEqual(job.ncpus, 34)
+        self.assertEqual(job.nnodes, 5)
+        self.assertEqual(job.filename, "a-filename")
+        self.assertEqual(job.group, 67)
+        self.assertEqual(job.jobname, "job-name")
+        self.assertEqual(job.user, 89)
+        self.assertEqual(job.queue_type, "np")
+        self.assertEqual(job.runtime, 123)
+
+        # Check that supplying an invalid attribute raises an error
+        self.assertRaises(AttributeError, lambda: IngestedJob(wiggly_false=123))
+
+    def test_derived_initialisation(self):
+        """
+        If attributes have been added to the class by a derived class, these should be overridable too.
+        :return:
+        """
+        class DerivedIngestedJob(IngestedJob):
+            a_weird_attr = 99
+
+        # Check the default
+        job = DerivedIngestedJob()
+        self.assertEqual(job.a_weird_attr, 99)
+
+        # Check it can be overridden
+        job = DerivedIngestedJob(a_weird_attr=12345678)
+        self.assertEqual(job.a_weird_attr, 12345678)
+
+        # Check that other attributes still throw an error
+        self.assertRaises(AttributeError, lambda: DerivedIngestedJob(wiggly_false=123))
 
 
 if __name__ == "__main__":
