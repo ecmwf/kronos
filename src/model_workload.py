@@ -1,3 +1,4 @@
+import itertools
 import numpy as np
 from pylab import *
 from matplotlib import dates
@@ -134,6 +135,9 @@ class ModelWorkload(object):
 
         print "    {} labelled jobs".format(len(job_dict))
         print "    {} unlabelled jobs".format(len(unlabelled_jobs))
+
+        # Give access to all of the jobs
+        self.job_list = job_dict.values() + unlabelled_jobs
 
         # corrector = WorkloadCorrector(self.config_options)
         # corrector.train_surrogate_model("ANN", list(profiler_dataset.model_jobs()))
