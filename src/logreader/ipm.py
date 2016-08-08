@@ -2,6 +2,7 @@ from pylab import *
 
 import xml.etree.ElementTree as ET
 
+from exceptions_iows import IngestionError
 from jobs import IngestedJob, ModelJob
 from logreader.base import LogReader
 from logreader.dataset import IngestedDataSet
@@ -12,7 +13,26 @@ class IPMTaskInfo(object):
     """
     Store the information aggregated in an IPM task.
     """
-    def __init__(self):
+    def __init__(self, ipm_version, ntasks, nhosts, mpi_rank, time_start, time_end):
+
+        # Required options
+        self.ipm_version = ipm_version
+        self.ntasks = ntasks
+        self.nhosts = nhosts
+        self.mpi_rank = mpi_rank
+        self.time_start = time_start
+        self.time_end = time_end
+
+        # Check version numbers
+        major, minor, inc = [int(e) for e in self.ipm_version.strip().split('.')]
+        if major != 2:
+            raise IngestionError("Unsupported IPM version: {}".format(ipm_version.strip()))
+
+        # Check start/end times
+        if time_end < time_start:
+            raise IngestionError("Start time {} after end time {}".format(time_start, time_end))
+
+        # Initialise accumulators
 
         self.mpi_pairwise_count_send = 0
         self.mpi_pairwise_bytes_send = 0
@@ -241,8 +261,19 @@ class IPMLogReader(LogReader):
 
     def parse_task(self, task, ntasks):
 
+        # Process the task metadata
+
         assert int(task.get('mpi_size')) == ntasks
-        assert int(task.find('job').get('ntasks')) == ntasks
+        time_start = float(task.get('stamp_init'))
+        time_end = float(task.get('stamp_final'))
+        mpi_rank = int(task.get('rank'))
+        ipm_version = task.get('ipm_version')
+
+        job = task.find('job')
+        assert int(job.get('ntasks')) == ntasks
+        nhosts = int(job.get('nhosts'))
+
+        # Process the function-specific information
 
         regions_container = task.find('regions')
         nregions = int(regions_container.get('n'))
@@ -250,7 +281,7 @@ class IPMLogReader(LogReader):
         regions = regions_container.findall('region')
         assert len(regions) == nregions
 
-        task = IPMTaskInfo()
+        task = IPMTaskInfo(ipm_version, ntasks, nhosts, mpi_rank, time_start, time_end)
 
         for region in regions:
 

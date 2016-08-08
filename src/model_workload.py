@@ -135,34 +135,11 @@ class ModelWorkload(object):
         print "    {} labelled jobs".format(len(job_dict))
         print "    {} unlabelled jobs".format(len(unlabelled_jobs))
 
-        sys.exit(-1)
-
-
-        # TODO: Consider the scheduler jobs first, then update the job list with information
-        #       from the (various) profiling options that have taken place.
-        #
-        # n.b. We can only cope with _one_ Scheduling dataset.
-
-        # For now, this is somewhat ugly. We can only deal with _one_ scheduler, and _one_
-        # non-scheduler based dataset.
-
-        if len(datasets) == 1:
-            self.job_list = list(datasets[0].model_jobs())
-        else:
-            assert len(datasets) == 2
-
-            if isinstance(datasets[0], PBSDataSet) or isinstance(datasets[0], AccountingDataSet):
-                scheduler_dataset, profiler_dataset = datasets[0], datasets[1]
-            else:
-                scheduler_dataset, profiler_dataset = datasets[1], datasets[0]
-            assert isinstance(scheduler_dataset, PBSDataSet) or isinstance(scheduler_dataset, AccountingDataSet)
-            assert not (isinstance(profiler_dataset, PBSDataSet) or isinstance(profiler_dataset, AccountingDataSet))
-
-            corrector = WorkloadCorrector(self.config_options)
-            corrector.train_surrogate_model("ANN", list(profiler_dataset.model_jobs()))
-            corrector.ann_visual_check("Surrogate-model-test")
-            scheduler_jobs = corrector.apply_surrogate_model(list(scheduler_dataset.model_jobs()))
-            self.job_list.extend(scheduler_jobs)
+        # corrector = WorkloadCorrector(self.config_options)
+        # corrector.train_surrogate_model("ANN", list(profiler_dataset.model_jobs()))
+        # corrector.ann_visual_check("Surrogate-model-test")
+        # scheduler_jobs = corrector.apply_surrogate_model(list(scheduler_dataset.model_jobs()))
+        # self.job_list.extend(scheduler_jobs)
 
         # Ensure that the data is in a reasonable state for further processing
         #

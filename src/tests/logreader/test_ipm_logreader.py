@@ -3,6 +3,7 @@ import unittest
 import types
 import mock
 
+from exceptions_iows import IngestionError
 from jobs import IngestedJob
 from logreader.base import LogReader
 from logreader.ipm import IPMTaskInfo, IPMLogReader, IPMIngestedJob, IPMDataSet
@@ -12,7 +13,16 @@ class IPMTaskInfoTest(unittest.TestCase):
     """
     The IPMTaskInfo class contains the information about each task logged by IPM within a job
     """
-    available_attrs = [
+    task_metadata = [
+        'ipm_version',
+        'ntasks',
+        'nhosts',
+        'mpi_rank',
+        'time_start',
+        'time_end'
+    ]
+
+    available_counters = [
         'mpi_pairwise_count_send',
         'mpi_pairwise_bytes_send',
         'mpi_pairwise_count_recv',
@@ -32,28 +42,41 @@ class IPMTaskInfoTest(unittest.TestCase):
         """
         Test that all the required accumulators are created, and zerod
         """
-        task = IPMTaskInfo()
+        task = IPMTaskInfo("2.0.2", 99, 88, 77, 55, 66)
 
-        for attr in self.available_attrs:
+        for attr in self.available_counters:
             self.assertTrue(hasattr(task, attr))
             self.assertEqual(getattr(task, attr), 0)
+
+        self.assertEqual(task.ipm_version, "2.0.2")
+        self.assertEqual(task.ntasks, 99)
+        self.assertEqual(task.nhosts, 88)
+        self.assertEqual(task.mpi_rank, 77)
+        self.assertEqual(task.time_start, 55)
+        self.assertEqual(task.time_end, 66)
 
     def test_only_attrs(self):
         """
         Test that we haven't added any further attributes that aren't tested.
         """
-        task = IPMTaskInfo()
+        task = IPMTaskInfo("2.0.2", 0, 0, 0, 0, 0)
 
         task_attrs = [a for a in dir(task) if not (a.startswith('_') or callable(getattr(task, a)))]
 
         for attr in task_attrs:
-            self.assertIn(attr, self.available_attrs)
+            self.assertTrue(attr in self.available_counters or attr in self.task_metadata)
+
+    def test_start_end_times(self):
+        """
+        If the start time is after the end time, there should be an error
+        """
+        self.assertRaises(IngestionError, lambda: IPMTaskInfo("2.0.2", 99, 88, 77, 66, 55))
 
     def test_representation(self):
         """
         There are too many data elements to represent them all, so test that we record some sensible aggregates.
         """
-        task = IPMTaskInfo()
+        task = IPMTaskInfo("2.0.2", 0, 0, 0, 0, 0)
 
         task.mpi_pairwise_count_send = 1
         task.mpi_pairwise_bytes_send = 2
@@ -144,7 +167,7 @@ class IPMIngestedJobTest(unittest.TestCase):
         """
         # TODO: Is there a required version of IPM for the parsing we are doing?
 
-        task1 = IPMTaskInfo()
+        task1 = IPMTaskInfo("2.0.2", 99, 88, 77, 55, 66)
         task1.mpi_pairwise_bytes_send = 123 * 1024
         task1.mpi_pairwise_count_send = 12
         job = IPMIngestedJob(label="a-label", tasks=[task1])
@@ -178,7 +201,7 @@ class IPMIngestedJobTest(unittest.TestCase):
         # Otherwise, there should be time-series created with the correct totals
         # N.B. The MPI pairwise RECV data is ignored (as it duplicates some/most of the SEND data).
 
-        task1 = IPMTaskInfo()
+        task1 = IPMTaskInfo("2.0.2", 99, 88, 77, 55, 66)
         task1.mpi_pairwise_bytes_send = 123 * 1024
         task1.mpi_pairwise_bytes_recv = 456 * 1024
         task1.mpi_collective_bytes = 789 * 1024
@@ -192,7 +215,7 @@ class IPMIngestedJobTest(unittest.TestCase):
         task1.read_count = 90
         task1.write_count = 12
 
-        task2 = IPMTaskInfo()
+        task2 = IPMTaskInfo("2.0.2", 99, 88, 77, 55, 66)
         task2.mpi_pairwise_bytes_send = 345 * 1024
         task2.mpi_pairwise_bytes_recv = 678 * 1024
         task2.mpi_collective_bytes = 901 * 1024

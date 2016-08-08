@@ -16,10 +16,7 @@ class KernelBase(object):
         """
         Return True if this kernel would do nothing (and can therefore be omitted from the list)
         """
-        return all((
-            all(ts.yvalues_bins == 0) if getattr(ts, 'yvalues_bins', None) is not None else True
-            for ts in self.timesignals.values()
-        ))
+        return all((ts.sum == 0 for ts in self.timesignals.values()))
 
     def extra_data(self, **kwargs):
         data = {'name': self.name}
@@ -42,15 +39,21 @@ class KernelBase(object):
 
         time_signals = [self.timesignals[ts_name].yvalues_bins for ts_name in time_signal_names]
 
-        data = [ { k: v for k, v in zip(key_names, ts_data) } for ts_data in zip(*time_signals) ]
+        frames = [ { k: v for k, v in zip(key_names, ts_data) } for ts_data in zip(*time_signals) ]
 
         # Add any extra data, which is constant for all the elements.
 
         extra_data = self.extra_data()
-        for d in data:
-            d.update(extra_data)
+        for frame in frames:
 
-        return data
+            # If the time series is empty, then mark it as such (so it can be excluded later)
+            if all((ts.sum == 0 for ts in frame.values())):
+                frame['empty'] = True
+
+            frame.update(extra_data)
+
+
+        return frames
 
 
 class CPUKernel(KernelBase):
