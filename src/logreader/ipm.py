@@ -121,6 +121,7 @@ class IPMLogReader(LogReader):
     job_class = IPMIngestedJob
     log_type_name = "IPM"
     file_pattern = "*.xml"
+    recursive = True
 
     # By default we end up with a whole load of darshan logfiles within a directory.
     label_method = "directory"
@@ -219,32 +220,24 @@ class IPMLogReader(LogReader):
         "lseek64": None
     }
 
-    def __init__(self, path, **kwargs):
-
-        # TODO: Configure the darshan paths (need darshan-parser)
-        print "IPM Log Reader"
-
-        # Custom configuration:
-        # self.parser_command = kwargs.pop('parser', 'darshan-parser')
-
-        super(IPMLogReader, self).__init__(path, **kwargs)
-
     def parse_calltable(self, calltable):
-
+        """
+        The calltablists the IPM modules, and the associated functionality that they will profile.
+        The data returned late uses these same labels - and we retain a lookup table for where that data should
+        be placed, so we check here that we are not going to encounter any unmapped input.
+        """
         assert calltable is not None
 
         sections = calltable.findall('section')
         for section in sections:
 
-            module = section.get('module')
+            # module = section.get('module')
             entries = section.findall('entry')
             assert len(entries) == int(section.get('nentries'))
             for entry in entries:
                 name = entry.get('name')
-
-                if entry.get('name') not in self.func_mapping:
-                    # TODO: A proper exception here...
-                    raise Exception("Oh no... {} {}".format(module, entry.get('name')))
+                if name not in self.func_mapping:
+                    raise Exception("IPM logfile contains unsupported function information")
 
     def parse_task(self, task, ntasks):
 
@@ -298,7 +291,7 @@ class IPMLogReader(LogReader):
         assert ntasks > 0
         task_info = [self.parse_task(task, ntasks) for task in tasks]
 
-        return [IPMIngestedJob(
+        return [self.job_class(
             tasks=task_info,
             label=suggested_label,
             filename=filename

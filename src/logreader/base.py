@@ -30,6 +30,8 @@ class LogReader(object):
     def __init__(self, path, recursive=None, file_pattern=None, label_method=None, pool_readers=None):
         self.path = path
 
+        print "Log reader ({})".format(self.log_type_name)
+
         self.label_method = label_method if label_method is not None else self.label_method
         self.recursive = recursive if recursive is not None else self.recursive
         self.pool_readers = pool_readers if pool_readers is not None else self.pool_readers

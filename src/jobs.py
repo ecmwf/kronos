@@ -1,6 +1,8 @@
 import numpy as np
 import time_signal
+
 from exceptions_iows import ModellingError
+from tools.print_colour import print_colour
 
 
 class ModelJob(object):
@@ -84,9 +86,20 @@ class ModelJob(object):
         """
         Some quick sanity checks
         """
+        if not self.is_valid():
+            raise KeyError("Job is missing field")
+
+    def is_valid(self):
+        """
+        Return false if the job is not complete, and usable
+        :return:
+        """
         for field in self.required_fields:
             if getattr(self, field, None) is None:
-                raise KeyError("job is missing field: {}".format(field))
+                print_colour("red", "Job is oncomplete. Missing field: {}".format(field))
+                return False
+
+        return True
 
     @property
     def job_impact_index(self):
