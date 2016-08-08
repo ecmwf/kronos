@@ -78,7 +78,7 @@ class IPMIngestedJob(IngestedJob):
         # Combine the task metadata. We take the first observed task time as the start time, and the last observed
         # time as the end time.
         time_start = min([t.time_start for t in self.tasks])
-        time_end = min([t.time_end for t in self.tasks])
+        time_end = max([t.time_end for t in self.tasks])
         duration = time_end - time_start
 
         # The number of tasks and hosts may also vary, as there may be multiple aprun/mpirun/mpiexec calls profiled

@@ -187,6 +187,21 @@ class IPMIngestedJobTest(unittest.TestCase):
         self.assertEqual(m.ncpus, 99)
         self.assertEqual(m.nnodes, 88)
 
+    def test_model_job_minmax(self):
+        """
+        What happens if the tasks don't agree on some of the metrics? Sometimes we need the min, sometimes the max.
+        """
+        task1 = IPMTaskInfo("2.0.2", 99, 88, 0, 44, 66)
+        task2 = IPMTaskInfo("2.0.2", 101, 91, 1, 55, 77)
+        job = IPMIngestedJob(label="a-label", tasks=[task1, task2])
+
+        m = job.model_job()
+
+        self.assertEqual(m.time_start, 44)
+        self.assertEqual(m.duration, 33)
+        self.assertEqual(m.ncpus, 101)
+        self.assertEqual(m.nnodes, 91)
+
     def test_model_time_series(self):
         """
         For now, we only consider the totals, and consider them to be offset by "zero" from the start.
