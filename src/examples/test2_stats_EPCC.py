@@ -17,7 +17,7 @@ def test2_stats_EPCC():
             'title': 'EPCC cpus and jobs',
             'subplots': ['nodes', 'jobs'],
             'queue_type': [(['debug', 'largemem', 'long', 'low', 'parallel', 'serial', 'standard'], 'normal queue', 'b')],
-            'time format': '%m',
+            'time format': '%b',
             'out_dir': '/var/tmp/maab/iows/output',
         },
         {

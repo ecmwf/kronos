@@ -17,7 +17,7 @@ def test0_stats_ECMWF():
             'title': 'ECMWF nodes and jobs (parallel jobs)',
             'subplots': ['nodes', 'jobs'],
             'queue_type': [(['np'], 'normal queue', 'b'), (['op'], 'operational queue', 'k')],
-            'time format': '%d',
+            'time format': '%a',
             'out_dir': '/var/tmp/maab/iows/output',
          },
         {
@@ -25,7 +25,7 @@ def test0_stats_ECMWF():
             'title': 'ECMWF nodes and jobs (fractional jobs)',
             'subplots': ['nodes', 'jobs'],
             'queue_type': [(['nf'], 'normal queue', 'b'), (['of'], 'operational queue', 'k')],
-            'time format': '%m',
+            'time format': '%a',
             'out_dir': '/var/tmp/maab/iows/output',
          },
         {
@@ -47,7 +47,8 @@ def test0_stats_ECMWF():
     ]
 
     scheduler_tag = "accounting"
-    scheduler_log_file = "/perm/ma/maab/ngio_logs/ECMWF/cca-jobs-20160201_test.csv"
+    scheduler_log_file = "/perm/ma/maab/ngio_logs/ECMWF/cca-jobs-20160201.csv"
+    # scheduler_log_file = "/perm/ma/maab/ngio_logs/ECMWF/cca-jobs-20160201_test.csv"
 
     aPlotter = Plotter(ingest_data(scheduler_tag, scheduler_log_file))
     aPlotter.make_plots(plot_dict)

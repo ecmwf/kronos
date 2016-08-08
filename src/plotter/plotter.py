@@ -2,7 +2,6 @@ import pylab as pylb
 import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib import dates
-import csv
 from datetime import datetime
 
 from model_workload import ModelWorkload
@@ -10,6 +9,12 @@ from logreader.scheduler_reader import PBSDataSet, AccountingDataSet
 from tools.print_colour import print_colour
 from plot_handler import PlotHandler
 import scipy.stats as stats
+
+
+hour_loc = dates.HourLocator()  # every day
+day_loc = dates.DayLocator()  # every day
+months_loc = dates.MonthLocator()  # every month
+years_loc = dates.YearLocator()  # every year
 
 
 class Plotter(object):
@@ -108,17 +113,7 @@ def plot_from_dictionary(plot_dict, list_jobs):
                     if t_date_job0:
                         subplt_hdl.set_xlim(xmin=t_date_job0, xmax=t_date_job_end)
 
-                    if plot_time_format in ['%d']:
-                        locator = dates.DayLocator()
-                    elif plot_time_format in ['%b', '%m']:
-                        locator = dates.MonthLocator()
-                    else:
-                        locator = dates.DayLocator()
-
-                    ax = plt.gca()
-                    ax.xaxis.set_major_locator(locator)
-                    hfmt = dates.DateFormatter(plot_time_format)
-                    ax.xaxis.set_major_formatter(hfmt)
+                    iows_set_xaxis_format(plt.gca(), plot_time_format)
 
             # ------------- finish plot ---------------
             name_fig = plot_out_dir + "/" + plot_title.replace(" ", "_") + "_x=time.png"
@@ -163,14 +158,17 @@ def plot_from_dictionary(plot_dict, list_jobs):
 
                     list_jobs_queue = [i_job for i_job in list_jobs if i_job.queue_type in queue_label]
 
+                    xlabel_name = i_subplot_name
                     if i_subplot_name == 'ncpus':
                         y_values = np.asarray([y.ncpus for y in list_jobs_queue])
 
                     elif i_subplot_name == 'run-time':
-                        y_values = np.asarray([y.runtime for y in list_jobs_queue])
+                        y_values = np.asarray([y.runtime/3600. for y in list_jobs_queue])
+                        xlabel_name = 'run-time [hr]'
 
                     elif i_subplot_name == 'queue-time':
-                        y_values = np.asarray([y.time_in_queue for y in list_jobs_queue])
+                        y_values = np.asarray([y.time_in_queue/3600. for y in list_jobs_queue])
+                        xlabel_name = 'queue-time [hr]'
 
                     else:
                         raise KeyError(" subplot type ['ncpus', 'runtime' or 'queuetime'] not recognized: {}".format(i_subplot_name))
@@ -179,7 +177,7 @@ def plot_from_dictionary(plot_dict, list_jobs):
                     hh, bin_edges = np.histogram(y_values, bins=n_bins, density=False)
                     plt.bar(bin_edges[:-1], hh, pylb.diff(bin_edges), color=queue_col)
 
-                    subplt_hdl.set_xlabel(i_subplot_name)
+                    subplt_hdl.set_xlabel(xlabel_name)
                     subplt_hdl.set_yscale('log')
                     subplt_hdl.set_ylabel('# jobs')
 
@@ -227,3 +225,29 @@ def get_running_vectors(ts, te, vals_vec):
     t_dates = dates.date2num(t_dates)  # converted
 
     return t_dates, t_vals_vec
+
+
+def iows_set_xaxis_format(ax, plot_time_format):
+
+    if plot_time_format in ['%d', '%a']:
+        ax.xaxis.set_major_locator( day_loc )
+        hfmt = dates.DateFormatter(plot_time_format)
+        ax.xaxis.set_major_formatter(hfmt)
+        ax.xaxis.set_minor_locator(hour_loc)
+        ax.xaxis.set_ticks_position('bottom')
+
+    elif plot_time_format in ['%b', '%m']:
+        ax.xaxis.set_major_locator(months_loc)
+        hfmt = dates.DateFormatter(plot_time_format)
+        ax.xaxis.set_major_formatter(hfmt)
+        ax.xaxis.set_ticks_position('bottom')
+
+    elif plot_time_format in ['%Y']:
+        ax.xaxis.set_major_locator(years_loc)
+        hfmt = dates.DateFormatter(plot_time_format)
+        ax.xaxis.set_major_formatter(hfmt)
+        ax.xaxis.set_minor_locator(months_loc)
+        ax.xaxis.set_ticks_position('bottom')
+
+    else:
+        ValueError('dateformat not recognized..')
