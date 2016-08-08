@@ -2,7 +2,7 @@ from pylab import *
 
 import xml.etree.ElementTree as ET
 
-from exceptions_iows import IngestionError
+from exceptions_iows import IngestionError, ModellingError
 from jobs import IngestedJob, ModelJob
 from logreader.base import LogReader
 from logreader.dataset import IngestedDataSet
@@ -73,17 +73,37 @@ class IPMIngestedJob(IngestedJob):
         """
         Return a ModelJob from the supplied information
         """
+        assert len(self.tasks) > 0
+
+        # Combine the task metadata. We take the first observed task time as the start time, and the last observed
+        # time as the end time.
+        time_start = min([t.time_start for t in self.tasks])
+        time_end = min([t.time_end for t in self.tasks])
+        duration = time_end - time_start
+
+        ntasks = self.tasks[0].ntasks
+        nhosts = self.tasks[0].nhosts
+        if not all([t.ntasks == ntasks for t in self.tasks]):
+            raise ModellingError("Tasks within job disagree on the number of tasks")
+        if not all([t.nhosts == nhosts for t in self.tasks]):
+            raise ModellingError("Tasks within job disagree on the number of hosts")
+
+        # TODO: We want to capture multi-threading as well as multi-processing somewhere3
         return ModelJob(
             label=self.label,
             time_series=self.model_time_series(),
-            time_start=-1,
-            ncpus=-1,
-            nnodes=-1
+            time_start=time_start,
+            duration=duration,
+            ncpus=ntasks,
+            nnodes=nhosts
         )
 
     def aggregate(self, rhs):
 
         # We want to include all of the tasks that have been IPM'd
+        # n.b. Essentially all of the interesting information is contained in the tasks.
+        # TODO: It is possible that doing this will result in errors if there are IPM runs of different commands
+        #       within a submit script, with differing MPI configurations.
         self.tasks += rhs.tasks
 
     def model_time_series(self):
