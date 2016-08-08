@@ -81,7 +81,11 @@ def read_pbs_log(filename_in):
                 # special case for ARCTUR PBS..
                 # Resource_List.nodes=1:ppn=1
                 if yval_val[0] == "Resource_List.nodes":
+
                     if len(yval_val[1].split(":")) > 1:
+
+                        line_dict["nnodes"] = int(yval_val[1].split(":")[0])
+
                         if yval_val[1].split(":")[1] == "ppn":
                             line_dict["ncpus"] = int(yval_val[2]) * int(yval_val[1].split(":")[0])
                     else:

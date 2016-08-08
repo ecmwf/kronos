@@ -11,30 +11,32 @@ from plotter.plotter import Plotter
 #////////////////////////////////////////////////////////////////
 def test1_stats_ARCTUR():
 
-    plot_dict = [
-        {
-            'type': 'time series',
-            'title': 'ARCTUR cpus and jobs',
-            'subplots': ['ncpus', 'jobs'],
-            'queue_type': [(['fat', 'highprio', 'medium', 'small'], 'normal queue', 'b')],
-            'time format': '%Y',
-            'out_dir': '/var/tmp/maab/iows/output',
-        },
-        {
-            'type': 'histogram',
-            'n_bins': 30,
-            'title': 'ARCTUR histograms',
-            'subplots': ['ncpus', 'run-time', 'queue-time'],
-            'queue_type': [(['fat', 'highprio', 'medium', 'small'], 'normal queue', 'b')],
-            'out_dir': '/var/tmp/maab/iows/output',
-        },
-    ]
+    plot_settings = {'run_tag': 'ARCTUR',
+                     'out_dir': '/var/tmp/maab/iows/output',
+                     'plots': [
+                                {
+                                    'type': 'time series',
+                                    'title': 'cpus and jobs',
+                                    'subplots': ['cpus', 'jobs'],
+                                    'queue_type': [(['fat', 'highprio', 'medium', 'small'], '', 'b')],
+                                    'time format': '%Y',
+                                },
+                                {
+                                    'type': 'histogram',
+                                    'n_bins': 30,
+                                    'title': '',
+                                    'subplots': ['cpus', 'nodes', 'run-time', 'queue-time', 'cpu-hours'],
+                                    'queue_type': [(['fat', 'highprio', 'medium', 'small'], '', 'b')],
+                                },
+                             ]
+                     }
 
     scheduler_tag = "pbs"
     scheduler_log_file = "/perm/ma/maab/ngio_logs/ARCTUR/Arctur-1.accounting.logs"
+    # scheduler_log_file = "/perm/ma/maab/ngio_logs/ARCTUR/Arctur-1.accounting.logs_test"
 
     aPlotter = Plotter(ingest_data(scheduler_tag, scheduler_log_file))
-    aPlotter.make_plots(plot_dict)
+    aPlotter.make_plots(plot_settings)
 
 
 if __name__ == '__main__' and __package__ is None:
