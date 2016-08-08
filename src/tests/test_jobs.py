@@ -23,9 +23,9 @@ class ModelJobTest(unittest.TestCase):
 
         # Test that we can override specified fields
         job = ModelJob(
-            time_series = {
+            time_series={
                 'kb_read': time_signal.TimeSignal.from_values('kb_read', [0.0], [0.0]),
-                'kb_write': time_signal.TimeSignal.from_values('kb_read', [0.0], [0.0]),
+                'kb_write': time_signal.TimeSignal.from_values('kb_write', [0.0], [0.0]),
             },
             time_start=123,
             ncpus=4,
@@ -50,6 +50,17 @@ class ModelJobTest(unittest.TestCase):
         # Test that we cannot override non-specific fields
         self.assertRaises(AssertionError, lambda: ModelJob(invalid=123))
 
+    def test_reject_mislabelled_time_signals(self):
+        """
+        The initialisation routine should reject invalid time signals in a model job.
+        """
+        self.assertRaises(
+            ModellingError,
+            lambda: ModelJob(
+                time_series={
+                    'kb_write': time_signal.TimeSignal.from_values('kb_read', [0.0], [0.0]),
+                }))
+
     def test_merge_fails_different_label(self):
         """
         We should not be able to merge two jobs with differing labels, as these don't correspond to the same overall job
@@ -66,7 +77,7 @@ class ModelJobTest(unittest.TestCase):
         :return:
         """
         kb_read = time_signal.TimeSignal.from_values('kb_read', [0.0], [1.0])
-        kb_write = time_signal.TimeSignal.from_values('kb_write', [0.0], [0.0]) # n.b. zero data
+        kb_write = time_signal.TimeSignal.from_values('kb_write', [0.0], [0.0])  # n.b. zero data
 
         job1 = ModelJob(label="label1", time_series={'kb_read': kb_read})
         job2 = ModelJob(label="label1", time_series={'kb_write': kb_write})
@@ -75,6 +86,27 @@ class ModelJobTest(unittest.TestCase):
         self.assertIsNotNone(job2.timesignals['kb_write'])
         job1.merge(job2)
         self.assertIsNone(job1.timesignals['kb_write'])
+
+    def test_merge_rejects_mislabelled_time_signals(self):
+        """
+        Test that the merging routine checks the labelling validity. Both ways around.
+        :return:
+        """
+        kb_read = time_signal.TimeSignal.from_values('kb_read', [0.0], [1.0])
+        kb_write = time_signal.TimeSignal.from_values('kb_read', [0.0], [1.0])  # n.b. mislabelled
+
+        job1 = ModelJob(label="label1", time_series={'kb_read': kb_read})
+        job2 = ModelJob(label="label1")
+        job2.timesignals['kb_write'] = kb_write
+
+        self.assertRaises(ModellingError, lambda: job1.merge(job2))
+
+        # And the other way around
+        job2 = ModelJob(label="label1", time_series={'kb_read': kb_read})
+        job1 = ModelJob(label="label1")
+        job1.timesignals['kb_write'] = kb_write
+
+        self.assertRaises(ModellingError, lambda: job1.merge(job2))
 
     def test_merge(self):
         """
@@ -86,7 +118,7 @@ class ModelJobTest(unittest.TestCase):
         # n.b. non-zero values. Zero time signals are ignored.
         kb_read1 = time_signal.TimeSignal.from_values('kb_read', [0.0], [1.0])
         kb_read2 = time_signal.TimeSignal.from_values('kb_read', [0.0], [1.0])
-        kb_write1 = time_signal.TimeSignal.from_values('kb_read', [0.0], [1.0])
+        kb_write1 = time_signal.TimeSignal.from_values('kb_write', [0.0], [1.0])
 
         # Test that we take the union of the available time series
         job1 = ModelJob(label="label1", time_series={'kb_read': kb_read1})
@@ -105,8 +137,8 @@ class ModelJobTest(unittest.TestCase):
             self.assertIsNone(job1.timesignals[ts_name])
 
         # If a time-series exists in BOTH jobs this should (for now) raise an error.
-        job1 = ModelJob(label="label1", time_series = {'kb_read': kb_read1})
-        job2 = ModelJob(label="label1", time_series = {'kb_read': kb_read2})
+        job1 = ModelJob(label="label1", time_series={'kb_read': kb_read1})
+        job2 = ModelJob(label="label1", time_series={'kb_read': kb_read2})
         self.assertRaises(ModellingError, lambda: job1.merge(job2))
 
     def test_is_valid(self):

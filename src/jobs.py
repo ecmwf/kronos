@@ -42,6 +42,8 @@ class ModelJob(object):
 
         if time_series:
             for series, values in time_series.iteritems():
+                if series != values.name:
+                    raise ModellingError("Time signal {} mislabelled as {}".format(values.name, series))
                 self.timesignals[series] = values
 
         # n.b. We do NOT call check_job here. It is perfectly reasonably for the required data to come from
@@ -59,9 +61,20 @@ class ModelJob(object):
 
             # There is nothing to copy in, if the other time signal is not valid...
             other_valid = other.timesignals[ts_name] is not None and other.timesignals[ts_name].sum != 0
+            self_valid = self.timesignals[ts_name] is not None and self.timesignals[ts_name].sum != 0
+
+            # Validity checks
+            if self_valid and ts_name != self.timesignals[ts_name].name:
+                raise ModellingError("Time signal {} mislabelled as {}".format(self.timesignals[ts_name].name, ts_name))
+
+            # There is only merging to do if the data is present in the _other_ job.
             if other_valid:
 
-                self_valid = self.timesignals[ts_name] is not None and self.timesignals[ts_name].sum != 0
+                # Validity checks
+                if ts_name != other.timesignals[ts_name].name:
+                    raise ModellingError(
+                        "Time signal {} mislabelled as {}".format(other.timesignals[ts_name].name, ts_name))
+
                 if self_valid:
                     raise ModellingError("Valid timeseries in both model jobs for {}: {}".format(
                         ts_name, self.label
