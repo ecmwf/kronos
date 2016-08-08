@@ -47,7 +47,7 @@ class KernelBase(object):
         for frame in frames:
 
             # If the time series is empty, then mark it as such (so it can be excluded later)
-            if all((ts.sum == 0 for ts in frame.values())):
+            if all((val == 0.0 for val in frame.values())):
                 frame['empty'] = True
 
             frame.update(extra_data)
