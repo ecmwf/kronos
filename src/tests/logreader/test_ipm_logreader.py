@@ -172,7 +172,7 @@ class IPMIngestedJobTest(unittest.TestCase):
         task1.mpi_pairwise_count_send = 12
         job = IPMIngestedJob(label="a-label", tasks=[task1])
 
-        m = job.model_job()
+        m = job.model_job(0)
 
         self.assertEqual(m.label, "a-label")
         for s in self.expected_series:
@@ -187,6 +187,16 @@ class IPMIngestedJobTest(unittest.TestCase):
         self.assertEqual(m.ncpus, 99)
         self.assertEqual(m.nnodes, 88)
 
+    def test_start_time(self):
+        """
+        The property time_start should return the earliest start time of any of the tasks
+        """
+        task1 = IPMTaskInfo("2.0.2", 99, 88, 0, 44, 66)
+        task2 = IPMTaskInfo("2.0.2", 101, 91, 1, 55, 77)
+        job = IPMIngestedJob(label="a-label", tasks=[task1, task2])
+
+        self.assertEqual(job.time_start, 44)
+
     def test_model_job_minmax(self):
         """
         What happens if the tasks don't agree on some of the metrics? Sometimes we need the min, sometimes the max.
@@ -195,9 +205,10 @@ class IPMIngestedJobTest(unittest.TestCase):
         task2 = IPMTaskInfo("2.0.2", 101, 91, 1, 55, 77)
         job = IPMIngestedJob(label="a-label", tasks=[task1, task2])
 
-        m = job.model_job()
+        m = job.model_job(9)
 
-        self.assertEqual(m.time_start, 44)
+        # n.b. Subtracted a global 9 seconds off the start time for the global start time
+        self.assertEqual(m.time_start, 35)
         self.assertEqual(m.duration, 33)
         self.assertEqual(m.ncpus, 101)
         self.assertEqual(m.nnodes, 91)
@@ -358,18 +369,20 @@ class IPMDataSetTest(unittest.TestCase):
         """
 
         class FakeJob(IngestedJob):
-            def __init__(self):
+            def __init__(self, time):
                 super(FakeJob, self).__init__()
+                self.time_start = time
                 self.model_job = mock.Mock()
                 self.model_job.return_value = 123
 
-        jobs = [FakeJob(), FakeJob(), FakeJob()]
+        jobs = [FakeJob(5), FakeJob(10), FakeJob(15)]
 
         ds = IPMDataSet(jobs, "a-path", {})
 
         [self.assertEqual(j.model_job.call_count, 0) for j in jobs]
         results = list(ds.model_jobs())
         [self.assertEqual(j.model_job.call_count, 1) for j in jobs]
+        [self.assertEqual(j.model_job.call_args[0][0], 5) for j in jobs]
         [self.assertEqual(r, 123) for r in results]
 
 

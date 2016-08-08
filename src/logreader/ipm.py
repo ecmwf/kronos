@@ -69,7 +69,16 @@ class IPMIngestedJob(IngestedJob):
 
     tasks = []
 
-    def model_job(self):
+    @property
+    def time_start(self):
+        """
+        Take the first observed task as the first task
+        """
+        assert len(self.tasks) > 0
+
+        return min([t.time_start for t in self.tasks])
+
+    def model_job(self, global_start_time):
         """
         Return a ModelJob from the supplied information
         """
@@ -77,7 +86,7 @@ class IPMIngestedJob(IngestedJob):
 
         # Combine the task metadata. We take the first observed task time as the start time, and the last observed
         # time as the end time.
-        time_start = min([t.time_start for t in self.tasks])
+        time_start = self.time_start
         time_end = max([t.time_end for t in self.tasks])
         duration = time_end - time_start
 
@@ -89,7 +98,7 @@ class IPMIngestedJob(IngestedJob):
         return ModelJob(
             label=self.label,
             time_series=self.model_time_series(),
-            time_start=time_start,
+            time_start=time_start-global_start_time,
             duration=duration,
             ncpus=ntasks,
             nnodes=nhosts
@@ -373,3 +382,14 @@ class IPMLogReader(LogReader):
 class IPMDataSet(IngestedDataSet):
 
     log_reader_class = IPMLogReader
+
+    def model_jobs(self):
+        """
+        Model the IPM jobs, given a list of injested jobs
+        """
+        # The created times are all in seconds since an arbitrary reference, so we want to get
+        # them relative to a zero-time
+        global_start_time = min((j.time_start for j in self.joblist))
+
+        for job in self.joblist:
+            yield job.model_job(global_start_time)

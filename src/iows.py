@@ -93,7 +93,7 @@ class IOWS(object):
     def scale_workload(self):
         model = IOWSModel(config, self.model_jobs)
         # synapps = model.create_scaled_workload("none", "Kmeans", 100.0)
-        synapps = model.create_scaled_workload("time_plane", "Kmeans", 1.0)
+        synapps = model.create_scaled_workload("time_plane", "Kmeans")
         self.synthetic_apps = synapps
 
         if self.config.verbose:
