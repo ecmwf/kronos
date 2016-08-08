@@ -11,6 +11,8 @@ signal_types = {
     # (file) I/O
     'kb_read':       {'type': float, 'category': 'file-read',  'behaviour': 'sum'},
     'kb_write':      {'type': float, 'category': 'file-write', 'behaviour': 'sum'},
+    'n_read':        {'type': int, 'category': 'file-read',  'behaviour': 'sum'},
+    'n_write':       {'type': int, 'category': 'file-write', 'behaviour': 'sum'},
 
     # MPI activity
     'n_pairwise':    {'type': float, 'category': 'mpi',        'behaviour': 'sum'},

@@ -91,11 +91,23 @@ class FileReadKernel(KernelBase):
     name = 'file-read'
     signals = (
         ("kb_read", "kb_read"),
-        # ("n_read", "n_read") # Not currently presented
+        ("n_read", "n_read")
     )
 
     def extra_data(self):
-        return super(FileReadKernel, self).extra_data(n_read=1, mmap=False)
+        return super(FileReadKernel, self).extra_data(mmap=False)
+
+    def synapp_config(self):
+        """
+        Special case code: We cannot have a zero number of actions for a non-zero amount of data.
+        """
+        data = super(FileReadKernel, self).synapp_config()
+
+        for d in data:
+            if d['kb_read'] > 0:
+                d['n_read'] = max(1, d['n_read'])
+
+        return data
 
 
 class FileWriteKernel(KernelBase):
@@ -103,21 +115,24 @@ class FileWriteKernel(KernelBase):
     name = 'file-write'
     signals = (
         ("kb_write", "kb_write"),
-        # ("n_write", "n_write") # Not currently presented
+        ("n_write", "n_write")
     )
 
     def extra_data(self):
-        return super(FileWriteKernel, self).extra_data(n_write=1, mmap=False)
+        return super(FileWriteKernel, self).extra_data(mmap=False)
 
     def synapp_config(self):
         """
-        Special case code: We cannot have a zero amount of data for a non-zero number of writes.
+        Special case code: We cannot have a zero amount of data for a non-zero number of writes,
+        nor a zero amount of data for a non-zero number of writes
         """
         data = super(FileWriteKernel, self).synapp_config()
 
         for d in data:
             if d['n_write'] > 0:
                 d['kb_write'] = max(1, d['kb_write'])
+            if d['kb_write'] > 0:
+                d['n_write'] = max(1, d['n_write'])
 
         return data
 
