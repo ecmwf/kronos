@@ -81,12 +81,9 @@ class IPMIngestedJob(IngestedJob):
         time_end = min([t.time_end for t in self.tasks])
         duration = time_end - time_start
 
-        ntasks = self.tasks[0].ntasks
-        nhosts = self.tasks[0].nhosts
-        if not all([t.ntasks == ntasks for t in self.tasks]):
-            raise ModellingError("Tasks within job disagree on the number of tasks")
-        if not all([t.nhosts == nhosts for t in self.tasks]):
-            raise ModellingError("Tasks within job disagree on the number of hosts")
+        # The number of tasks and hosts may also vary, as there may be multiple aprun/mpirun/mpiexec calls profiled
+        ntasks = max([t.ntasks for t in self.tasks])
+        nhosts = max([t.nhosts for t in self.tasks])
 
         # TODO: We want to capture multi-threading as well as multi-processing somewhere3
         return ModelJob(
@@ -286,7 +283,7 @@ class IPMLogReader(LogReader):
         assert int(task.get('mpi_size')) == ntasks
         time_start = float(task.get('stamp_init'))
         time_end = float(task.get('stamp_final'))
-        mpi_rank = int(task.get('rank'))
+        mpi_rank = int(task.get('mpi_rank'))
         ipm_version = task.get('ipm_version')
 
         job = task.find('job')

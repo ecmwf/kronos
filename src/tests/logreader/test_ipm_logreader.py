@@ -187,23 +187,6 @@ class IPMIngestedJobTest(unittest.TestCase):
         self.assertEqual(m.ncpus, 99)
         self.assertEqual(m.nnodes, 88)
 
-    def test_model_job_mismatching_counts(self):
-        """
-        Some of the parameters MUST be conserved between tasks when modelling, or something has gone wrong.
-        :return:
-        """
-        task1 = IPMTaskInfo("2.0.2", 99, 88, 77, 55, 66)
-        task2 = IPMTaskInfo("2.0.2", 101, 88, 77, 55, 66)
-        task3 = IPMTaskInfo("2.0.2", 99, 90, 77, 55, 66)
-
-        # If the different tasks disagree on the number of tasks, then something has gone wrong.
-        job = IPMIngestedJob(label="a-label", tasks=[task1, task2])
-        self.assertRaises(ModellingError, lambda: job.model_job())
-
-        # Similarly for the number of hosts
-        job = IPMIngestedJob(label="a-label", tasks=[task1, task3])
-        self.assertRaises(ModellingError, lambda: job.model_job())
-
     def test_model_time_series(self):
         """
         For now, we only consider the totals, and consider them to be offset by "zero" from the start.
