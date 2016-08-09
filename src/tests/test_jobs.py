@@ -48,7 +48,7 @@ class ModelJobTest(unittest.TestCase):
             self.assertIsNone(job.timesignals[ts_name])
 
         # Test that we cannot override non-specific fields
-        self.assertRaises(AssertionError, lambda: ModelJob(invalid=123))
+        self.assertRaises(ModellingError, lambda: ModelJob(invalid=123))
 
     def test_reject_mislabelled_time_signals(self):
         """
