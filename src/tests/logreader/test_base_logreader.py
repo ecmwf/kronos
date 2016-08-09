@@ -249,6 +249,14 @@ class BaseLogReaderTest(unittest.TestCase):
         lr = LogReader('a', label_method="directory")
         self.assertEqual(lr.suggest_label("a/file/path.test"), "file")
 
+        lr = LogReader('a', label_method="directory-no-par-serial")
+        self.assertEqual(lr.suggest_label("a/file/path.test"), "file")
+        self.assertEqual(lr.suggest_label("a/file/serial/path.test"), "file")
+        self.assertEqual(lr.suggest_label("a/file/parallel/path.test"), "file")
+
+        lr = LogReader('a', label_method='directory-file-root')
+        self.assertEqual(lr.suggest_label("a/file/path.test"), "file/path")
+
     def test_read_logs(self):
         """
         Should return a generator of the output of read_log depending on the results of logfiles.

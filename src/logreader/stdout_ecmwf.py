@@ -3,7 +3,7 @@ from logreader.base import LogReader
 from logreader.dataset import IngestedDataSet
 
 
-class PBSIngestedJob(IngestedJob):
+class StdoutECMWFIngestedJob(IngestedJob):
     """
     N.B. Darshan may produce MULTIPLE output files for each of the actual HPC jobs (as it produces one per command
     that is run in the submit script).
@@ -104,15 +104,15 @@ class PBSIngestedJob(IngestedJob):
         }
 
 
-class PBSLogReader(LogReader):
+class StdoutECMWFLogReader(LogReader):
 
-    job_class = PBSIngestedJob
-    log_type_name = "IPM"
-    file_pattern = "*.xml"
+    job_class = StdoutECMWFIngestedJob
+    log_type_name = "Stdout (ECMWF)"
+    file_pattern = "*.1"
     recursive = True
 
     # By default we end up with a whole load of darshan logfiles within a directory.
-    label_method = "directory"
+    label_method = "directory-file-root"
 
     func_mapping = {
         "MPI_Init": None,
@@ -296,34 +296,10 @@ class PBSLogReader(LogReader):
             filename=filename
         )]
 
-    def read_logs(self):
-        """
-        In the same way as Darshan, IPM produces one log per command executed in the script. This results in multiple
-        IPM files per job, which need to be aggregated. Each of the jobs will be sequential, so we combine them.
-        """
 
-        current_job = None
+class StdoutECMWFDataSet(IngestedDataSet):
 
-        for job in super(IPMLogReader, self).read_logs():
-
-            if current_job is None:
-                current_job = job
-
-            elif job.label == current_job.label:
-                current_job.aggregate(job)
-
-            else:
-                yield current_job
-                current_job = job
-
-        # And when we are at the end of the list, yield the current job
-        if current_job is not None:
-            yield current_job
-
-
-class PBSDataSet(IngestedDataSet):
-
-    log_reader_class = PBSLogReader
+    log_reader_class = StdoutECMWFLogReader
 
     def model_jobs(self):
         """
