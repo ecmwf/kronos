@@ -103,9 +103,9 @@ class IPMIngestedJobTest(unittest.TestCase):
         'n_pairwise',
         'kb_pairwise',
         'kb_read',
-        'kb_write'
-        # 'n_read'
-        # 'n_write'
+        'kb_write',
+        'n_read',
+        'n_write'
     ]
 
     def test_initialisation(self):
@@ -269,7 +269,9 @@ class IPMIngestedJobTest(unittest.TestCase):
             'n_pairwise': 101,
             'kb_pairwise': 468,
             'kb_read':246,
-            'kb_write': 912
+            'kb_write': 912,
+            'n_read': 157,
+            'n_write': 101
         }
 
         self.assertEqual(set(self.expected_series), set(series.keys()))
