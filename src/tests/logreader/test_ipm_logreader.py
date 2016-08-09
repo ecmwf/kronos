@@ -268,7 +268,7 @@ class IPMIngestedJobTest(unittest.TestCase):
             'kb_collective': 1690,
             'n_pairwise': 101,
             'kb_pairwise': 468,
-            'kb_read':246,
+            'kb_read': 246,
             'kb_write': 912,
             'n_read': 157,
             'n_write': 101

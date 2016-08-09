@@ -156,8 +156,8 @@ class IPMIngestedJob(IngestedJob):
 
             'kb_read': TimeSignal.from_values('kb_read', [0.0], [float(total_bytes_read) / 1024.0]),
             'kb_write': TimeSignal.from_values('kb_write', [0.0], [float(total_bytes_written) / 1024.0]),
-            'n_read': TimeSignal.from_values('n_read', [0.0], [float(total_read_count) / 1024.0]),
-            'n_write': TimeSignal.from_values('n_write', [0.0], [float(total_write_count) / 1024.0])
+            'n_read': TimeSignal.from_values('n_read', [0.0], [float(total_read_count)]),
+            'n_write': TimeSignal.from_values('n_write', [0.0], [float(total_write_count)])
         }
 
 
