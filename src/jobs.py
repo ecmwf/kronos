@@ -2,6 +2,7 @@ import numpy as np
 import time_signal
 
 from exceptions_iows import ModellingError
+from tools.merge import max_not_none, min_not_none
 from tools.print_colour import print_colour
 from tools.time_format import format_seconds
 
@@ -66,8 +67,8 @@ class ModelJob(object):
         assert self.label == other.label
 
         # Not all profiled components of a job will use all the CPUs. Catch the highest.
-        self.ncpus = max(self.ncpus, other.ncpus)
-        self.nnodes = max(self.nnodes, other.nnodes)
+        self.ncpus = max_not_none(self.ncpus, other.ncpus)
+        self.nnodes = max_not_none(self.nnodes, other.nnodes)
 
         self.merge_start_times(other)
         self.merge_durations(other)
@@ -96,11 +97,8 @@ class ModelJob(object):
                     self.time_start = other.time_start
 
             elif not self.scheduler_timing:
-
-                if self.time_start is not None:
-                    self.time_start = min(self.time_start, other.time_start)
-                else:
-                    self.time_start = other.time_start
+                
+                self.time_start = min_not_none(self.time_start, other.time_start)
 
     def merge_durations(self, other):
         """
@@ -124,10 +122,7 @@ class ModelJob(object):
 
             elif not self.scheduler_timing:
 
-                if self.duration is not None:
-                    self.duration = max(self.duration, other.duration)
-                else:
-                    self.duration = other.duration
+                self.duration = max_not_none(self.duration, other.duration)
 
     def merge_time_signals(self, other):
         """
