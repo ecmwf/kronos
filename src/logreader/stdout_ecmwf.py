@@ -36,6 +36,7 @@ class StdoutECMWFIngestedJob(IngestedJob):
 
         # TODO: We want to capture multi-threading as well as multi-processing somewhere3
         return ModelJob(
+            scheduler_timing=True,
             label=self.label,
             time_start=time_queued - global_start_time,
             duration=self.duration,

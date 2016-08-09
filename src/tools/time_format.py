@@ -1,6 +1,9 @@
 
 def format_seconds(s):
 
+    # Round to a whole number of seconds
+    s = int(round(s))
+
     mins, secs = divmod(s, 60)
     out = "{}s".format(secs)
 

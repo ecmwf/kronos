@@ -18,6 +18,10 @@ class ModelJob(object):
     duration = None
     label = None
 
+    # Times may come from the scheduler (+ associated systems), or from other profiling sources. Those from the
+    # scheduler (n.b. None works as False)
+    scheduler_timing = None
+
     # Does what it says on the tin
     required_fields = [
 
@@ -32,7 +36,10 @@ class ModelJob(object):
         Set the fields as passed in
         """
         for k, v in kwargs.iteritems():
-            assert hasattr(self, k) and getattr(self, k) is None
+            if not hasattr(self, k):
+                raise ModellingError("Setting field {} of ModelJob. Field not available.".format(k))
+            if getattr(self, k) is not None:
+                raise ModellingError("Setting field {} of ModelJob. Field has already been set.".format(k))
 
             setattr(self, k, v)
 
@@ -58,6 +65,49 @@ class ModelJob(object):
         """
         assert self.label == other.label
 
+        #############################################
+        # TODO: CRITICAL. Currently throwing data away!!!
+        ##############################################
+
+        self.merge_start_times(other)
+
+        self.merge_time_signals(other)
+
+    def merge_start_times(self, other):
+        """
+        Pick the best start time from each of the sources.
+
+        i) Start times from scheduler data take precidence
+        ii) Otherwise, pick a non-None value if it exists
+        iii) If multiple values relevant, pick the earliest one
+        """
+        # Nothing to merge if nothing meaningful in other.
+        if other.time_start:
+
+            if other.scheduler_timing:
+                if self.scheduler_timing:
+                    # n.b. We assert that if scheduler timing is in use, then we MUST have a time_start
+                    assert self.time_start is not None
+                    self.time_start = min(self.time_start, other.time_start)
+                else:
+                    # n.b. We assert that if scheduler timing is in use, then we MUST have a time_start
+                    self.time_start = other.time_start
+
+                # The merged job now contains scheduler timing.
+                self.scheduler_timing = True
+
+            elif not self.scheduler_timing:
+
+                if self.time_start is not None:
+                    self.time_start = min(self.time_start, other.time_start)
+                else:
+                    self.time_start = other.time_start
+
+    def merge_time_signals(self, other):
+        """
+        Combine the time signals from multiple sources. Currently we only support one non-zero time signal
+        for each signal type
+        """
         for ts_name in time_signal.signal_types:
 
             # There is nothing to copy in, if the other time signal is not valid...
