@@ -65,11 +65,13 @@ class ModelJob(object):
         """
         assert self.label == other.label
 
-        #############################################
-        # TODO: CRITICAL. Currently throwing data away!!!
-        ##############################################
+        # Not all profiled components of a job will use all the CPUs. Catch the highest.
+        self.ncpus = max(self.ncpus, other.ncpus)
+        self.nnodes = max(self.nnodes, other.nnodes)
 
         self.merge_start_times(other)
+        self.merge_durations(other)
+        self.scheduler_timing = self.scheduler_timing or other.scheduler_timing
 
         self.merge_time_signals(other)
 
@@ -93,15 +95,39 @@ class ModelJob(object):
                     # n.b. We assert that if scheduler timing is in use, then we MUST have a time_start
                     self.time_start = other.time_start
 
-                # The merged job now contains scheduler timing.
-                self.scheduler_timing = True
-
             elif not self.scheduler_timing:
 
                 if self.time_start is not None:
                     self.time_start = min(self.time_start, other.time_start)
                 else:
                     self.time_start = other.time_start
+
+    def merge_durations(self, other):
+        """
+        Pick the best durations from each of the sources.
+
+        i) Durations from scheduler data take precedence
+        ii) Otherwise, pick a non-None value if it exists
+        iii) If multiple values relevant, pick the earliest one
+        """
+        # Nothing to merge if nothing meaningful in other.
+        if other.duration:
+
+            if other.scheduler_timing:
+                if self.scheduler_timing:
+                    # n.b. We assert that if scheduler timing is in use, then we MUST have a time_start
+                    assert self.time_start is not None
+                    self.duration = max(self.duration, other.duration)
+                else:
+                    # n.b. We assert that if scheduler timing is in use, then we MUST have a time_start
+                    self.duration = other.duration
+
+            elif not self.scheduler_timing:
+
+                if self.duration is not None:
+                    self.duration = max(self.duration, other.duration)
+                else:
+                    self.duration = other.duration
 
     def merge_time_signals(self, other):
         """
