@@ -1,3 +1,4 @@
+from logreader.stdout_ecmwf import StdoutECMWFDataSet
 from profiler_reader import ingest_allinea_profiles
 from scheduler_reader import ingest_accounting_logs, ingest_pbs_logs, ingest_epcc_csv_logs
 from darshan import DarshanDataSet
@@ -28,7 +29,8 @@ def ingest_data(ingest_type, ingest_path, global_config=None):
 
             dataset_class = {
                 'darshan': DarshanDataSet,
-                'ipm': IPMDataSet
+                'ipm': IPMDataSet,
+                'stdout-ecmwf': StdoutECMWFDataSet
             }[ingest_type]
 
             # Did we supply any custom configuration?

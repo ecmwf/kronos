@@ -3,6 +3,7 @@ import time_signal
 
 from exceptions_iows import ModellingError
 from tools.print_colour import print_colour
+from tools.time_format import format_seconds
 
 
 class ModelJob(object):
@@ -86,6 +87,7 @@ class ModelJob(object):
         """
         A verbose output for the modelled workload
         """
+
         output = None
         for ts_name, ts in self.timesignals.iteritems():
             if ts is not None and ts.sum != 0:
@@ -93,7 +95,9 @@ class ModelJob(object):
                     output = "Num samples: \t{}\n".format(len(ts.xvalues))
                 output += "{}: \t{}\n".format(ts_name, sum(ts.yvalues))
 
-        return output or ""
+        output = "Start time: \t{}\n".format(format_seconds(self.time_start)) + (output or "")
+
+        return output
 
     def check_job(self):
         """
