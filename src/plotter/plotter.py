@@ -110,7 +110,7 @@ def plot_from_dictionary(plot_settings, list_jobs):
                         (t_dates, t_vals_vec) = get_running_vectors(time_start_vec, time_end_vec, node_vec)
                         plt.plot(t_dates, t_vals_vec[:, 1], queue_col)
 
-                    elif i_subplot_name == 'ncpus':
+                    elif i_subplot_name == 'cpus':
 
                         (t_dates, t_vals_vec) = get_running_vectors(time_start_vec, time_end_vec, cpus_vec)
                         plt.plot(t_dates, t_vals_vec[:, 1], queue_col)
