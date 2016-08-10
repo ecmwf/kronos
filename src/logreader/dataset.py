@@ -4,7 +4,13 @@ A dataset describes a series of profiling data elements from a data source
 In particular, it has a list of IngestedJobs, and some metadata that permits
 those to be processed.
 """
-import pickle
+# Try to use cPickle rather than pickle, by default, as it is MUCH faster. Fallback to pickle if it is
+# not available on a given platform, or other issues.
+try:
+    import cPickle as pickle
+except:
+    import pickle
+
 import base64
 import errno
 import os

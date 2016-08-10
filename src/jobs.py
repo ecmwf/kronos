@@ -97,7 +97,7 @@ class ModelJob(object):
                     self.time_start = other.time_start
 
             elif not self.scheduler_timing:
-                
+
                 self.time_start = min_not_none(self.time_start, other.time_start)
 
     def merge_durations(self, other):
