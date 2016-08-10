@@ -6,6 +6,7 @@ os.sys.path.append(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
 
 from logreader import ingest_data
 from plotter.plotter import Plotter
+from statistics.statistics import Statistics
 
 
 #////////////////////////////////////////////////////////////////
@@ -46,11 +47,16 @@ def test0_stats_ECMWF():
     }
 
     scheduler_tag = "accounting"
-    scheduler_log_file = "/perm/ma/maab/ngio_logs/ECMWF/cca-jobs-20160201.csv"
-    # scheduler_log_file = "/perm/ma/maab/ngio_logs/ECMWF/cca-jobs-20160201_test.csv"
+    # scheduler_log_file = "/perm/ma/maab/ngio_logs/ECMWF/cca-jobs-20160201.csv"
+    scheduler_log_file = "/perm/ma/maab/ngio_logs/ECMWF/cca-jobs-20160201_test.csv"
 
-    aPlotter = Plotter(ingest_data(scheduler_tag, scheduler_log_file))
-    aPlotter.make_plots(plot_settings)
+    ingested_data = ingest_data(scheduler_tag, scheduler_log_file)
+
+    # aPlotter = Plotter(ingested_data)
+    # aPlotter.make_plots(plot_settings)
+
+    stats = Statistics(ingested_data)
+    stats.calculate_statistics()
 
 if __name__ == '__main__':
 

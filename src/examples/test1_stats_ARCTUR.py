@@ -6,6 +6,7 @@ os.sys.path.append(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
 
 from logreader import ingest_data
 from plotter.plotter import Plotter
+from statistics.statistics import Statistics
 
 
 #////////////////////////////////////////////////////////////////
@@ -35,8 +36,14 @@ def test1_stats_ARCTUR():
     scheduler_log_file = "/perm/ma/maab/ngio_logs/ARCTUR/Arctur-1.accounting.logs"
     # scheduler_log_file = "/perm/ma/maab/ngio_logs/ARCTUR/Arctur-1.accounting.logs_test"
 
-    aPlotter = Plotter(ingest_data(scheduler_tag, scheduler_log_file))
-    aPlotter.make_plots(plot_settings)
+    ingested_data = ingest_data(scheduler_tag, scheduler_log_file)
+
+    # aPlotter = Plotter(ingested_data)
+    # aPlotter.make_plots(plot_settings)
+
+    stats = Statistics(ingested_data)
+    stats.calculate_statistics()
+    stats.export_csv('ARCTUR', '/var/tmp/maab/iows/output')
 
 
 if __name__ == '__main__' and __package__ is None:
