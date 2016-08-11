@@ -162,12 +162,8 @@ class DarshanLogReader(LogReader):
         'uid': ('uid', int),
         'jobid': ('jobid', int),
         'nprocs': ('nprocs', int),
-        'read_time_start': ('read_time_start', float),
-        'read_time_end': ('read_time_end', float),
-        'write_time_start': ('write_time_start', float),
-        'write_time_end': ('write_time_end', float),
-        'open_time': ('open_time', float),
-        'close_time': ('close_time', float),
+        'start_time': ('time_start', int),
+        'end_time': ('time_end', int),
         'darshan log version': ('log_version', str)
     }
 
@@ -265,7 +261,8 @@ class DarshanLogReader(LogReader):
 
                 file_elem = self.file_params.get(bits[2], None)
                 if file_elem is not None:
-                    setattr(files[filename], file_elem, getattr(files[filename], file_elem) + int(bits[3]))
+                    currval = getattr(files[filename], file_elem) or 0
+                    setattr(files[filename], file_elem, currval + float(bits[3]))
 
         return [self.job_class(file_details=files, **params)]
 
