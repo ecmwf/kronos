@@ -98,7 +98,7 @@ class StdoutECMWFLogReader(LogReader):
                     fieldname = field['field']
                     fieldval = field['type'](m.groups()[1])
                     if fieldname in attrs and attrs[fieldname] != fieldval:
-                        raise IngestionError("Fieldname {} already has value {}, not {} for file".format(
+                        raise IngestionError("Fieldname {} already has value {}, not {} for file {}".format(
                             fieldname, attrs[fieldname], fieldval, filename))
                     attrs[fieldname] = fieldval
 
