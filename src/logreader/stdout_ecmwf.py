@@ -26,14 +26,21 @@ class StdoutECMWFIngestedJob(IngestedJob):
         """
         Return a ModelJob from the supplied information
         """
-        time_start = calendar.timegm(self.time_start.timetuple())
-        time_end = calendar.timegm(self.time_end.timetuple())
-        time_queued = calendar.timegm(self.time_created.timetuple())
+        try:
+            time_start = calendar.timegm(self.time_start.timetuple())
+            time_end = calendar.timegm(self.time_end.timetuple())
+            time_queued = calendar.timegm(self.time_created.timetuple())
 
-        assert self.duration == (time_end - time_start)
+            assert self.duration == (time_end - time_start)
 
-        max_cpus = self.nnodes * self.max_node_threads / self.hyperthreads
-        threads = self.tasks * self.task_threads / self.hyperthreads
+            max_cpus = self.nnodes * self.max_node_threads / self.hyperthreads
+            threads = self.tasks * self.task_threads / self.hyperthreads
+
+        except Exception as e:
+            print "Rethrowing exception {}".format(e)
+            print "Error in job: {}".format(self.label)
+            print "Filename: {}".format(self.filename)
+            raise
 
         # TODO: We want to capture multi-threading as well as multi-processing somewhere3
         return ModelJob(
@@ -74,38 +81,58 @@ class StdoutECMWFLogReader(LogReader):
     # could also match #PBS -q np, etc.
     re_infoline = re.compile("## INFO (.*) : (.*)")
     re_directive = re.compile("## INFO .*#PBS -l (.*)=(.*)")
+    re_env_summary = re.compile("(EC_[a-zA-Z0-9_]*)=[^ ]")
 
     def read_log(self, filename, suggested_label):
         """
         Read stdout from one of the jobs. We want to capture the pro/epilogues.
         """
-        with open(filename, 'r') as f:
-
-            info_lines = [l for l in f if (len(l) > 7 and l[0:7] == "## INFO")]
-
         attrs = {
             'label': suggested_label,
             'filename': filename
         }
 
-        for line in info_lines:
-            m = self.re_infoline.match(line)
-            if not m:
-                m = self.re_directive.match(line)
-            if m:
-                field = self.info_fields.get(m.groups()[0].strip())
-                if field:
-                    fieldname = field['field']
-                    fieldval = field['type'](m.groups()[1])
-                    if fieldname in attrs and attrs[fieldname] != fieldval:
-                        # Don't raise an exception here. Not good to kill ingestion due to one bad file...
-                        # raise IngestionError("Fieldname {} already has value {}, not {} for file {}".format(
-                        #     fieldname, attrs[fieldname], fieldval, filename))
-                        print_colour("red", "Fieldname {} already has value {}, not {} for file {}".format(
-                            fieldname, attrs[fieldname], fieldval, filename))
-                    attrs[fieldname] = fieldval
+        with open(filename, 'r') as f:
+            for line in f:
+                m = self.re_infoline.match(line)
+                if not m:
+                    m = self.re_directive.match(line)
+                if not m:
+                    m = self.re_env_summary.match(line)
+                if m:
+                    field = self.info_fields.get(m.groups()[0].strip())
+                    if field:
+                        fieldname = field['field']
+                        fieldval = field['type'](m.groups()[1])
+                        if fieldname in attrs and attrs[fieldname] != fieldval:
+                            # Don't raise an exception here. Not good to kill ingestion due to one bad file...
+                            # raise IngestionError("Fieldname {} already has value {}, not {} for file {}".format(
+                            #     fieldname, attrs[fieldname], fieldval, filename))
+                            print_colour("red", "Fieldname {} already has value {}, not {} for file {}".format(
+                                fieldname, attrs[fieldname], fieldval, filename))
+                        attrs[fieldname] = fieldval
 
-        return [StdoutECMWFIngestedJob(**attrs)]
+        # Check that we have enough data to be useful.
+        required = [
+            'time_start',
+            'time_end',
+            'time_created',
+            'nnodes',
+            'max_node_threads',
+            'hyperthreads',
+            'tasks',
+            'task_threads'
+        ]
+        valid = True
+        for field in required:
+            if attrs.get(field, None) is None:
+                valid = False
+                print_colour("red", "Required field {} not found in log file {}".format(field, filename))
+
+        if valid:
+            return [StdoutECMWFIngestedJob(**attrs)]
+        else:
+            return []
 
 
 class StdoutECMWFDataSet(IngestedDataSet):
