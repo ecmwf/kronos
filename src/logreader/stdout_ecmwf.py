@@ -91,14 +91,18 @@ class StdoutECMWFLogReader(LogReader):
             'label': suggested_label,
             'filename': filename
         }
+        have_error = False
 
         with open(filename, 'r') as f:
             for line in f:
+
+                # match the various sorts of acceptable lines.
                 m = self.re_infoline.match(line)
                 if not m:
                     m = self.re_directive.match(line)
                 if not m:
                     m = self.re_env_summary.match(line)
+
                 if m:
                     field = self.info_fields.get(m.groups()[0].strip())
                     if field:
@@ -108,8 +112,23 @@ class StdoutECMWFLogReader(LogReader):
                             # Don't raise an exception here. Not good to kill ingestion due to one bad file...
                             # raise IngestionError("Fieldname {} already has value {}, not {} for file {}".format(
                             #     fieldname, attrs[fieldname], fieldval, filename))
-                            print_colour("red", "Fieldname {} already has value {}, not {} for file {}".format(
-                                fieldname, attrs[fieldname], fieldval, filename))
+
+                            # For some reason, we occasionally get EC_nodes and EC_nodes_total output into the summary
+                            # with differing values. Don't fret about that...
+                            if fieldname == "nnodes":
+                                # We want to store the larger of the values, so only let the larger one through.
+                                if fieldval < attrs[fieldname]:
+                                    continue
+                            else:
+
+                                # Keep track of if this is the first error printed for this file. If it is, we want to
+                                # start a newline so it doesn't interfere with the printing of the progress.
+                                if not have_error:
+                                    print ""
+                                print_colour("orange", "Fieldname {} already has value {}, not {} for file {}".format(
+                                    fieldname, attrs[fieldname], fieldval, filename))
+                                have_error = True
+
                         attrs[fieldname] = fieldval
 
         # Check that we have enough data to be useful.
@@ -127,7 +146,10 @@ class StdoutECMWFLogReader(LogReader):
         for field in required:
             if attrs.get(field, None) is None:
                 valid = False
+                if not have_error:
+                    print ""
                 print_colour("red", "Required field {} not found in log file {}".format(field, filename))
+                have_error = True
 
         if valid:
             return [StdoutECMWFIngestedJob(**attrs)]
