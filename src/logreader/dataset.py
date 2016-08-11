@@ -62,6 +62,7 @@ class IngestedDataSet(object):
 
         # Remove reparse from the dictionary, so it is never used to compare validity of cached files.
         reparse = ingest_config.pop('reparse', False)
+        cache = ingest_config.pop('cache', True)
 
         if not reparse:
 
@@ -96,7 +97,7 @@ class IngestedDataSet(object):
             dataset = cls(lr.read_logs(), ingest_path, ingest_config)
 
             # Pickle the object for later rapid loading.
-            if ingest_config.get('cache', True):
+            if cache:
                 print "Writing cache file: {}".format(cache_file)
                 with open(cache_file, "w") as f:
                     pickle.dump(dataset, f)
