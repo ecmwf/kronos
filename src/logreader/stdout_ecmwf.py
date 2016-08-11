@@ -2,6 +2,7 @@ import re
 import datetime
 import calendar
 
+from exceptions_iows import IngestionError
 from jobs import IngestedJob, ModelJob
 from logreader.base import LogReader
 from logreader.dataset import IngestedDataSet
@@ -96,7 +97,9 @@ class StdoutECMWFLogReader(LogReader):
                 if field:
                     fieldname = field['field']
                     fieldval = field['type'](m.groups()[1])
-                    assert fieldname not in attrs or attrs[fieldname] == fieldval
+                    if fieldname in attrs and attrs[fieldname] != fieldval:
+                        raise IngestionError("Fieldname {} already has value {}, not {} for file".format(
+                            fieldname, attrs[fieldname], fieldval, filename))
                     attrs[fieldname] = fieldval
 
         return [StdoutECMWFIngestedJob(**attrs)]
