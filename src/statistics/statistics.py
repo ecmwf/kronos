@@ -36,12 +36,13 @@ class Statistics(object):
                 mean_runtime = sum([i_job.runtime for i_job in list_jobs_in_queue])/float(n_jobs)
                 mean_queue_time = sum([i_job.time_in_queue for i_job in list_jobs_in_queue])/float(n_jobs)
                 mean_cpu_hours = sum([i_job.ncpus*i_job.runtime/3600. for i_job in list_jobs_in_queue])/float(n_jobs)
+                total_cpu_hours = sum([i_job.ncpus * i_job.runtime / 3600. for i_job in list_jobs_in_queue])
 
                 if n_jobs >= 1:
                     self.summary_data[iq] = collections.OrderedDict([('N jobs', '{:d}'.format(n_jobs)),
-                                                                    ('mean runtime [s]', '{:.0f}'.format(mean_runtime)),
-                                                                    ('mean queue time [s]', '{:.0f}'.format(mean_queue_time)),
-                                                                    ('mean cpu hours', '{:.3f}'.format(mean_cpu_hours))
+                                                                    ('mean runtime [s]', '{:.1f}'.format(mean_runtime)),
+                                                                    ('mean queue time [s]', '{:.1f}'.format(mean_queue_time)),
+                                                                    ('total cpu-hours', '{:.1f}'.format(total_cpu_hours))
                                                                     ])
 
         else:
