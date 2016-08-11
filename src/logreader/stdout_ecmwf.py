@@ -102,7 +102,7 @@ class StdoutECMWFLogReader(LogReader):
                         # raise IngestionError("Fieldname {} already has value {}, not {} for file {}".format(
                         #     fieldname, attrs[fieldname], fieldval, filename))
                         print_colour("red", "Fieldname {} already has value {}, not {} for file {}".format(
-                            fieldname, attrs[fieldname], fieldval, filename)))
+                            fieldname, attrs[fieldname], fieldval, filename))
                     attrs[fieldname] = fieldval
 
         return [StdoutECMWFIngestedJob(**attrs)]
