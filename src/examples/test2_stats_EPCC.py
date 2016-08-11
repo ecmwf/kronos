@@ -6,6 +6,7 @@ os.sys.path.append(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
 
 from logreader import ingest_data
 from plotter.plotter import Plotter
+from statistics.statistics import Statistics
 
 
 #////////////////////////////////////////////////////////////////
@@ -53,8 +54,14 @@ def test2_stats_EPCC():
     scheduler_tag = "epcc_csv"
     scheduler_log_file = "/var/tmp/maab/iows/input/2015_ARCHER.csv"
 
-    aPlotter = Plotter(ingest_data(scheduler_tag, scheduler_log_file))
+    ingested_data = ingest_data(scheduler_tag, scheduler_log_file)
+
+    aPlotter = Plotter(ingested_data)
     aPlotter.make_plots(plot_settings)
+
+    stats = Statistics(ingested_data)
+    stats.calculate_statistics()
+    stats.export_csv('EPCC', '/var/tmp/maab/iows/output')
 
 
 if __name__ == '__main__':

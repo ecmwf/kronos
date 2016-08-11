@@ -47,16 +47,17 @@ def test0_stats_ECMWF():
     }
 
     scheduler_tag = "accounting"
-    # scheduler_log_file = "/perm/ma/maab/ngio_logs/ECMWF/cca-jobs-20160201.csv"
-    scheduler_log_file = "/perm/ma/maab/ngio_logs/ECMWF/cca-jobs-20160201_test.csv"
+    scheduler_log_file = "/perm/ma/maab/ngio_logs/ECMWF/cca-jobs-20160201.csv"
+    # scheduler_log_file = "/perm/ma/maab/ngio_logs/ECMWF/cca-jobs-20160201_test.csv"
 
     ingested_data = ingest_data(scheduler_tag, scheduler_log_file)
 
-    # aPlotter = Plotter(ingested_data)
-    # aPlotter.make_plots(plot_settings)
+    aPlotter = Plotter(ingested_data)
+    aPlotter.make_plots(plot_settings)
 
     stats = Statistics(ingested_data)
     stats.calculate_statistics()
+    stats.export_csv('ECMWF', '/var/tmp/maab/iows/output')
 
 if __name__ == '__main__':
 

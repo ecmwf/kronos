@@ -38,8 +38,8 @@ def test1_stats_ARCTUR():
 
     ingested_data = ingest_data(scheduler_tag, scheduler_log_file)
 
-    # aPlotter = Plotter(ingested_data)
-    # aPlotter.make_plots(plot_settings)
+    aPlotter = Plotter(ingested_data)
+    aPlotter.make_plots(plot_settings)
 
     stats = Statistics(ingested_data)
     stats.calculate_statistics()
