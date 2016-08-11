@@ -2,10 +2,10 @@ import re
 import datetime
 import calendar
 
-from exceptions_iows import IngestionError
 from jobs import IngestedJob, ModelJob
 from logreader.base import LogReader
 from logreader.dataset import IngestedDataSet
+from tools.print_colour import print_colour
 
 
 class StdoutECMWFIngestedJob(IngestedJob):
@@ -98,8 +98,11 @@ class StdoutECMWFLogReader(LogReader):
                     fieldname = field['field']
                     fieldval = field['type'](m.groups()[1])
                     if fieldname in attrs and attrs[fieldname] != fieldval:
-                        raise IngestionError("Fieldname {} already has value {}, not {} for file {}".format(
-                            fieldname, attrs[fieldname], fieldval, filename))
+                        # Don't raise an exception here. Not good to kill ingestion due to one bad file...
+                        # raise IngestionError("Fieldname {} already has value {}, not {} for file {}".format(
+                        #     fieldname, attrs[fieldname], fieldval, filename))
+                        print_colour("red", "Fieldname {} already has value {}, not {} for file {}".format(
+                            fieldname, attrs[fieldname], fieldval, filename)))
                     attrs[fieldname] = fieldval
 
         return [StdoutECMWFIngestedJob(**attrs)]
