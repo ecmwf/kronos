@@ -106,6 +106,38 @@ class TimeSignal(object):
             yvalues=np.asarray(yvals)
         )
 
+    def digitized(self, nbins):
+        """
+        On-the-fly return digitized time series (rather than using
+        """
+        # Determine the bin boundaries
+        xedge_bins = np.linspace(0.0, max(self.xvalues) + 1.0e-6, nbins + 1)
+
+        # Return xvalues as the midpoints of the bins
+        bins_delta = xedge_bins[1] - xedge_bins[0]
+        xvalues = xedge_bins[1:] - (0.5 * bins_delta)
+
+        # Split the data up amongst the bins
+        # n.b. Returned indices will be >= 1, as 0 means to the left of the left-most edge.
+        bin_indices = np.digitize(self.xvalues, xedge_bins)
+
+        # Digitization key
+        key = self.digitization_key
+
+        yvalues = np.zeros(nbins)
+        for i in range(nbins):
+            if any(self.yvalues[bin_indices == i+1]):
+                if key == 'mean':
+                    val = self.yvalues[bin_indices == i+1].mean()
+                elif key == 'sum':
+                    val = self.yvalues[bin_indices == i+1].sum()
+                else:
+                    raise ValueError("Digitization key value not recognised: {}".format(key))
+
+                yvalues[i] = val
+
+        return xvalues, yvalues
+
     # calculate bins
     def digitize(self, n_bins, key=None):
 
