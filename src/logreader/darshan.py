@@ -6,6 +6,7 @@ from jobs import IngestedJob, ModelJob
 from logreader.base import LogReader
 from logreader.dataset import IngestedDataSet
 from time_signal import TimeSignal
+from tools.merge import min_not_none, max_not_none
 from tools.print_colour import print_colour
 
 
@@ -29,8 +30,12 @@ class DarshanIngestedJobFile(object):
         self.write_count = 0
         self.read_count = 0
 
-        self.read_time = None
-        self.write_time = None
+        self.open_time = None
+        self.read_time_start = None
+        self.read_time_end = None
+        self.write_time_start = None
+        self.write_time_end = None
+        self.close_time = None
 
     def __unicode__(self):
         return "DarshanFile({} reads, {} bytes, {} writes, {} bytes)".format(self.read_count, self.bytes_read, self.write_count, self.bytes_written)
@@ -50,17 +55,12 @@ class DarshanIngestedJobFile(object):
         self.write_count += other.write_count
         self.read_count += other.read_count
 
-        if self.read_time is not None:
-            if other.read_time is not None:
-                self.read_time = min(self.read_time, other.read_time)
-        else:
-            self.read_time = other.read_time
-
-        if self.write_time is not None:
-            if other.write_time is not None:
-                self.write_time = min(self.write_time, other.write_time)
-        else:
-            self.write_time = other.write_time
+        self.open_time = min_not_none(self.open_time, other.open_time)
+        self.read_time_start = min_not_none(self.read_time_start, other.read_time_start)
+        self.read_time_end = max_not_none(self.read_time_end, other.read_time_end)
+        self.write_time_start = min_not_none(self.write_time_start, other.write_time_start)
+        self.write_time_end = max_not_none(self.write_time_end, other.write_time_end)
+        self.close_time = max_not_none(self.close_time, other.close_time)
 
 
 class DarshanIngestedJob(IngestedJob):
@@ -115,23 +115,37 @@ class DarshanIngestedJob(IngestedJob):
 
         TODO: Actually introduce time dependence. For now, it only considers totals!
         """
-        total_read = 0
-        total_written = 0
-        total_reads = 0
-        total_writes = 0
+        read_data = []
+        read_counts = []
+        write_data = []
+        write_counts = []
 
         for model_file in self.file_details.values():
-            total_read += model_file.bytes_read
-            total_written += model_file.bytes_written
-            total_reads += model_file.read_count
-            total_writes += model_file.write_count
 
-        return {
-            'kb_read': TimeSignal.from_values('kb_read', [0.0], [float(total_read) / 1024.0]),
-            'kb_write': TimeSignal.from_values('kb_write', [0.0], [float(total_written) / 1024.0]),
-            'n_read': TimeSignal.from_values('n_read', [0.0], [float(total_reads)]),
-            'n_write': TimeSignal.from_values('n_write', [0.0], [float(total_writes)]),
-        }
+            if model_file.read_time_start is not None:
+                read_data.append((model_file.read_time_start, model_file.bytes_read / 1024.0))
+                read_data.append((model_file.read_time_start, model_file.read_count))
+
+            if model_file.write_time_start is not None:
+                read_data.append((model_file.write_time_start, model_file.bytes_written / 1024.0))
+                read_data.append((model_file.write_time_start, model_file.write_count))
+
+        times_read, read_data = zip(*read_data) if read_data else (None, None)
+        times_read2, read_counts = zip(*read_counts) if read_counts else (None, None)
+        times_write, write_data = zip(*write_data) if write_data else (None, None)
+        times_write2, write_counts = zip(*write_counts) if write_counts else (None, None)
+
+        time_series = {}
+        if read_data:
+            time_series['kb_read'] = TimeSignal.from_values('kb_read', times_read, read_data)
+        if write_data:
+            time_series['kb_write'] = TimeSignal.from_values('kb_write', times_write, write_data)
+        if read_counts:
+            time_series['n_read'] = TimeSignal.from_values('n_read', times_read, read_counts)
+        if write_counts:
+            time_series['n_write'] = TimeSignal.from_values('n_write', times_write, write_counts)
+
+        return time_series
 
 
 class DarshanLogReader(LogReader):
@@ -148,8 +162,12 @@ class DarshanLogReader(LogReader):
         'uid': ('uid', int),
         'jobid': ('jobid', int),
         'nprocs': ('nprocs', int),
-        'start_time': ('time_start', int),
-        'end_time': ('time_end', int),
+        'read_time_start': ('read_time_start', float),
+        'read_time_end': ('read_time_end', float),
+        'write_time_start': ('write_time_start', float),
+        'write_time_end': ('write_time_end', float),
+        'open_time': ('open_time', float),
+        'close_time': ('close_time', float),
         'darshan log version': ('log_version', str)
     }
 
@@ -159,12 +177,21 @@ class DarshanLogReader(LogReader):
         'CP_BYTES_WRITTEN': 'bytes_written',
         'CP_POSIX_OPENS': 'open_count',
         'CP_POSIX_FOPENS': 'open_count',
-        'CP_POSIX_READ_TIME': 'read_time',
-        'CP_POSIX_WRITE_TIME': 'write_time',
+       # 'CP_POSIX_READ_TIME': 'read_time',
+       # 'CP_POSIX_WRITE_TIME': 'write_time',
         'CP_POSIX_WRITES': 'write_count',
         'CP_POSIX_FWRITES': 'write_count',
         'CP_POSIX_READS': 'read_count',
-        'CP_POSIX_FREADS': 'read_count'
+        'CP_POSIX_FREADS': 'read_count',
+
+        "CP_F_OEPN_TIMESTAMP": "open_time",
+        'CP_F_READ_START_TIMESTAMP': 'read_time_start',
+        'CP_F_WRITE_START_TIMESTAMP': 'write_time_start',
+        "CP_F_READ_END_TIMESTAMP": 'read_time_end',
+        "CP_F_WRITE_END_TIMESTAMP": 'write_time_end',
+        "CP_F_CLOSE_TIMESTAMP": 'close_time'
+
+
 
         # CP_SIZE_AT_OPEN
         # CP_MODE
