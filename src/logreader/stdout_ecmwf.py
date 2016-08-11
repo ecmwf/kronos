@@ -81,7 +81,7 @@ class StdoutECMWFLogReader(LogReader):
     # could also match #PBS -q np, etc.
     re_infoline = re.compile("## INFO (.*) : (.*)")
     re_directive = re.compile("## INFO .*#PBS -l (.*)=(.*)")
-    re_env_summary = re.compile("(EC_[a-zA-Z0-9_]*)=([^ ])")
+    re_env_summary = re.compile("(EC_[a-zA-Z0-9_]*)=([^ ]+)")
 
     def read_log(self, filename, suggested_label):
         """
