@@ -5,6 +5,8 @@ Kronos data ingestion tool.
 Given a path, ingests the available data to produce a kronos cache file. This cache file may be used in other
 elements of the kronos process.
 """
+from logreader.base import LogReader
+
 try:
     import cPickle as pickle
 except:
@@ -29,6 +31,8 @@ if __name__ == "__main__":
                         help="The output file to store the cached, ingested dataset.")
     parser.add_argument("--workers", "-w", default=10, type=int, help="The number of worker processes to use")
     parser.add_argument("--parser", help="The darshan-parser executable to use if using darshan")
+    parser.add_argument("--labeller", choices=LogReader.available_label_methods,
+                        help="Select how ingested jobs are labelled by the LogReaders")
 
     args = parser.parse_args()
 
@@ -48,10 +52,12 @@ if __name__ == "__main__":
 
         "cache": False,  # Ensure that we always actively parse if using the parsing-specific tool
         "reparse": True,
-        "pool_readers": args.workers
+        "pool_readers": args.workers,
     }
     if args.parser:
         ingest_config['parser'] = args.parser
+    if args.labeller:
+        ingest_config['label_method'] = args.labeller
 
     print "Ingest config: {}".format(ingest_config)
     # if
