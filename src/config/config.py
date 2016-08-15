@@ -1,8 +1,9 @@
 import os
 import json
+import time
 
 from exceptions_iows import ConfigurationError
-
+import time_signal
 
 class Config(object):
     """
@@ -41,6 +42,39 @@ class Config(object):
     IOWSMODEL_JOB_IMPACT_INDEX_REL_TSH = 0.2
     IOWSMODEL_SUPPORTED_SYNTH_APPS = ['cpu', 'file-read', 'file-write', 'mpi']
 
+
+    # IOWS model tuning (feedback-loop)
+
+    FL_RUN_TAG = "run_" + str(time.time())
+
+    # dir for iows and kronos
+    FL_IOWS_DIR = "/var/tmp/maab/iows"
+    FL_IOWS_DIR_INPUT = FL_IOWS_DIR + "/input"
+    FL_IOWS_DIR_OUTPUT = FL_IOWS_DIR + "/output"
+    FL_IOWS_DIR_BACKUP = FL_IOWS_DIR_INPUT + "/" + FL_RUN_TAG
+    FL_KRONOS_RUN_DIR = "/scratch/ma/maab/kronos_run"
+    FL_USER_HOST = "maab@ccb"
+    FL_n_iterations = 1
+    FL_LOG_FILE = FL_IOWS_DIR_BACKUP + '/' + FL_RUN_TAG + '_log.txt'
+    FL_updatable_metrics = {'kb_collective': 1,
+                         'n_collective': 1,
+                         'n_pairwise': 1,
+                         'kb_write': 1,
+                         'kb_read': 1,
+                         'flops': 0,
+                         'kb_pairwise': 1,
+                         }
+
+    metrics_names = time_signal.signal_types.keys()
+
+    # unit scaling factors
+    unit_sc_dict = {}
+    for m in metrics_names:
+        unit_sc_dict[m] = 1.0
+    # ---------------------------------------------------------
+
+
+
     # Directory choices
 
     dir_output = os.path.join(os.getcwd(), 'output')
@@ -48,7 +82,7 @@ class Config(object):
 
     # Sources of profiling data
 
-    profile_sources = []
+    profile_sources = [('allinea', '/var/tmp/maab/iows/input')]
 
     ingestion = {}
 

@@ -70,6 +70,8 @@ class IOWS(object):
         """
         self.config = config
         self.job_datasets = None
+        self.model_jobs = None
+        self.synthetic_apps = None
 
         if self.config.verbose:
             print "VERBOSE logging enabled"
@@ -91,9 +93,9 @@ class IOWS(object):
             print workload.verbose_description()
 
     def scale_workload(self):
-        model = IOWSModel(config, self.model_jobs)
+        model = IOWSModel(self.config, self.model_jobs)
         # synapps = model.create_scaled_workload("none", "Kmeans", 100.0)
-        synapps = model.create_scaled_workload("time_plane", "Kmeans", 1.0)
+        synapps = model.create_scaled_workload("time_plane", "Kmeans", self.config.unit_sc_dict)
         self.synthetic_apps = synapps
 
         if self.config.verbose:
@@ -142,10 +144,10 @@ if __name__ == "__main__":
             sys.exit(-1)
 
         # And get going!!!
-        app = IOWS(config)
+        # app = IOWS(config)Config
+        app = IOWS(Config)
         app.run()
 
     except ConfigurationError as e:
         print "Error in iows configuration: {}".format(e)
-
 

@@ -3,15 +3,17 @@ import os
 import numpy as np
 import matplotlib.pyplot as plt
 import random
+import time_signal
+import model_workload
+
 
 # from sklearn.decomposition import PCA
 from exceptions_iows import ConfigurationError
 from plot_handler import PlotHandler
 from time_signal import TimeSignal
-from synthetic_app import SyntheticApp, SyntheticWorkload
-import time_signal
-import model_workload
+from synthetic_app import SyntheticApp
 from tools.print_colour import print_colour
+from model_tuning.feedback_loop import FeedbackLoop
 
 import clustering
 
@@ -182,7 +184,18 @@ class IOWSModel(object):
         #         app.fill_time_series(i_job.timesignals)
         #         self.syntapp_list.append(app)
 
-        return SyntheticWorkload(self.config, apps=syntapp_list)
+        # -------- refine the model by fb loop if necessary.. -----
+        fl = FeedbackLoop(self.config,
+                          sa_list=syntapp_list,
+                          sc_dict_init=scaling_factor_dict,
+                          reduce_flag=reduce_jobs_flag)
+
+        synthetic_workload = fl.run()
+        # synthetic_workload = fl.no_run()
+        # ---------------------------------------------------------
+
+        return synthetic_workload
+
 
     def apply_clustering(self, clustering_key, which_clust, reduce_jobs_flag, scaling_factor):
 

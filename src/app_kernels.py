@@ -8,8 +8,9 @@ class KernelBase(object):
     name = None
     signals = ()
 
-    def __init__(self, timesignals):
+    def __init__(self, timesignals, stretching_factor_dict=None):
         self.timesignals = timesignals
+        self.stretching_factor_dict = stretching_factor_dict
 
     @property
     def empty(self):
@@ -40,7 +41,11 @@ class KernelBase(object):
 
         time_signal_names, key_names = zip(*self.signals)
 
-        time_signals = [self.timesignals[ts_name].yvalues_bins for ts_name in time_signal_names]
+        # include a stretching factor is made available
+        if self.stretching_factor_dict:
+            time_signals = [self.timesignals[ts_name].yvalues_bins * self.stretching_factor_dict[ts_name] for ts_name in time_signal_names]
+        else:
+            time_signals = [self.timesignals[ts_name].yvalues_bins for ts_name in time_signal_names]
 
         data = [ { k: v for k, v in zip(key_names, ts_data) } for ts_data in zip(*time_signals) ]
 

@@ -134,8 +134,9 @@ class ModelWorkload(object):
 
         print "    {} labelled jobs".format(len(job_dict))
         print "    {} unlabelled jobs".format(len(unlabelled_jobs))
+        print "len(datasets)={}".format(len(datasets))
 
-        sys.exit(-1)
+        # sys.exit(-1)
 
 
         # TODO: Consider the scheduler jobs first, then update the job list with information
@@ -222,13 +223,11 @@ class ModelWorkload(object):
         for glob_metric in self.total_metrics:
             print "[input jobs]: sum of {} = {}".format(glob_metric.name, glob_metric.sum)
 
-
     def total_metrics_sum_dict(self):
         dd = {}
         for m in  self.total_metrics:
             dd[m.name] = m.sum
         return dd
-
 
     def make_plots(self, plot_tag):
         """ Make plots"""

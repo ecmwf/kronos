@@ -35,7 +35,7 @@ class SyntheticWorkload(object):
         output += "=============================================\n"
         return output
 
-    def export(self, nbins, dir_output=None):
+    def export(self, nbins, dir_output=None, stretching_factors=None):
 
         # A default dir, that can be overridden
         dir_output = dir_output or self.config.dir_output
@@ -45,8 +45,12 @@ class SyntheticWorkload(object):
 
         print "Exporting {} synthetic applications to: {}".format(len(sorted_apps), dir_output)
 
-        for i, app in enumerate(sorted_apps):
-            app.export(os.path.join(dir_output, "job-{}.json".format(i)), nbins)
+        if stretching_factors:
+            for i, app in enumerate(sorted_apps):
+                app.export(os.path.join(dir_output, "job-{}.json".format(i)), nbins, stretching_factors)
+        else:
+            for i, app in enumerate(sorted_apps):
+                app.export(os.path.join(dir_output, "job-{}.json".format(i)), nbins)
 
     @property
     def total_metrics_dict(self):
@@ -84,14 +88,20 @@ class SyntheticApp(ModelJob):
 
         self.job_name = job_name
 
-    def export(self, filename, nbins):
+    def export(self, filename, nbins, stretching_factor_dict=None):
         """
         Produce a json file suitable to control a synthetic application (coordinator)
         """
+
+        if stretching_factor_dict:
+            frames = self.frame_data(nbins, stretching_factor_dict)
+        else:
+            frames = self.frame_data(nbins)
+
         job_entry = {
             'num_procs': self.ncpus,
             'start_delay': self.time_start,
-            'frames': self.frame_data(nbins),
+            'frames': frames,
             'metadata': {
                 'job_name': self.job_name
             }
@@ -100,7 +110,7 @@ class SyntheticApp(ModelJob):
         with open(filename, 'w') as f:
             json.dump(job_entry, f, ensure_ascii=True, sort_keys=True, indent=4, separators=(',', ': '))
 
-    def frame_data(self, nbins):
+    def frame_data(self, nbins, stretching_factor_dict=None):
         """
         Return the cofiguration required for the synthetic app kernels
         """
@@ -111,7 +121,11 @@ class SyntheticApp(ModelJob):
         kernels = []
         for kernel_type in app_kernels.available_kernels:
 
-            kernel = kernel_type(self.timesignals)
+            if stretching_factor_dict:
+                kernel = kernel_type(self.timesignals, stretching_factor_dict)
+            else:
+                kernel = kernel_type(self.timesignals)
+
             if not kernel.empty:
                 kernels.append(kernel.synapp_config())
 
@@ -126,3 +140,11 @@ class SyntheticApp(ModelJob):
         ]
 
         return frames
+
+    # def stretch_time_series(self, st_dict):
+    #
+    #     """ rescale all the time series.. """
+    #
+    #     for ts_name, ts in self.timesignals.iteritems():
+    #         ts.stretch_values(st_dict[ts_name])
+
