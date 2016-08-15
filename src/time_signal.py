@@ -36,6 +36,7 @@ class TimeSignal(object):
         assert self.base_signal_name in signal_types
 
         # vals in the time plane
+        self.durations = kwargs.get('durations', None)
         self.xvalues = kwargs.get('xvalues', None)
         self.yvalues = kwargs.get('yvalues', None)
 
@@ -94,7 +95,7 @@ class TimeSignal(object):
 
     # Create from time-series data
     @staticmethod
-    def from_values(name, xvals, yvals, base_signal_name=None):
+    def from_values(name, xvals, yvals, base_signal_name=None, durations=None):
         """
         A fatory method to construct TimeSignals from the correct elements
         :return: A newly constructed TimeSignal
@@ -102,6 +103,7 @@ class TimeSignal(object):
         return TimeSignal(
             name,
             base_signal_name=base_signal_name,
+            durations=np.asarray(durations) if durations is not None else None,
             xvalues=np.asarray(xvals),
             yvalues=np.asarray(yvals)
         )

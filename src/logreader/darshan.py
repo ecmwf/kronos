@@ -143,27 +143,33 @@ class DarshanIngestedJob(IngestedJob):
         for model_file in self.file_details.values():
 
             if model_file.read_time_start is not None and (model_file.read_count != 0 or model_file.bytes_read != 0):
-                read_data.append((model_file.read_time_start, model_file.bytes_read / 1024.0))
-                read_counts.append((model_file.read_time_start, model_file.read_count))
+                read_data.append((model_file.read_time_start, model_file.bytes_read / 1024.0,
+                                  model_file.read_time_end - model_file.read_time_end))
+                read_counts.append((model_file.read_time_start, model_file.read_count,
+                                    model_file.read_time_end - model_file.read_time_start))
 
             if model_file.write_time_start is not None and (model_file.write_count != 0 or model_file.bytes_written != 0):
-                write_data.append((model_file.write_time_start, model_file.bytes_written / 1024.0))
-                write_counts.append((model_file.write_time_start, model_file.write_count))
+                write_data.append((model_file.write_time_start, model_file.bytes_written / 1024.0,
+                                   model_file.write_time_end - model_file.write_time_start))
+                write_counts.append((model_file.write_time_start, model_file.write_count,
+                                     model_file.write_time_end - model_file.write_time_start))
 
-        times_read, read_data = zip(*read_data) if read_data else (None, None)
-        times_read2, read_counts = zip(*read_counts) if read_counts else (None, None)
-        times_write, write_data = zip(*write_data) if write_data else (None, None)
-        times_write2, write_counts = zip(*write_counts) if write_counts else (None, None)
+        times_read, read_data, read_durations = zip(*read_data) if read_data else (None, None, None)
+        times_read2, read_counts, read_durations2 = zip(*read_counts) if read_counts else (None, None, None)
+        times_write, write_data, write_durations = zip(*write_data) if write_data else (None, None, None)
+        times_write2, write_counts, write_durations2 = zip(*write_counts) if write_counts else (None, None, None)
 
         time_series = {}
         if read_data:
-            time_series['kb_read'] = TimeSignal.from_values('kb_read', times_read, read_data)
+            time_series['kb_read'] = TimeSignal.from_values('kb_read', times_read, read_data, durations=read_durations)
         if write_data:
-            time_series['kb_write'] = TimeSignal.from_values('kb_write', times_write, write_data)
+            time_series['kb_write'] = TimeSignal.from_values('kb_write', times_write, write_data,
+                                                             durations=write_durations)
         if read_counts:
-            time_series['n_read'] = TimeSignal.from_values('n_read', times_read, read_counts)
+            time_series['n_read'] = TimeSignal.from_values('n_read', times_read, read_counts, durations=read_durations)
         if write_counts:
-            time_series['n_write'] = TimeSignal.from_values('n_write', times_write, write_counts)
+            time_series['n_write'] = TimeSignal.from_values('n_write', times_write, write_counts,
+                                                            durations=write_durations)
 
         return time_series
 

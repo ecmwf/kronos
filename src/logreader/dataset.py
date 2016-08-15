@@ -61,6 +61,7 @@ class IngestedDataSet(object):
         dataset = None
 
         # Remove reparse from the dictionary, so it is never used to compare validity of cached files.
+        print ingest_config
         reparse = ingest_config.pop('reparse', False)
         cache = ingest_config.pop('cache', True)
 
