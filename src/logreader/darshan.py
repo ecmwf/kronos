@@ -62,6 +62,17 @@ class DarshanIngestedJobFile(object):
         self.write_time_end = max_not_none(self.write_time_end, other.write_time_end)
         self.close_time = max_not_none(self.close_time, other.close_time)
 
+    def adjust_times(self, delta):
+        """
+        Shift the recorded times by a given offset
+        """
+        self.open_time += delta
+        self.read_time_start += delta
+        self.read_time_end += delta
+        self.write_time_start += delta
+        self.write_time_end += delta
+        self.close_time += delta
+
 
 class DarshanIngestedJob(IngestedJob):
     """
@@ -80,14 +91,23 @@ class DarshanIngestedJob(IngestedJob):
         assert file_details is not None
         self.file_details = file_details
 
-    def aggregate(self, job):
+    def aggregate(self, other):
         """
         Combine two ingested jobs together, as Darshan produces one file per command run inside the job script
         (and all these should be together).
         """
-        assert self.label == job.label
+        assert self.label == other.label
 
-        for filename, file_detail in job.file_details.iteritems():
+        time_difference = other.time_start - self.time_start
+        if time_difference < 0:
+            self.time_start = other.time_start
+            for file_detail in self.file_details.values():
+                file_detail.adjust_times(-time_difference)
+        else:
+            for file_detail in other.file_details.values():
+                file_detail.adjust_times(time_difference)
+
+        for filename, file_detail in other.file_details.iteritems():
             if filename in self.file_details:
                 self.file_details[filename].aggregate(file_detail)
             else:
@@ -122,13 +142,13 @@ class DarshanIngestedJob(IngestedJob):
 
         for model_file in self.file_details.values():
 
-            if model_file.read_time_start is not None:
+            if model_file.read_time_start is not None and (model_file.read_count != 0 or model_file.bytes_read != 0):
                 read_data.append((model_file.read_time_start, model_file.bytes_read / 1024.0))
-                read_data.append((model_file.read_time_start, model_file.read_count))
+                read_counts.append((model_file.read_time_start, model_file.read_count))
 
-            if model_file.write_time_start is not None:
-                read_data.append((model_file.write_time_start, model_file.bytes_written / 1024.0))
-                read_data.append((model_file.write_time_start, model_file.write_count))
+            if model_file.write_time_start is not None and (model_file.write_count != 0 or model_file.bytes_written != 0):
+                write_data.append((model_file.write_time_start, model_file.bytes_written / 1024.0))
+                write_counts.append((model_file.write_time_start, model_file.write_count))
 
         times_read, read_data = zip(*read_data) if read_data else (None, None)
         times_read2, read_counts = zip(*read_counts) if read_counts else (None, None)
@@ -146,6 +166,15 @@ class DarshanIngestedJob(IngestedJob):
             time_series['n_write'] = TimeSignal.from_values('n_write', times_write, write_counts)
 
         return time_series
+
+    def model_time_series2(self):
+        """
+        Can we do something crazy? Split the time into chunks, fill up the time series (over-fill...)
+
+        i) Add on the time_start for each darshan job before aggregating the jobs
+        ii)
+        :return:
+        """
 
 
 class DarshanLogReader(LogReader):
@@ -180,7 +209,7 @@ class DarshanLogReader(LogReader):
         'CP_POSIX_READS': 'read_count',
         'CP_POSIX_FREADS': 'read_count',
 
-        "CP_F_OEPN_TIMESTAMP": "open_time",
+        "CP_F_OPEN_TIMESTAMP": "open_time",
         'CP_F_READ_START_TIMESTAMP': 'read_time_start',
         'CP_F_WRITE_START_TIMESTAMP': 'write_time_start',
         "CP_F_READ_END_TIMESTAMP": 'read_time_end',
