@@ -1,5 +1,5 @@
 import numpy as np
-import types
+import math
 
 
 # The availably types of time-series (or summed/averaged totals) data that we can use
@@ -143,6 +143,9 @@ class TimeSignal(object):
     # calculate bins
     def digitize(self, n_bins, key=None):
 
+        if self.durations is not None:
+            return self.digitize_durations(n_bins, key)
+
         # Use a sensible default
         if key is None:
             key = self.digitization_key
@@ -167,6 +170,41 @@ class TimeSignal(object):
                 else:
                     raise ValueError('option not recognised!')
                 self.yvalues_bins[i_bin-1] = mean_val
+
+        self.yvalues_bins = np.asarray(self.yvalues_bins)
+        self.yvalues_bins = self.yvalues_bins.astype(self.ts_type)
+
+    def digitize_durations(self, nbins, key=None):
+
+        assert self.durations is not None
+
+        # Use a sensible default
+        if key is None:
+            key = self.digitization_key
+
+        # Find out what the maximum time is
+        xedge_bins = np.linspace(0.0, max(self.xvalues + self.durations) + 1.0e-6, nbins + 1)
+        dx_bins = self.xedge_bins[1] - self.xedge_bins[0]
+
+        self.yvalues_bins = np.zeros(len(self.xvalues_bins))
+
+        # Now we need to loop through to attribute the data to bins (as considering the durations, it may not be
+        # one-to-one
+        start_bins = np.digitize(self.xvalues, xedge_bins) - 1
+        end_bins = np.digitize(self.xvalues + self.durations, xedge_bins) - 1
+        for start, stop, x, y, dur in zip(start_bins, end_bins, self.xvalues, self.yvalues, self.durations):
+
+            # An index of -1 would imply the data is to the left of the first bin. This would be unacceptable.
+            assert start >= 0
+            assert stop >= 0
+
+            # If everything fits into one bin, then it should all be placed there.
+            if start == stop:
+                self.yvalues_bins[start] += y
+            else:
+                self.yvalues_bins[start] = y * (dx_bins - math.fmod(x, dx_bins)) / dur
+                self.yvalues_bins[start+1:stop--1] = y * dx_bins / dur
+                self.yvalues_bins[stop] = y * math.fmod(x + dur, dx_bins) / dur
 
         self.yvalues_bins = np.asarray(self.yvalues_bins)
         self.yvalues_bins = self.yvalues_bins.astype(self.ts_type)

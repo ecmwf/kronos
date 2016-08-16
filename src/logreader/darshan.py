@@ -173,15 +173,6 @@ class DarshanIngestedJob(IngestedJob):
 
         return time_series
 
-    def model_time_series2(self):
-        """
-        Can we do something crazy? Split the time into chunks, fill up the time series (over-fill...)
-
-        i) Add on the time_start for each darshan job before aggregating the jobs
-        ii)
-        :return:
-        """
-
 
 class DarshanLogReader(LogReader):
 
