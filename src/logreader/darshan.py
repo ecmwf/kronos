@@ -66,12 +66,12 @@ class DarshanIngestedJobFile(object):
         """
         Shift the recorded times by a given offset
         """
-        self.open_time += delta
-        self.read_time_start += delta
-        self.read_time_end += delta
-        self.write_time_start += delta
-        self.write_time_end += delta
-        self.close_time += delta
+        self.open_time = self.open_time + delta if self.open_time is not None else None
+        self.read_time_start = self.read_time_start + delta if self.read_time_start is not None else None
+        self.read_time_end = self.read_time_end + delta if self.read_time_end is not None else None
+        self.write_time_start = self.write_time_start + delta if self.write_time_start is not None else None
+        self.write_time_end = self.write_time_end + delta if self.write_time_end is not None else None
+        self.close_time = self.close_time + delta if self.close_time is not None else None
 
 
 class DarshanIngestedJob(IngestedJob):

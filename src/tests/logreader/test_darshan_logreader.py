@@ -253,18 +253,19 @@ class DarshanIngestedJobTest(unittest.TestCase):
         file2b.open_count = 3
         file3.open_count = 4
 
-        job1 = DarshanIngestedJob(label="jobA", file_details={
+        job1 = DarshanIngestedJob(label="jobA", time_start=123, file_details={
             "file1": file1,
             "file2": file2a
         })
 
-        job2 = DarshanIngestedJob(label="jobA", file_details={
+        job2 = DarshanIngestedJob(label="jobA", time_start=456, file_details={
             "file2": file2b,
             "file3": file3
         })
 
         # We should be able to aggregate the jobs!
         job1.aggregate(job2)
+        self.assertEqual(job1.time_start, 123)
         self.assertEqual(len(job1.file_details), 3)
         self.assertEqual({"file1", "file2", "file3"}, set(job1.file_details.keys()))
 
@@ -318,8 +319,8 @@ class DarshanIngestedJobTest(unittest.TestCase):
         self.assertEqual(m.label, "jobA")
         self.assertEqual(m.time_start, 99-11)
         self.assertEqual(m.ncpus, 17)
-        self.assertEqual(m.timesignals['kb_read'].sum, 0)
-        self.assertEqual(m.timesignals['kb_write'].sum, 0)
+        self.assertIsNone(m.timesignals['kb_read'])
+        self.assertIsNone(m.timesignals['kb_write'])
 
         # Otherwise, there should be time-series created with the correct totals
         file1 = DarshanIngestedJobFile(name="file1")
@@ -329,6 +330,16 @@ class DarshanIngestedJobTest(unittest.TestCase):
         file2.bytes_read = 1024 * 100
         file1.bytes_written = 1024 * 101
         file2.bytes_written = 1024 * 102
+        file1.read_time_start = 11.2
+        file1.read_time_end = 13.2
+        file2.read_time_start = 13.5
+        file2.read_time_end = 15.0
+        file1.write_time_start = 19.2
+        file1.write_time_end = 21.3
+        file2.write_time_start = 32
+        file2.write_time_end = 35
+
+        job.file_details = {"file1": file1, "file2": file2}
 
         job1 = DarshanIngestedJob(
             label="jobB",
@@ -352,24 +363,11 @@ class DarshanIngestedJobTest(unittest.TestCase):
         For now we only consider the totals, and consider them to be offset by "zero" from the start.
         """
         job = DarshanIngestedJob(label="job", file_details={})
+        job.time_start = 0
 
         # With no file data, we should end up with empty time series
         series = job.model_time_series()
-        self.assertIn('kb_read', series)
-        self.assertIn('kb_write', series)
-        reads = series['kb_read']
-        writes = series['kb_write']
-
-        self.assertEqual(reads.sum, 0)
-        self.assertEqual(writes.sum, 0)
-        self.assertEqual(len(reads.xvalues), 1)
-        self.assertEqual(len(writes.xvalues), 1)
-        self.assertEqual(len(reads.yvalues), 1)
-        self.assertEqual(len(writes.yvalues), 1)
-        self.assertEqual(reads.xvalues[0], 0.0)
-        self.assertEqual(writes.xvalues[0], 0.0)
-        self.assertEqual(reads.yvalues[0], 0.0)
-        self.assertEqual(writes.yvalues[0], 0.0)
+        self.assertEqual(len(series), 0)
 
         # Otherwise, there should be time-series created with the correct totals
 
@@ -378,8 +376,17 @@ class DarshanIngestedJobTest(unittest.TestCase):
 
         file1.bytes_read = 1024 * 99
         file2.bytes_read = 1024 * 100
+        file1.read_time_start = 11.2
+        file1.read_time_end = 13.2
+        file2.read_time_start = 13.5
+        file2.read_time_end = 15.0
+
         file1.bytes_written = 1024 * 101
         file2.bytes_written = 1024 * 102
+        file1.write_time_start = 19.2
+        file1.write_time_end = 21.3
+        file2.write_time_start = 32
+        file2.write_time_end = 35
 
         job.file_details = {"file1": file1, "file2": file2}
 
@@ -391,14 +398,14 @@ class DarshanIngestedJobTest(unittest.TestCase):
 
         self.assertEqual(reads.sum, 199)
         self.assertEqual(writes.sum, 203)
-        self.assertEqual(len(reads.xvalues), 1)
-        self.assertEqual(len(writes.xvalues), 1)
-        self.assertEqual(len(reads.yvalues), 1)
-        self.assertEqual(len(writes.yvalues), 1)
-        self.assertEqual(reads.xvalues[0], 0.0)
-        self.assertEqual(writes.xvalues[0], 0.0)
-        self.assertEqual(reads.yvalues[0], 199.0)
-        self.assertEqual(writes.yvalues[0], 203.0)
+        self.assertEqual(len(reads.xvalues), 2)
+        self.assertEqual(len(writes.xvalues), 2)
+        self.assertEqual(len(reads.yvalues), 2)
+        self.assertEqual(len(writes.yvalues), 2)
+        self.assertEqual(set(reads.xvalues), {11.2, 13.5})
+        self.assertEqual(set(writes.xvalues), {19.2, 32})
+        self.assertEqual(set(reads.yvalues), {99.0, 100.0})
+        self.assertEqual(set(writes.yvalues), {101, 102})
 
 
 class FakeJob(object):
