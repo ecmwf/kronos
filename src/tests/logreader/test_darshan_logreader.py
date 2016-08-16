@@ -27,8 +27,12 @@ class DarshanIngestedJobFileTest(unittest.TestCase):
         self.assertEqual(f.read_count, 0)
         self.assertEqual(f.write_count, 0)
         self.assertEqual(f.open_count, 0)
-        self.assertIsNone(f.read_time)
-        self.assertIsNone(f.write_time)
+        self.assertIsNone(f.open_time)
+        self.assertIsNone(f.read_time_start)
+        self.assertIsNone(f.read_time_end)
+        self.assertIsNone(f.write_time_start)
+        self.assertIsNone(f.write_time_end)
+        self.assertIsNone(f.close_time)
 
     def test_representation(self):
 
@@ -84,56 +88,86 @@ class DarshanIngestedJobFileTest(unittest.TestCase):
         """
         f1 = DarshanIngestedJobFile("job")
         f2 = DarshanIngestedJobFile("job")
-        f1.read_time = 123456
-        f2.read_time = 456789
-        f1.write_time = 222
-        f2.write_time = 111
+        f1.read_time_start = 123456
+        f2.read_time_start = 456789
+        f1.read_time_end = 444
+        f2.read_time_end = 555
+        f1.write_time_start = 222
+        f2.write_time_start = 111
+        f1.write_time_end = 666
+        f2.write_time_end = 777
         f1.aggregate(f2)
-        self.assertEqual(f1.read_time, 123456)
-        self.assertEqual(f1.write_time, 111)
+        self.assertEqual(f1.read_time_start, 123456)
+        self.assertEqual(f1.read_time_end, 555)
+        self.assertEqual(f1.write_time_start, 111)
+        self.assertEqual(f1.write_time_end, 777)
 
         f1 = DarshanIngestedJobFile("job")
         f2 = DarshanIngestedJobFile("job")
-        f1.read_time = 456789
-        f2.read_time = 123456
-        f1.write_time = 111
-        f2.write_time = 222
+        f1.read_time_start = 456789
+        f2.read_time_start = 123456
+        f1.read_time_end = 555
+        f2.read_time_end = 444
+        f1.write_time_start = 111
+        f2.write_time_start = 222
+        f1.write_time_end = 777
+        f2.write_time_end = 666
         f1.aggregate(f2)
-        self.assertEqual(f1.read_time, 123456)
-        self.assertEqual(f1.write_time, 111)
+        self.assertEqual(f1.read_time_start, 123456)
+        self.assertEqual(f1.read_time_end, 555)
+        self.assertEqual(f1.write_time_start, 111)
+        self.assertEqual(f1.write_time_end, 777)
 
         # One equals None
         f1 = DarshanIngestedJobFile("job")
         f2 = DarshanIngestedJobFile("job")
-        f1.read_time = 123456
-        f2.read_time = None
-        f1.write_time = None
-        f2.write_time = 111
+        f1.read_time_start = 123456
+        f2.read_time_start = None
+        f1.read_time_end = 555
+        f2.read_time_end = None
+        f1.write_time_start = None
+        f2.write_time_start = 111
+        f1.write_time_end = None
+        f2.write_time_end = 666
         f1.aggregate(f2)
-        self.assertEqual(f1.read_time, 123456)
-        self.assertEqual(f1.write_time, 111)
+        self.assertEqual(f1.read_time_start, 123456)
+        self.assertEqual(f1.read_time_end, 555)
+        self.assertEqual(f1.write_time_start, 111)
+        self.assertEqual(f1.write_time_end, 666)
 
         # The other equals None
         f1 = DarshanIngestedJobFile("job")
         f2 = DarshanIngestedJobFile("job")
-        f1.read_time = None
-        f2.read_time = 456789
-        f1.write_time = 222
-        f2.write_time = None
+        f1.read_time_start = None
+        f2.read_time_start = 456789
+        f1.read_time_end = None
+        f2.read_time_end = 444
+        f1.write_time_start = 222
+        f2.write_time_start = None
+        f1.write_time_end = 777
+        f2.write_time_end = None
         f1.aggregate(f2)
-        self.assertEqual(f1.read_time, 456789)
-        self.assertEqual(f1.write_time, 222)
+        self.assertEqual(f1.read_time_start, 456789)
+        self.assertEqual(f1.read_time_end, 444)
+        self.assertEqual(f1.write_time_start, 222)
+        self.assertEqual(f1.write_time_end, 777)
 
         # Both equal None
         f1 = DarshanIngestedJobFile("job")
         f2 = DarshanIngestedJobFile("job")
-        f1.read_time = None
-        f2.read_time = None
-        f1.write_time = None
-        f2.write_time = None
+        f1.read_time_start = None
+        f2.read_time_start = None
+        f1.read_time_end = None
+        f2.read_time_end = None
+        f1.write_time_start = None
+        f2.write_time_start = None
+        f1.write_time_end = None
+        f2.write_time_end = None
         f1.aggregate(f2)
-        self.assertEqual(f1.read_time, None)
-        self.assertEqual(f1.write_time, None)
+        self.assertEqual(f1.read_time_start, None)
+        self.assertEqual(f1.read_time_end, None)
+        self.assertEqual(f1.write_time_start, None)
+        self.assertEqual(f1.write_time_end, None)
 
 
 class DarshanIngestedJobTest(unittest.TestCase):
