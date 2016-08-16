@@ -45,7 +45,7 @@ class Config(object):
 
     # IOWS model tuning (feedback-loop)
 
-    FL_RUN_FLAG = True
+    FL_RUN_FLAG = False
     FL_RUN_TAG = "run_" + str(time.time())
 
     # dir for iows and kronos
