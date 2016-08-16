@@ -45,6 +45,7 @@ class Config(object):
 
     # IOWS model tuning (feedback-loop)
 
+    FL_RUN_FLAG = True
     FL_RUN_TAG = "run_" + str(time.time())
 
     # dir for iows and kronos
@@ -53,8 +54,10 @@ class Config(object):
     FL_IOWS_DIR_OUTPUT = FL_IOWS_DIR + "/output"
     FL_IOWS_DIR_BACKUP = FL_IOWS_DIR_INPUT + "/" + FL_RUN_TAG
     FL_KRONOS_RUN_DIR = "/scratch/ma/maab/kronos_run"
-    FL_USER_HOST = "maab@ccb"
-    FL_n_iterations = 1
+    FL_USER = "maab"
+    FL_HOST = "ccb"
+    FL_USER_HOST = FL_USER+"@"+FL_HOST
+    FL_n_iterations = 3
     FL_LOG_FILE = FL_IOWS_DIR_BACKUP + '/' + FL_RUN_TAG + '_log.txt'
     FL_updatable_metrics = {'kb_collective': 1,
                          'n_collective': 1,

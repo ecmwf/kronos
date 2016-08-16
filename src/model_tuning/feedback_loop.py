@@ -45,6 +45,7 @@ class FeedbackLoop(object):
         fl_kronos_run_dir = self.config.FL_KRONOS_RUN_DIR
 
         fl_user_host = self.config.FL_USER_HOST
+        fl_user = self.config.FL_USER
         fl_n_iterations = self.config.FL_n_iterations
         fl_log_file = self.config.FL_LOG_FILE
 
@@ -56,9 +57,9 @@ class FeedbackLoop(object):
             os.makedirs(fl_iows_dir_backup)
 
         # initialize the vectors: metric_sums, deltas, etc...
-        stretching_factors = {}
+        tuning_factors = {}
         for m in metrics_names:
-            stretching_factors[m] = 1.0
+            tuning_factors[m] = 1.0
 
         # init log file --------------------
         with open(fl_log_file, "w") as myfile:
@@ -82,7 +83,7 @@ class FeedbackLoop(object):
         print "sa tot metrics    : ", mytools.sort_dict_list(sa_metric_dict, metrics_names)
 
         # write log file
-        write_log_file(fl_log_file, metrics_sum_dict_ref, stretching_factors, metrics_names)
+        write_log_file(fl_log_file, metrics_sum_dict_ref, tuning_factors, metrics_names)
 
         # /////////////////////////////////////// main loop.. ////////////////////////////////////////////
         for i_count in range(0, fl_n_iterations):
@@ -100,15 +101,15 @@ class FeedbackLoop(object):
                     os.system("cp " + i_file + " " + fl_iows_dir_backup + "/job_sa-" + str(ff) + "_iter-" + str(
                         i_count + 1) + ".json")
 
-            # # ------------------------- run the executor --------------------------------
-            # subprocess.Popen(["ssh", fl_user_host, fl_kronos_run_dir + "/input/run_jobs"]).wait()
-            # time.sleep(2.0)
-            # # ---------------------------------------------------------------------------
+            # ------------------------- run the executor --------------------------------
+            subprocess.Popen(["ssh", fl_user_host, fl_kronos_run_dir + "/input/run_jobs"]).wait()
+            time.sleep(2.0)
+            # ---------------------------------------------------------------------------
 
             # ..and wait until it completes ----------
             jobs_completed = False
             while not jobs_completed:
-                ssh_ls_cmd = subprocess.Popen(["ssh", fl_user_host, "qstat -u maab"],
+                ssh_ls_cmd = subprocess.Popen(["ssh", fl_user_host, "qstat -u "+fl_user],
                                               shell=False,
                                               stdout=subprocess.PIPE,
                                               stderr=subprocess.PIPE)
@@ -163,69 +164,47 @@ class FeedbackLoop(object):
             # append dictionaries to history structures..
             metrics_sum_dict = parsed_allinea_workload.total_metrics_sum_dict()
             metrics_sums_history.append(metrics_sum_dict)
-            scaling_factors_history.append(stretching_factors)
+            scaling_factors_history.append(tuning_factors)
 
             # calculate current scaling factor..
             sc_factor_dict_new = get_new_scaling_factors(metrics_sum_dict_ref,
                                                          metrics_sum_dict,
-                                                         stretching_factors,
+                                                         tuning_factors,
                                                          self.config.FL_updatable_metrics)
 
             print "----------------------- summary: ---------------------------"
             print "ts names            : ", metrics_names
-            print "scaling factors     : ", mytools.sort_dict_list(stretching_factors, metrics_names)
+            print "scaling factors     : ", mytools.sort_dict_list(tuning_factors, metrics_names)
             print "reference metrics   : ", mytools.sort_dict_list(metrics_sum_dict_ref, metrics_names)
             print "metrics sums        : ", mytools.sort_dict_list(metrics_sum_dict, metrics_names)
             print "scaling factors new : ", mytools.sort_dict_list(sc_factor_dict_new, metrics_names)
             print "------------------------------------------------------------"
 
-            stretching_factors = sc_factor_dict_new
+            tuning_factors = sc_factor_dict_new
 
             # update workload through stretching and re-export..
-            self.synthetic_workload.export(self.config.IOWSMODEL_TOTAL_METRICS_NBINS, fl_iows_dir_output, stretching_factors)
+            self.synthetic_workload.set_tuning_factors(tuning_factors)
+            self.synthetic_workload.export(self.config.IOWSMODEL_TOTAL_METRICS_NBINS, fl_iows_dir_output)
 
             # write log file
-            write_log_file(fl_log_file, metrics_sum_dict, stretching_factors, metrics_names)
+            write_log_file(fl_log_file, metrics_sum_dict, tuning_factors, metrics_names)
             # -----------------------------------------
         # ///////////////////////////////////// end main loop.. /////////////////////////////////////////////
 
-        # # apply regression and plot convergence..
-        # final_sc_factors = {}
-        # plt.figure()
-        # for mm, metric in enumerate(self.config.FL_updatable_metrics):
-        #
-        #     x = np.ndarray([row[metric] for row in scaling_factors_history])
-        #     y = np.ndarray([row[metric] for row in metrics_sums_history])
-        #     trgt_sum = np.ndarray([row[metric] for row in metrics_sum_dict_ref])
-        #
-        #     cost, theta = lin_reg(x, y)
-        #
-        #     # use regression to predict target sums
-        #     trgt_sc = (trgt_sum - theta[0])/theta[1]
-        #     final_sc_factors[metric] = trgt_sc
-        #
-        #     plt.subplot(len(metrics_names), 1, mm)
-        #     plt.plot(x, y, 'r+')
-        #
-        #     x_ext = np.append(x,trgt_sc)
-        #     y_ext = np.append(x, trgt_sum)
-        #
-        #     idx = np.argsort(x_ext)
-        #     x_ext = x_ext[idx]
-        #     y_ext = y_ext[idx]
-        #
-        #     plt.plot(x_ext, y_ext, 'b-')
-        #     plt.xlabel('sc factors')
-        #     plt.ylabel('metric sum')
-        #     plt.title(metric)
+        # finally rescale the workload according to the calculated tuning factors..
+        mean_tuning_factors = {}
+        for metric in metrics_names:
+            tuning_factors_of_metric = [mm[metric] for mm in scaling_factors_history]
+            mean_tuning_factors[metric] = sum(tuning_factors_of_metric)/float(len(tuning_factors_of_metric))
 
-        # rescale workload according to the tuned scaling factors..
+        # apply the refined tuning factors to the workload
+            self.synthetic_workload.set_tuning_factors(mean_tuning_factors)
 
+        # return the tuned workload
         return self.synthetic_workload
 
 
 def get_new_scaling_factors(metrics_ref, metrics_sums, sc_factors, updatable_metrics):
-
     """ re-calculate scaling factor according to measured deltas.. """
     met_names = updatable_metrics.keys()
     sc_factor_dict_new = {}
@@ -240,8 +219,7 @@ def get_new_scaling_factors(metrics_ref, metrics_sums, sc_factors, updatable_met
 
 
 def write_log_file(logfile, metrics_sum_dict, scaling_factor_dict, metrics_names):
-
-    # append metrics sums and scaling factors to log file..
+    """ append metrics sums and scaling factors to log file.. """
     with open(logfile, "a") as myfile:
         metrics_str = ''.join(str(e) + ' ' for e in mytools.sort_dict_list(metrics_sum_dict, metrics_names))
         scaling_str = ''.join(str(e) + ' ' for e in mytools.sort_dict_list(scaling_factor_dict, metrics_names))

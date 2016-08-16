@@ -67,9 +67,13 @@ class SyntheticWorkload(object):
 
         return tot
 
+    def set_tuning_factors(self, tuning_factor):
+        """ set the stretching factor for all the applications """
+        # loop oer synthetic apps and return sums of time signals
+        for app in self.app_list:
+            app.tuning_factor = tuning_factor
 
     def print_metrics_sums(self):
-
         for metric in self.total_metrics_dict.keys():
             print "[synth apps]: sum of {} = {}".format(metric, self.total_metrics_dict[metric])
 
@@ -88,15 +92,16 @@ class SyntheticApp(ModelJob):
 
         self.job_name = job_name
 
-    def export(self, filename, nbins, stretching_factor_dict=None):
+        # this additional "scaling factor" is generated during the workload "tuning" phase
+        # and acts on the time series when the synthetic apps are exported
+        self.tuning_factor = None
+
+    def export(self, filename, nbins):
         """
         Produce a json file suitable to control a synthetic application (coordinator)
         """
 
-        if stretching_factor_dict:
-            frames = self.frame_data(nbins, stretching_factor_dict)
-        else:
-            frames = self.frame_data(nbins)
+        frames = self.frame_data(nbins)
 
         job_entry = {
             'num_procs': self.ncpus,
@@ -110,7 +115,7 @@ class SyntheticApp(ModelJob):
         with open(filename, 'w') as f:
             json.dump(job_entry, f, ensure_ascii=True, sort_keys=True, indent=4, separators=(',', ': '))
 
-    def frame_data(self, nbins, stretching_factor_dict=None):
+    def frame_data(self, nbins):
         """
         Return the cofiguration required for the synthetic app kernels
         """
@@ -121,8 +126,8 @@ class SyntheticApp(ModelJob):
         kernels = []
         for kernel_type in app_kernels.available_kernels:
 
-            if stretching_factor_dict:
-                kernel = kernel_type(self.timesignals, stretching_factor_dict)
+            if self.tuning_factor:
+                kernel = kernel_type(self.timesignals, self.tuning_factor)
             else:
                 kernel = kernel_type(self.timesignals)
 

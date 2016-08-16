@@ -1,24 +1,16 @@
-import json
-import os
 import numpy as np
 import matplotlib.pyplot as plt
 import random
 import time_signal
 import model_workload
+import clustering
 
-
-# from sklearn.decomposition import PCA
 from exceptions_iows import ConfigurationError
 from plot_handler import PlotHandler
 from time_signal import TimeSignal
-from synthetic_app import SyntheticApp
+from synthetic_app import SyntheticApp, SyntheticWorkload
 from tools.print_colour import print_colour
 from model_tuning.feedback_loop import FeedbackLoop
-
-import clustering
-
-
-from tools import mytools
 
 
 class IOWSModel(object):
@@ -118,7 +110,6 @@ class IOWSModel(object):
         if scaling_factor >= 100.:
             print_colour("orange", "high scaling_factor value! sc={}".format(scaling_factor))
 
-
         # call the clustering first..
         print "Apply clustering: {}".format(clustering_key)
         print "Apply clustering: {}".format(which_clust)
@@ -185,17 +176,23 @@ class IOWSModel(object):
         #         self.syntapp_list.append(app)
 
         # -------- refine the model by fb loop if necessary.. -----
-        fl = FeedbackLoop(self.config,
-                          sa_list=syntapp_list,
-                          sc_dict_init=scaling_factor_dict,
-                          reduce_flag=reduce_jobs_flag)
+        if self.config.FL_RUN_FLAG:
 
-        synthetic_workload = fl.run()
-        # synthetic_workload = fl.no_run()
+            # configure the FB loop
+            fl = FeedbackLoop(self.config,
+                              sa_list=syntapp_list,
+                              sc_dict_init=scaling_factor_dict,
+                              reduce_flag=reduce_jobs_flag)
+
+            # run the FB loop
+            synthetic_workload = fl.run()
+
+            return synthetic_workload
+
+        else:
+
+            return SyntheticWorkload(self.config, apps=syntapp_list)
         # ---------------------------------------------------------
-
-        return synthetic_workload
-
 
     def apply_clustering(self, clustering_key, which_clust, reduce_jobs_flag, scaling_factor):
 
