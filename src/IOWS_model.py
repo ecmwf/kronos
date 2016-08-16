@@ -101,13 +101,19 @@ class IOWSModel(object):
         """
         Create a scaled workload of synthetic apps from all of the (so-far) aggregated data
         """
+        # Provide default scaling factors of 1.0
+        sf_tmp = {k: 1.0 for k in time_signal.signal_types}
+        if scaling_factor_dict is not None:
+            sf_tmp.update(scaling_factor_dict)
+        scaling_factor_dict = sf_tmp
+
         which_clust = which_clust or self.clustering_algorithm
         scaling_factor = float(sum(scaling_factor_dict.values())) / float(len(scaling_factor_dict.values()))
         scaling_factor = scaling_factor or self.scaling_factor
 
         assert scaling_factor > 0.
 
-        if scaling_factor >= 100.:
+        if scaling_factor > 1.:
             print_colour("orange", "high scaling_factor value! sc={}".format(scaling_factor))
 
         # call the clustering first..

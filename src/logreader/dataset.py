@@ -4,7 +4,13 @@ A dataset describes a series of profiling data elements from a data source
 In particular, it has a list of IngestedJobs, and some metadata that permits
 those to be processed.
 """
-import pickle
+# Try to use cPickle rather than pickle, by default, as it is MUCH faster. Fallback to pickle if it is
+# not available on a given platform, or other issues.
+try:
+    import cPickle as pickle
+except:
+    import pickle
+
 import base64
 import errno
 import os
@@ -55,7 +61,9 @@ class IngestedDataSet(object):
         dataset = None
 
         # Remove reparse from the dictionary, so it is never used to compare validity of cached files.
+        print ingest_config
         reparse = ingest_config.pop('reparse', False)
+        cache = ingest_config.pop('cache', True)
 
         if not reparse:
 
@@ -90,7 +98,7 @@ class IngestedDataSet(object):
             dataset = cls(lr.read_logs(), ingest_path, ingest_config)
 
             # Pickle the object for later rapid loading.
-            if ingest_config.get('cache', True):
+            if cache:
                 print "Writing cache file: {}".format(cache_file)
                 with open(cache_file, "w") as f:
                     pickle.dump(dataset, f)

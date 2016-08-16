@@ -17,10 +17,7 @@ class KernelBase(object):
         """
         Return True if this kernel would do nothing (and can therefore be omitted from the list)
         """
-        return all((
-            all(ts.yvalues_bins == 0) if getattr(ts, 'yvalues_bins', None) is not None else True
-            for ts in self.timesignals.values()
-        ))
+        return all((ts.sum == 0 for ts in self.timesignals.values()))
 
     def extra_data(self, **kwargs):
         data = {'name': self.name}
@@ -47,15 +44,21 @@ class KernelBase(object):
         else:
             time_signals = [self.timesignals[ts_name].yvalues_bins for ts_name in time_signal_names]
 
-        data = [ { k: v for k, v in zip(key_names, ts_data) } for ts_data in zip(*time_signals) ]
+        frames = [ { k: v for k, v in zip(key_names, ts_data) } for ts_data in zip(*time_signals) ]
 
         # Add any extra data, which is constant for all the elements.
 
         extra_data = self.extra_data()
-        for d in data:
-            d.update(extra_data)
+        for frame in frames:
 
-        return data
+            # If the time series is empty, then mark it as such (so it can be excluded later)
+            if all((val == 0.0 for val in frame.values())):
+                frame['empty'] = True
+
+            frame.update(extra_data)
+
+
+        return frames
 
 
 class CPUKernel(KernelBase):
@@ -93,11 +96,23 @@ class FileReadKernel(KernelBase):
     name = 'file-read'
     signals = (
         ("kb_read", "kb_read"),
-        # ("n_read", "n_read") # Not currently presented
+        ("n_read", "n_read")
     )
 
     def extra_data(self):
-        return super(FileReadKernel, self).extra_data(n_read=1, mmap=False)
+        return super(FileReadKernel, self).extra_data(mmap=False)
+
+    def synapp_config(self):
+        """
+        Special case code: We cannot have a zero number of actions for a non-zero amount of data.
+        """
+        data = super(FileReadKernel, self).synapp_config()
+
+        for d in data:
+            if d['kb_read'] > 0:
+                d['n_read'] = max(1, d['n_read'])
+
+        return data
 
 
 class FileWriteKernel(KernelBase):
@@ -105,21 +120,24 @@ class FileWriteKernel(KernelBase):
     name = 'file-write'
     signals = (
         ("kb_write", "kb_write"),
-        # ("n_write", "n_write") # Not currently presented
+        ("n_write", "n_write")
     )
 
     def extra_data(self):
-        return super(FileWriteKernel, self).extra_data(n_write=1, mmap=False)
+        return super(FileWriteKernel, self).extra_data(mmap=False)
 
     def synapp_config(self):
         """
-        Special case code: We cannot have a zero amount of data for a non-zero number of writes.
+        Special case code: We cannot have a zero amount of data for a non-zero number of writes,
+        nor a zero amount of data for a non-zero number of writes
         """
         data = super(FileWriteKernel, self).synapp_config()
 
         for d in data:
             if d['n_write'] > 0:
                 d['kb_write'] = max(1, d['kb_write'])
+            if d['kb_write'] > 0:
+                d['n_write'] = max(1, d['n_write'])
 
         return data
 

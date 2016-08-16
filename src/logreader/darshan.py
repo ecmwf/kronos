@@ -6,6 +6,7 @@ from jobs import IngestedJob, ModelJob
 from logreader.base import LogReader
 from logreader.dataset import IngestedDataSet
 from time_signal import TimeSignal
+from tools.merge import min_not_none, max_not_none
 from tools.print_colour import print_colour
 
 
@@ -29,8 +30,12 @@ class DarshanIngestedJobFile(object):
         self.write_count = 0
         self.read_count = 0
 
-        self.read_time = None
-        self.write_time = None
+        self.open_time = None
+        self.read_time_start = None
+        self.read_time_end = None
+        self.write_time_start = None
+        self.write_time_end = None
+        self.close_time = None
 
     def __unicode__(self):
         return "DarshanFile({} reads, {} bytes, {} writes, {} bytes)".format(self.read_count, self.bytes_read, self.write_count, self.bytes_written)
@@ -50,17 +55,23 @@ class DarshanIngestedJobFile(object):
         self.write_count += other.write_count
         self.read_count += other.read_count
 
-        if self.read_time is not None:
-            if other.read_time is not None:
-                self.read_time = min(self.read_time, other.read_time)
-        else:
-            self.read_time = other.read_time
+        self.open_time = min_not_none(self.open_time, other.open_time)
+        self.read_time_start = min_not_none(self.read_time_start, other.read_time_start)
+        self.read_time_end = max_not_none(self.read_time_end, other.read_time_end)
+        self.write_time_start = min_not_none(self.write_time_start, other.write_time_start)
+        self.write_time_end = max_not_none(self.write_time_end, other.write_time_end)
+        self.close_time = max_not_none(self.close_time, other.close_time)
 
-        if self.write_time is not None:
-            if other.write_time is not None:
-                self.write_time = min(self.write_time, other.write_time)
-        else:
-            self.write_time = other.write_time
+    def adjust_times(self, delta):
+        """
+        Shift the recorded times by a given offset
+        """
+        self.open_time += delta
+        self.read_time_start += delta
+        self.read_time_end += delta
+        self.write_time_start += delta
+        self.write_time_end += delta
+        self.close_time += delta
 
 
 class DarshanIngestedJob(IngestedJob):
@@ -80,14 +91,23 @@ class DarshanIngestedJob(IngestedJob):
         assert file_details is not None
         self.file_details = file_details
 
-    def aggregate(self, job):
+    def aggregate(self, other):
         """
         Combine two ingested jobs together, as Darshan produces one file per command run inside the job script
         (and all these should be together).
         """
-        assert self.label == job.label
+        assert self.label == other.label
 
-        for filename, file_detail in job.file_details.iteritems():
+        time_difference = other.time_start - self.time_start
+        if time_difference < 0:
+            self.time_start = other.time_start
+            for file_detail in self.file_details.values():
+                file_detail.adjust_times(-time_difference)
+        else:
+            for file_detail in other.file_details.values():
+                file_detail.adjust_times(time_difference)
+
+        for filename, file_detail in other.file_details.iteritems():
             if filename in self.file_details:
                 self.file_details[filename].aggregate(file_detail)
             else:
@@ -115,25 +135,52 @@ class DarshanIngestedJob(IngestedJob):
 
         TODO: Actually introduce time dependence. For now, it only considers totals!
         """
-        total_read = 0
-        total_written = 0
-        total_reads = 0
-        total_writes = 0
+        read_data = []
+        read_counts = []
+        write_data = []
+        write_counts = []
 
         for model_file in self.file_details.values():
-            total_read += model_file.bytes_read
-            total_written += model_file.bytes_written
-            total_reads += model_file.read_count
-            total_writes += model_file.write_count
 
-        return {
-            'kb_read': TimeSignal.from_values('kb_read', [0.0], [float(total_read) / 1024.0]),
-            'kb_write': TimeSignal.from_values('kb_write', [0.0], [float(total_written) / 1024.0])
+            if model_file.read_time_start is not None and (model_file.read_count != 0 or model_file.bytes_read != 0):
+                read_data.append((model_file.read_time_start, model_file.bytes_read / 1024.0,
+                                  model_file.read_time_end - model_file.read_time_end))
+                read_counts.append((model_file.read_time_start, model_file.read_count,
+                                    model_file.read_time_end - model_file.read_time_start))
 
-            # TODO: Make use of read/write counts
-            # TimeSignal.from_values('n_read', [0.0], [float(total_reads)]),
-            # TimeSignal.from_values('n_write', [0.0], [float(total_writes)]),
-        }
+            if model_file.write_time_start is not None and (model_file.write_count != 0 or model_file.bytes_written != 0):
+                write_data.append((model_file.write_time_start, model_file.bytes_written / 1024.0,
+                                   model_file.write_time_end - model_file.write_time_start))
+                write_counts.append((model_file.write_time_start, model_file.write_count,
+                                     model_file.write_time_end - model_file.write_time_start))
+
+        times_read, read_data, read_durations = zip(*read_data) if read_data else (None, None, None)
+        times_read2, read_counts, read_durations2 = zip(*read_counts) if read_counts else (None, None, None)
+        times_write, write_data, write_durations = zip(*write_data) if write_data else (None, None, None)
+        times_write2, write_counts, write_durations2 = zip(*write_counts) if write_counts else (None, None, None)
+
+        time_series = {}
+        if read_data:
+            time_series['kb_read'] = TimeSignal.from_values('kb_read', times_read, read_data, durations=read_durations)
+        if write_data:
+            time_series['kb_write'] = TimeSignal.from_values('kb_write', times_write, write_data,
+                                                             durations=write_durations)
+        if read_counts:
+            time_series['n_read'] = TimeSignal.from_values('n_read', times_read, read_counts, durations=read_durations)
+        if write_counts:
+            time_series['n_write'] = TimeSignal.from_values('n_write', times_write, write_counts,
+                                                            durations=write_durations)
+
+        return time_series
+
+    def model_time_series2(self):
+        """
+        Can we do something crazy? Split the time into chunks, fill up the time series (over-fill...)
+
+        i) Add on the time_start for each darshan job before aggregating the jobs
+        ii)
+        :return:
+        """
 
 
 class DarshanLogReader(LogReader):
@@ -161,12 +208,21 @@ class DarshanLogReader(LogReader):
         'CP_BYTES_WRITTEN': 'bytes_written',
         'CP_POSIX_OPENS': 'open_count',
         'CP_POSIX_FOPENS': 'open_count',
-        'CP_POSIX_READ_TIME': 'read_time',
-        'CP_POSIX_WRITE_TIME': 'write_time',
+       # 'CP_POSIX_READ_TIME': 'read_time',
+       # 'CP_POSIX_WRITE_TIME': 'write_time',
         'CP_POSIX_WRITES': 'write_count',
         'CP_POSIX_FWRITES': 'write_count',
         'CP_POSIX_READS': 'read_count',
-        'CP_POSIX_FREADS': 'read_count'
+        'CP_POSIX_FREADS': 'read_count',
+
+        "CP_F_OPEN_TIMESTAMP": "open_time",
+        'CP_F_READ_START_TIMESTAMP': 'read_time_start',
+        'CP_F_WRITE_START_TIMESTAMP': 'write_time_start',
+        "CP_F_READ_END_TIMESTAMP": 'read_time_end',
+        "CP_F_WRITE_END_TIMESTAMP": 'write_time_end',
+        "CP_F_CLOSE_TIMESTAMP": 'close_time'
+
+
 
         # CP_SIZE_AT_OPEN
         # CP_MODE
@@ -240,7 +296,8 @@ class DarshanLogReader(LogReader):
 
                 file_elem = self.file_params.get(bits[2], None)
                 if file_elem is not None:
-                    setattr(files[filename], file_elem, getattr(files[filename], file_elem) + int(bits[3]))
+                    currval = getattr(files[filename], file_elem) or 0
+                    setattr(files[filename], file_elem, currval + float(bits[3]))
 
         return [self.job_class(file_details=files, **params)]
 

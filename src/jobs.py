@@ -2,7 +2,9 @@ import numpy as np
 import time_signal
 
 from exceptions_iows import ModellingError
+from tools.merge import max_not_none, min_not_none
 from tools.print_colour import print_colour
+from tools.time_format import format_seconds
 
 
 class ModelJob(object):
@@ -16,6 +18,10 @@ class ModelJob(object):
     nnodes = None
     duration = None
     label = None
+
+    # Times may come from the scheduler (+ associated systems), or from other profiling sources. Those from the
+    # scheduler (n.b. None works as False)
+    scheduler_timing = None
 
     # Does what it says on the tin
     required_fields = [
@@ -31,7 +37,10 @@ class ModelJob(object):
         Set the fields as passed in
         """
         for k, v in kwargs.iteritems():
-            assert hasattr(self, k) and getattr(self, k) is None
+            if not hasattr(self, k):
+                raise ModellingError("Setting field {} of ModelJob. Field not available.".format(k))
+            if getattr(self, k) is not None:
+                raise ModellingError("Setting field {} of ModelJob. Field has already been set.".format(k))
 
             setattr(self, k, v)
 
@@ -42,6 +51,8 @@ class ModelJob(object):
 
         if time_series:
             for series, values in time_series.iteritems():
+                if series != values.name:
+                    raise ModellingError("Time signal {} mislabelled as {}".format(values.name, series))
                 self.timesignals[series] = values
 
         # n.b. We do NOT call check_job here. It is perfectly reasonably for the required data to come from
@@ -55,13 +66,87 @@ class ModelJob(object):
         """
         assert self.label == other.label
 
+        # Not all profiled components of a job will use all the CPUs. Catch the highest.
+        self.ncpus = max_not_none(self.ncpus, other.ncpus)
+        self.nnodes = max_not_none(self.nnodes, other.nnodes)
+
+        self.merge_start_times(other)
+        self.merge_durations(other)
+        self.scheduler_timing = self.scheduler_timing or other.scheduler_timing
+
+        self.merge_time_signals(other)
+
+    def merge_start_times(self, other):
+        """
+        Pick the best start time from each of the sources.
+
+        i) Start times from scheduler data take precidence
+        ii) Otherwise, pick a non-None value if it exists
+        iii) If multiple values relevant, pick the earliest one
+        """
+        # Nothing to merge if nothing meaningful in other.
+        if other.time_start:
+
+            if other.scheduler_timing:
+                if self.scheduler_timing:
+                    # n.b. We assert that if scheduler timing is in use, then we MUST have a time_start
+                    assert self.time_start is not None
+                    self.time_start = min(self.time_start, other.time_start)
+                else:
+                    # n.b. We assert that if scheduler timing is in use, then we MUST have a time_start
+                    self.time_start = other.time_start
+
+            elif not self.scheduler_timing:
+
+                self.time_start = min_not_none(self.time_start, other.time_start)
+
+    def merge_durations(self, other):
+        """
+        Pick the best durations from each of the sources.
+
+        i) Durations from scheduler data take precedence
+        ii) Otherwise, pick a non-None value if it exists
+        iii) If multiple values relevant, pick the earliest one
+        """
+        # Nothing to merge if nothing meaningful in other.
+        if other.duration:
+
+            if other.scheduler_timing:
+                if self.scheduler_timing:
+                    # n.b. We assert that if scheduler timing is in use, then we MUST have a time_start
+                    assert self.time_start is not None
+                    self.duration = max(self.duration, other.duration)
+                else:
+                    # n.b. We assert that if scheduler timing is in use, then we MUST have a time_start
+                    self.duration = other.duration
+
+            elif not self.scheduler_timing:
+
+                self.duration = max_not_none(self.duration, other.duration)
+
+    def merge_time_signals(self, other):
+        """
+        Combine the time signals from multiple sources. Currently we only support one non-zero time signal
+        for each signal type
+        """
         for ts_name in time_signal.signal_types:
 
             # There is nothing to copy in, if the other time signal is not valid...
             other_valid = other.timesignals[ts_name] is not None and other.timesignals[ts_name].sum != 0
+            self_valid = self.timesignals[ts_name] is not None and self.timesignals[ts_name].sum != 0
+
+            # Validity checks
+            if self_valid and ts_name != self.timesignals[ts_name].name:
+                raise ModellingError("Time signal {} mislabelled as {}".format(self.timesignals[ts_name].name, ts_name))
+
+            # There is only merging to do if the data is present in the _other_ job.
             if other_valid:
 
-                self_valid = self.timesignals[ts_name] is not None and self.timesignals[ts_name].sum != 0
+                # Validity checks
+                if ts_name != other.timesignals[ts_name].name:
+                    raise ModellingError(
+                        "Time signal {} mislabelled as {}".format(other.timesignals[ts_name].name, ts_name))
+
                 if self_valid:
                     raise ModellingError("Valid timeseries in both model jobs for {}: {}".format(
                         ts_name, self.label
@@ -73,6 +158,7 @@ class ModelJob(object):
         """
         A verbose output for the modelled workload
         """
+
         output = None
         for ts_name, ts in self.timesignals.iteritems():
             if ts is not None and ts.sum != 0:
@@ -80,7 +166,9 @@ class ModelJob(object):
                     output = "Num samples: \t{}\n".format(len(ts.xvalues))
                 output += "{}: \t{}\n".format(ts_name, sum(ts.yvalues))
 
-        return output or ""
+        output = "Start time: \t{}\n".format(format_seconds(self.time_start)) + (output or "")
+
+        return output
 
     def check_job(self):
         """
@@ -96,7 +184,7 @@ class ModelJob(object):
         """
         for field in self.required_fields:
             if getattr(self, field, None) is None:
-                print_colour("red", "Job is oncomplete. Missing field: {}".format(field))
+                print_colour("red", "Job is incomplete. Missing field: {}".format(field))
                 return False
 
         return True

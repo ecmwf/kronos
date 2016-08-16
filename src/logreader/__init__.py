@@ -1,10 +1,25 @@
+from logreader.stdout_ecmwf import StdoutECMWFDataSet
 from profiler_reader import ingest_allinea_profiles
 from scheduler_reader import ingest_accounting_logs, ingest_pbs_logs, ingest_epcc_csv_logs
 from darshan import DarshanDataSet
 from ipm import IPMDataSet
 
+simple_ingest_mapping = {
+    'allinea': ingest_allinea_profiles,
+    'pbs': ingest_pbs_logs,
+    'accounting': ingest_accounting_logs,
+    'epcc_csv': ingest_epcc_csv_logs,
+}
 
-def ingest_data(ingest_type, ingest_path, global_config=None):
+class_ingest_mapping = {
+    'darshan': DarshanDataSet,
+    'ipm': IPMDataSet,
+    'stdout-ecmwf': StdoutECMWFDataSet
+}
+
+ingest_types = sorted(simple_ingest_mapping.keys() + class_ingest_mapping.keys())
+
+def ingest_data(ingest_type, ingest_path, ingest_config=None, global_config=None):
     """
     A factory for the types of data ingestion we are going to get!
     """
@@ -12,12 +27,7 @@ def ingest_data(ingest_type, ingest_path, global_config=None):
 
     try:
 
-        return {
-            'allinea': ingest_allinea_profiles,
-            'pbs': ingest_pbs_logs,
-            'accounting': ingest_accounting_logs,
-            'epcc_csv': ingest_epcc_csv_logs,
-        }[ingest_type](ingest_path)
+        return simple_ingest_mapping[ingest_type](ingest_path)
 
     except KeyError as e:
 
@@ -26,13 +36,13 @@ def ingest_data(ingest_type, ingest_path, global_config=None):
 
         try:
 
-            dataset_class = {
-                'darshan': DarshanDataSet,
-                'ipm': IPMDataSet
-            }[ingest_type]
+            dataset_class = class_ingest_mapping[ingest_type]
 
             # Did we supply any custom configuration?
-            cfg = global_config.ingestion.get(ingest_type, {}) if global_config else {}
+            if ingest_config is not None:
+                cfg = ingest_config
+            else:
+                cfg = global_config.ingestion.get(ingest_type, {}) if global_config else {}
 
             return dataset_class.from_logs_path(ingest_path, cfg)
 

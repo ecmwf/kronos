@@ -144,10 +144,10 @@ if __name__ == "__main__":
             sys.exit(-1)
 
         # And get going!!!
-        # app = IOWS(config)Config
-        app = IOWS(Config)
+        app = IOWS(config)
         app.run()
 
     except ConfigurationError as e:
         print "Error in iows configuration: {}".format(e)
+
 

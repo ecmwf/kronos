@@ -24,7 +24,8 @@ class LogReader(object):
     available_label_methods = [
         None,
         'directory',
-        'directory-no-par-serial'
+        'directory-no-par-serial',
+        'directory-file-root'         # Equivalent to dirname(file)/splitext(basename(file))[0]
     ]
 
     def __init__(self, path, recursive=None, file_pattern=None, label_method=None, pool_readers=None):
@@ -84,6 +85,8 @@ class LogReader(object):
         """
         Do we have a suggested label?
         """
+        label = None
+
         if self.label_method == "directory" or self.label_method == "directory-no-par-serial":
 
             # Remove the common base from the files, so that they can be compared from different ingestion sources.
@@ -95,9 +98,13 @@ class LogReader(object):
                 if basename == "parallel" or basename == "serial":
                     label = os.path.dirname(label)
 
-            return label
+        elif self.label_method == "directory-file-root":
 
-        return None
+            label = os.path.join(
+                os.path.relpath(os.path.dirname(filename), self.path),
+                os.path.splitext(os.path.basename(filename))[0])
+
+        return label
 
     def read_log(self, filename, suggested_label):
         raise NotImplementedError

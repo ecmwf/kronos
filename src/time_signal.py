@@ -11,6 +11,8 @@ signal_types = {
     # (file) I/O
     'kb_read':       {'type': float, 'category': 'file-read',  'behaviour': 'sum'},
     'kb_write':      {'type': float, 'category': 'file-write', 'behaviour': 'sum'},
+    'n_read':        {'type': int, 'category': 'file-read',  'behaviour': 'sum'},
+    'n_write':       {'type': int, 'category': 'file-write', 'behaviour': 'sum'},
 
     # MPI activity
     'n_pairwise':    {'type': float, 'category': 'mpi',        'behaviour': 'sum'},
@@ -34,6 +36,7 @@ class TimeSignal(object):
         assert self.base_signal_name in signal_types
 
         # vals in the time plane
+        self.durations = kwargs.get('durations', None)
         self.xvalues = kwargs.get('xvalues', None)
         self.yvalues = kwargs.get('yvalues', None)
 
@@ -92,7 +95,7 @@ class TimeSignal(object):
 
     # Create from time-series data
     @staticmethod
-    def from_values(name, xvals, yvals, base_signal_name=None):
+    def from_values(name, xvals, yvals, base_signal_name=None, durations=None):
         """
         A fatory method to construct TimeSignals from the correct elements
         :return: A newly constructed TimeSignal
@@ -100,9 +103,42 @@ class TimeSignal(object):
         return TimeSignal(
             name,
             base_signal_name=base_signal_name,
+            durations=np.asarray(durations) if durations is not None else None,
             xvalues=np.asarray(xvals),
             yvalues=np.asarray(yvals)
         )
+
+    def digitized(self, nbins):
+        """
+        On-the-fly return digitized time series (rather than using
+        """
+        # Determine the bin boundaries
+        xedge_bins = np.linspace(0.0, max(self.xvalues) + 1.0e-6, nbins + 1)
+
+        # Return xvalues as the midpoints of the bins
+        bins_delta = xedge_bins[1] - xedge_bins[0]
+        xvalues = xedge_bins[1:] - (0.5 * bins_delta)
+
+        # Split the data up amongst the bins
+        # n.b. Returned indices will be >= 1, as 0 means to the left of the left-most edge.
+        bin_indices = np.digitize(self.xvalues, xedge_bins)
+
+        # Digitization key
+        key = self.digitization_key
+
+        yvalues = np.zeros(nbins)
+        for i in range(nbins):
+            if any(self.yvalues[bin_indices == i+1]):
+                if key == 'mean':
+                    val = self.yvalues[bin_indices == i+1].mean()
+                elif key == 'sum':
+                    val = self.yvalues[bin_indices == i+1].sum()
+                else:
+                    raise ValueError("Digitization key value not recognised: {}".format(key))
+
+                yvalues[i] = val
+
+        return xvalues, yvalues
 
     # calculate bins
     def digitize(self, n_bins, key=None):

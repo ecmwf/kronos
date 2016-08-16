@@ -2,6 +2,7 @@ from pylab import *
 
 import xml.etree.ElementTree as ET
 
+from exceptions_iows import IngestionError, ModellingError
 from jobs import IngestedJob, ModelJob
 from logreader.base import LogReader
 from logreader.dataset import IngestedDataSet
@@ -12,7 +13,26 @@ class IPMTaskInfo(object):
     """
     Store the information aggregated in an IPM task.
     """
-    def __init__(self):
+    def __init__(self, ipm_version, ntasks, nhosts, mpi_rank, time_start, time_end):
+
+        # Required options
+        self.ipm_version = ipm_version
+        self.ntasks = ntasks
+        self.nhosts = nhosts
+        self.mpi_rank = mpi_rank
+        self.time_start = time_start
+        self.time_end = time_end
+
+        # Check version numbers
+        major, minor, inc = [int(e) for e in self.ipm_version.strip().split('.')]
+        if major != 2:
+            raise IngestionError("Unsupported IPM version: {}".format(ipm_version.strip()))
+
+        # Check start/end times
+        if time_end < time_start:
+            raise IngestionError("Start time {} after end time {}".format(time_start, time_end))
+
+        # Initialise accumulators
 
         self.mpi_pairwise_count_send = 0
         self.mpi_pairwise_bytes_send = 0
@@ -49,21 +69,47 @@ class IPMIngestedJob(IngestedJob):
 
     tasks = []
 
-    def model_job(self):
+    @property
+    def time_start(self):
+        """
+        Take the first observed task as the first task
+        """
+        assert len(self.tasks) > 0
+
+        return min([t.time_start for t in self.tasks])
+
+    def model_job(self, global_start_time):
         """
         Return a ModelJob from the supplied information
         """
+        assert len(self.tasks) > 0
+
+        # Combine the task metadata. We take the first observed task time as the start time, and the last observed
+        # time as the end time.
+        time_start = self.time_start
+        time_end = max([t.time_end for t in self.tasks])
+        duration = time_end - time_start
+
+        # The number of tasks and hosts may also vary, as there may be multiple aprun/mpirun/mpiexec calls profiled
+        ntasks = max([t.ntasks for t in self.tasks])
+        nhosts = max([t.nhosts for t in self.tasks])
+
+        # TODO: We want to capture multi-threading as well as multi-processing somewhere3
         return ModelJob(
             label=self.label,
             time_series=self.model_time_series(),
-            time_start=-1,
-            ncpus=-1,
-            nnodes=-1
+            time_start=time_start-global_start_time,
+            duration=duration,
+            ncpus=ntasks,
+            nnodes=nhosts
         )
 
     def aggregate(self, rhs):
 
         # We want to include all of the tasks that have been IPM'd
+        # n.b. Essentially all of the interesting information is contained in the tasks.
+        # TODO: It is possible that doing this will result in errors if there are IPM runs of different commands
+        #       within a submit script, with differing MPI configurations.
         self.tasks += rhs.tasks
 
     def model_time_series(self):
@@ -110,8 +156,8 @@ class IPMIngestedJob(IngestedJob):
 
             'kb_read': TimeSignal.from_values('kb_read', [0.0], [float(total_bytes_read) / 1024.0]),
             'kb_write': TimeSignal.from_values('kb_write', [0.0], [float(total_bytes_written) / 1024.0]),
-
-            # TODO: Make use of read/write counts
+            'n_read': TimeSignal.from_values('n_read', [0.0], [float(total_read_count)]),
+            'n_write': TimeSignal.from_values('n_write', [0.0], [float(total_write_count)])
         }
 
 
@@ -241,8 +287,19 @@ class IPMLogReader(LogReader):
 
     def parse_task(self, task, ntasks):
 
+        # Process the task metadata
+
         assert int(task.get('mpi_size')) == ntasks
-        assert int(task.find('job').get('ntasks')) == ntasks
+        time_start = float(task.get('stamp_init'))
+        time_end = float(task.get('stamp_final'))
+        mpi_rank = int(task.get('mpi_rank'))
+        ipm_version = task.get('ipm_version')
+
+        job = task.find('job')
+        assert int(job.get('ntasks')) == ntasks
+        nhosts = int(job.get('nhosts'))
+
+        # Process the function-specific information
 
         regions_container = task.find('regions')
         nregions = int(regions_container.get('n'))
@@ -250,7 +307,7 @@ class IPMLogReader(LogReader):
         regions = regions_container.findall('region')
         assert len(regions) == nregions
 
-        task = IPMTaskInfo()
+        task = IPMTaskInfo(ipm_version, ntasks, nhosts, mpi_rank, time_start, time_end)
 
         for region in regions:
 
@@ -325,3 +382,14 @@ class IPMLogReader(LogReader):
 class IPMDataSet(IngestedDataSet):
 
     log_reader_class = IPMLogReader
+
+    def model_jobs(self):
+        """
+        Model the IPM jobs, given a list of injested jobs
+        """
+        # The created times are all in seconds since an arbitrary reference, so we want to get
+        # them relative to a zero-time
+        global_start_time = min((j.time_start for j in self.joblist))
+
+        for job in self.joblist:
+            yield job.model_job(global_start_time)

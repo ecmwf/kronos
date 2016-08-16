@@ -3,6 +3,7 @@ import unittest
 import types
 import mock
 
+from exceptions_iows import IngestionError, ModellingError
 from jobs import IngestedJob
 from logreader.base import LogReader
 from logreader.ipm import IPMTaskInfo, IPMLogReader, IPMIngestedJob, IPMDataSet
@@ -12,7 +13,16 @@ class IPMTaskInfoTest(unittest.TestCase):
     """
     The IPMTaskInfo class contains the information about each task logged by IPM within a job
     """
-    available_attrs = [
+    task_metadata = [
+        'ipm_version',
+        'ntasks',
+        'nhosts',
+        'mpi_rank',
+        'time_start',
+        'time_end'
+    ]
+
+    available_counters = [
         'mpi_pairwise_count_send',
         'mpi_pairwise_bytes_send',
         'mpi_pairwise_count_recv',
@@ -32,28 +42,41 @@ class IPMTaskInfoTest(unittest.TestCase):
         """
         Test that all the required accumulators are created, and zerod
         """
-        task = IPMTaskInfo()
+        task = IPMTaskInfo("2.0.2", 99, 88, 77, 55, 66)
 
-        for attr in self.available_attrs:
+        for attr in self.available_counters:
             self.assertTrue(hasattr(task, attr))
             self.assertEqual(getattr(task, attr), 0)
+
+        self.assertEqual(task.ipm_version, "2.0.2")
+        self.assertEqual(task.ntasks, 99)
+        self.assertEqual(task.nhosts, 88)
+        self.assertEqual(task.mpi_rank, 77)
+        self.assertEqual(task.time_start, 55)
+        self.assertEqual(task.time_end, 66)
 
     def test_only_attrs(self):
         """
         Test that we haven't added any further attributes that aren't tested.
         """
-        task = IPMTaskInfo()
+        task = IPMTaskInfo("2.0.2", 0, 0, 0, 0, 0)
 
         task_attrs = [a for a in dir(task) if not (a.startswith('_') or callable(getattr(task, a)))]
 
         for attr in task_attrs:
-            self.assertIn(attr, self.available_attrs)
+            self.assertTrue(attr in self.available_counters or attr in self.task_metadata)
+
+    def test_start_end_times(self):
+        """
+        If the start time is after the end time, there should be an error
+        """
+        self.assertRaises(IngestionError, lambda: IPMTaskInfo("2.0.2", 99, 88, 77, 66, 55))
 
     def test_representation(self):
         """
         There are too many data elements to represent them all, so test that we record some sensible aggregates.
         """
-        task = IPMTaskInfo()
+        task = IPMTaskInfo("2.0.2", 0, 0, 0, 0, 0)
 
         task.mpi_pairwise_count_send = 1
         task.mpi_pairwise_bytes_send = 2
@@ -80,9 +103,9 @@ class IPMIngestedJobTest(unittest.TestCase):
         'n_pairwise',
         'kb_pairwise',
         'kb_read',
-        'kb_write'
-        # 'n_read'
-        # 'n_write'
+        'kb_write',
+        'n_read',
+        'n_write'
     ]
 
     def test_initialisation(self):
@@ -144,12 +167,12 @@ class IPMIngestedJobTest(unittest.TestCase):
         """
         # TODO: Is there a required version of IPM for the parsing we are doing?
 
-        task1 = IPMTaskInfo()
+        task1 = IPMTaskInfo("2.0.2", 99, 88, 77, 55, 66)
         task1.mpi_pairwise_bytes_send = 123 * 1024
         task1.mpi_pairwise_count_send = 12
         job = IPMIngestedJob(label="a-label", tasks=[task1])
 
-        m = job.model_job()
+        m = job.model_job(0)
 
         self.assertEqual(m.label, "a-label")
         for s in self.expected_series:
@@ -158,6 +181,37 @@ class IPMIngestedJobTest(unittest.TestCase):
             self.assertEqual(len(m.timesignals[s].yvalues), 1)
         self.assertEqual(m.timesignals['kb_pairwise'].sum, 123)
         self.assertEqual(m.timesignals['n_pairwise'].sum, 12)
+
+        self.assertEqual(m.duration, 11)
+        self.assertEqual(m.time_start, 55)
+        self.assertEqual(m.ncpus, 99)
+        self.assertEqual(m.nnodes, 88)
+
+    def test_start_time(self):
+        """
+        The property time_start should return the earliest start time of any of the tasks
+        """
+        task1 = IPMTaskInfo("2.0.2", 99, 88, 0, 44, 66)
+        task2 = IPMTaskInfo("2.0.2", 101, 91, 1, 55, 77)
+        job = IPMIngestedJob(label="a-label", tasks=[task1, task2])
+
+        self.assertEqual(job.time_start, 44)
+
+    def test_model_job_minmax(self):
+        """
+        What happens if the tasks don't agree on some of the metrics? Sometimes we need the min, sometimes the max.
+        """
+        task1 = IPMTaskInfo("2.0.2", 99, 88, 0, 44, 66)
+        task2 = IPMTaskInfo("2.0.2", 101, 91, 1, 55, 77)
+        job = IPMIngestedJob(label="a-label", tasks=[task1, task2])
+
+        m = job.model_job(9)
+
+        # n.b. Subtracted a global 9 seconds off the start time for the global start time
+        self.assertEqual(m.time_start, 35)
+        self.assertEqual(m.duration, 33)
+        self.assertEqual(m.ncpus, 101)
+        self.assertEqual(m.nnodes, 91)
 
     def test_model_time_series(self):
         """
@@ -178,7 +232,7 @@ class IPMIngestedJobTest(unittest.TestCase):
         # Otherwise, there should be time-series created with the correct totals
         # N.B. The MPI pairwise RECV data is ignored (as it duplicates some/most of the SEND data).
 
-        task1 = IPMTaskInfo()
+        task1 = IPMTaskInfo("2.0.2", 99, 88, 77, 55, 66)
         task1.mpi_pairwise_bytes_send = 123 * 1024
         task1.mpi_pairwise_bytes_recv = 456 * 1024
         task1.mpi_collective_bytes = 789 * 1024
@@ -192,7 +246,7 @@ class IPMIngestedJobTest(unittest.TestCase):
         task1.read_count = 90
         task1.write_count = 12
 
-        task2 = IPMTaskInfo()
+        task2 = IPMTaskInfo("2.0.2", 99, 88, 77, 55, 66)
         task2.mpi_pairwise_bytes_send = 345 * 1024
         task2.mpi_pairwise_bytes_recv = 678 * 1024
         task2.mpi_collective_bytes = 901 * 1024
@@ -214,8 +268,10 @@ class IPMIngestedJobTest(unittest.TestCase):
             'kb_collective': 1690,
             'n_pairwise': 101,
             'kb_pairwise': 468,
-            'kb_read':246,
-            'kb_write': 912
+            'kb_read': 246,
+            'kb_write': 912,
+            'n_read': 157,
+            'n_write': 101
         }
 
         self.assertEqual(set(self.expected_series), set(series.keys()))
@@ -315,18 +371,20 @@ class IPMDataSetTest(unittest.TestCase):
         """
 
         class FakeJob(IngestedJob):
-            def __init__(self):
+            def __init__(self, time):
                 super(FakeJob, self).__init__()
+                self.time_start = time
                 self.model_job = mock.Mock()
                 self.model_job.return_value = 123
 
-        jobs = [FakeJob(), FakeJob(), FakeJob()]
+        jobs = [FakeJob(5), FakeJob(10), FakeJob(15)]
 
         ds = IPMDataSet(jobs, "a-path", {})
 
         [self.assertEqual(j.model_job.call_count, 0) for j in jobs]
         results = list(ds.model_jobs())
         [self.assertEqual(j.model_job.call_count, 1) for j in jobs]
+        [self.assertEqual(j.model_job.call_args[0][0], 5) for j in jobs]
         [self.assertEqual(r, 123) for r in results]
 
 
