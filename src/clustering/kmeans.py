@@ -11,6 +11,8 @@ class ClusteringKmeans(ClusteringBase):
 
     def train_method(self, nclusters, maxiter, rseed=170):
 
+        print "calculating clusters by Kmeans.."
+
         y_pred = KMeans(n_clusters=nclusters, max_iter=maxiter,
                         random_state=rseed).fit(self._inputdata)
 

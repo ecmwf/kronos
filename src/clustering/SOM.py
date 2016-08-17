@@ -11,6 +11,8 @@ class ClusteringSOM(ClusteringBase):
 
     def train_method(self, nclusters, maxiter):
 
+        print "calculating clusters by SOM.."
+
         (nclustX, nclustY) = mytools.squarest_pair(nclusters)
 
         # Initialise training

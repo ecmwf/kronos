@@ -147,8 +147,7 @@ class IOWSModel(object):
 
                 if clust_metrics_sums[i]:
                     ts_scaling = scaling_factor_dict[ts_name]
-                    ts_signal_y = (self.cluster_centers[iC, idx_ts] * tot_metrics_sums[i] * ts_scaling /
-                                   clust_metrics_sums[i])
+                    ts_signal_y = (self.cluster_centers[iC, idx_ts] * tot_metrics_sums[i] * ts_scaling / clust_metrics_sums[i])
                 else:
                     ts_signal_y = np.zeros(len(ts_signal_x))
 
@@ -276,7 +275,10 @@ class IOWSModel(object):
 
         # clustering
         cluster_method = clustering.factory(which_clust, data)
-        cluster_method.train_method(self._n_clusters, self.kmeans_maxiter)
+
+        # NB: when calling the train method, we need to return the _n_clusters as the clustering algorithm might
+        # be changing it internally (e.g. DBSCAN method..)
+        self._n_clusters = cluster_method.train_method(self._n_clusters, self.kmeans_maxiter)
         self.cluster_centers = cluster_method.clusters
         self.cluster_labels = cluster_method.labels
 
