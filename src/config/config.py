@@ -85,7 +85,7 @@ class Config(object):
 
     # Sources of profiling data
 
-    profile_sources = [('allinea', '/var/tmp/maab/iows/input')]
+    profile_sources = []
 
     ingestion = {}
 
