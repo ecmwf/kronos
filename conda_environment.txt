@@ -21,6 +21,7 @@ dependencies:
 - pixman=0.32.6=0
 - py=1.4.31=py27_0
 - pycairo=1.10.0=py27_0
+- pyflakes=1.2.3=py27_0
 - pyparsing=2.1.4=py27_0
 - pyqt=4.11.4=py27_4
 - pytest=2.9.2=py27_0
