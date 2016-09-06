@@ -1,5 +1,3 @@
-from pylab import *
-
 
 class PlotHandler(object):
 

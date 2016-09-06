@@ -8,7 +8,6 @@ import os
 from exceptions_iows import ConfigurationError
 from jobs import IngestedJob
 from logreader.base import LogReader
-from logreader.dataset import IngestedDataSet
 
 
 class BaseLogReaderTest(unittest.TestCase):

@@ -1,8 +1,6 @@
-from pylab import *
-
 import xml.etree.ElementTree as ET
 
-from exceptions_iows import IngestionError, ModellingError
+from exceptions_iows import IngestionError
 from jobs import IngestedJob, ModelJob
 from logreader.base import LogReader
 from logreader.dataset import IngestedDataSet

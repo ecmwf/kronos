@@ -5,12 +5,10 @@ import os
 
 os.sys.path.append(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
 
-from tools import mytools
 from logreader import ingest_data
 from config.config import Config
 from IOWS_model import IOWSModel
 from model_workload import ModelWorkload
-from plot_handler import PlotHandler
 
 
 def test_modelling_cycle():

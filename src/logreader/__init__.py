@@ -29,7 +29,7 @@ def ingest_data(ingest_type, ingest_path, ingest_config=None, global_config=None
 
         return simple_ingest_mapping[ingest_type](ingest_path)
 
-    except KeyError as e:
+    except KeyError:
 
         # Start adding LogReader CLASSES
         # TODO: More specific configuration should be possible.
@@ -46,5 +46,5 @@ def ingest_data(ingest_type, ingest_path, ingest_config=None, global_config=None
 
             return dataset_class.from_logs_path(ingest_path, cfg)
 
-        except KeyError as e:
+        except KeyError:
             raise ValueError("Ingestion type unknown in config: {}".format(ingest_type))

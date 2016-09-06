@@ -3,7 +3,7 @@ import unittest
 import types
 import mock
 
-from exceptions_iows import IngestionError, ModellingError
+from exceptions_iows import IngestionError
 from jobs import IngestedJob
 from logreader.base import LogReader
 from logreader.ipm import IPMTaskInfo, IPMLogReader, IPMIngestedJob, IPMDataSet

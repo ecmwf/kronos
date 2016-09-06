@@ -1,5 +1,3 @@
-from pylab import *
-
 import subprocess
 
 from jobs import IngestedJob, ModelJob

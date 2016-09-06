@@ -6,11 +6,9 @@ from datetime import datetime
 import csv
 import math
 
-from model_workload import ModelWorkload
 from logreader.scheduler_reader import PBSDataSet, AccountingDataSet
 from tools.print_colour import print_colour
 from plot_handler import PlotHandler
-import scipy.stats as stats
 
 
 hour_loc = dates.HourLocator()  # every day
@@ -149,8 +147,8 @@ def plot_from_dictionary(plot_settings, list_jobs):
             # fig = plt.figure(iFig)
             # lgd_list = []
 
-            n_subplots = len(plot_subplots_list)
-            subplt_hdl_list = []
+            # n_subplots = len(plot_subplots_list)
+            # subplt_hdl_list = []
 
             # get the filtered jobs
             for ss, i_subplot_name in enumerate(plot_subplots_list):

@@ -1,6 +1,5 @@
+import matplotlib.pyplot as plt
 import numpy as np
-from pylab import *
-from matplotlib import dates
 
 import time_signal
 from logreader.scheduler_reader import AccountingDataSet, PBSDataSet

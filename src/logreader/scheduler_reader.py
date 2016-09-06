@@ -1,6 +1,5 @@
 import os
 
-from matplotlib import dates
 import csv
 from datetime import datetime
 
@@ -161,12 +160,12 @@ def read_pbs_log(filename_in):
         cc += 1
 
     # remove invalid entries
-    pbs_jobs[:] = [i_job for i_job in pbs_jobs if i_job.time_start != -1]
-    pbs_jobs[:] = [i_job for i_job in pbs_jobs if i_job.time_end != -1]
-    pbs_jobs[:] = [i_job for i_job in pbs_jobs if i_job.time_end >= i_job.time_start]
-    pbs_jobs[:] = [i_job for i_job in pbs_jobs if i_job.time_queued != -1]
-    pbs_jobs[:] = [i_job for i_job in pbs_jobs if i_job.time_start >= i_job.time_queued]
-    pbs_jobs[:] = [i_job for i_job in pbs_jobs if i_job.ncpus > 0]
+    pbs_jobs[:] = [job for job in pbs_jobs if job.time_start != -1]
+    pbs_jobs[:] = [job for job in pbs_jobs if job.time_end != -1]
+    pbs_jobs[:] = [job for job in pbs_jobs if job.time_end >= job.time_start]
+    pbs_jobs[:] = [job for job in pbs_jobs if job.time_queued != -1]
+    pbs_jobs[:] = [job for job in pbs_jobs if job.time_start >= job.time_queued]
+    pbs_jobs[:] = [job for job in pbs_jobs if job.ncpus > 0]
     # pbs_jobs[:] = [i_job for i_job in pbs_jobs if i_job.nnodes > 0]
 
     for (ii, i_job) in enumerate(pbs_jobs):
@@ -266,13 +265,13 @@ def read_accounting_logs(filename_in):
             accounting_jobs.append(i_job)
 
     # remove invalid entries
-    accounting_jobs[:] = [i_job for i_job in accounting_jobs if i_job.time_start != -1]
-    accounting_jobs[:] = [i_job for i_job in accounting_jobs if i_job.time_end != -1]
-    accounting_jobs[:] = [i_job for i_job in accounting_jobs if i_job.time_end >= i_job.time_start]
-    accounting_jobs[:] = [i_job for i_job in accounting_jobs if i_job.time_queued != -1]
-    accounting_jobs[:] = [i_job for i_job in accounting_jobs if i_job.time_start >= i_job.time_queued]
-    accounting_jobs[:] = [i_job for i_job in accounting_jobs if i_job.ncpus > 0]
-    accounting_jobs[:] = [i_job for i_job in accounting_jobs if i_job.nnodes > 0]
+    accounting_jobs[:] = [job for job in accounting_jobs if job.time_start != -1]
+    accounting_jobs[:] = [job for job in accounting_jobs if job.time_end != -1]
+    accounting_jobs[:] = [job for job in accounting_jobs if job.time_end >= job.time_start]
+    accounting_jobs[:] = [job for job in accounting_jobs if job.time_queued != -1]
+    accounting_jobs[:] = [job for job in accounting_jobs if job.time_start >= job.time_queued]
+    accounting_jobs[:] = [job for job in accounting_jobs if job.ncpus > 0]
+    accounting_jobs[:] = [job for job in accounting_jobs if job.nnodes > 0]
 
     # store the original idx of each job..
     for (ii, i_job) in enumerate(accounting_jobs):
@@ -368,13 +367,13 @@ def read_epcc_csv_logs(filename_in):
             csv_jobs.append(i_job)
 
     # remove invalid entries
-    csv_jobs[:] = [i_job for i_job in csv_jobs if i_job.time_start != -1]
-    csv_jobs[:] = [i_job for i_job in csv_jobs if i_job.time_end != -1]
-    csv_jobs[:] = [i_job for i_job in csv_jobs if i_job.time_end >= i_job.time_start]
-    csv_jobs[:] = [i_job for i_job in csv_jobs if i_job.time_queued != -1]
-    csv_jobs[:] = [i_job for i_job in csv_jobs if i_job.time_start >= i_job.time_queued]
-    csv_jobs[:] = [i_job for i_job in csv_jobs if i_job.ncpus > 0]
-    csv_jobs[:] = [i_job for i_job in csv_jobs if i_job.nnodes > 0]
+    csv_jobs[:] = [job for job in csv_jobs if job.time_start != -1]
+    csv_jobs[:] = [job for job in csv_jobs if job.time_end != -1]
+    csv_jobs[:] = [job for job in csv_jobs if job.time_end >= job.time_start]
+    csv_jobs[:] = [job for job in csv_jobs if job.time_queued != -1]
+    csv_jobs[:] = [job for job in csv_jobs if job.time_start >= job.time_queued]
+    csv_jobs[:] = [job for job in csv_jobs if job.ncpus > 0]
+    csv_jobs[:] = [job for job in csv_jobs if job.nnodes > 0]
 
     # store the original idx of each job..
     for (ii, i_job) in enumerate(csv_jobs):

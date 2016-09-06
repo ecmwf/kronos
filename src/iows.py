@@ -49,11 +49,10 @@ Input file syntax:
       ["ipm", path]        - Use ipm logs (n.b. multiple logs per job, sorted by directory)
 """
 
-import json
 import sys
 import logreader
 
-from exceptions_iows import *
+from exceptions_iows import ConfigurationError
 from model_workload import ModelWorkload
 from config.config import Config
 from IOWS_model import IOWSModel

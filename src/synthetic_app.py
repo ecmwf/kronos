@@ -1,7 +1,5 @@
-import time_signal
 from jobs import ModelJob
 import json
-import sys
 import os
 
 import app_kernels
@@ -140,7 +138,7 @@ class SyntheticApp(ModelJob):
 
         # Filter out empty elements from the list of kernels
         frames = [
-            [kernel for kernel in frame if not kernel.get("empty", False)]
+            [kern for kern in frame if not kern.get("empty", False)]
             for frame in frames
         ]
 

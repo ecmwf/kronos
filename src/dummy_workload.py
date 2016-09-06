@@ -1,7 +1,9 @@
 import time
 import random as rdm
+import numpy as np
+import os
 
-from tools import *
+from tools.mytools import isfilenotempty, freq_to_time
 
 #///////////////////////////////////////////////////////////////
 
@@ -41,7 +43,7 @@ class DummyWorkload():
             #------ create list of jobs -----
             job_list = []
 
-            for ijob in arange(0, self.Njobs):
+            for ijob in np.arange(0, self.Njobs):
 
                 ncpus = max([int(rdm.random() * self.Nprocs_total), 1])
                 runtime = max(
@@ -137,22 +139,22 @@ class DummyWorkload():
             #------ create list of jobs -----
             job_list = []
 
-            for ijob in arange(0, self.Njobs):
+            for ijob in np.arange(0, self.Njobs):
 
                 ncpus = max([int(rdm.random() * self.Nprocs_total), 1])
                 runtime = max(
                     [rdm.random() * self.time_application_max / 2., 1.0])
                 start_time = int(rdm.random() * self.time_schedule_total)
 
-                times = linspace(0, runtime, 10)
+                times = np.linspace(0, runtime, 10)
 
                 freqsR = np.random.random((10,)) * 1. / runtime * 10.
                 amplsR = np.random.random((10,)) * 1000
-                phasesR = np.random.random((10,)) * 2 * pi
+                phasesR = np.random.random((10,)) * 2 * np.pi
 
                 freqsW = np.random.random((10,)) * 1. / runtime * 10.
                 amplsW = np.random.random((10,)) * 1000
-                phasesW = np.random.random((10,)) * 2 * pi
+                phasesW = np.random.random((10,)) * 2 * np.pi
 
                 IO_N_read_vec = freq_to_time(times, freqsR, amplsR, phasesR)
                 IO_N_write_vec = freq_to_time(times, freqsW, amplsW, phasesW)

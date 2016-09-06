@@ -5,13 +5,10 @@ import glob
 
 os.sys.path.append(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
 
-import logreader
-
 from tools import mytools
 from model_workload import ModelWorkload
 from synthetic_app import SyntheticWorkload
 from logreader import profiler_reader
-from regression import lin_reg
 
 
 class FeedbackLoop(object):

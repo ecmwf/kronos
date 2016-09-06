@@ -80,7 +80,8 @@ class WorkloadCorrector(object):
                                       verbose=True,
                                       weightdecay=self.ann_weight_decay)
 
-            errlist = trainer.trainEpochs(epochs=self.ann_epochs)
+            # errlist = trainer.trainEpochs(epochs=self.ann_epochs)
+            trainer.trainEpochs(epochs=self.ann_epochs)
 
     def ann_visual_check(self, plt_tag):
         """ Plot ANN response on testing set """
