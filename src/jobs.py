@@ -5,6 +5,7 @@ from exceptions_iows import ModellingError
 from tools.merge import max_not_none, min_not_none
 from tools.print_colour import print_colour
 from tools.time_format import format_seconds
+from time_signal import TimeSignal
 
 
 class ModelJob(object):
@@ -51,9 +52,15 @@ class ModelJob(object):
 
         if time_series:
             for series, values in time_series.iteritems():
-                if series != values.name:
-                    raise ModellingError("Time signal {} mislabelled as {}".format(values.name, series))
-                self.timesignals[series] = values
+
+                # if this timeseries is available then get it into the modeljob timeseries..
+                if values:
+                    # this assumes that all the values are timeseries BUT they can be None..
+                    if series != values.name:
+                        raise ModellingError("Time signal {} mislabelled as {}".format(values.name, series))
+                    self.timesignals[series] = values
+                else: # otherwise choose appropriate default values..
+                    self.timesignals[series] = self.default_timeseries_values(series)
 
         # n.b. We do NOT call check_job here. It is perfectly reasonably for the required data to come from
         #      multiple sources, and be merged in. Or added in with regression processes. check_job() should be
@@ -64,7 +71,7 @@ class ModelJob(object):
         Merge together two ModelJobs that are (trying) to represent the same actual job. They likely come from
         separate sets of profiling.
         """
-        assert self.label == other.label
+        # assert self.label == other.label
 
         # Not all profiled components of a job will use all the CPUs. Catch the highest.
         self.ncpus = max_not_none(self.ncpus, other.ncpus)
@@ -204,6 +211,17 @@ class ModelJob(object):
 
         return index
 
+    def default_timeseries_values(self, series_name):
+
+        """
+        Set timeseries default values..
+        :return:
+        """
+        # TODO: choose appropriate values..
+        tt = TimeSignal(series_name)
+        tt.from_values(series_name, np.zeros(10), [0], base_signal_name=None, durations=None)
+        return tt
+
 
 class IngestedJob(object):
 
@@ -300,3 +318,76 @@ class IngestedJob(object):
         for field in self.required_fields:
             if getattr(self, field, None) is None:
                 raise UserWarning("job: {}, missing field: {}".format(self.jobname, field))
+
+
+def concatenate_modeljobs(cat_job_label, job_list):
+    """
+    Interlaces (or concatenates) a list of jobs into one single job..
+    the job time series will be interlaced according to their respective timestamps..
+    This function is used to generate one single model job that results to the same "workload" as the input group of jobs
+    :param   cat_job_label: name of concatenated job
+             job_list: list of jobs to concatenate
+    :return: A ModelJob
+    """
+
+    print "creating job {}..".format(cat_job_label)
+
+    # 2) find start-time and end-time
+    cat_start_time = min([job.time_start for job in job_list])
+    cat_end_time = max([job.time_start+job.duration for job in job_list])
+
+    # 3) find overall duration
+    cat_duration = cat_end_time - cat_start_time
+
+    # 4) interlace time-series
+    cat_time_series = {}
+    for ts_type in time_signal.signal_types:
+
+        print "processing signal {}..".format(ts_type)
+
+        cat_xvalues = []
+        cat_yvalues = []
+        cat_durations = []
+
+        # loop over jobs
+        for job in job_list:
+            if ts_type in job.timesignals.keys() and job.timesignals[ts_type] is not None:
+
+                # add xvalues (in absolute value) and yvalues
+                cat_xvalues.extend(job.timesignals[ts_type].xvalues + job.time_start)
+                cat_yvalues.extend(job.timesignals[ts_type].yvalues)
+
+                # add durations only if available, otherwise set them to zero..
+                if job.timesignals[ts_type].durations is not None:
+                    cat_durations.extend(job.timesignals[ts_type].durations)
+                else:
+                    cat_durations.extend(np.zeros(len(job.timesignals[ts_type].xvalues)))
+
+        if cat_xvalues:
+            # reset the initial time to zero..
+            cat_xvalues = [x-cat_start_time for x in cat_xvalues]
+
+            # sort values as time sequence..
+            cat_vals = zip(cat_xvalues, cat_yvalues, cat_durations)
+            cat_vals.sort(key=lambda x: x[0], reverse=False)
+            xvalues, yvalues, durations = zip(*cat_vals)
+
+            # build the concatenated time signal..
+            cat_time_series[ts_type] = TimeSignal(
+                                             ts_type,
+                                             base_signal_name=ts_type,
+                                             durations=durations,
+                                             xvalues=xvalues,
+                                             yvalues=yvalues
+                                             )
+
+    print "job {} created!".format(cat_job_label)
+
+    return ModelJob(
+        time_start=cat_start_time,
+        duration=cat_duration,
+        ncpus=2,
+        nnodes=1,
+        time_series=cat_time_series,
+        label=cat_job_label
+    )
