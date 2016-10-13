@@ -249,6 +249,11 @@ def read_accounting_logs(filename_in):
             else:
                 i_job.nnodes = -1
 
+            if 'stdout' in line_dict:
+                i_job.stdout = line_dict['stdout']
+            else:
+                i_job.stdout = []
+
             # i_job.cpu_percent = float(line_dict['cpu_percent'].replace(":", ""))
             i_job.group = str(line_dict['owner_group'])
             i_job.jobname = str(line_dict['jobname'])

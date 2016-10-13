@@ -155,9 +155,10 @@ class ModelJob(object):
                         "Time signal {} mislabelled as {}".format(other.timesignals[ts_name].name, ts_name))
 
                 if self_valid:
-                    raise ModellingError("Valid timeseries in both model jobs for {}: {}".format(
-                        ts_name, self.label
-                    ))
+                    # raise ModellingError("Valid timeseries in both model jobs for {}: {}".format(
+                    #     ts_name, self.label
+                    # ))
+                    print_colour("orange", "data conflict for time-series: {} - action: original timeseries retained".format(ts_name))
                 else:
                     self.timesignals[ts_name] = other.timesignals[ts_name]
 
@@ -330,8 +331,6 @@ def concatenate_modeljobs(cat_job_label, job_list):
     :return: A ModelJob
     """
 
-    print "creating job {}..".format(cat_job_label)
-
     # 2) find start-time and end-time
     cat_start_time = min([job.time_start for job in job_list])
     cat_end_time = max([job.time_start+job.duration for job in job_list])
@@ -343,8 +342,6 @@ def concatenate_modeljobs(cat_job_label, job_list):
     cat_time_series = {}
     for ts_type in time_signal.signal_types:
 
-        print "processing signal {}..".format(ts_type)
-
         cat_xvalues = []
         cat_yvalues = []
         cat_durations = []
@@ -354,8 +351,8 @@ def concatenate_modeljobs(cat_job_label, job_list):
             if ts_type in job.timesignals.keys() and job.timesignals[ts_type] is not None:
 
                 # add xvalues (in absolute value) and yvalues
-                cat_xvalues.extend(job.timesignals[ts_type].xvalues + job.time_start)
-                cat_yvalues.extend(job.timesignals[ts_type].yvalues)
+                cat_xvalues.extend(np.asarray(job.timesignals[ts_type].xvalues) + job.time_start)
+                cat_yvalues.extend(np.asarray(job.timesignals[ts_type].yvalues))
 
                 # add durations only if available, otherwise set them to zero..
                 if job.timesignals[ts_type].durations is not None:
@@ -380,8 +377,7 @@ def concatenate_modeljobs(cat_job_label, job_list):
                                              xvalues=xvalues,
                                              yvalues=yvalues
                                              )
-
-    print "job {} created!".format(cat_job_label)
+    print "job {} created".format(cat_job_label)
 
     return ModelJob(
         time_start=cat_start_time,

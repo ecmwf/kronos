@@ -3,7 +3,8 @@ import json
 import os
 
 import app_kernels
-
+from time_signal import TimeSignal
+import numpy as np
 
 class SyntheticWorkload(object):
     """
@@ -42,6 +43,7 @@ class SyntheticWorkload(object):
         sorted_apps = sorted(self.app_list, key=lambda a: a.time_start)
 
         print "Exporting {} synthetic applications to: {}".format(len(sorted_apps), dir_output)
+
 
         if stretching_factors:
             for i, app in enumerate(sorted_apps):
@@ -82,6 +84,7 @@ class SyntheticApp(ModelJob):
     mapping between these SyntheticApp classes and execution runs of the synthetic application (coordinator).
     """
     def __init__(self, job_name=None, time_signals=None, **kwargs):
+
         super(SyntheticApp, self).__init__(
             time_series=time_signals,
             duration=None,  # Duration is not specified for a Synthetic App - that is an output
@@ -89,10 +92,19 @@ class SyntheticApp(ModelJob):
         )
 
         self.job_name = job_name
+        # self.timesignals = {k:v for k,v in self.timesignals.items() if v is not None}
 
         # this additional "scaling factor" is generated during the workload "tuning" phase
         # and acts on the time series when the synthetic apps are exported
         self.tuning_factor = None
+
+    def set_ts_defaults(self):
+        for series in self.timesignals.keys():
+            if (self.timesignals[series].xvalues is None) or (self.timesignals[series].yvalues is None):
+
+                ts = TimeSignal(series)
+                ts = ts.from_values(series, np.zeros(10), np.zeros(10), base_signal_name=None, durations=np.zeros(10)+0.01)
+                self.timesignals[series] = ts
 
     def export(self, filename, nbins):
         """
@@ -113,10 +125,18 @@ class SyntheticApp(ModelJob):
         with open(filename, 'w') as f:
             json.dump(job_entry, f, ensure_ascii=True, sort_keys=True, indent=4, separators=(',', ': '))
 
+
     def frame_data(self, nbins):
         """
         Return the cofiguration required for the synthetic app kernels
         """
+
+        # generate kernes from non-null timesignals only..
+        self.set_ts_defaults()
+
+        # nonnull_timesignals = {k: v for k, v in self.timesignals.items() if (v.xvalues is not None) and (v.yvalues is not None)}
+        # print nonnull_timesignals
+
         # (re-)digitize all the time series
         for ts_name, ts in self.timesignals.iteritems():
             ts.digitize(nbins)

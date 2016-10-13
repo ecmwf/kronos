@@ -183,15 +183,15 @@ class TimeSignal(object):
             key = self.digitization_key
 
         # Find out what the maximum time is
-        xedge_bins = np.linspace(0.0, max(self.xvalues + self.durations) + 1.0e-6, nbins + 1)
-        dx_bins = self.xedge_bins[1] - self.xedge_bins[0]
-
+        self.xedge_bins = np.linspace(0.0, max(self.xvalues + self.durations) + 1.0e-6, nbins + 1)
+        self.dx_bins = self.xedge_bins[1] - self.xedge_bins[0]
+        self.xvalues_bins = 0.5 * (self.xedge_bins[1:] + self.xedge_bins[:-1])
         self.yvalues_bins = np.zeros(len(self.xvalues_bins))
 
         # Now we need to loop through to attribute the data to bins (as considering the durations, it may not be
         # one-to-one
-        start_bins = np.digitize(self.xvalues, xedge_bins) - 1
-        end_bins = np.digitize(self.xvalues + self.durations, xedge_bins) - 1
+        start_bins = np.digitize(self.xvalues, self.xedge_bins) - 1
+        end_bins = np.digitize(self.xvalues + self.durations, self.xedge_bins) - 1
         for start, stop, x, y, dur in zip(start_bins, end_bins, self.xvalues, self.yvalues, self.durations):
 
             # An index of -1 would imply the data is to the left of the first bin. This would be unacceptable.
@@ -202,9 +202,9 @@ class TimeSignal(object):
             if start == stop:
                 self.yvalues_bins[start] += y
             else:
-                self.yvalues_bins[start] = y * (dx_bins - math.fmod(x, dx_bins)) / dur
-                self.yvalues_bins[start+1:stop--1] = y * dx_bins / dur
-                self.yvalues_bins[stop] = y * math.fmod(x + dur, dx_bins) / dur
+                self.yvalues_bins[start] = y * (self.dx_bins - math.fmod(x, self.dx_bins)) / dur
+                self.yvalues_bins[start+1:stop--1] = y * self.dx_bins / dur
+                self.yvalues_bins[stop] = y * math.fmod(x + dur, self.dx_bins) / dur
 
         self.yvalues_bins = np.asarray(self.yvalues_bins)
         self.yvalues_bins = self.yvalues_bins.astype(self.ts_type)
