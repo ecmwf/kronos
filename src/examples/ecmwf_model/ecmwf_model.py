@@ -1,26 +1,26 @@
 #!/usr/bin/env python
 
 import os
-import cPickle as pickle
 import datetime
 
-import math
 import numpy as np
 import matplotlib.pyplot as plt
 
 from sklearn.cluster import KMeans
 from sklearn import cross_validation as cv
-from sklearn.metrics import mean_squared_error
 from sklearn.metrics.pairwise import pairwise_distances
 from scipy.spatial.distance import cdist, pdist
 
-os.sys.path.append(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
+os.sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.realpath(__file__)))))
 
 from logreader import ingest_data
 from time_signal import TimeSignal
-from jobs import ModelJob, concatenate_modeljobs
 from synthetic_app import SyntheticApp, SyntheticWorkload
 from config.config import Config
+from jobs import ModelJob
+
+import helper_functions
+import job_grouping
 
 # Load config
 config = Config()
@@ -30,32 +30,21 @@ path_ingested_jobs = '/perm/ma/maab/ngio_ingested_data/my_ingested'
 
 
 # ////////////////////////////////////////////////////////////////////////////
-def rmse(prediction, ground_truth):
-    """ Root mean square error for model evaluation """
-    prediction = prediction[ground_truth.nonzero()].flatten()
-    ground_truth = ground_truth[ground_truth.nonzero()].flatten()
-    return math.sqrt(mean_squared_error(prediction, ground_truth))
-# ////////////////////////////////////////////////////////////////////////////
-
-
-# ////////////////////////////////////////////////////////////////////////////
 def ecmwf_model():
-    # //////////////////////////// ingest logs ///////////////////////////////
-    # Darshan
-    with open(os.path.join(path_ingested_jobs, "ingested_darshan"), "r") as f:
-        darshan_dataset = pickle.load(f)
-    print "darshan log data ingested!"
 
-    # IPM
-    with open(os.path.join(path_ingested_jobs, "ingested_ipm"), "r") as f:
-        ipm_dataset = pickle.load(f)
-    print "ipm log data ingested!"
+    # some raw settings for this script..
+    settings_dict = {
+                     'n_tree_levels': 3,
+                     'km_rseed': 0,
+                     'km_max_iter': 100,
+                     'km_nc_max': 20,
+                     'km_nc_delta': 1,
+                     'sa_n_proc': 2,
+                     'sa_n_nodes': 1,
+                    }
 
-    # stdout
-    with open(os.path.join(path_ingested_jobs, "ingested_stdout"), "r") as f:
-        stdout_dataset = pickle.load(f)
-    print "stdout log data ingested!"
-    # /////////////////////////////////////////////////////////////////////////
+    # ingest all datasets..
+    darshan_dataset, ipm_dataset, stdout_dataset = helper_functions.ingest_operational_logs(path_ingested_jobs)
 
     # /////////////// matching between darshan, stdout and ipm ////////////////
     print "matching corresponding jobs.."
@@ -96,43 +85,7 @@ def ecmwf_model():
     # /////////////////////////////////////////////////////////////////////////
 
     # ///////////////// Group operational jobs in the tree ////////////////////
-    print "grouping low-level jobs in the tree.."
-
-    n_levels = 3
-    # labels_tree = [j.label.split('/') for j in matching_jobs]
-
-    job_groups = {}
-    for j in matching_jobs:
-
-        # if it is a deep node, group it..
-        if len(j.label.split('/')) > n_levels:
-            root_label = ''.join(j.label.split('/')[:n_levels])
-            if root_label in job_groups.keys():
-                job_groups[root_label].append(j)
-            else:
-                job_groups[root_label] = [j]
-        else:  # otherwise add it into the list as it is..
-            root_label = ''.join(j.label.split('/'))
-            if root_label in job_groups.keys():
-                job_groups[root_label].append(j)
-            else:
-                job_groups[root_label] = [j]
-
-    print "job grouping done!!"
-
-    print "creating the grouped model jobs.."
-    operational_model_jobs = []
-    label_cc = 0
-    for k in job_groups.keys():
-        # if it is just one job, append it
-        if len(job_groups[k]) == 1:
-            operational_model_jobs.append(job_groups[k][0])
-        else:  # group the jobs into one sa only..
-            cat_job = concatenate_modeljobs('grouped-job-{}'.format(label_cc), job_groups[k])
-            operational_model_jobs.append(cat_job)
-            label_cc += 1
-
-    print "grouped model jobs created!"
+    operational_model_jobs = job_grouping.grouping_by_tree_level(matching_jobs, settings_dict)
     # /////////////////////////////////////////////////////////////////////////
 
     # ///////////// Fill-in job structure for recommendations.. ///////////////
@@ -210,10 +163,12 @@ def ecmwf_model():
 
     # /// do clustering now that all the jobs have their metrics filled in.. //
     print "doing clustering.."
-    rseed = 0
-    max_iter = 100
-    nc_max = 20
-    nc_delta = 1
+
+    rseed = settings_dict['km_rseed']
+    max_iter = settings_dict['km_max_iter']
+    nc_max = settings_dict['km_nc_max']
+    nc_delta = settings_dict['km_nc_delta']
+
     nc_vec = np.asarray(range(1, nc_max, nc_delta))
 
     avg_d_in_clust = np.zeros(nc_vec.shape[0])
@@ -252,8 +207,8 @@ def ecmwf_model():
         job = ModelJob(
             time_start=0,
             duration=1,
-            ncpus=2,
-            nnodes=1,
+            ncpus=settings_dict['sa_n_proc'],
+            nnodes=settings_dict['sa_n_nodes'],
             time_series=ts_dict,
             label="job-{}".format(cc)
         )
@@ -272,8 +227,8 @@ def ecmwf_model():
         app = SyntheticApp(
             job_name="RS-appID-{}".format(cc),
             time_signals=job.timesignals,
-            ncpus=2,
-            nnodes=1,
+            ncpus=settings_dict['sa_n_proc'],
+            nnodes=settings_dict['sa_n_nodes'],
             time_start=job.time_start
         )
 
@@ -284,8 +239,8 @@ def ecmwf_model():
         app = SyntheticApp(
             job_name="RS-appID-{}".format(cc),
             time_signals=job.timesignals,
-            ncpus=2,
-            nnodes=1,
+            ncpus=settings_dict['sa_n_proc'],
+            nnodes=settings_dict['sa_n_nodes'],
             time_start=job.time_start
         )
 
