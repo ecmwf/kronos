@@ -56,10 +56,11 @@ class SyntheticWorkload(object):
         # loop oer synthetic apps and return sums of time signals
         for app in self.app_list:
 
-            if include_tuning_factors and app.tuning_factor is not None:
-                fact = app.tuning_factor
-
             for ts in app.timesignals.values():
+
+                if include_tuning_factors and app.tuning_factor is not None:
+                    fact = app.tuning_factor[ts.name]
+
                 if ts.name in tot:
                     if ts is not None:
                         if ts.sum is not None:
@@ -68,7 +69,6 @@ class SyntheticWorkload(object):
                     if ts is not None:
                         if ts.sum is not None:
                             tot[ts.name] = ts.sum * fact
-        print "time-signals sums calculated."
         return tot
 
     def set_tuning_factors(self, tuning_factor):
