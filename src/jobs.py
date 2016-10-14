@@ -59,8 +59,6 @@ class ModelJob(object):
                     if series != values.name:
                         raise ModellingError("Time signal {} mislabelled as {}".format(values.name, series))
                     self.timesignals[series] = values
-                else: # otherwise choose appropriate default values..
-                    self.timesignals[series] = self.default_timeseries_values(series)
 
         # n.b. We do NOT call check_job here. It is perfectly reasonably for the required data to come from
         #      multiple sources, and be merged in. Or added in with regression processes. check_job() should be
@@ -211,17 +209,6 @@ class ModelJob(object):
                 index += np.trapz(abs(series.yvalues), series.xvalues)
 
         return index
-
-    def default_timeseries_values(self, series_name):
-
-        """
-        Set timeseries default values..
-        :return:
-        """
-        # TODO: choose appropriate values..
-        tt = TimeSignal(series_name)
-        tt.from_values(series_name, np.zeros(10), [0], base_signal_name=None, durations=None)
-        return tt
 
 
 class IngestedJob(object):
