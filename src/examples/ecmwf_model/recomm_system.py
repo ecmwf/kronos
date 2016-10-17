@@ -8,9 +8,8 @@ os.sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.realp
 
 from time_signal import signal_types
 
-def apply_recomm_sys(matching_jobs, acc_model_jobs):
 
-    # TODO: still to apply normalization..
+def apply_recomm_sys(matching_jobs, acc_model_jobs):
 
     # add the darshan job records
     all_jobs_data_dsh = np.zeros((len(matching_jobs), len(signal_types) + 3))
@@ -20,14 +19,14 @@ def apply_recomm_sys(matching_jobs, acc_model_jobs):
         row += [j.ncpus, j.nnodes, j.duration]
         all_jobs_data_dsh[cc, :] = np.asarray(row)
 
-    data_all = all_jobs_data_dsh
-    # n_jobs = data_all.shape[0]
-    # n_items = data_all.shape[1]
+    # Normalize all the data
+    item_means = np.mean(all_jobs_data_dsh, axis=0)
+    all_jobs_data_dsh_norm = all_jobs_data_dsh / item_means[None, :]
     print "created job metrics structure!"
 
     print "creating user-item and item-item similarities.."
-    # use scikit to split the data into training and teting set..
-    train_data_matrix, test_data_matrix = cv.train_test_split(data_all, test_size=0.25)
+    # use scikit to split the data into training and testing set..
+    train_data_matrix, test_data_matrix = cv.train_test_split(all_jobs_data_dsh_norm, test_size=0.25)
 
     # calculate cosine similarities (user-user matrix and item-item matrix)..
     # these similarity matrices will then be used to predict the missing data for "new users" (jobs..)
@@ -52,9 +51,11 @@ def apply_recomm_sys(matching_jobs, acc_model_jobs):
         acc_jobs_data[cc, :] = np.asarray(row)
 
     # use recommender system in accounting logs:
-    item_prediction_acc = acc_jobs_data.dot(item_similarity_matrix) / \
-                          np.array([np.abs(item_similarity_matrix).sum(axis=1)])
-    item_prediction_acc[:, 9:11] = acc_jobs_data[:, 9:11]
+    item_prediction_acc_norm = acc_jobs_data.dot(item_similarity_matrix) / \
+                                np.array([np.abs(item_similarity_matrix).sum(axis=1)])
+
+    item_prediction_acc = item_prediction_acc_norm[:, :8] * item_means
+    item_prediction_acc = np.vstack((item_prediction_acc, acc_jobs_data[:, 9:11]))
 
     print "created prediction values for background jobs.."
     # /////////////////////////////////////////////////////////////////////////
