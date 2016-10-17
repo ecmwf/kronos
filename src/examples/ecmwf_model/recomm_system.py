@@ -19,9 +19,9 @@ def apply_recomm_sys(matching_jobs, acc_model_jobs):
         row += [j.ncpus, j.nnodes, j.duration]
         all_jobs_data_dsh[cc, :] = np.asarray(row)
 
-    # Normalize all the data
-    item_means = np.mean(all_jobs_data_dsh, axis=0)
-    all_jobs_data_dsh_norm = all_jobs_data_dsh / item_means[None, :]
+    # Normalize all the data according to their maximum value
+    item_max = np.max(all_jobs_data_dsh, axis=0)
+    all_jobs_data_dsh_norm = all_jobs_data_dsh / (item_max[None, :] + 1.e-10)
     print "created job metrics structure!"
 
     print "creating user-item and item-item similarities.."
@@ -51,11 +51,12 @@ def apply_recomm_sys(matching_jobs, acc_model_jobs):
         acc_jobs_data[cc, :] = np.asarray(row)
 
     # use recommender system in accounting logs:
-    item_prediction_acc_norm = acc_jobs_data.dot(item_similarity_matrix) / \
+    acc_jobs_data_norm = acc_jobs_data / (item_max[None, :] + 1.e-10)
+    item_prediction_acc_norm = acc_jobs_data_norm.dot(item_similarity_matrix) / \
                                 np.array([np.abs(item_similarity_matrix).sum(axis=1)])
 
-    item_prediction_acc = item_prediction_acc_norm[:, :8] * item_means
-    item_prediction_acc = np.vstack((item_prediction_acc, acc_jobs_data[:, 9:11]))
+    item_prediction_acc = item_prediction_acc_norm[:, :8] * item_max[None, :8]
+    item_prediction_acc = np.hstack((item_prediction_acc, acc_jobs_data[:, 9:11]))
 
     print "created prediction values for background jobs.."
     # /////////////////////////////////////////////////////////////////////////
