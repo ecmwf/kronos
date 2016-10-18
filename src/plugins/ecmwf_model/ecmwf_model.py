@@ -73,7 +73,7 @@ def ecmwf_model():
             if len(ipm_job) > 1:
                 print "error, more than 1 matching job found!!"
             else:
-                dj.merge(ipm_job[0])
+                dj.merge(ipm_job[0], force=True)
                 matching_jobs.append(dj)
 
     print "matching={} (out of {})".format(n_match_ipm, float(len(dsh_model_jobs)))

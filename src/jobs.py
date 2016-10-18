@@ -64,12 +64,13 @@ class ModelJob(object):
         #      multiple sources, and be merged in. Or added in with regression processes. check_job() should be
         #      called immediately before the first time the ModelJob is to be USED where validity would be required.
 
-    def merge(self, other):
+    def merge(self, other, force=False):
         """
         Merge together two ModelJobs that are (trying) to represent the same actual job. They likely come from
         separate sets of profiling.
         """
-        # assert self.label == other.label
+        if not force:
+            assert self.label == other.label
 
         # Not all profiled components of a job will use all the CPUs. Catch the highest.
         self.ncpus = max_not_none(self.ncpus, other.ncpus)
