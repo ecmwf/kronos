@@ -101,27 +101,5 @@ def dominates(row, another_row):
     return sum([row[x] >= another_row[x] for x in range(len(row))]) == len(row) # maximization domination
 
 
-# def create_dummy_workload(run_dir):
-#     """ create dummy workload by running a set of summy synthetic apps """
-#
-#     os.chdir(run_dir)
-#
-#     for i_run in run_list:
-#
-#         # run IO + map
-#         run_str = (
-#                    "/home/ma/maab/workspace/Allinea_examples_files/NEXTGenIO_buiild/" +
-#                    " allinea-forge-default-2016-05-26-0f0efef441a7-Suse-11-x86_64/bin/map --profile" +
-#                    " /home/ma/maab/workspace/downloaded_software/IOR/src/C/IOR" +
-#                    " -t 2m -b 10m"
-#                   )
-#
-#         print run_str
-#
-#         # -k - o / home / ma / maab / workspace / Allinea_examples_files / my_tests / out_ior.dat
-#
-#         os.system(run_str)
-
-
 def sort_dict_list(d, sorted_keys_list):
     return [d[i] for i in sorted_keys_list]
