@@ -2,9 +2,9 @@ import numpy as np
 import time_signal
 
 from exceptions_iows import ModellingError
-from tools.merge import max_not_none, min_not_none
-from tools.print_colour import print_colour
-from tools.time_format import format_seconds
+from kronos_tools.merge import max_not_none, min_not_none
+from kronos_tools.print_colour import print_colour
+from kronos_tools.time_format import format_seconds
 from time_signal import TimeSignal
 
 
@@ -154,10 +154,12 @@ class ModelJob(object):
                         "Time signal {} mislabelled as {}".format(other.timesignals[ts_name].name, ts_name))
 
                 if self_valid:
-                    # raise ModellingError("Valid timeseries in both model jobs for {}: {}".format(
-                    #     ts_name, self.label
-                    # ))
-                    print_colour("orange", "data conflict for time-series: {} - action: original timeseries retained".format(ts_name))
+                    if self.timesignals[ts_name].priority >= other.timesignals[ts_name].priority:
+                        print_colour("orange", "Conflict for time-series: {}, original retained".format(ts_name))
+                    else:
+                        print_colour("orange", "Conflict for time-series: {}, other job retained".format(ts_name))
+                        self.timesignals[ts_name] = other.timesignals[ts_name]
+
                 else:
                     self.timesignals[ts_name] = other.timesignals[ts_name]
 

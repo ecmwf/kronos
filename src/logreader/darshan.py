@@ -4,8 +4,15 @@ from jobs import IngestedJob, ModelJob
 from logreader.base import LogReader
 from logreader.dataset import IngestedDataSet
 from time_signal import TimeSignal
-from tools.merge import min_not_none, max_not_none
-from tools.print_colour import print_colour
+from kronos_tools.merge import min_not_none, max_not_none
+from kronos_tools.print_colour import print_colour
+
+darshan_signal_priorities = {
+    'kb_read': 8,
+    'kb_write': 8,
+    'n_read': 8,
+    'n_write': 8,
+}
 
 
 class DarshanLogReaderError(Exception):
@@ -159,15 +166,21 @@ class DarshanIngestedJob(IngestedJob):
 
         time_series = {}
         if read_data:
-            time_series['kb_read'] = TimeSignal.from_values('kb_read', times_read, read_data, durations=read_durations)
+            time_series['kb_read'] = TimeSignal.from_values('kb_read', times_read, read_data,
+                                                            durations=read_durations,
+                                                            priority=darshan_signal_priorities['kb_read'])
         if write_data:
             time_series['kb_write'] = TimeSignal.from_values('kb_write', times_write, write_data,
-                                                             durations=write_durations)
+                                                             durations=write_durations,
+                                                             priority=darshan_signal_priorities['kb_write'])
         if read_counts:
-            time_series['n_read'] = TimeSignal.from_values('n_read', times_read, read_counts, durations=read_durations)
+            time_series['n_read'] = TimeSignal.from_values('n_read', times_read, read_counts,
+                                                           durations=read_durations,
+                                                           priority=darshan_signal_priorities['n_read'])
         if write_counts:
             time_series['n_write'] = TimeSignal.from_values('n_write', times_write, write_counts,
-                                                            durations=write_durations)
+                                                            durations=write_durations,
+                                                            priority=darshan_signal_priorities['n_write'])
 
         return time_series
 

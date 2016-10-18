@@ -16,7 +16,7 @@ import errno
 import os
 
 from exceptions_iows import ConfigurationError
-from tools.print_colour import print_colour
+from kronos_tools.print_colour import print_colour
 
 
 class IngestedDataSet(object):

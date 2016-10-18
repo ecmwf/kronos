@@ -5,7 +5,7 @@ import calendar
 from jobs import IngestedJob, ModelJob
 from logreader.base import LogReader
 from logreader.dataset import IngestedDataSet
-from tools.print_colour import print_colour
+from kronos_tools.print_colour import print_colour
 
 
 class StdoutECMWFIngestedJob(IngestedJob):

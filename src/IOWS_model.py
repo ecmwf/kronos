@@ -9,7 +9,7 @@ from exceptions_iows import ConfigurationError
 from plot_handler import PlotHandler
 from time_signal import TimeSignal
 from synthetic_app import SyntheticApp, SyntheticWorkload
-from tools.print_colour import print_colour
+from kronos_tools.print_colour import print_colour
 from model_tuning.feedback_loop import FeedbackLoop
 
 

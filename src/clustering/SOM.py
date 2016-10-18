@@ -1,7 +1,7 @@
 import numpy as np
 
 from base import ClusteringBase
-from tools import mytools
+from kronos_tools import utils
 
 
 class ClusteringSOM(ClusteringBase):
@@ -13,7 +13,7 @@ class ClusteringSOM(ClusteringBase):
 
         print "calculating clusters by SOM.."
 
-        (nclustX, nclustY) = mytools.squarest_pair(nclusters)
+        (nclustX, nclustY) = utils.squarest_pair(nclusters)
 
         # Initialise training
         som_col = nclustX

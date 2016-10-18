@@ -18,6 +18,7 @@ import helper_functions
 import job_grouping
 import recomm_system
 
+
 # Load config
 config = Config()
 

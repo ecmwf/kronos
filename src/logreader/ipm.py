@@ -6,6 +6,16 @@ from logreader.base import LogReader
 from logreader.dataset import IngestedDataSet
 from time_signal import TimeSignal
 
+ipm_signal_priorities = {
+    'n_collective': 7,
+    'kb_collective': 7,
+    'n_pairwise': 7,
+    'kb_pairwise': 7,
+    'kb_read': 5,
+    'kb_write': 5,
+    'n_read': 5,
+    'n_write': 5,
+}
 
 class IPMTaskInfo(object):
     """
@@ -144,18 +154,31 @@ class IPMIngestedJob(IngestedJob):
         #      from _all_ tasks we would double count the transfers.
 
         return {
-            'n_collective': TimeSignal.from_values('n_collective', [0.0], [total_mpi_collective_count]),
+            'n_collective': TimeSignal.from_values('n_collective', [0.0], [total_mpi_collective_count],
+                                                   priority=ipm_signal_priorities['n_collective']),
+
             'kb_collective': TimeSignal.from_values('kb_collective', [0.0],
-                                                    [float(total_mpi_collective_bytes) / 1024.0]),
+                                                    [float(total_mpi_collective_bytes) / 1024.0],
+                                                    priority=ipm_signal_priorities['kb_collective']),
 
-            'n_pairwise': TimeSignal.from_values('n_pairwise', [0.0], [total_mpi_pairwise_count_send]),
+            'n_pairwise': TimeSignal.from_values('n_pairwise', [0.0], [total_mpi_pairwise_count_send],
+                                                 priority=ipm_signal_priorities['n_pairwise']),
+
             'kb_pairwise': TimeSignal.from_values('kb_pairwise', [0.0],
-                                                  [float(total_mpi_pairwise_bytes_send) / 1024.0]),
+                                                  [float(total_mpi_pairwise_bytes_send) / 1024.0],
+                                                  priority=ipm_signal_priorities['kb_pairwise']),
 
-            'kb_read': TimeSignal.from_values('kb_read', [0.0], [float(total_bytes_read) / 1024.0]),
-            'kb_write': TimeSignal.from_values('kb_write', [0.0], [float(total_bytes_written) / 1024.0]),
-            'n_read': TimeSignal.from_values('n_read', [0.0], [float(total_read_count)]),
-            'n_write': TimeSignal.from_values('n_write', [0.0], [float(total_write_count)])
+            'kb_read': TimeSignal.from_values('kb_read', [0.0], [float(total_bytes_read) / 1024.0],
+                                              priority=ipm_signal_priorities['kb_read']),
+
+            'kb_write': TimeSignal.from_values('kb_write', [0.0], [float(total_bytes_written) / 1024.0],
+                                               priority=ipm_signal_priorities['kb_write']),
+
+            'n_read': TimeSignal.from_values('n_read', [0.0], [float(total_read_count)],
+                                             priority=ipm_signal_priorities['n_read']),
+
+            'n_write': TimeSignal.from_values('n_write', [0.0], [float(total_write_count)],
+                                              priority=ipm_signal_priorities['n_write'])
         }
 
 

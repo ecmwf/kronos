@@ -116,9 +116,9 @@ class ModelJobTest(unittest.TestCase):
         TODO: Merge the non-time-signal data.
         """
         # n.b. non-zero values. Zero time signals are ignored.
-        kb_read1 = time_signal.TimeSignal.from_values('kb_read', [0.0], [1.0])
-        kb_read2 = time_signal.TimeSignal.from_values('kb_read', [0.0], [1.0])
-        kb_write1 = time_signal.TimeSignal.from_values('kb_write', [0.0], [1.0])
+        kb_read1 = time_signal.TimeSignal.from_values('kb_read', [0.0], [1.0], priority=8)
+        kb_read2 = time_signal.TimeSignal.from_values('kb_read', [0.0], [1.0], priority=10)
+        kb_write1 = time_signal.TimeSignal.from_values('kb_write', [0.0], [1.0], priority=8)
 
         # Test that we take the union of the available time series
         job1 = ModelJob(label="label1", time_series={'kb_read': kb_read1})
@@ -136,10 +136,11 @@ class ModelJobTest(unittest.TestCase):
             self.assertIn(ts_name, job1.timesignals)
             self.assertIsNone(job1.timesignals[ts_name])
 
-        # If a time-series exists in BOTH jobs this should (for now) raise an error.
+        # check that when merging we take the signal with highest priority index
         job1 = ModelJob(label="label1", time_series={'kb_read': kb_read1})
         job2 = ModelJob(label="label1", time_series={'kb_read': kb_read2})
-        self.assertRaises(ModellingError, lambda: job1.merge(job2))
+        job1.merge(job2)
+        self.assertEqual(job1.timesignals['kb_read'], kb_read2)
 
     def test_is_valid(self):
         """

@@ -3,7 +3,7 @@ import random as rdm
 import numpy as np
 import os
 
-from tools.mytools import isfilenotempty, freq_to_time
+from kronos_tools.utils import isfilenotempty, freq_to_time
 
 #///////////////////////////////////////////////////////////////
 

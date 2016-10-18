@@ -1,6 +1,6 @@
 import numpy as np
 import math
-
+from kronos_tools import utils
 
 # The availably types of time-series (or summed/averaged totals) data that we can use
 signal_types = {
@@ -20,9 +20,6 @@ signal_types = {
     'n_collective':  {'type': float, 'category': 'mpi',        'behaviour': 'sum'},
     'kb_collective': {'type': float, 'category': 'mpi',        'behaviour': 'sum'}
 }
-
-
-from tools import mytools
 
 
 class TimeSignal(object):
@@ -51,6 +48,13 @@ class TimeSignal(object):
         self.xedge_bins = None
         self.dx_bins = None
 
+        # this index is used for ranking time-series priorities when merging jobs..
+        # priority = None  -> signal not given
+        # priority = 0     -> signal not reliable
+        # 1<priority<9     -> signal partially reliable (e.g. ipm signals are less valuable than allinea signals, etc..)
+        # priority = 10    -> totally reliable/valuable signal
+        self.priority = kwargs.get('priority', None)
+
         # A quick sanity check (i.e. that we have used all the arguments)
         for k in kwargs:
             assert hasattr(self, k)
@@ -78,7 +82,7 @@ class TimeSignal(object):
 
     # Create from frequency domain data
     @staticmethod
-    def from_spectrum(name, time, freqs, ampls, phases, base_signal_name=None):
+    def from_spectrum(name, time, freqs, ampls, phases, base_signal_name=None, priority=None):
         """
         A fatory method to construct TimeSignals from the correct elements
         :return: A newly constructed TimeSignal
@@ -87,15 +91,16 @@ class TimeSignal(object):
             name,
             base_signal_name=base_signal_name,
             xvalues=time,
-            yvalues=abs(mytools.freq_to_time(time - time[0], freqs, ampls, phases)),
+            yvalues=abs(utils.freq_to_time(time - time[0], freqs, ampls, phases)),
             freqs=freqs,
             ampls=ampls,
-            phases=phases
+            phases=phases,
+            priority=priority
         )
 
     # Create from time-series data
     @staticmethod
-    def from_values(name, xvals, yvals, base_signal_name=None, durations=None):
+    def from_values(name, xvals, yvals, base_signal_name=None, durations=None, priority=None):
         """
         A fatory method to construct TimeSignals from the correct elements
         :return: A newly constructed TimeSignal
@@ -105,7 +110,8 @@ class TimeSignal(object):
             base_signal_name=base_signal_name,
             durations=np.asarray(durations) if durations is not None else None,
             xvalues=np.asarray(xvals),
-            yvalues=np.asarray(yvals)
+            yvalues=np.asarray(yvals),
+            priority=priority
         )
 
     def digitized(self, nbins):

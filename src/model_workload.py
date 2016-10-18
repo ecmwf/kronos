@@ -4,7 +4,7 @@ import numpy as np
 import time_signal
 from logreader.scheduler_reader import AccountingDataSet, PBSDataSet
 from plot_handler import PlotHandler
-from tools.print_colour import print_colour
+from kronos_tools.print_colour import print_colour
 
 from time_signal import TimeSignal
 from logreader import scheduler_reader

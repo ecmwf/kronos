@@ -11,6 +11,18 @@ from exceptions_iows import ConfigurationError
 from logreader.dataset import IngestedDataSet
 import time_signal
 
+allinea_signal_priorities = {
+    'flops': 10,
+    'kb_read': 10,
+    'kb_write': 10,
+    'n_read': 10,
+    'n_write': 10,
+    'n_pairwise': 10,
+    'kb_pairwise': 10,
+    'n_collective': 10,
+    'kb_collective': 10,
+}
+
 
 def read_allinea_log(filename, jobs_n_bins=None):
     """ Collect info from Allinea logs """
@@ -108,7 +120,8 @@ def read_allinea_log(filename, jobs_n_bins=None):
         if ts_config.get('per_task', False):
             y_vals *= i_job.ncpus
 
-        ts = TimeSignal.from_values(ts_config['name'], sample_times, y_vals)
+        ts = TimeSignal.from_values(ts_config['name'], sample_times, y_vals,
+                                    priority=allinea_signal_priorities [ts_config['name']])
         if jobs_n_bins is not None:
             ts.digitize(jobs_n_bins)
         i_job.append_time_signal(ts)

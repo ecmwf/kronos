@@ -4,7 +4,7 @@ import sys
 
 from exceptions_iows import ConfigurationError
 from jobs import IngestedJob
-from tools.process_pool import ProcessingPool
+from kronos_tools.process_pool import ProcessingPool
 
 
 class LogReader(object):

@@ -5,7 +5,7 @@ import glob
 
 os.sys.path.append(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
 
-from tools import mytools
+from kronos_tools import utils
 from model_workload import ModelWorkload
 from synthetic_app import SyntheticWorkload
 from logreader import profiler_reader
@@ -76,8 +76,8 @@ class FeedbackLoop(object):
         sa_metric_dict = self.synthetic_workload.total_metrics_dict
 
         print "ts names          : ", metrics_names
-        print "reference metrics : ", mytools.sort_dict_list(metrics_sum_dict_ref, metrics_names)
-        print "sa tot metrics    : ", mytools.sort_dict_list(sa_metric_dict, metrics_names)
+        print "reference metrics : ", utils.sort_dict_list(metrics_sum_dict_ref, metrics_names)
+        print "sa tot metrics    : ", utils.sort_dict_list(sa_metric_dict, metrics_names)
 
         # write log file
         write_log_file(fl_log_file, metrics_sum_dict_ref, tuning_factors, metrics_names)
@@ -171,10 +171,10 @@ class FeedbackLoop(object):
 
             print "----------------------- summary: ---------------------------"
             print "ts names            : ", metrics_names
-            print "scaling factors     : ", mytools.sort_dict_list(tuning_factors, metrics_names)
-            print "reference metrics   : ", mytools.sort_dict_list(metrics_sum_dict_ref, metrics_names)
-            print "metrics sums        : ", mytools.sort_dict_list(metrics_sum_dict, metrics_names)
-            print "scaling factors new : ", mytools.sort_dict_list(sc_factor_dict_new, metrics_names)
+            print "scaling factors     : ", utils.sort_dict_list(tuning_factors, metrics_names)
+            print "reference metrics   : ", utils.sort_dict_list(metrics_sum_dict_ref, metrics_names)
+            print "metrics sums        : ", utils.sort_dict_list(metrics_sum_dict, metrics_names)
+            print "scaling factors new : ", utils.sort_dict_list(sc_factor_dict_new, metrics_names)
             print "------------------------------------------------------------"
 
             tuning_factors = sc_factor_dict_new
@@ -218,7 +218,7 @@ def get_new_scaling_factors(metrics_ref, metrics_sums, sc_factors, updatable_met
 def write_log_file(logfile, metrics_sum_dict, scaling_factor_dict, metrics_names):
     """ append metrics sums and scaling factors to log file.. """
     with open(logfile, "a") as myfile:
-        metrics_str = ''.join(str(e) + ' ' for e in mytools.sort_dict_list(metrics_sum_dict, metrics_names))
-        scaling_str = ''.join(str(e) + ' ' for e in mytools.sort_dict_list(scaling_factor_dict, metrics_names))
+        metrics_str = ''.join(str(e) + ' ' for e in utils.sort_dict_list(metrics_sum_dict, metrics_names))
+        scaling_str = ''.join(str(e) + ' ' for e in utils.sort_dict_list(scaling_factor_dict, metrics_names))
         myfile.write(metrics_str + scaling_str + '\n')
 

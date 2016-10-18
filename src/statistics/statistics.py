@@ -2,7 +2,7 @@ import collections
 import csv
 
 from logreader.scheduler_reader import PBSDataSet, AccountingDataSet
-from tools.print_colour import print_colour
+from kronos_tools.print_colour import print_colour
 
 
 class Statistics(object):
