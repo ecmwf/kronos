@@ -54,7 +54,6 @@ def ecmwf_model():
     # model all jobs
     dsh_model_jobs = [j for j in darshan_dataset.model_jobs()]
     ipm_model_jobs = [j for j in ipm_dataset.model_jobs()]
-    std_model_jobs = [j for j in stdout_dataset.model_jobs()]
 
     matching_jobs = []
     n_match_ipm = 0

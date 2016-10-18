@@ -2,7 +2,7 @@ import os
 
 os.sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.realpath(__file__)))))
 
-from jobs import ModelJob, concatenate_modeljobs
+from jobs import concatenate_modeljobs
 
 
 def grouping_by_tree_level(matching_jobs, settings_dict):
