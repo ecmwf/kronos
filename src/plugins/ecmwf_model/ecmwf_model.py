@@ -1,11 +1,11 @@
 #!/usr/bin/env python
 
 import os
-import numpy as np
-import matplotlib.pyplot as plt
 
+import matplotlib.pyplot as plt
+import numpy as np
+from scipy.spatial.distance import cdist
 from sklearn.cluster import KMeans
-from scipy.spatial.distance import cdist, pdist
 
 os.sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.realpath(__file__)))))
 
