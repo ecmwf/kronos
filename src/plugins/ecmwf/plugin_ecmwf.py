@@ -22,9 +22,6 @@ import recomm_system
 # Load config
 config = Config()
 
-# path_ingested_jobs = "/perm/ma/maab/iows_operational"
-path_ingested_jobs = '/perm/ma/maab/ngio_ingested_data/my_ingested'
-
 
 # ////////////////////////////////////////////////////////////////////////////
 def ecmwf_model():
@@ -38,22 +35,25 @@ def ecmwf_model():
                      'km_nc_delta': 1,
                      'sa_n_proc': 2,
                      'sa_n_nodes': 1,
+                     'path_ingested_jobs': '/perm/ma/maab/ngio_ingested_data/my_ingested'
                     }
 
     # ingest all datasets..
-    darshan_dataset, ipm_dataset, stdout_dataset = helper_functions.ingest_operational_logs(path_ingested_jobs)
+    dsh_dataset, \
+    ipm_dataset, \
+    std_dataset = helper_functions.ingest_operational_logs(settings_dict['path_ingested_jobs'])
 
     # /////////////// matching between darshan, stdout and ipm ////////////////
     print "matching corresponding jobs.."
 
     # the matching will be focused on darshan records..
     # only 6 hours from the start are retained..
-    dsh_times = [job.time_start for job in darshan_dataset.joblist]
+    dsh_times = [job.time_start for job in dsh_dataset.joblist]
     dsh_t0 = min(dsh_times)
-    darshan_dataset.joblist = [job for job in darshan_dataset.joblist if job.time_start < (dsh_t0 + 6.0 * 3600.0)]
+    dsh_dataset.joblist = [job for job in dsh_dataset.joblist if job.time_start < (dsh_t0 + 6.0 * 3600.0)]
 
     # model all jobs
-    dsh_model_jobs = [j for j in darshan_dataset.model_jobs()]
+    dsh_model_jobs = [j for j in dsh_dataset.model_jobs()]
     ipm_model_jobs = [j for j in ipm_dataset.model_jobs()]
 
     matching_jobs = []
