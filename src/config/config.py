@@ -9,6 +9,10 @@ class Config(object):
     """
     A storage place for global configuration, including parsing of input JSON, and error checking
     """
+
+    # name of the plugin to load up
+    plugin = None
+
     # DIR_LOG_OUTPUT = "/perm/ma/maab/temp/test_logs"
     # DIR_DARSHAN_LIB = "/usr/local/apps/darshan/2.3.1-ecm1.1/lib64"
     # DIR_OPENMPI_SRC = "/usr/lib64/mpi/gcc/openmpi/include"

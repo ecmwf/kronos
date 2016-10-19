@@ -51,6 +51,7 @@ Input file syntax:
 
 import sys
 import logreader
+import plugins
 
 from exceptions_iows import ConfigurationError
 from model_workload import ModelWorkload
@@ -143,7 +144,13 @@ if __name__ == "__main__":
 
         # And get going!!!
         app = IOWS(config)
-        app.run()
+
+        # if set s input, use a specific plugin
+        if config.plugin:
+            model = plugins.factory(config.plugin)
+            model.run()
+        else:
+            app.run()
 
     except ConfigurationError as e:
         print "Error in iows configuration: {}".format(e)
