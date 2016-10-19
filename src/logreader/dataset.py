@@ -14,6 +14,7 @@ except:
 import base64
 import errno
 import os
+import datetime
 
 from exceptions_iows import ConfigurationError
 from kronos_tools.print_colour import print_colour
@@ -47,6 +48,29 @@ class IngestedDataSet(object):
         """
         for job in self.joblist:
             yield job.model_job()
+
+    def apply_cutoff_dates(self, date_start, date_end):
+        """
+        apply cut-off dates to the dataset:
+
+         -- only jobs started within he considered interval ill be retained..
+        """
+        assert isinstance(date_start, list)
+        assert isinstance(date_end, list)
+        cut_jobs = []
+        for job in self.joblist:
+            # make sure time stamp is a datetime type
+            job_start_time = job.time_start
+            if isinstance(job_start_time, float) or isinstance(job_start_time, int):
+                job_start_time = datetime.datetime.fromtimestamp(job.time_start)
+
+            if datetime.datetime(*date_start) < job_start_time < datetime.datetime(*date_end):
+                cut_jobs.append(job)
+
+        self.joblist = cut_jobs
+
+        return self
+
 
 
     @classmethod
