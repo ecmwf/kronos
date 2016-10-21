@@ -46,10 +46,10 @@ class PluginECMWF(PluginBase):
             ipm_dataset = pickle.load(f)
         print "ipm log data ingested!"
 
-        # stdout
-        with open(self.config.plugin["stdout_ingested_file"], "r") as f:
-            stdout_dataset = pickle.load(f)
-        print "stdout log data ingested!"
+        # # stdout
+        # with open(self.config.plugin["stdout_ingested_file"], "r") as f:
+        #     stdout_dataset = pickle.load(f)
+        # print "stdout log data ingested!"
 
         # job scheduling data
         acc_dataset = logreader.ingest_data("accounting", self.config.plugin["job_scheduler_logs"])
@@ -170,7 +170,7 @@ class PluginECMWF(PluginBase):
             app = SyntheticApp(
                 job_name="RS-appID-{}".format(cc),
                 time_signals=job.timesignals,
-                ncpus=self.config.plugin['sa_n_proc'], # TODO: ncpus and nnodes should be different for different apps..
+                ncpus=self.config.plugin['sa_n_proc'],  # TODO: ncpus and nnodes should be different for different apps
                 nnodes=self.config.plugin['sa_n_nodes'],
                 time_start=job.time_start
             )
