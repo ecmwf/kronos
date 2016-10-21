@@ -9,6 +9,6 @@ plugins_list = {
 }
 
 
-def factory(key):
+def factory(key, config):
 
-    return plugins_list[key]()
+    return plugins_list[key](config)

@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 import os
+import pickle
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -12,16 +13,12 @@ os.sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.realp
 from plugins.plugin_base import PluginBase
 from time_signal import TimeSignal, signal_types
 from synthetic_app import SyntheticApp, SyntheticWorkload
-from config.config import Config
 from jobs import ModelJob
 
-import helper_functions
+import logreader
 import job_grouping
 import recomm_system
-
-
-# Load config
-config = Config()
+import runner
 
 
 # ////////////////////////////////////////////////////////////////////////////
@@ -30,36 +27,49 @@ class PluginECMWF(PluginBase):
     class defining the ecmwf plugin
     """
 
+    def __init__(self, config):
+        super(PluginECMWF, self).__init__(config)
+        self.name = "ecmwf"
+
     def run(self):
 
-        # some raw settings for this script..
-        settings_dict = {
-                         'n_tree_levels': 3,
-                         'km_rseed': 0,
-                         'km_max_iter': 100,
-                         'km_nc_max': 20,
-                         'km_nc_delta': 1,
-                         'sa_n_proc': 2,
-                         'sa_n_nodes': 1,
-                         'path_ingested_jobs': '/perm/ma/maab/ngio_ingested_data/my_ingested'
-                        }
+        print "running ecmwf plugin.."
 
-        # ingest all datasets..
-        dsh_dataset, \
-        ipm_dataset, \
-        std_dataset = helper_functions.ingest_operational_logs(settings_dict['path_ingested_jobs'])
+        # /////////////////////// # ingest all datasets.. ///////////////////////
+        # Darshan
+        with open(self.config.plugin["darshan_ingested_file"], "r") as f:
+            darshan_dataset = pickle.load(f)
+        print "darshan log data ingested!"
+
+        # IPM
+        with open(self.config.plugin["ipm_ingested_file"], "r") as f:
+            ipm_dataset = pickle.load(f)
+        print "ipm log data ingested!"
+
+        # stdout
+        with open(self.config.plugin["stdout_ingested_file"], "r") as f:
+            stdout_dataset = pickle.load(f)
+        print "stdout log data ingested!"
+
+        # job scheduling data
+        acc_dataset = logreader.ingest_data("accounting", self.config.plugin["job_scheduler_logs"])
+        acc_dataset.apply_cutoff_dates(self.config.plugin["job_scheduler_date_start"],
+                                       self.config.plugin["job_scheduler_date_end"])
+
+        acc_model_jobs = [j for j in acc_dataset.model_jobs()]
+        # /////////////////////////////////////////////////////////////////////////
 
         # /////////////// matching between darshan, stdout and ipm ////////////////
         print "matching corresponding jobs.."
 
         # the matching will be focused on darshan records..
         # only 6 hours from the start are retained..
-        dsh_times = [job.time_start for job in dsh_dataset.joblist]
+        dsh_times = [job.time_start for job in darshan_dataset.joblist]
         dsh_t0 = min(dsh_times)
-        dsh_dataset.joblist = [job for job in dsh_dataset.joblist if job.time_start < (dsh_t0 + 6.0 * 3600.0)]
+        darshan_dataset.joblist = [job for job in darshan_dataset.joblist if job.time_start < (dsh_t0 + 6.0 * 3600.0)]
 
         # model all jobs
-        dsh_model_jobs = [j for j in dsh_dataset.model_jobs()]
+        dsh_model_jobs = [j for j in darshan_dataset.model_jobs()]
         ipm_model_jobs = [j for j in ipm_dataset.model_jobs()]
 
         matching_jobs = []
@@ -87,11 +97,7 @@ class PluginECMWF(PluginBase):
         # /////////////////////////////////////////////////////////////////////////
 
         # ///////////////// Group operational jobs in the tree ////////////////////
-        operational_model_jobs = job_grouping.grouping_by_tree_level(matching_jobs, settings_dict)
-        # /////////////////////////////////////////////////////////////////////////
-
-        # /////////////////////// Read in accounting jobs.. ///////////////////////
-        acc_model_jobs = helper_functions.read_accounting_jobs('/perm/ma/maab/ngio_logs/ECMWF/cca-jobs-20160201.csv')
+        operational_model_jobs = job_grouping.grouping_by_tree_level(matching_jobs, self.config.plugin)
         # /////////////////////////////////////////////////////////////////////////
 
         # ////////////// create database with all job records.. ///////////////////
@@ -101,10 +107,10 @@ class PluginECMWF(PluginBase):
         # /// do clustering now that all the jobs have their metrics filled in.. //
         print "doing clustering.."
 
-        rseed = settings_dict['km_rseed']
-        max_iter = settings_dict['km_max_iter']
-        nc_max = settings_dict['km_nc_max']
-        nc_delta = settings_dict['km_nc_delta']
+        rseed = self.config.plugin['km_rseed']
+        max_iter = self.config.plugin['km_max_iter']
+        nc_max = self.config.plugin['km_nc_max']
+        nc_delta = self.config.plugin['km_nc_delta']
 
         nc_vec = np.asarray(range(1, nc_max, nc_delta))
 
@@ -144,8 +150,8 @@ class PluginECMWF(PluginBase):
             job = ModelJob(
                 time_start=0,
                 duration=1,
-                ncpus=settings_dict['sa_n_proc'],
-                nnodes=settings_dict['sa_n_nodes'],
+                ncpus=self.config.plugin['sa_n_proc'],
+                nnodes=self.config.plugin['sa_n_nodes'],
                 time_series=ts_dict,
                 label="job-{}".format(cc)
             )
@@ -164,8 +170,8 @@ class PluginECMWF(PluginBase):
             app = SyntheticApp(
                 job_name="RS-appID-{}".format(cc),
                 time_signals=job.timesignals,
-                ncpus=settings_dict['sa_n_proc'], # TODO: ncpus and nnodes should be different for different apps..
-                nnodes=settings_dict['sa_n_nodes'],
+                ncpus=self.config.plugin['sa_n_proc'], # TODO: ncpus and nnodes should be different for different apps..
+                nnodes=self.config.plugin['sa_n_nodes'],
                 time_start=job.time_start
             )
 
@@ -176,24 +182,23 @@ class PluginECMWF(PluginBase):
             app = SyntheticApp(
                 job_name="RS-appID-{}".format(cc),
                 time_signals=job.timesignals,
-                ncpus=settings_dict['sa_n_proc'],
-                nnodes=settings_dict['sa_n_nodes'],
+                ncpus=self.config.plugin['sa_n_proc'],
+                nnodes=self.config.plugin['sa_n_nodes'],
                 time_start=job.time_start
             )
 
             operational_sa_list.append(app)
 
         # create a workload from full list of synthetic apps..
-        sa_workload = SyntheticWorkload(config, apps=operational_sa_list + background_sa_list)
+        sa_workload = SyntheticWorkload(self.config, apps=operational_sa_list + background_sa_list)
         sa_workload.export(10)
 
         print "workload created and exported!"
+        print sa_workload.total_metrics_dict(include_tuning_factors=True)
         # /////////////////////////////////////////////////////////////////////////
 
-
-# ///////////////////////////////////////////
-if __name__ == '__main__':
-
-    plg = PluginECMWF()
-    plg.run()
-
+        # ///////////// finally run the model in the HPC system ///////////////////
+        ecmwf_runner = runner.factory(self.config.runner['type'], self.config)
+        ecmwf_runner.run()
+        ecmwf_runner.plot_results()
+        # /////////////////////////////////////////////////////////////////////////

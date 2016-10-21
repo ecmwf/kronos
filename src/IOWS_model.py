@@ -10,7 +10,7 @@ from plot_handler import PlotHandler
 from time_signal import TimeSignal
 from synthetic_app import SyntheticApp, SyntheticWorkload
 from kronos_tools.print_colour import print_colour
-from model_tuning.feedback_loop import FeedbackLoop
+from runner.feedback import FeedbackLoopRunner
 
 
 class IOWSModel(object):
@@ -184,10 +184,10 @@ class IOWSModel(object):
         if self.config.FL_RUN_FLAG:
 
             # configure the FB loop
-            fl = FeedbackLoop(self.config,
-                              sa_list=syntapp_list,
-                              sc_dict_init=scaling_factor_dict,
-                              reduce_flag=reduce_jobs_flag)
+            fl = FeedbackLoopRunner(self.config,
+                                    sa_list=syntapp_list,
+                                    sc_dict_init=scaling_factor_dict,
+                                    reduce_flag=reduce_jobs_flag)
 
             # run the FB loop
             synthetic_workload = fl.run()

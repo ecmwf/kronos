@@ -5,13 +5,14 @@ import glob
 
 os.sys.path.append(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
 
+from base_runner import BaseRunner
 from kronos_tools import utils
 from model_workload import ModelWorkload
 from synthetic_app import SyntheticWorkload
 from logreader import profiler_reader
 
 
-class FeedbackLoop(object):
+class FeedbackLoopRunner(BaseRunner):
 
     """ This class implments a Feedback loop refinement of the iows model """
 
@@ -199,6 +200,9 @@ class FeedbackLoop(object):
 
         # return the tuned workload
         return self.synthetic_workload
+
+    def plot_results(self):
+        raise NotImplementedError("feedback loop plotter not yet implemented..")
 
 
 def get_new_scaling_factors(metrics_ref, metrics_sums, sc_factors, updatable_metrics):

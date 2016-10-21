@@ -1,0 +1,34 @@
+{
+    "profile_sources": [
+        ["accounting", "/perm/ma/maab/ngio_logs/ECMWF/cca-jobs-20160201.csv"]
+    ],
+    "plugin": {
+              "name": "ecmwf",
+              "darshan_ingested_file": "/perm/ma/maab/ngio_ingested_data/my_ingested/ingested_darshan",
+              "ipm_ingested_file": "/perm/ma/maab/ngio_ingested_data/my_ingested/ingested_ipm",
+              "stdout_ingested_file": "/perm/ma/maab/ngio_ingested_data/my_ingested/ingested_stdout",
+              "job_scheduler_logs": "/perm/ma/maab/ngio_logs/ECMWF/cca-jobs-20160201.csv",
+              "job_scheduler_date_start": [2016, 2, 1, 0, 0, 0],
+              "job_scheduler_date_end": [2016, 2, 2, 0, 0, 0],
+              "n_tree_levels": 3,
+              "km_rseed": 0,
+              "km_max_iter": 100,
+              "km_nc_max": 20,
+              "km_nc_delta": 1,
+              "sa_n_proc": 2,
+              "sa_n_nodes": 1
+              },
+    "runner": {
+              "type": "simple",
+              "state": "enabled",
+              "tag": "simple_run_test",
+              "user": "maab",
+              "host": "ccb",
+              "hpc_dir_exec": "/perm/ma/maab/builds/kronos/bin",
+              "hpc_dir_input": "/scratch/ma/maab/kronos_run/input",
+              "hpc_dir_output": "/scratch/ma/maab/kronos_run/output",
+              "hpc_exec_config": "/perm/ma/maab/kronos_run/input/exe_config.json",
+              "local_map2json_file": "/home/ma/maab/workspace/Allinea_examples_files/NEXTGenIO_buiild/map2json/map2json.py"
+              },
+    "verbose": true
+}

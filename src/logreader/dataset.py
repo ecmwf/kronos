@@ -49,23 +49,44 @@ class IngestedDataSet(object):
         for job in self.joblist:
             yield job.model_job()
 
-    def apply_cutoff_dates(self, date_start, date_end):
+    def apply_cutoff_dates(self, cutoff_date_0=None, cutoff_date_1=None):
         """
         apply cut-off dates to the dataset:
 
-         -- only jobs started within he considered interval ill be retained..
+         -- only jobs started within he considered interval will be retained..
         """
-        assert isinstance(date_start, list)
-        assert isinstance(date_end, list)
+
+        # throw an error if neither dates have been specified
+        if cutoff_date_0 is None and cutoff_date_1 is None:
+            ValueError("neither cut-off dates have been specified!")
+
+        if datetime.datetime(*cutoff_date_0) >= datetime.datetime(*cutoff_date_1):
+            ValueError("first cut-off date should be < second cut-off date!")
+
+        if cutoff_date_0:
+            assert isinstance(cutoff_date_0, list)
+
+        if cutoff_date_1:
+            assert isinstance(cutoff_date_1, list)
+
         cut_jobs = []
         for job in self.joblist:
+
             # make sure time stamp is a datetime type
             job_start_time = job.time_start
             if isinstance(job_start_time, float) or isinstance(job_start_time, int):
                 job_start_time = datetime.datetime.fromtimestamp(job.time_start)
 
-            if datetime.datetime(*date_start) < job_start_time < datetime.datetime(*date_end):
-                cut_jobs.append(job)
+            # cut-off the jobs as appropriate
+            if (cutoff_date_0 is not None) and (cutoff_date_1 is None):
+                if job_start_time >= datetime.datetime(*cutoff_date_0):
+                    cut_jobs.append(job)
+            elif (cutoff_date_0 is None) and (cutoff_date_1 is not None):
+                if job_start_time <= datetime.datetime(*cutoff_date_1):
+                    cut_jobs.append(job)
+            elif (cutoff_date_0 is not None) and (cutoff_date_1 is not None):
+                if datetime.datetime(*cutoff_date_0) <= job_start_time <= datetime.datetime(*cutoff_date_1):
+                    cut_jobs.append(job)
 
         self.joblist = cut_jobs
 

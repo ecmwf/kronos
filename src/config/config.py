@@ -5,6 +5,7 @@ import time
 from exceptions_iows import ConfigurationError
 import time_signal
 
+
 class Config(object):
     """
     A storage place for global configuration, including parsing of input JSON, and error checking
@@ -46,31 +47,9 @@ class Config(object):
     IOWSMODEL_JOB_IMPACT_INDEX_REL_TSH = 0.2
     IOWSMODEL_SUPPORTED_SYNTH_APPS = ['cpu', 'file-read', 'file-write', 'mpi']
 
-
-    # IOWS model tuning (feedback-loop)
-
-    FL_RUN_FLAG = False
-    FL_RUN_TAG = "run_" + str(time.time())
-
-    # dir for iows and kronos
-    FL_IOWS_DIR = "/var/tmp/maab/iows"
-    FL_IOWS_DIR_INPUT = FL_IOWS_DIR + "/input"
-    FL_IOWS_DIR_OUTPUT = FL_IOWS_DIR + "/output"
-    FL_IOWS_DIR_BACKUP = FL_IOWS_DIR_INPUT + "/" + FL_RUN_TAG
-    FL_KRONOS_RUN_DIR = "/scratch/ma/maab/kronos_run"
-    FL_USER = "maab"
-    FL_HOST = "ccb"
-    FL_USER_HOST = FL_USER+"@"+FL_HOST
-    FL_n_iterations = 3
-    FL_LOG_FILE = FL_IOWS_DIR_BACKUP + '/' + FL_RUN_TAG + '_log.txt'
-    FL_updatable_metrics = {'kb_collective': 1,
-                         'n_collective': 1,
-                         'n_pairwise': 1,
-                         'kb_write': 1,
-                         'kb_read': 1,
-                         'flops': 0,
-                         'kb_pairwise': 1,
-                         }
+    # model run options (each runner has different options)
+    # TODO: addd consistency checks..
+    runner = None
 
     metrics_names = time_signal.signal_types.keys()
 
@@ -133,8 +112,9 @@ class Config(object):
 
         # And any necessary actions
 
+        # if input or output folders do not exist, an error is raised
+        if not os.path.exists(self.dir_input):
+            raise ConfigurationError("input folder {} - does not exist!".format(self.dir_input))
+
         if not os.path.exists(self.dir_output):
-            print "Creating output directory: {}".format(self.dir_output)
-            os.makedirs(self.dir_output)
-
-
+            raise ConfigurationError("output folder {} - does not exist!".format(self.dir_output))

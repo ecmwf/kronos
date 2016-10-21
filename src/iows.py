@@ -147,7 +147,7 @@ if __name__ == "__main__":
 
         # if set s input, use a specific plugin
         if config.plugin:
-            model = plugins.factory(config.plugin)
+            model = plugins.factory(config.plugin['name'], config)
             model.run()
         else:
             app.run()
