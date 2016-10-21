@@ -14,6 +14,7 @@ from plugins.plugin_base import PluginBase
 from time_signal import TimeSignal, signal_types
 from synthetic_app import SyntheticApp, SyntheticWorkload
 from jobs import ModelJob
+from kronos_tools.print_colour import print_colour
 
 import logreader
 import job_grouping
@@ -30,25 +31,31 @@ class PluginECMWF(PluginBase):
     def __init__(self, config):
         super(PluginECMWF, self).__init__(config)
         self.name = "ecmwf"
+        self.darshan_dataset = None
+        self.ipm_dataset = None
+        self.stdout_dataset = None
+        self.acc_model_jobs = None
 
-    def run(self):
+    def ingest_data(self):
+        """
+        ingest data (from files or cached pickles..)
+        :return:
+        """
+        print_colour("green", "ingesting data..")
 
-        print "running ecmwf plugin.."
-
-        # /////////////////////// # ingest all datasets.. ///////////////////////
         # Darshan
         with open(self.config.plugin["darshan_ingested_file"], "r") as f:
-            darshan_dataset = pickle.load(f)
+            self.darshan_dataset = pickle.load(f)
         print "darshan log data ingested!"
 
         # IPM
         with open(self.config.plugin["ipm_ingested_file"], "r") as f:
-            ipm_dataset = pickle.load(f)
+            self.ipm_dataset = pickle.load(f)
         print "ipm log data ingested!"
 
         # # stdout
         # with open(self.config.plugin["stdout_ingested_file"], "r") as f:
-        #     stdout_dataset = pickle.load(f)
+        #     self.stdout_dataset = pickle.load(f)
         # print "stdout log data ingested!"
 
         # job scheduling data
@@ -56,21 +63,29 @@ class PluginECMWF(PluginBase):
         acc_dataset.apply_cutoff_dates(self.config.plugin["job_scheduler_date_start"],
                                        self.config.plugin["job_scheduler_date_end"])
 
-        acc_model_jobs = [j for j in acc_dataset.model_jobs()]
-        # /////////////////////////////////////////////////////////////////////////
+        self.acc_model_jobs = [j for j in acc_dataset.model_jobs()]
 
-        # /////////////// matching between darshan, stdout and ipm ////////////////
-        print "matching corresponding jobs.."
+    def generate_model(self):
+        """
+        generate model of workload
+        :return:
+        """
+
+        # ingest data..
+        self.ingest_data()
+
+        # generate model..
+        print_colour("green", "generating model..")
 
         # the matching will be focused on darshan records..
         # only 6 hours from the start are retained..
-        dsh_times = [job.time_start for job in darshan_dataset.joblist]
+        dsh_times = [job.time_start for job in self.darshan_dataset.joblist]
         dsh_t0 = min(dsh_times)
-        darshan_dataset.joblist = [job for job in darshan_dataset.joblist if job.time_start < (dsh_t0 + 6.0 * 3600.0)]
+        self.darshan_dataset.joblist = [job for job in self.darshan_dataset.joblist if job.time_start < (dsh_t0 + 6.0 * 3600.0)]
 
         # model all jobs
-        dsh_model_jobs = [j for j in darshan_dataset.model_jobs()]
-        ipm_model_jobs = [j for j in ipm_dataset.model_jobs()]
+        dsh_model_jobs = [j for j in self.darshan_dataset.model_jobs()]
+        ipm_model_jobs = [j for j in self.ipm_dataset.model_jobs()]
 
         matching_jobs = []
         n_match_ipm = 0
@@ -101,7 +116,7 @@ class PluginECMWF(PluginBase):
         # /////////////////////////////////////////////////////////////////////////
 
         # ////////////// create database with all job records.. ///////////////////
-        item_prediction_acc = recomm_system.apply_recomm_sys(matching_jobs, acc_model_jobs)
+        item_prediction_acc = recomm_system.apply_recomm_sys(matching_jobs, self.acc_model_jobs)
         # /////////////////////////////////////////////////////////////////////////
 
         # /// do clustering now that all the jobs have their metrics filled in.. //
@@ -195,10 +210,20 @@ class PluginECMWF(PluginBase):
 
         print "workload created and exported!"
         print sa_workload.total_metrics_dict(include_tuning_factors=True)
-        # /////////////////////////////////////////////////////////////////////////
 
-        # ///////////// finally run the model in the HPC system ///////////////////
+    def run(self):
+        """
+        run model of workload
+        :return:
+        """
+        print_colour("green", "running ecmwf plugin..")
         ecmwf_runner = runner.factory(self.config.runner['type'], self.config)
         ecmwf_runner.run()
         ecmwf_runner.plot_results()
-        # /////////////////////////////////////////////////////////////////////////
+
+    def postprocess(self):
+        """
+        postprocess run
+        :return:
+        """
+        print_colour("green", "doing ecmwf postprocessing..")

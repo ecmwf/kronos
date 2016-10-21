@@ -52,6 +52,7 @@ Input file syntax:
 import sys
 import logreader
 import plugins
+import argparse
 
 from exceptions_iows import ConfigurationError
 from model_workload import ModelWorkload
@@ -125,13 +126,18 @@ class IOWS(object):
 
 if __name__ == "__main__":
 
-    input_file = "input.json" if len(sys.argv) == 1 else sys.argv[1]
-    print "Using configuration file: {}".format(input_file)
+    # read other arguments if present..
+    parser = argparse.ArgumentParser(description='Kronos software')
+    parser.add_argument('input_file', type=str)
+    parser.add_argument('-m', "--model", help="generate model", action='store_true')
+    parser.add_argument('-r', "--run", help="run the model on HPC", action='store_true')
+    parser.add_argument('-p', "--postprocess", help="postprocess run results", action='store_true')
+    args = parser.parse_args()
 
     try:
         try:
 
-            config = Config(config_path=input_file)
+            config = Config(config_path=args.input_file)
 
         except (OSError, IOError) as e:
             print "Error opening input file: {}".format(e)
@@ -147,12 +153,21 @@ if __name__ == "__main__":
 
         # if set s input, use a specific plugin
         if config.plugin:
+
             model = plugins.factory(config.plugin['name'], config)
-            model.run()
+
+            if args.model:
+                model.generate_model()
+            elif args.run:
+                model.run()
+            elif args.postprocess:
+                model.postprocess()
+            else:
+                print "command line parsing error.."
+                sys.exit(-1)
+
         else:
             app.run()
 
     except ConfigurationError as e:
         print "Error in iows configuration: {}".format(e)
-
-
