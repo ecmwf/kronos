@@ -1,6 +1,5 @@
 import os
 import json
-import time
 
 from exceptions_iows import ConfigurationError
 import time_signal
