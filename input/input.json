@@ -2,6 +2,8 @@
     "profile_sources": [
         ["accounting", "/perm/ma/maab/ngio_logs/ECMWF/cca-jobs-20160201.csv"]
     ],
+    "dir_input": "/var/tmp/maab/kronos-core/input",
+    "dir_output": "/var/tmp/maab/kronos-core/output",    
     "plugin": {
               "name": "ecmwf",
               "darshan_ingested_file": "/perm/ma/maab/ngio_ingested_data/my_ingested/ingested_darshan",
@@ -22,8 +24,9 @@
               "type": "simple",
               "state": "enabled",
               "tag": "simple_run_test",
-              "user": "maab",
-              "host": "ccb",
+              "hpc_user": "maab",
+              "hpc_host": "ccb",
+              "hpc_job_sched": "pbs",
               "hpc_dir_exec": "/perm/ma/maab/builds/kronos/bin",
               "hpc_dir_input": "/scratch/ma/maab/kronos_run/input",
               "hpc_dir_output": "/scratch/ma/maab/kronos_run/output",

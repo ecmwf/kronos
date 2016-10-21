@@ -4,6 +4,21 @@ import numpy as np
 import copy
 
 
+# commands needed by the job scheduler
+job_sched_commands = {
+                       'pbs':
+                           {
+                            'any_jobs_running': 'qstat -u',
+                            'submit': 'qsub'
+                           },
+                       'slurm':
+                           {
+                            'any_jobs_running': 'squeue -u',
+                            'submit': 'sbatch'
+                           }
+                     }
+
+
 def mb(bytes):
     """ Mb from bytes """
     return bytes / 1024 / 1024

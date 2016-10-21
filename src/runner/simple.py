@@ -6,6 +6,7 @@ import glob
 from base_runner import BaseRunner
 from kronos_tools import print_colour
 from exceptions_iows import ConfigurationError
+from kronos_tools.utils import job_sched_commands as jsc
 
 
 class SimpleRunner(BaseRunner):
@@ -20,8 +21,9 @@ class SimpleRunner(BaseRunner):
         self.type = None
         self.state = None
         self.tag = None
-        self.user = None
-        self.host = None
+        self.hpc_user = None
+        self.hpc_host = None
+        self.hpc_job_sched = None
         self.hpc_dir_exec = None
         self.hpc_dir_input = None
         self.hpc_dir_output = None
@@ -52,9 +54,8 @@ class SimpleRunner(BaseRunner):
 
         if self.config.runner['state'] == "enabled":
 
-            # TODO: file transfer should be handled in a more generic way..
-
-            user_at_host = self.user + '@' + self.host
+            # rewrite user+host for convenience
+            user_at_host = self.hpc_user + '@' + self.hpc_host
 
             # ------------ init DIR ---------------
             dir_backup = self.config.dir_output+"/"+"backup"
@@ -81,7 +82,10 @@ class SimpleRunner(BaseRunner):
             # ..and wait until all jobs have completed
             jobs_completed = False
             while not jobs_completed:
-                ssh_ls_cmd = subprocess.Popen(["ssh", user_at_host, "qstat -u " + self.user],
+                ssh_ls_cmd = subprocess.Popen(["ssh",
+                                               user_at_host,
+                                               jsc[self.hpc_job_sched]['any_jobs_running'],
+                                               self.hpc_user],
                                               shell=False,
                                               stdout=subprocess.PIPE,
                                               stderr=subprocess.PIPE)
