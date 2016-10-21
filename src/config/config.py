@@ -63,8 +63,11 @@ class Config(object):
 
     # Directory choices
 
-    dir_output = os.path.join(os.getcwd(), 'output')
-    dir_input = os.path.join(os.getcwd(), 'input')
+    # dir_output = os.path.join(os.getcwd(), 'output')
+    # dir_input = os.path.join(os.getcwd(), 'input')
+
+    dir_output = None
+    dir_input = None
 
     # Sources of profiling data
 
@@ -104,6 +107,8 @@ class Config(object):
         config_dict = config_dict if config_dict is not None else {}
 
         # Update the default values using the supplied configuration dict
+        if not isinstance(config_dict, dict):
+            raise ConfigurationError("no keys found in configuration file")
 
         for k, v in config_dict.iteritems():
             if not hasattr(self, k):
@@ -111,6 +116,11 @@ class Config(object):
             setattr(self, k, v)
 
         # And any necessary actions
+        if not self.dir_input:
+            raise ConfigurationError("input folder not set")
+
+        if not self.dir_output:
+            raise ConfigurationError("output folder not set")
 
         # if input or output folders do not exist, an error is raised
         if not os.path.exists(self.dir_input):

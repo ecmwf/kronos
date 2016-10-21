@@ -13,35 +13,43 @@ class ConfigTests(unittest.TestCase):
         """
         The configuration object should have some sane defaults
         """
-        cfg = Config()
 
-        self.assertEqual(cfg.dir_input, os.path.join(os.getcwd(), 'input'))
-        self.assertEqual(cfg.dir_output, os.path.join(os.getcwd(), 'output'))
+        # existing and not existing paths
+        existing_path = os.getcwd()
+        obscure_path = '.__$obscure-nonexistent@'
+        self.assertFalse(os.path.exists(os.path.join(os.getcwd(), obscure_path)))
 
-        self.assertEqual(cfg.profile_sources, [])
+        # this should not throw a ConfigurationError as input dir is not set
+        self.assertRaises(ConfigurationError, lambda: Config(config_dict={'dir_output': existing_path}))
+
+        # this should not throw a ConfigurationError as output dir is not set
+        self.assertRaises(ConfigurationError, lambda: Config(config_dict={'dir_input': existing_path}))
+
+        # this should not throw a ConfigurationError as input dir is not existent
+        self.assertRaises(ConfigurationError, lambda: Config(config_dict={'dir_input': obscure_path,
+                                                                          'dir_output': existing_path}))
+
+        # this should not throw a ConfigurationError as output dir is not existent
+        self.assertRaises(ConfigurationError, lambda: Config(config_dict={'dir_input': obscure_path,
+                                                                          'dir_output': existing_path}))
 
     def test_dict_override(self):
 
-        # An empty ovirride dictionary does nothing
-        cfg = Config(config_dict={})
-        self.assertEqual(cfg.dir_input, os.path.join(os.getcwd(), 'input'))
-        self.assertEqual(cfg.dir_output, os.path.join(os.getcwd(), 'output'))
-        self.assertEqual(cfg.profile_sources, [])
-
-        # We can override each of the parameters
+        # existing and not existing paths
+        existing_path = os.getcwd()
         obscure_path = '.__$obscure-nonexistent@'
         self.assertFalse(os.path.exists(os.path.join(os.getcwd(), obscure_path)))
+
+        # We can override each of the parameters
         config_dict = {
-            'dir_input': 'abcdef',
-            'dir_output': obscure_path,
+            'dir_input': existing_path,
+            'dir_output': existing_path,
             'profile_sources': [1, 2, 3, 4]
         }
         cfg = Config(config_dict=config_dict)
-        self.assertEqual(cfg.dir_input, 'abcdef')
-        self.assertEqual(cfg.dir_output, obscure_path)
+        self.assertEqual(cfg.dir_input, existing_path)
+        self.assertEqual(cfg.dir_output, existing_path)
         self.assertEqual(cfg.profile_sources, [1, 2, 3, 4])
-        self.assertTrue(os.path.exists(os.path.join(os.getcwd(), obscure_path)))
-        os.rmdir(os.path.join(os.getcwd(), obscure_path))
 
         # Unexpected parameters throw exceptions
         config_dict['unexpected'] = 'parameter'
@@ -51,6 +59,12 @@ class ConfigTests(unittest.TestCase):
         """
         Test the overrides, but put the data into a file
         """
+
+        # existing and not existing paths
+        existing_path = os.getcwd()
+        obscure_path = '.__$obscure-nonexistent@'
+        self.assertFalse(os.path.exists(os.path.join(os.getcwd(), obscure_path)))
+
         # We should get an exception if we throw idiotic stuff in
         self.assertRaises(IOError, lambda: Config(config_path='.__$idiotic-nonexistent@'))
 
@@ -58,10 +72,7 @@ class ConfigTests(unittest.TestCase):
         with tempfile.NamedTemporaryFile() as f:
             f.write("{}")
             f.flush()
-            cfg = Config(config_path=f.name)
-        self.assertEqual(cfg.dir_input, os.path.join(os.getcwd(), 'input'))
-        self.assertEqual(cfg.dir_output, os.path.join(os.getcwd(), 'output'))
-        self.assertEqual(cfg.profile_sources, [])
+            self.assertRaises(ConfigurationError, lambda: Config(config_dict=f.name))
 
         # We can override each of the parameters
         # n.b. Test the comment handling in the  JSON parser
@@ -69,32 +80,27 @@ class ConfigTests(unittest.TestCase):
         self.assertFalse(os.path.exists(obscure_path))
         with tempfile.NamedTemporaryFile() as f:
             f.write("""{{
-                "dir_input": "abcdef",
+                "dir_input": "{}",
                 "dir_output": "{}",
                 #"unknown": "parameter",
                 "profile_sources": [1, 2, 3, 4]
-            }}""".format(obscure_path))
+            }}""".format(existing_path, existing_path))
             f.flush()
             cfg = Config(config_path=f.name)
-        self.assertEqual(cfg.dir_input, 'abcdef')
-        self.assertEqual(cfg.dir_output, obscure_path)
+        self.assertEqual(cfg.dir_input, existing_path)
+        self.assertEqual(cfg.dir_output, existing_path)
         self.assertEqual(cfg.profile_sources, [1, 2, 3, 4])
-        self.assertTrue(os.path.exists(obscure_path))
-        os.rmdir(obscure_path)
 
         # Unexpected parameters throw exceptions
         with tempfile.NamedTemporaryFile() as f:
             f.write("""{{
                 "dir_input": "abcdef",
                 "dir_output": "{}",
-                "unknown": "parameter",
+                "unknown": "{}",
                 "profile_sources": [1, 2, 3, 4]
-            }}""".format(obscure_path))
+            }}""".format(existing_path, existing_path))
             f.flush()
             self.assertRaises(ConfigurationError, lambda: Config(config_path=f.name))
-
-
-
 
 
 if __name__ == "__main__":
