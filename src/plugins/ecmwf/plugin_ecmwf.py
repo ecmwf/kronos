@@ -207,6 +207,7 @@ class PluginECMWF(PluginBase):
         # create a workload from full list of synthetic apps..
         sa_workload = SyntheticWorkload(self.config, apps=operational_sa_list + background_sa_list)
         sa_workload.export(10)
+        sa_workload.save()
 
         print "workload created and exported!"
         print sa_workload.total_metrics_dict(include_tuning_factors=True)

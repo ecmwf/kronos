@@ -1,8 +1,10 @@
 from jobs import ModelJob
 import json
 import os
+import pickle
 
 import app_kernels
+from kronos_tools.print_colour import print_colour
 from time_signal import TimeSignal
 from time_signal import signal_types
 import numpy as np
@@ -76,6 +78,12 @@ class SyntheticWorkload(object):
         # loop oer synthetic apps and return sums of time signals
         for app in self.app_list:
             app.tuning_factor = tuning_factor
+
+    def save(self):
+
+        with open(os.path.join(self.config.dir_output, 'sa_workload_pickle'), 'w') as f:
+            pickle.dump(self, f)
+            print_colour("green", "synthetic workload pickle file saved to {}".format(self.config.dir_output))
 
 
 class SyntheticApp(ModelJob):
