@@ -3,10 +3,10 @@ import subprocess
 import time
 import glob
 
+import run_control
 from base_runner import BaseRunner
 from kronos_tools import print_colour
 from exceptions_iows import ConfigurationError
-from kronos_tools.utils import job_sched_commands as jsc
 
 
 class SimpleRunner(BaseRunner):
@@ -23,11 +23,9 @@ class SimpleRunner(BaseRunner):
         self.tag = None
         self.hpc_user = None
         self.hpc_host = None
-        self.hpc_job_sched = None
-        self.hpc_dir_exec = None
+
         self.hpc_dir_input = None
         self.hpc_dir_output = None
-        self.hpc_exec_config = None
         self.local_map2json_file = None
 
         # Then set the general configuration into the parent class..
@@ -35,12 +33,10 @@ class SimpleRunner(BaseRunner):
 
     def check_config(self):
 
-        print "check simple-runner configuration.."
-
-        # Update the default values using the supplied configuration dict
+        # check simple-runner configuration and pull user options..
         for k, v in self.config.runner.items():
             if not hasattr(self, k):
-                raise ConfigurationError("Unexpected configuration keyword provided - {}:{}".format(k, v))
+                raise ConfigurationError("Unexpected simple-runner keyword provided - {}:{}".format(k, v))
             setattr(self, k, v)
 
     def run(self):
@@ -53,6 +49,8 @@ class SimpleRunner(BaseRunner):
         """
 
         if self.config.runner['state'] == "enabled":
+
+            job_runner = run_control.factory(self.config.controls['hpc_job_sched'], self.config)
 
             # rewrite user+host for convenience
             user_at_host = self.hpc_user + '@' + self.hpc_host
@@ -72,33 +70,11 @@ class SimpleRunner(BaseRunner):
                     # store output into back-up folder..
                     os.system("cp " + i_file + " " + dir_backup + "/job_sa-" + str(ff) + ".json")
 
-            # run the executor
-            mod_load_str = "module load python"
-            subprocess.Popen(["ssh",
-                              user_at_host,
-                              mod_load_str+" && "+self.hpc_dir_exec+"/"+"executor.py "+self.hpc_exec_config]).wait()
-            time.sleep(2.0)
+            # run jobs and wait until they have all finished..
+            job_runner.remote_run_executor()
+            job_runner.have_jobs_finished()
 
-            # ..and wait until all jobs have completed
-            jobs_completed = False
-            while not jobs_completed:
-                ssh_ls_cmd = subprocess.Popen(["ssh",
-                                               user_at_host,
-                                               jsc[self.hpc_job_sched]['any_jobs_running'],
-                                               self.hpc_user],
-                                              shell=False,
-                                              stdout=subprocess.PIPE,
-                                              stderr=subprocess.PIPE)
-                jobs_in_queue = ssh_ls_cmd.stdout.readlines()
-
-                if not jobs_in_queue:
-                    jobs_completed = True
-                    print "hpc jobs completed!"
-
-                time.sleep(2.0)
-            # --------------------------------------------------------------------------
-
-            # search for map files in the output folder
+            # search for ".map" files in the output folder
             sub_hdl = subprocess.Popen(["ssh", user_at_host, "find", self.hpc_dir_output, "-name", "*.map"],
                                        shell=False, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
             sub_hdl.wait()
@@ -120,4 +96,5 @@ class SimpleRunner(BaseRunner):
             print_colour.print_colour("orange", "runner NOT enabled. Model did not run!")
 
     def plot_results(self):
-        print "plotting not yet implemented.."
+
+        print_colour.print_colour("orange", "plotting not yet implemented..")

@@ -49,6 +49,7 @@ class Config(object):
     # model run options (each runner has different options)
     # TODO: addd consistency checks..
     runner = None
+    controls = None
 
     metrics_names = time_signal.signal_types.keys()
 
