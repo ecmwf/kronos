@@ -14,5 +14,6 @@ export PATH=${bamboo_working_directory}/miniconda/bin:${PATH}
 
 # Install the testing environment!
 
+conda install pyyaml
 conda env create -n test_env -f conda_environment.txt
 
