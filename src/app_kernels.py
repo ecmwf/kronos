@@ -1,7 +1,7 @@
 """
 We need a way to convert a time series into the input for the synthetic app kernels
 """
-
+from time_signal import signal_types
 
 class KernelBase(object):
 
@@ -57,7 +57,6 @@ class KernelBase(object):
 
             frame.update(extra_data)
 
-
         return frames
 
 
@@ -65,6 +64,19 @@ class CPUKernel(KernelBase):
 
     name = 'cpu'
     signals = (("flops", "flops"),)
+
+    def synapp_config(self):
+        """
+        Special case code: apply max value constrain.
+        """
+        data = super(CPUKernel, self).synapp_config()
+
+        for d in data:
+
+            if d['flops'] > 0:
+                d['flops'] = min(d['flops'], signal_types['flops']['max_value'])
+
+        return data
 
 
 class MPIKernel(KernelBase):
@@ -83,10 +95,14 @@ class MPIKernel(KernelBase):
         data = super(MPIKernel, self).synapp_config()
 
         for d in data:
+
             if d['kb_collective'] > 0:
-                d['n_collective'] = max(1, d['n_collective'])
+                d['n_collective'] = min(max(1, d['n_collective']), signal_types['n_collective']['max_value'])
+                d['kb_collective'] = min(d['kb_collective'], signal_types['kb_collective']['max_value'])
+
             if d['kb_pairwise'] > 0:
-                d['n_pairwise'] = max(1, d['n_pairwise'])
+                d['n_pairwise'] = min(max(1, d['n_pairwise']), signal_types['n_pairwise']['max_value'])
+                d['kb_pairwise'] = min(d['kb_pairwise'], signal_types['kb_pairwise']['max_value'])
 
         return data
 
@@ -110,7 +126,8 @@ class FileReadKernel(KernelBase):
 
         for d in data:
             if d['kb_read'] > 0:
-                d['n_read'] = max(1, d['n_read'])
+                d['n_read'] = min(max(1, d['n_read']), signal_types['n_read']['max_value'])
+                d['kb_read'] = min(d['kb_read'], signal_types['kb_read']['max_value'])
 
         return data
 
@@ -135,9 +152,13 @@ class FileWriteKernel(KernelBase):
 
         for d in data:
             if d['n_write'] > 0:
-                d['kb_write'] = max(1, d['kb_write'])
+                # d['kb_write'] = max(1, d['kb_write'])
+                d['kb_write'] = min(max(1, d['kb_write']), signal_types['kb_write']['max_value'])
+                d['n_write'] = min(d['n_write'], signal_types['n_write']['max_value'])
             if d['kb_write'] > 0:
-                d['n_write'] = max(1, d['n_write'])
+                # d['n_write'] = max(1, d['n_write'])
+                d['n_write'] = min(max(1, d['n_write']), signal_types['n_write']['max_value'])
+                d['kb_write'] = min(d['kb_write'], signal_types['kb_write']['max_value'])
 
         return data
 
