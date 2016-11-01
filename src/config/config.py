@@ -50,6 +50,7 @@ class Config(object):
     # TODO: addd consistency checks..
     runner = None
     controls = None
+    post_process = None
 
     metrics_names = time_signal.signal_types.keys()
 

@@ -15,6 +15,7 @@ from time_signal import TimeSignal, signal_types
 from synthetic_app import SyntheticApp, SyntheticWorkload
 from jobs import ModelJob
 from kronos_tools.print_colour import print_colour
+from elbow_method import find_n_clusters
 
 import logreader
 import job_grouping
@@ -75,7 +76,7 @@ class PluginECMWF(PluginBase):
         self.ingest_data()
 
         # generate model..
-        print_colour("green", "generating model..")
+        print_colour("green", "generating ecmwf model..")
 
         # the matching will be focused on darshan records..
         # only 6 hours from the start are retained..
@@ -147,8 +148,9 @@ class PluginECMWF(PluginBase):
         plt.plot(nc_vec, avg_d_in_clust, 'b')
         plt.show()
 
-        # Manually select the number of clusters (this could be stored rather than re-done..)
-        y_pred = KMeans(n_clusters=7, max_iter=max_iter, random_state=rseed).fit(item_prediction_acc)
+        # Calculate best number of clusters
+        n_clusters_optimal = find_n_clusters(avg_d_in_clust)
+        y_pred = KMeans(n_clusters=n_clusters_optimal, max_iter=max_iter, random_state=rseed).fit(item_prediction_acc)
         clusters = y_pred.cluster_centers_
         # labels = y_pred.labels_
 
@@ -206,7 +208,8 @@ class PluginECMWF(PluginBase):
 
         # create a workload from full list of synthetic apps..
         sa_workload = SyntheticWorkload(self.config, apps=operational_sa_list + background_sa_list)
-        sa_workload.export(10)
+        sa_workload.set_tuning_factors(self.config.plugin['tuning_factors'])
+        sa_workload.export(self.config.plugin['sa_n_frames'])
         sa_workload.save()
 
         print "workload created and exported!"
@@ -228,3 +231,4 @@ class PluginECMWF(PluginBase):
         :return:
         """
         print_colour("green", "doing ecmwf postprocessing..")
+        super(PluginECMWF, self).postprocess()
