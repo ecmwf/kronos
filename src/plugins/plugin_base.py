@@ -2,6 +2,10 @@ import os
 import glob
 import json
 import pprint
+import pickle
+import matplotlib.pyplot as plt
+import numpy as np
+
 from time_signal import signal_types
 from kronos_tools.print_colour import print_colour
 
@@ -94,6 +98,63 @@ class PluginBase(object):
         for ss in sums_sig.keys():
             print "    {} = {}".format(ss, sums_sig[ss])
 
+
+        # ========================= plot ================================
+        print " sums of the model before the generation of the synthetic apps "
+        with open(os.path.join(self.config.dir_output, 'sa_workload_pickle'), 'r') as f:
+            synth_wl = pickle.load(f)
+        total_metrics = synth_wl.total_metrics_dict()
+
+        # ---------- make plot ----------
+        fig_size = (16, 4)
+        plt.figure(101, figsize=fig_size)
+        plt.figure(101)
+        width = 0.8
+
+        plt.subplot(2,1,1)
+        plt.subplots_adjust(left=0.2, right=0.8, top=0.9, bottom=0.1)
+        xx = np.arange(len(total_metrics.keys()))
+        plt.bar(xx, np.asarray([v for k,v in total_metrics.items()]),
+                width,
+                color='grey',
+                label='unscaled')
+        plt.bar(xx, np.asarray([v for k,v in sums_sig.items()]),
+                width,
+                color='red',
+                label='synthetic apps')
+        plt.xlabel('metrics')
+        plt.ylabel('sums over all jobs')
+        plt.yscale('log')
+        plt_hdl = plt.gca()
+        plt_hdl.set_xticks([i+width/2. for i in xx])
+        plt_hdl.set_xticklabels([k for k,v in sums_sig.items()])
+        plt.legend(loc='center left', bbox_to_anchor=(1, 0.5))
+
+        plt.subplot(2,1,2)
+        plt.subplots_adjust(left=0.2, right=0.8, top=0.9, bottom=0.1)
+        xx = np.arange(len(total_metrics.keys()))
+        plt.bar(xx, np.asarray([v for k,v in total_metrics.items()]),
+                width,
+                color='grey',
+                label='unscaled')
+        plt.bar(xx, np.asarray([v/self.config.plugin['tuning_factors'][k] for k,v in sums_sig.items()]),
+                width,
+                color='red',
+                label='synthetic apps')
+        plt.xlabel('metrics')
+        plt.ylabel('sums over all jobs')
+        plt.yscale('log')
+        plt_hdl = plt.gca()
+        plt_hdl.set_xticks([i+width/2. for i in xx])
+        plt_hdl.set_xticklabels([k for k,v in sums_sig.items()])
+        plt.legend(loc='center left', bbox_to_anchor=(1, 0.5))
+
+
+
+        # plt.savefig(out_dir + '/' + "hist_pg16.png")
+        # plt.close(101)
+        plt.show()
+        #===============================================================
 
 
 
