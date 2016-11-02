@@ -47,12 +47,12 @@ class PluginECMWF(PluginBase):
         # Darshan
         with open(self.config.plugin["darshan_ingested_file"], "r") as f:
             self.darshan_dataset = pickle.load(f)
-        print "darshan log data ingested!"
+        print_colour("white", "darshan log data ingested!")
 
         # IPM
         with open(self.config.plugin["ipm_ingested_file"], "r") as f:
             self.ipm_dataset = pickle.load(f)
-        print "ipm log data ingested!"
+        print_colour("white", "ipm log data ingested!")
 
         # # stdout
         # with open(self.config.plugin["stdout_ingested_file"], "r") as f:
@@ -95,7 +95,7 @@ class PluginECMWF(PluginBase):
         for cc, dj in enumerate(dsh_model_jobs):
 
             if cc % 100 == 0:
-                print "job matching iteration: {}".format(cc)
+                print_colour("white", "job matching iteration: {}".format(cc))
 
             ipm_job = [ipj for ipj in ipm_model_jobs if
                        (ipj.label + '/serial' == dj.label) or (ipj.label + '/parallel' == dj.label)]
@@ -104,12 +104,12 @@ class PluginECMWF(PluginBase):
             if ipm_job:
                 n_match_ipm += 1
                 if len(ipm_job) > 1:
-                    print "error, more than 1 matching job found!!"
+                    print_colour("orange", "error, more than 1 matching job found!!")
                 else:
                     dj.merge(ipm_job[0], force=True)
                     matching_jobs.append(dj)
 
-        print "matching={} (out of {})".format(n_match_ipm, float(len(dsh_model_jobs)))
+        print_colour("white", "matching={} (out of {})".format(n_match_ipm, float(len(dsh_model_jobs))) )
         # /////////////////////////////////////////////////////////////////////////
 
         # ///////////////// Group operational jobs in the tree ////////////////////
@@ -121,7 +121,7 @@ class PluginECMWF(PluginBase):
         # /////////////////////////////////////////////////////////////////////////
 
         # /// do clustering now that all the jobs have their metrics filled in.. //
-        print "doing clustering.."
+        print_colour("white", "doing clustering..")
 
         rseed = self.config.plugin['km_rseed']
         max_iter = self.config.plugin['km_max_iter']
@@ -132,15 +132,14 @@ class PluginECMWF(PluginBase):
 
         avg_d_in_clust = np.zeros(nc_vec.shape[0])
         for cc, n_clusters in enumerate(nc_vec):
-            print "Doing clustering with {} clusters".format(n_clusters)
+            print_colour("white", "Doing clustering with {} clusters".format(n_clusters))
             y_pred = KMeans(n_clusters=n_clusters, max_iter=max_iter, random_state=rseed).fit(item_prediction_acc)
             clusters = y_pred.cluster_centers_
             # labels = y_pred.labels_
             pt_to_all_clusters = cdist(item_prediction_acc, clusters, 'euclidean')
             dist_in_c = np.min(pt_to_all_clusters, axis=1)
             avg_d_in_clust[cc] = np.mean(dist_in_c)
-
-        print "clustering done"
+        print_colour("white", "clustering done")
 
         # plot elbow method
         plt.figure()
@@ -155,7 +154,7 @@ class PluginECMWF(PluginBase):
         # labels = y_pred.labels_
 
         # re-assign recommended values to background jobs..
-        print "Re-assigning recommended values.."
+        print_colour("white", "Re-assigning recommended values..")
         background_model_job_list = []
         for cc, row in enumerate(clusters):
             ts_dict = {}
@@ -174,12 +173,11 @@ class PluginECMWF(PluginBase):
             )
 
             background_model_job_list.append(job)
-
-        print "recommended values reassigned"
+        print_colour("white", "recommended values reassigned")
         # /////////////////////////////////////////////////////////////////////////
 
         # /// Create workload from all model jobs (operational and background) ////
-        print "Creating  workload from all model jobs (operational and background).."
+        print_colour("white", "Creating  workload from all model jobs (operational and background)..")
 
         # background jobs
         background_sa_list = []
@@ -187,7 +185,7 @@ class PluginECMWF(PluginBase):
             app = SyntheticApp(
                 job_name="RS-appID-{}".format(cc),
                 time_signals=job.timesignals,
-                ncpus=self.config.plugin['sa_n_proc'],  # TODO: ncpus and nnodes should be different for different apps
+                ncpus=self.config.plugin['sa_n_proc'],  # TODO: ncpus and nnodes should be different for different apps?
                 nnodes=self.config.plugin['sa_n_nodes'],
                 time_start=job.time_start
             )
@@ -211,9 +209,7 @@ class PluginECMWF(PluginBase):
         sa_workload.set_tuning_factors(self.config.plugin['tuning_factors'])
         sa_workload.export(self.config.plugin['sa_n_frames'])
         sa_workload.save()
-
-        print "workload created and exported!"
-        print sa_workload.total_metrics_dict(include_tuning_factors=True)
+        print_colour("white", "workload created and exported!")
 
     def run(self):
         """
@@ -227,8 +223,8 @@ class PluginECMWF(PluginBase):
 
     def postprocess(self):
         """
-        postprocess run
+        run post-process
         :return:
         """
-        print_colour("green", "doing ecmwf postprocessing..")
+        print_colour("green", "running ecmwf postprocessing..")
         super(PluginECMWF, self).postprocess()
