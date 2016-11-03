@@ -137,11 +137,9 @@ def read_allinea_logs(log_dir, jobs_n_bins=None, list_json_files=None):
   # pick up the list of json files to process
     if list_json_files is None:
         json_files = glob.glob(os.path.join(os.path.realpath(log_dir), "*.json"))
-        print "reading json files...", json_files
         json_files.sort()
     else:
         json_files = [log_dir+'/'+ff for ff in list_json_files]
-        print "reading json files..."
         json_files.sort()
 
     return [ read_allinea_log(filename, jobs_n_bins) for filename in json_files ]
