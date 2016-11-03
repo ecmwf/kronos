@@ -369,6 +369,7 @@ def concatenate_modeljobs(cat_job_label, job_list):
                                              )
     print "job {} created".format(cat_job_label)
 
+    # TODO: make a decision on what nnodes and nproc to choose..
     return ModelJob(
         time_start=cat_start_time,
         duration=cat_duration,

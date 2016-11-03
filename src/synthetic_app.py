@@ -110,7 +110,6 @@ class SyntheticApp(ModelJob):
     def set_ts_defaults(self):
         """ Set default values for time-series that are not included
         in the model job from which this synthetic app has been derived """
-        print "setting SA default time-series values.."
         if self.timesignals:
             for ts_name in signal_types:
                 if self.timesignals[ts_name] is None:

@@ -69,12 +69,17 @@ class PBSControls(BASEControls):
 
         user_at_host = self.hpc_user+'@'+self.hpc_host
 
-        mod_load_str = 'source ' + os.path.join(self.hpc_module_dir_init, self.hpc_shell_type)
+        # source module init if necessary..
+        mod_load_init = ''
+        if self.hpc_module_dir_init:
+            mod_load_init = 'source ' + os.path.join(self.hpc_module_dir_init, self.hpc_shell_type) + " && "
+
+        mod_load_str = ''
         for mod in self.hpc_module_env:
-            mod_load_str = mod_load_str + " && module load " + mod
+            mod_load_str = mod_load_init + "module load " + mod + " && "
 
         executor_str = os.path.join(self.hpc_dir_exec, "executor.py") + ' ' + self.hpc_exec_config
-        subprocess.Popen(["ssh", user_at_host, mod_load_str + " && " + executor_str]).wait()
+        subprocess.Popen(["ssh", user_at_host, mod_load_str + executor_str]).wait()
         time.sleep(2.0)
 
     def have_jobs_finished(self):
