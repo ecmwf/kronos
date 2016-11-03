@@ -97,11 +97,11 @@ class MPIKernel(KernelBase):
         for d in data:
 
             if d['kb_collective'] > 0:
-                d['n_collective'] = min(max(1, d['n_collective']), signal_types['n_collective']['max_value'])
+                d['n_collective'] = min(max(1, int(d['n_collective'])), int(signal_types['n_collective']['max_value']))
                 d['kb_collective'] = min(d['kb_collective'], signal_types['kb_collective']['max_value'])
 
             if d['kb_pairwise'] > 0:
-                d['n_pairwise'] = min(max(1, d['n_pairwise']), signal_types['n_pairwise']['max_value'])
+                d['n_pairwise'] = min(max(1, int(d['n_pairwise'])), int(signal_types['n_pairwise']['max_value']))
                 d['kb_pairwise'] = min(d['kb_pairwise'], signal_types['kb_pairwise']['max_value'])
 
         return data
@@ -126,7 +126,7 @@ class FileReadKernel(KernelBase):
 
         for d in data:
             if d['kb_read'] > 0:
-                d['n_read'] = min(max(1, d['n_read']), signal_types['n_read']['max_value'])
+                d['n_read'] = min(max(1, int(d['n_read'])), int(signal_types['n_read']['max_value']))
                 d['kb_read'] = min(d['kb_read'], signal_types['kb_read']['max_value'])
 
         return data
@@ -154,10 +154,10 @@ class FileWriteKernel(KernelBase):
             if d['n_write'] > 0:
                 # d['kb_write'] = max(1, d['kb_write'])
                 d['kb_write'] = min(max(1, d['kb_write']), signal_types['kb_write']['max_value'])
-                d['n_write'] = min(d['n_write'], signal_types['n_write']['max_value'])
+                d['n_write'] = min(int(d['n_write']), int(signal_types['n_write']['max_value']))
             if d['kb_write'] > 0:
                 # d['n_write'] = max(1, d['n_write'])
-                d['n_write'] = min(max(1, d['n_write']), signal_types['n_write']['max_value'])
+                d['n_write'] = min(max(1, int(d['n_write'])), int(signal_types['n_write']['max_value']))
                 d['kb_write'] = min(d['kb_write'], signal_types['kb_write']['max_value'])
 
         return data
