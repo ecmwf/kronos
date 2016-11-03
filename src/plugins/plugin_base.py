@@ -76,6 +76,10 @@ class PluginBase(object):
 
             sa_data_list.append(sa_data)
 
+        # ------------- group queuing times.. -------------
+        qqt = [sa['start_delay'] for sa in sa_data_list]
+        qqt.sort()
+
         print "---------------------------------------------------------"
         print "Total number of synthetic apps = {}".format(len(sa_data_list))
         print "Sums REQUESTED quantities:"
@@ -98,6 +102,19 @@ class PluginBase(object):
             total_exe_time = max(sa.time_end for sa in sa_out_dataset.joblist) - min(
                 sa.time_start for sa in sa_out_dataset.joblist)
 
+            # calculate submitted and running jobs in time..
+            start_time_vec = np.asarray([sa.time_start for sa in sa_out_dataset.joblist])
+            start_time_vec = start_time_vec.reshape(start_time_vec.shape[0], 1)
+            plus_vec = np.hstack((start_time_vec, np.ones(start_time_vec.shape)))
+
+            end_time_vec = np.asarray([sa.time_end for sa in sa_out_dataset.joblist])
+            end_time_vec = end_time_vec.reshape(end_time_vec.shape[0], 1)
+            minus_vec = np.hstack((end_time_vec, -1 * np.ones(end_time_vec.shape)))
+
+            all_vec = np.vstack((plus_vec, minus_vec))
+            all_vec_sort = all_vec[all_vec[:, 0].argsort()]
+            n_running_vec = np.cumsum(all_vec_sort[:, 1])
+
             print "---------------------------------------------------------"
             print "Sums RUN quantities:"
             print "Total execution time: {}".format(total_exe_time)
@@ -115,10 +132,12 @@ class PluginBase(object):
         width = 0.8
         id_plot = 0
 
-        if (config_pp["post_process_scope"] == "input") or (config_pp["post_process_scope"] == "output"):
+        if config_pp["post_process_scope"] == "input":
             n_plots = 2
+        elif config_pp["post_process_scope"] == "output":
+            n_plots = 3
         elif config_pp["post_process_scope"] == "both":
-            n_plots = 4
+            n_plots = 5
 
         if (config_pp["post_process_scope"] == "input") or (config_pp["post_process_scope"] == "both"):
 
@@ -126,12 +145,12 @@ class PluginBase(object):
             plt.subplot(n_plots, 1, id_plot)
             plt.subplots_adjust(left=0.2, right=0.8, top=0.9, bottom=0.1)
             xx = np.arange(len(total_metrics.keys()))
-            plt.bar(xx, np.asarray([v for k,v in total_metrics.items()]),
-                    width,
+            plt.bar(xx, np.asarray([v for k, v in total_metrics.items()]),
+                    width/2.0,
                     color='grey',
                     label='unscaled')
-            plt.bar(xx, np.asarray([v for k,v in sums_sig.items()]),
-                    width,
+            plt.bar(xx+width/2.0, np.asarray([v for k, v in sums_sig.items()]),
+                    width/2.0,
                     color='red',
                     label='synthetic apps')
             plt.xlabel('metrics')
@@ -139,19 +158,19 @@ class PluginBase(object):
             plt.yscale('log')
             plt_hdl = plt.gca()
             plt_hdl.set_xticks([i+width/2. for i in xx])
-            plt_hdl.set_xticklabels([k for k,v in sums_sig.items()])
+            plt_hdl.set_xticklabels([k for k, v in sums_sig.items()])
             plt.legend(loc='center left', bbox_to_anchor=(1, 0.5))
 
             id_plot += 1
             plt.subplot(n_plots, 1, id_plot)
             plt.subplots_adjust(left=0.2, right=0.8, top=0.9, bottom=0.1)
             xx = np.arange(len(total_metrics.keys()))
-            plt.bar(xx, np.asarray([v for k,v in total_metrics.items()]),
-                    width,
+            plt.bar(xx, np.asarray([v for k, v in total_metrics.items()]),
+                    width/2.0,
                     color='grey',
                     label='unscaled')
-            plt.bar(xx, np.asarray([v/self.config.plugin['tuning_factors'][k] for k,v in sums_sig.items()]),
-                    width,
+            plt.bar(xx+width/2.0, np.asarray([v/self.config.plugin['tuning_factors'][k] for k, v in sums_sig.items()]),
+                    width/2.0,
                     color='red',
                     label='synthetic apps')
             plt.xlabel('metrics')
@@ -159,18 +178,30 @@ class PluginBase(object):
             plt.yscale('log')
             plt_hdl = plt.gca()
             plt_hdl.set_xticks([i+width/2. for i in xx])
-            plt_hdl.set_xticklabels([k for k,v in sums_sig.items()])
+            plt_hdl.set_xticklabels([k for k, v in sums_sig.items()])
             plt.legend(loc='center left', bbox_to_anchor=(1, 0.5))
 
         if (config_pp["post_process_scope"] == "output") or (config_pp["post_process_scope"] == "both"):
 
+            # -------------------- queued and running jobs.. ------------------------
             id_plot += 1
             plt.subplot(n_plots, 1, id_plot)
             plt.subplots_adjust(left=0.2, right=0.8, top=0.9, bottom=0.1)
             xx = np.arange(len(total_metrics.keys()))
-            plt.bar(xx, np.asarray([v for k, v in sums_sig.items()]), width / 2.0, color='red',
+            plt.plot(all_vec_sort[:, 0] - all_vec_sort[0, 0], n_running_vec, color='b', label='running jobs')
+            plt.plot(qqt + [total_exe_time], range(len(qqt)) + [len(qqt) - 1], color='r', label='queued jobs')
+            plt.xlabel('time')
+            plt.ylabel('jobs')
+            plt.legend(loc='center left', bbox_to_anchor=(1, 0.5))
+
+            # requested and run metrics..
+            id_plot += 1
+            plt.subplot(n_plots, 1, id_plot)
+            plt.subplots_adjust(left=0.2, right=0.8, top=0.9, bottom=0.1)
+            xx = np.arange(len(total_metrics.keys()))
+            plt.bar(xx, np.asarray([v for k, v in sums_sig.items()]), width/2.0, color='red',
                     label='input synthetic apps')
-            plt.bar(xx + width / 2.0, np.asarray([v for k, v in allinea_jsons_sums.items()]), width / 2.0, color='blue',
+            plt.bar(xx+width/2.0, np.asarray([v for k, v in allinea_jsons_sums.items()]), width/2.0, color='blue',
                     label='run synthetic apps')
             plt.xlabel('metrics')
             plt.ylabel('sums over all jobs')
@@ -180,13 +211,14 @@ class PluginBase(object):
             plt_hdl.set_xticklabels([k for k, v in sums_sig.items()])
             plt.legend(loc='center left', bbox_to_anchor=(1, 0.5))
 
+            # requested and run metrics diff..
             id_plot += 1
             plt.subplot(n_plots, 1, id_plot)
             plt.subplots_adjust(left=0.2, right=0.8, top=0.9, bottom=0.1)
             xx = np.arange(len(total_metrics.keys()))
             plt.bar(xx,
                     np.asarray([v for k, v in sums_sig.items()]) - np.asarray([v for k, v in allinea_jsons_sums.items()]),
-                    width,
+                    width/2.0,
                     color='green',
                     label='diff req-run')
 
