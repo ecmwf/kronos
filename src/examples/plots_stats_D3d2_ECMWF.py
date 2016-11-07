@@ -6,7 +6,7 @@ os.sys.path.append(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
 
 from logreader import ingest_data
 from plotter.plotter import Plotter
-from statistics.statistics import Statistics
+from postprocess.statistics import Statistics
 
 
 #////////////////////////////////////////////////////////////////
@@ -67,9 +67,8 @@ def test0_stats_ECMWF():
     aPlotter = Plotter(ingested_data)
     aPlotter.make_plots(plot_settings)
 
-    stats = Statistics(ingested_data)
-    stats.calculate_statistics()
-    stats.export_csv('ECMWF', '/var/tmp/maab/iows/output')
+    stats = Statistics()
+    stats.dataset_statistics(ingested_data)
 
 if __name__ == '__main__':
 
