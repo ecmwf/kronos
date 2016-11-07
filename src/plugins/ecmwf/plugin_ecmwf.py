@@ -2,8 +2,6 @@
 
 import os
 import pickle
-
-import matplotlib.pyplot as plt
 import numpy as np
 from scipy.spatial.distance import cdist
 from sklearn.cluster import KMeans
@@ -143,12 +141,6 @@ class PluginECMWF(PluginBase):
             avg_d_in_clust[cc] = np.mean(dist_in_c)
         print_colour("white", "clustering done")
 
-        # plot elbow method
-        plt.figure()
-        plt.title("in clust d_bar (n clust): elbow method ")
-        plt.plot(nc_vec, avg_d_in_clust, 'b')
-        plt.show()
-
         # Calculate best number of clusters
         n_clusters_optimal = find_n_clusters(avg_d_in_clust)
         y_pred = KMeans(n_clusters=n_clusters_optimal, max_iter=max_iter, random_state=rseed).fit(item_prediction_acc)
@@ -161,7 +153,7 @@ class PluginECMWF(PluginBase):
         submit_times = [j.time_queued for j in self.acc_dataset.joblist]
         real_submit_rate = int((max(submit_times) - min(submit_times)) / len(submit_times))
         n_jobs = int((real_submit_rate * submit_rate_factor) * total_submit_interval)
-        # //////////////////////////////////////////////////////////////////////////////////////////////////
+        # /////////////////////////////////////////////////////////////////////////////
 
         # re-assign recommended values to background jobs..
         print_colour("white", "Re-assigning recommended values..")
@@ -170,7 +162,6 @@ class PluginECMWF(PluginBase):
         # vectors of random start-times and cluster indexes in the interval
         vec_clust_indexes = np.random.randint(n_clusters_optimal, size=n_jobs)
         start_times_vec = np.random.rand(n_jobs) * total_submit_interval
-        print "submit times: ", start_times_vec
 
         for cc, idx in enumerate(vec_clust_indexes):
             ts_dict = {}
@@ -248,3 +239,5 @@ class PluginECMWF(PluginBase):
         """
         print_colour("green", "running ecmwf postprocessing..")
         super(PluginECMWF, self).postprocess()
+
+        # nothing specific to do here for this plugin..

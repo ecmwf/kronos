@@ -1,6 +1,7 @@
 import numpy as np
 from scipy.optimize import curve_fit
-
+import matplotlib.pyplot as plt
+from plot_handler import PlotHandler
 
 def find_n_clusters(avg_d_in_clust):
     """
@@ -28,20 +29,37 @@ def find_n_clusters(avg_d_in_clust):
     R = intersection(L1, L2)
     # ======================================
 
-    # TODO: it would be better to re-project this point onto the curve to find the elbow
+    # ----------- re-project (approx) point on to curve.. ----------------
+    dist_vec = [(xp - R[0]) ** 2 + (yy[xp - 1] - R[1]) ** 2 for xp in x]
+    nc_x = np.argmin(dist_vec) + 1
+    nc_y = yy[np.argmin(dist_vec)]
+    # -----------------------------------------------------------------
 
-    # plt.figure(999)
-    # plt.plot(x, avg_d_in_clust, 'k+')
-    # plt.plot(p1[0], p1[1], 'mo')
-    # plt.plot(p2[0], p2[1], 'mo')
-    # plt.plot(p3[0], p3[1], 'bo')
-    # plt.plot(p4[0], p4[1], 'bo')
-    # plt.plot(R[0], R[1], 'c', marker='o', markersize=16)
-    # plt.plot(x, yy, 'r')
-    # plt.show()
+    # plot elbow method
+    plt_hdl = PlotHandler()
+    plt.figure(plt_hdl.fig_handle_ID)
+    plt.plot(x, avg_d_in_clust, 'k+')
+    plt.plot(p1[0], p1[1], 'mo')
+    plt.plot(p2[0], p2[1], 'mo')
+    plt.plot(p3[0], p3[1], 'bo')
+    plt.plot(p4[0], p4[1], 'bo')
+    plt.plot(R[0], R[1], 'c', marker='o', markersize=16)
+    plt.plot(nc_x, nc_y, 'm', marker='*', markersize=16)
+    plt.plot(x, yy, 'r')
+    plt.xlabel('N clusters')
+    plt.ylabel('mean in-cluster distance')
 
-    print "fitting done! - N clusters={}".format(int(np.ceil(R[0])))
-    return int(np.ceil(R[0]))
+    # --------- plot intersection to closest point on curve.. ----------
+    p0 = R
+    p1 = np.asarray([nc_x, nc_y])
+    pp = np.asarray([p0 + (p1 - p0) * p for p in np.linspace(0, 1, 10)])
+    plt.plot(pp[:, 0], pp[:, 1], 'm--')
+    # ------------------------------------------------------------------
+
+    plt.show()
+
+    print "Fitting done! - N clusters={}".format(int(np.ceil(nc_x)))
+    return int(np.ceil(nc_x))
 
 
 def line(p1, p2):
