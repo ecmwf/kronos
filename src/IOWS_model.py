@@ -421,9 +421,9 @@ class IOWSModel(object):
 
         for (cc, i_ts) in enumerate(self.input_workload.job_list[0].timesignals):
             plt.subplot(len(tot_signals), 1, cc + 1)
-            # xx = self.input_workload.total_metrics[cc].xedge_bins[:-1]
+            # xx = self.input_workload.requested_metrics[cc].xedge_bins[:-1]
             yy = self.input_workload.total_metrics[cc].yvalues_bins
-            # tt_dx = self.input_workload.total_metrics[cc].dx_bins
+            # tt_dx = self.input_workload.requested_metrics[cc].dx_bins
             err_vec = [abs((x - y) / max(y,1.e-6) * 100.) for x, y in zip(tot_signals[cc].yvalues_bins, yy)]
             plt.bar(tot_signals[cc].xedge_bins[:-1], [i + 1e-20 for i in err_vec], tot_signals[cc].dx_bins,
                     color=color_vec[:, cc])

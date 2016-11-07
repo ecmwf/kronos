@@ -290,7 +290,7 @@ class ModelWorkload(object):
         #             values = np.asarray([item for iJob in self.job_list for item in iJob.timesignals[i_ts].yvalues])
         #             ts = TimeSignal()
         #             ts.create_ts_from_values(name_ts, total_time, values)
-        #             self.total_metrics.append(ts)
+        #             self.requested_metrics.append(ts)
         #
         #     elif user_key == "bins":
         #
@@ -326,7 +326,7 @@ class ModelWorkload(object):
         #             yvals = np.asarray([item for iJob in self.job_list for item in iJob.timesignals[i_ts].yvalues_bins])
         #             ts = TimeSignal()
         #             ts.create_ts_from_values(name_ts, ts_types[i_ts], ts_groups[i_ts], times_bins, yvals)
-        #             self.total_metrics.append(ts)
+        #             self.requested_metrics.append(ts)
         #
         #     else:
         #
