@@ -5,7 +5,7 @@ from exceptions_iows import ModellingError
 from kronos_tools.merge import max_not_none, min_not_none
 from kronos_tools.print_colour import print_colour
 from kronos_tools.time_format import format_seconds
-from time_signal import TimeSignal
+from time_signal import TimeSignal, signal_types
 
 
 class ModelJob(object):
@@ -378,3 +378,34 @@ def concatenate_modeljobs(cat_job_label, job_list):
         time_series=cat_time_series,
         label=cat_job_label
     )
+
+
+def model_jobs_from_clusters(clusters, labels, start_times_vec, nprocs=2, nnodes=1):
+
+    # re-assign recommended values to background jobs..
+    print_colour("white", "Re-assigning recommended values..")
+    background_model_job_list = []
+
+    # vectors of random start-times and cluster indexes in the interval
+    vec_clust_indexes = np.random.randint(clusters.shape[0], size=len(start_times_vec))
+
+    for cc, idx in enumerate(vec_clust_indexes):
+        ts_dict = {}
+        row = clusters[idx]
+        for tt, ts_vv in enumerate(row[:8]):
+            ts_name = signal_types.keys()[tt]
+            ts = TimeSignal(ts_name).from_values(ts_name, np.arange(10), np.ones(10) * ts_vv)
+            ts_dict[ts_name] = ts
+
+        job = ModelJob(
+            time_start=start_times_vec[cc],
+            duration=None,
+            ncpus=nprocs,
+            nnodes=nnodes,
+            time_series=ts_dict,
+            label="job-{}".format(cc)
+        )
+
+        background_model_job_list.append(job)
+
+    return background_model_job_list

@@ -1,15 +1,15 @@
 import numpy as np
 
-from base import ClusteringBase
+from clust_base import ClusteringBase
 from kronos_tools import utils
 
 
 class ClusteringSOM(ClusteringBase):
     """
-    SOM Class for clustering algorithms
+    SOM Class for data_analysis algorithms
     """
 
-    def train_method(self, nclusters, maxiter):
+    def apply_clustering(self, nclusters, maxiter):
 
         print "calculating clusters by SOM.."
 

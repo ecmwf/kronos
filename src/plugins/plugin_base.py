@@ -12,13 +12,13 @@ class PluginBase(object):
         self.config = config
 
     def ingest_data(self):
-        raise NotImplementedError("Must use derived class. Call clustering.factory")
+        raise NotImplementedError("Must use derived class. Call data_analysis.factory")
 
     def generate_model(self):
-        raise NotImplementedError("Must use derived class. Call clustering.factory")
+        raise NotImplementedError("Must use derived class. Call data_analysis.factory")
 
     def run(self):
-        raise NotImplementedError("Must use derived class. Call clustering.factory")
+        raise NotImplementedError("Must use derived class. Call data_analysis.factory")
 
     def postprocess(self):
         """

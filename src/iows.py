@@ -32,8 +32,8 @@ Input file syntax:
                                     # "spectral" and "time_plane"
 
         "model_clustering_algorithm": ...,
-                                    # Select the algorithm used or clustering. Currently "Kmeans", "SOM" or "DBSCAN".
-                                    # See clustering/__init__.py
+                                    # Select the algorithm used or data_analysis. Currently "Kmeans", "SOM" or "DBSCAN".
+                                    # See data_analysis/__init__.py
     }
 
     profile_sources:

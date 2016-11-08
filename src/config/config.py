@@ -76,7 +76,7 @@ class Config(object):
 
     ingestion = {}
 
-    # Modelling and clustering details
+    # Modelling and data_analysis details
 
     model_clustering = "none"
     model_clustering_algorithm = None

@@ -3,21 +3,19 @@
 import os
 import pickle
 import numpy as np
-from scipy.spatial.distance import cdist
-from sklearn.cluster import KMeans
 
 os.sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.realpath(__file__)))))
 
 from plugins.plugin_base import PluginBase
-from time_signal import TimeSignal, signal_types
+# from time_signal import TimeSignal, signal_types
 from synthetic_app import SyntheticApp, SyntheticWorkload
-from jobs import ModelJob
+from jobs import model_jobs_from_clusters
+import data_analysis
+from data_analysis import recommender
 from kronos_tools.print_colour import print_colour
-from elbow_method import find_n_clusters
 
 import logreader
 import job_grouping
-import recomm_system
 import runner
 
 
@@ -71,12 +69,10 @@ class PluginECMWF(PluginBase):
         generate model of workload
         :return:
         """
+        print_colour("green", "generating ecmwf model..")
 
         # ingest data..
         self.ingest_data()
-
-        # generate model..
-        print_colour("green", "generating ecmwf model..")
 
         # the matching will be focused on darshan records..
         # only 6 hours from the start are retained..
@@ -116,73 +112,33 @@ class PluginECMWF(PluginBase):
         operational_model_jobs = job_grouping.grouping_by_tree_level(matching_jobs, self.config.plugin)
         # /////////////////////////////////////////////////////////////////////////
 
-        # ////////////// create database with all job records.. ///////////////////
-        item_prediction_acc = recomm_system.apply_recomm_sys(matching_jobs, self.acc_model_jobs)
-        # /////////////////////////////////////////////////////////////////////////
+        # train recommender system with matched jobs
+        recomm_sys = recommender.Recommender()
+        recomm_sys.train_model(matching_jobs)
 
-        # /// do clustering now that all the jobs have their metrics filled in.. //
-        print_colour("white", "doing clustering..")
+        # apply recommendations to accounting jobs..
+        acc_model_jobs_mod = recomm_sys.apply_model_to(self.acc_model_jobs)
 
-        rseed = self.config.plugin['km_rseed']
-        max_iter = self.config.plugin['km_max_iter']
-        nc_max = self.config.plugin['km_nc_max']
-        nc_delta = self.config.plugin['km_nc_delta']
+        # apply clustering to the accounting jobs
+        cluster_handler = data_analysis.factory(self.config.plugin['clustering']['name'], self.config.plugin['clustering'])
+        cluster_handler.cluster_jobs(acc_model_jobs_mod)
+        clusters_matrix = cluster_handler.clusters
+        clusters_labels = cluster_handler.labels
 
-        nc_vec = np.asarray(range(1, nc_max, nc_delta))
-
-        avg_d_in_clust = np.zeros(nc_vec.shape[0])
-        for cc, n_clusters in enumerate(nc_vec):
-            print_colour("white", "Doing clustering with {} clusters".format(n_clusters))
-            y_pred = KMeans(n_clusters=n_clusters, max_iter=max_iter, random_state=rseed).fit(item_prediction_acc)
-            clusters = y_pred.cluster_centers_
-            # labels = y_pred.labels_
-            pt_to_all_clusters = cdist(item_prediction_acc, clusters, 'euclidean')
-            dist_in_c = np.min(pt_to_all_clusters, axis=1)
-            avg_d_in_clust[cc] = np.mean(dist_in_c)
-        print_colour("white", "clustering done")
-
-        # Calculate best number of clusters
-        n_clusters_optimal = find_n_clusters(avg_d_in_clust)
-        y_pred = KMeans(n_clusters=n_clusters_optimal, max_iter=max_iter, random_state=rseed).fit(item_prediction_acc)
-        clusters = y_pred.cluster_centers_
-        # labels = y_pred.labels_
-
-        # /////////////// calculate real and scaled submittal rate ///////////////////
+        # calculate real and scaled submittal rate
         total_submit_interval = self.config.plugin['total_submit_interval']
         submit_rate_factor = self.config.plugin['submit_rate_factor']
         submit_times = [j.time_queued for j in self.acc_dataset.joblist]
         real_submit_rate = int((max(submit_times) - min(submit_times)) / len(submit_times))
         n_jobs = int((real_submit_rate * submit_rate_factor) * total_submit_interval)
-        # /////////////////////////////////////////////////////////////////////////////
-
-        # re-assign recommended values to background jobs..
-        print_colour("white", "Re-assigning recommended values..")
-        background_model_job_list = []
-
-        # vectors of random start-times and cluster indexes in the interval
-        vec_clust_indexes = np.random.randint(n_clusters_optimal, size=n_jobs)
         start_times_vec = np.random.rand(n_jobs) * total_submit_interval
 
-        for cc, idx in enumerate(vec_clust_indexes):
-            ts_dict = {}
-            row = clusters[idx]
-            for tt, ts_vv in enumerate(row[:8]):
-                ts_name = signal_types.keys()[tt]
-                ts = TimeSignal(ts_name).from_values(ts_name, np.arange(10), np.ones(10) * ts_vv)
-                ts_dict[ts_name] = ts
-
-            job = ModelJob(
-                time_start=start_times_vec[cc],
-                duration=None,
-                ncpus=self.config.plugin['sa_n_proc'],
-                nnodes=self.config.plugin['sa_n_nodes'],
-                time_series=ts_dict,
-                label="job-{}".format(cc)
-            )
-
-            background_model_job_list.append(job)
-        print_colour("white", "recommended values reassigned")
-        # /////////////////////////////////////////////////////////////////////////
+        # create model jobs from clusters and time rates..
+        background_model_job_list = model_jobs_from_clusters(clusters_matrix,
+                                                             clusters_labels,
+                                                             start_times_vec,
+                                                             nprocs=self.config.plugin['sa_n_proc'],
+                                                             nnodes=self.config.plugin['sa_n_nodes'])
 
         # /// Create workload from all model jobs (operational and background) ////
         print_colour("white", "Creating  workload from all model jobs (operational and background)..")
@@ -221,7 +177,6 @@ class PluginECMWF(PluginBase):
         sa_workload.set_tuning_factors(self.config.plugin['tuning_factors'])
         sa_workload.export(self.config.plugin['sa_n_frames'])
         sa_workload.save()
-        print_colour("white", "workload created and exported!")
 
     def run(self):
         """
@@ -240,4 +195,3 @@ class PluginECMWF(PluginBase):
         print_colour("green", "running ecmwf postprocessing..")
         super(PluginECMWF, self).postprocess()
 
-        # nothing specific to do here for this plugin..

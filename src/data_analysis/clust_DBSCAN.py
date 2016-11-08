@@ -1,18 +1,21 @@
 import numpy as np
 from sklearn.cluster import DBSCAN
-from base import ClusteringBase
+from clust_base import ClusteringBase
 
 
 class ClusteringDBSCAN(ClusteringBase):
     """
-    Implement DBSCAN clustering algorithms
+    Implement DBSCAN data_analysis algorithms
     """
 
     # Uses constructor from Clustering base
 
-    def train_method(self, nclust, maxiter):
+    def apply_clustering(self, nclust, maxiter):
 
         print "calculating clusters by DBSCAN.."
+
+
+
 
         eps_n_max = -10
         n_max = -10
@@ -23,7 +26,7 @@ class ClusteringDBSCAN(ClusteringBase):
                 eps_n_max = eps
                 n_max = len(set(db.labels_))
 
-        # re-apply clustering with maximum eps
+        # re-apply data_analysis with maximum eps
         db = DBSCAN(eps=eps_n_max, min_samples=2).fit(self._inputdata)
         self.labels = db.labels_
 

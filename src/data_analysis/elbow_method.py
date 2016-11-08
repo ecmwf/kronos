@@ -3,6 +3,7 @@ from scipy.optimize import curve_fit
 import matplotlib.pyplot as plt
 from plot_handler import PlotHandler
 
+
 def find_n_clusters(avg_d_in_clust):
     """
     Find best number of clusters by elbow method
@@ -58,7 +59,6 @@ def find_n_clusters(avg_d_in_clust):
 
     plt.show()
 
-    print "Fitting done! - N clusters={}".format(int(np.ceil(nc_x)))
     return int(np.ceil(nc_x))
 
 

@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 import random
 import time_signal
 import model_workload
-import clustering
+import data_analysis
 
 from exceptions_iows import ConfigurationError
 from plot_handler import PlotHandler
@@ -18,12 +18,12 @@ class IOWSModel(object):
     """
     A model of the workload that applies:
 
-      1) clustering of the apps
+      1) data_analysis of the apps
       2) visualization
       3) scaling factor and redeployment of synthetic apps
     """
 
-    # A lookup for how to treat different clustering methods
+    # A lookup for how to treat different data_analysis methods
     clustering_routines = {
         'spectral': 'apply_spectral_clustering',
         'time_plane': 'apply_time_plane_clustering',
@@ -64,7 +64,7 @@ class IOWSModel(object):
         self.n_time_signals = len(time_signal.signal_types)
         self.ts_names = time_signal.signal_types.keys()
 
-        # Some clustering configuration
+        # Some data_analysis configuration
         # TODO: Validate config at this stage too
         self.scaling_factor = config_options.model_scaling_factor
         self.clustering_algorithm = config_options.model_clustering_algorithm
@@ -88,9 +88,9 @@ class IOWSModel(object):
 
         if config.model_clustering_key == "none":
             if config.model_clustering_algorithm is not None:
-                raise ConfigurationError("Clustering algorithm not required for no-clustering")
+                raise ConfigurationError("Clustering algorithm not required for no-data_analysis")
         else:
-            if config.model_clustering_algorithm not in clustering.clustering_algorithms:
+            if config.model_clustering_algorithm not in data_analysis.clustering_algorithms:
                 raise ConfigurationError(
                     "Clustering algorithm not recognised: {}".format(config.model_clustering_algorithm))
 
@@ -116,9 +116,9 @@ class IOWSModel(object):
         if scaling_factor > 1.:
             print_colour("orange", "high scaling_factor value! sc={}".format(scaling_factor))
 
-        # call the clustering first..
-        print "Apply clustering: {}".format(clustering_key)
-        print "Apply clustering: {}".format(which_clust)
+        # call the data_analysis first..
+        print "Apply data_analysis: {}".format(clustering_key)
+        print "Apply data_analysis: {}".format(which_clust)
         self.apply_clustering(clustering_key, which_clust, reduce_jobs_flag, scaling_factor)
         self.calculate_total_metrics()
 
@@ -209,7 +209,7 @@ class IOWSModel(object):
         else:
             self._n_clusters = len(self.input_workload.job_list)
 
-        # do the clustering only if scaling factor is less than 100
+        # do the data_analysis only if scaling factor is less than 100
         if (self._n_clusters < 100.) and reduce_jobs_flag:
 
             worker_name = self.clustering_routines.get(clustering_key, None)
@@ -223,7 +223,7 @@ class IOWSModel(object):
 
             clustering_worker = self.apply_no_clustering
 
-        # And do the clustering
+        # And do the data_analysis
         clustering_worker(which_clust, scaling_factor)
 
     def calculate_total_metrics(self):
@@ -258,8 +258,8 @@ class IOWSModel(object):
 
     def apply_time_plane_clustering(self, which_clust, scaling_factor=None):
         """
-        Use the time-plane clustering method
-        :param which_clust: Specify the form of clustering to use. See clustering/__init__.py
+        Use the time-plane data_analysis method
+        :param which_clust: Specify the form of data_analysis to use. See data_analysis/__init__.py
         :param scaling_factor: The fraction of jobs to retain
         :return:
         """
@@ -273,12 +273,12 @@ class IOWSModel(object):
             data_row = np.concatenate([job.timesignals[signal].yvalues_bins for signal in self.ts_names])
             data = np.vstack((data, data_row))
 
-        # clustering
-        cluster_method = clustering.factory(which_clust, data)
+        # data_analysis
+        cluster_method = data_analysis.factory(which_clust, data)
 
-        # NB: when calling the train method, we need to return the _n_clusters as the clustering algorithm might
+        # NB: when calling the train method, we need to return the _n_clusters as the data_analysis algorithm might
         # be changing it internally (e.g. DBSCAN method..)
-        self._n_clusters = cluster_method.train_method(self._n_clusters, self.kmeans_maxiter)
+        self._n_clusters = cluster_method.apply_clustering(self._n_clusters, self.kmeans_maxiter)
         self.cluster_centers = cluster_method.clusters
         self.cluster_labels = cluster_method.labels
 
@@ -289,7 +289,7 @@ class IOWSModel(object):
 
     def apply_no_clustering(self, which_clust, scaling_factor=None):
         """
-        A straight-through "clustering" approach (which essentially does nothing).
+        A straight-through "data_analysis" approach (which essentially does nothing).
         """
 
         # NOTE: n_signals assumes that all the jobs signals have the same num of signals
@@ -311,10 +311,10 @@ class IOWSModel(object):
 
     def apply_spectral_clustering(self, which_clust, scaling_factor=None):
         """
-        Use the spectral clustering method
+        Use the spectral data_analysis method
         """
         raise NotImplementedError
-        # # clustering
+        # # data_analysis
         # start = time.clock()
         #
         # # NOTE: n_signals assumes that all the jobs signals have the same num of signals
@@ -329,8 +329,8 @@ class IOWSModel(object):
         #
         #     data = np.vstack((data, data_row))
         #
-        # # clustering
-        # cluster_method = clustering.factory(which_clust, data)
+        # # data_analysis
+        # cluster_method = data_analysis.factory(which_clust, data)
         # self._n_clusters = cluster_method.train_method(self._n_clusters, self.kmeans_maxiter)
         # self.cluster_centers = cluster_method.clusters
         # self.cluster_labels = cluster_method.labels
