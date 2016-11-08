@@ -4,4 +4,5 @@
 *.log
 *.exe
 output
+input
 .idea
