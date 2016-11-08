@@ -1,5 +1,4 @@
 import data_analysis
-from config.config import Config
 
 
 class ClusteringBase(object):
