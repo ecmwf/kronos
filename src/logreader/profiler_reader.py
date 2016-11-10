@@ -29,7 +29,7 @@ def read_allinea_log(filename, jobs_n_bins=None):
 
     # The time signal map has a number of options for each element in the profile:
     #
-    # 'name':     What is the name of this signal mapped into IOWS-land (i.e. mapping onto time_signal.signal_types)
+    # 'name':     What is the name of this signal mapped into Kronos-land (i.e. mapping onto time_signal.signal_types)
     # 'is_rate':  True if the data is recorded as x-per-second rates, rather than accumulatable values.
     #             (default False)
     # 'per_task': Is the value presented per-task, or global. If per-task it needs to be multiplied up.

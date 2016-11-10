@@ -16,5 +16,5 @@ class PluginEPCC(PluginBase):
     def run(self):
         raise NotImplementedError("EPCC plugin not yet implemented")
 
-    def postprocess(self):
+    def postprocess(self, postprocess_flag):
         raise NotImplementedError("EPCC plugin not yet implemented")

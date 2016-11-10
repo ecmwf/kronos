@@ -1,54 +1,3 @@
-#!/usr/bin/env python2.7
-
-"""
-IOWS data processing management tool
-
-This tool takes initial profiling data in various forms and:
-
-   i) Cleans it
-  ii) Processes and ingests it
- iii) Models jobs and workloads
-  iv) Manipulates (scales) these workloads
-   v) Outputs JSONs required to power the synthetic applications
-
-Usage:
-
-    iows <input_file> [options]
-
-Options:
-    <None>
-
-Input file syntax:
-
-    The input file is a JSON. Full documentation can be found on the ECMWF confluence page.
-    The file should contain one complete object, containing the following keys (with fuller explanations
-    given below if required):
-
-    {
-        "profile_sources": [...],   # A list of profiling sources in the format described below
-        "verbose": False,           # If True, output lots of data for debugging purposes
-
-        "model_clustering", "none"  # Select the scope of the model profiling. Choices are "none",
-                                    # "spectral" and "time_plane"
-
-        "model_clustering_algorithm": ...,
-                                    # Select the algorithm used or data_analysis. Currently "Kmeans", "SOM" or "DBSCAN".
-                                    # See data_analysis/__init__.py
-    }
-
-    profile_sources:
-      A list of tuples describing an arbitrary number of profiling sources to be combined. Each tuple
-      contains (a) a key to describe what type of data this is, and (b) a path to find the data.
-
-      ["allinea", path]    - Use data in the format produced by the Allinea MAP tool, in conjunction with
-                             the map2json script. The path may be either a .json file, or a path to a
-                             directory in which all files matching *.json will be considered.
-      ["pbs", path]        - Use data from the PBS logs.
-      ["accounting", path] - Use data from the HPC accounting logs
-      ["darshan", path]    - Use darshan logs (n.b. multiple logs per job, sorted by directory)
-      ["ipm", path]        - Use ipm logs (n.b. multiple logs per job, sorted by directory)
-"""
-
 import sys
 import logreader
 import plugins
@@ -57,18 +6,16 @@ import argparse
 from exceptions_iows import ConfigurationError
 from model_workload import ModelWorkload
 from config.config import Config
-from IOWS_model import IOWSModel
+from kronos_model import IOWSModel
 
 
-class IOWS(object):
+class Kronos(object):
     """
-    The primary IOWS application
+    Kronos main class
     """
 
     def __init__(self, config):
-        """
-        TODO: Parse the config for validity --> If there are issues, that should be picked up here.
-        """
+
         self.config = config
         self.job_datasets = None
         self.model_jobs = None
@@ -106,7 +53,7 @@ class IOWS(object):
 
     def run(self):
         """
-        Main execution routine
+        Main execution routine (default if no specific plugin is requested)
         """
         print "\nBegining data ingestion...\n----------------------------------"
         self.ingest_data()
@@ -132,7 +79,19 @@ if __name__ == "__main__":
     parser.add_argument('-m', "--model", help="generate model", action='store_true')
     parser.add_argument('-r', "--run", help="run the model on HPC", action='store_true')
     parser.add_argument('-p', "--postprocess", help="postprocess run results", action='store_true')
+    parser.add_argument('-i', "--input", help="postprocess sa workload", action='store_true')
+    parser.add_argument('-o', "--output", help="postprocess sa run results", action='store_true')
     args = parser.parse_args()
+
+    # command line keys checks..
+    postprocess_flag = None
+    if args.postprocess and not (args.input or args.output):
+        raise ConfigurationError(" specify either 'input' or 'output'")
+    else:
+        if args.input:
+            postprocess_flag = 'input'
+        elif args.output:
+            postprocess_flag = 'output'
 
     try:
         try:
@@ -149,7 +108,7 @@ if __name__ == "__main__":
             sys.exit(-1)
 
         # And get going!!!
-        app = IOWS(config)
+        app = Kronos(config)
 
         # if set s input, use a specific plugin
         if config.plugin:
@@ -161,7 +120,7 @@ if __name__ == "__main__":
             elif args.run:
                 model.run()
             elif args.postprocess:
-                model.postprocess()
+                model.postprocess(postprocess_flag)
             else:
                 print "command line parsing error.."
                 sys.exit(-1)
@@ -170,4 +129,4 @@ if __name__ == "__main__":
             app.run()
 
     except ConfigurationError as e:
-        print "Error in iows configuration: {}".format(e)
+        print "Error in Kronos configuration: {}".format(e)

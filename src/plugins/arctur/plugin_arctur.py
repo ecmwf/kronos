@@ -16,5 +16,5 @@ class PluginARCTUR(PluginBase):
     def run(self):
         raise NotImplementedError("ARCTUR plugin not yet implemented")
 
-    def postprocess(self):
+    def postprocess(self, postprocess_flag):
         raise NotImplementedError("ARCTUR plugin not yet implemented")

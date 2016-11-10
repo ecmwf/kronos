@@ -44,8 +44,6 @@ if __name__ == "__main__":
         print "Choices: {}".format(logreader.ingest_types)
         sys.exit(-1)
 
-
-
     print "Ingesting file(s) associated with path: {}".format(args.path)
 
     ingest_config = {

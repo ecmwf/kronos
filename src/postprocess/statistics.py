@@ -141,7 +141,7 @@ class Statistics(object):
         total_metrics = synth_wl.total_metrics_dict()
 
         # ---------- make plot ----------
-        fig_size = (14, 6)
+        fig_size = (16, 6)
         plt.figure(101, figsize=fig_size)
         width = 0.8
         id_plot = 0
@@ -154,11 +154,11 @@ class Statistics(object):
         plt.bar(xx, np.asarray([v for k, v in total_metrics.items()]),
                 width / 2.0,
                 color='grey',
-                label='unscaled')
+                label='Model WL')
         plt.bar(xx + width / 2.0, np.asarray([v for k, v in self.sums_sig.items()]),
                 width / 2.0,
                 color='red',
-                label='synthetic apps')
+                label='Synth WL')
         plt.xlabel('metrics')
         plt.ylabel('sums over all jobs')
         plt.yscale('log')
@@ -174,11 +174,11 @@ class Statistics(object):
         plt.bar(xx, np.asarray([v for k, v in total_metrics.items()]),
                 width / 2.0,
                 color='grey',
-                label='unscaled')
+                label='Model WL')
         plt.bar(xx + width / 2.0, np.asarray([v / tuning_factors[k] for k, v in self.sums_sig.items()]),
                 width / 2.0,
                 color='red',
-                label='synthetic apps')
+                label='Synth WL (rescaled)')
         plt.xlabel('metrics')
         plt.ylabel('sums over all jobs')
         plt.yscale('log')
@@ -223,7 +223,7 @@ class Statistics(object):
         n_running_vec = np.cumsum(all_vec_sort[:, 1])
 
         # ---------- make plot ----------
-        fig_size = (14, 9)
+        fig_size = (16, 9)
         plt.figure(101, figsize=fig_size)
         width = 0.8
         id_plot = 0

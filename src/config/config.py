@@ -38,7 +38,7 @@ class Config(object):
 
     WORKLOADCORRECTOR_JOBS_NBINS = 10
 
-    # IOWS Model
+    # Kronos Model
 
     IOWSMODEL_TOTAL_METRICS_NBINS = 1
     IOWSMODEL_KMEANS_MAXITER = 8000
@@ -73,6 +73,7 @@ class Config(object):
     # Sources of profiling data
 
     profile_sources = []
+    loaded_datasets = []
 
     ingestion = {}
 

@@ -5,7 +5,7 @@ import os
 os.sys.path.append(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
 
 from logreader import ingest_data
-from plotter.plotter import Plotter
+from postprocess.ingested_plotter import Plotter
 from postprocess.statistics import Statistics
 
 

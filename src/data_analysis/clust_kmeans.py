@@ -20,6 +20,8 @@ class ClusteringKmeans(ClusteringBase):
         self.max_iter = None
         self.nc_max = None
         self.nc_delta = None
+        self.n_ts_bins = None
+        self.metrics_only = False
 
         # Then set the general configuration into the parent class..
         super(ClusteringKmeans, self).__init__(config)
