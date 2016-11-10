@@ -209,18 +209,25 @@ class Statistics(object):
         queuing_times_vec = [sa['start_delay'] for sa in self.sa_data_list]
         queuing_times_vec.sort()
 
-        # calculate submitted and running jobs in time..
+        # calculate running jobs in time..
         start_time_vec = np.asarray([sa.time_start for sa in sa_out_dataset.joblist])
         start_time_vec = start_time_vec.reshape(start_time_vec.shape[0], 1)
         plus_vec = np.hstack((start_time_vec, np.ones(start_time_vec.shape)))
-
         end_time_vec = np.asarray([sa.time_end for sa in sa_out_dataset.joblist])
         end_time_vec = end_time_vec.reshape(end_time_vec.shape[0], 1)
         minus_vec = np.hstack((end_time_vec, -1 * np.ones(end_time_vec.shape)))
-
         all_vec = np.vstack((plus_vec, minus_vec))
         all_vec_sort = all_vec[all_vec[:, 0].argsort()]
         n_running_vec = np.cumsum(all_vec_sort[:, 1])
+
+        # calculate used procs in time..
+        proc_time_vec = np.asarray([sa.ncpus for sa in sa_out_dataset.joblist])
+        proc_time_vec = proc_time_vec.reshape(proc_time_vec.shape[0], 1)
+        plus_vec = np.hstack((start_time_vec, proc_time_vec))
+        minus_vec = np.hstack((end_time_vec, -1 * proc_time_vec))
+        all_vec = np.vstack((plus_vec, minus_vec))
+        all_vec_sort = all_vec[all_vec[:, 0].argsort()]
+        nproc_running_vec = np.cumsum(all_vec_sort[:, 1])
 
         # ---------- make plot ----------
         fig_size = (16, 9)
@@ -232,14 +239,18 @@ class Statistics(object):
         id_plot += 1
         plt.subplot(n_plots, 1, id_plot)
         plt.subplots_adjust(left=0.2, right=0.8, top=0.9, bottom=0.1)
-        plt.plot(all_vec_sort[:, 0] - all_vec_sort[0, 0],
-                 n_running_vec,
-                 color='b',
-                 label='running jobs')
         plt.plot(queuing_times_vec + [total_exe_time],
                  range(len(queuing_times_vec)) + [len(queuing_times_vec) - 1],
                  color='r',
                  label='queued jobs')
+        plt.plot(all_vec_sort[:, 0] - all_vec_sort[0, 0],
+                 n_running_vec,
+                 color='b',
+                 label='running jobs')
+        plt.plot(all_vec_sort[:, 0] - all_vec_sort[0, 0],
+                 nproc_running_vec,
+                 color='m',
+                 label='running processors')
         plt.xlabel('time')
         plt.ylabel('jobs')
         plt.legend(loc='center left', bbox_to_anchor=(1, 0.5))
