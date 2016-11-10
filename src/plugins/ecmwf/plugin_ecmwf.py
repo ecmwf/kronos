@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 
 import os
-import pickle
 import numpy as np
 
 os.sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.realpath(__file__)))))
