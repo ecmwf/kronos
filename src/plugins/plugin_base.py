@@ -1,4 +1,6 @@
-
+from kronos_tools.print_colour import print_colour
+import logreader
+from logreader.dataset import IngestedDataSet
 from postprocess import statistics
 
 
@@ -10,9 +12,24 @@ class PluginBase(object):
 
     def __init__(self, config):
         self.config = config
+        self.job_datasets = None
 
     def ingest_data(self):
-        raise NotImplementedError("Must use derived class. Call data_analysis.factory")
+
+        self.job_datasets = []
+
+        print_colour("green", "ingesting data..")
+
+        # ingest datasets from pickled files if any:
+        if self.config.loaded_datasets:
+            for ingest_type, ingest_path in self.config.loaded_datasets:
+                print "ingesting {}".format(ingest_path)
+                self.job_datasets.append(IngestedDataSet.from_pickled(ingest_path))
+
+        # ingest from logs if any:
+        if self.config.loaded_datasets:
+            for ingest_type, ingest_path in self.config.profile_sources:
+                self.job_datasets.append(logreader.ingest_data(ingest_type, ingest_path, self.config))
 
     def generate_model(self):
         raise NotImplementedError("Must use derived class. Call data_analysis.factory")
@@ -20,19 +37,19 @@ class PluginBase(object):
     def run(self):
         raise NotImplementedError("Must use derived class. Call data_analysis.factory")
 
-    def postprocess(self):
+    def postprocess(self, postprocess_flag):
         """
         Do some post-processing of the synthetic apps (modelled and run)
         :return:
         """
 
-        if self.config.post_process["post_process_scope"] == "input":
+        if postprocess_flag == "input":
             stats = statistics.Statistics(self.config)
             stats.calculate_sa_metrics()
             stats.print_sa_stats()
             stats.plot_sa_stats()
 
-        if self.config.post_process["post_process_scope"] == "output":
+        if postprocess_flag == "output":
             stats = statistics.Statistics(self.config)
             stats.calculate_run_metrics()
 

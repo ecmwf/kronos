@@ -14,7 +14,6 @@ import data_analysis
 from data_analysis import recommender
 from kronos_tools.print_colour import print_colour
 
-import logreader
 import job_grouping
 import runner
 
@@ -39,30 +38,15 @@ class PluginECMWF(PluginBase):
         ingest data (from files or cached pickles..)
         :return:
         """
-        print_colour("green", "ingesting data..")
 
-        # Darshan
-        with open(self.config.plugin["darshan_ingested_file"], "r") as f:
-            self.darshan_dataset = pickle.load(f)
-        print_colour("white", "darshan log data ingested!")
+        super(PluginECMWF, self).ingest_data()
 
-        # IPM
-        with open(self.config.plugin["ipm_ingested_file"], "r") as f:
-            self.ipm_dataset = pickle.load(f)
-        print_colour("white", "ipm log data ingested!")
+        # retrieve the loaded datasets for further use
+        self.darshan_dataset = self.job_datasets[0]
+        self.ipm_dataset = self.job_datasets[1]
+        self.acc_dataset = self.job_datasets[2]
 
-        # # stdout
-        # with open(self.config.plugin["stdout_ingested_file"], "r") as f:
-        #     self.stdout_dataset = pickle.load(f)
-        # print "stdout log data ingested!"
-
-        # job scheduling data
-        acc_dataset = logreader.ingest_data("accounting", self.config.plugin["job_scheduler_logs"])
-        acc_dataset.apply_cutoff_dates(self.config.plugin["job_scheduler_date_start"],
-                                       self.config.plugin["job_scheduler_date_end"])
-
-        self.acc_model_jobs = [j for j in acc_dataset.model_jobs()]
-        self.acc_dataset = acc_dataset
+        self.acc_model_jobs = [j for j in self.acc_dataset.model_jobs()]
 
     def generate_model(self):
         """
@@ -187,11 +171,11 @@ class PluginECMWF(PluginBase):
         ecmwf_runner = runner.factory(self.config.runner['type'], self.config)
         ecmwf_runner.run()
 
-    def postprocess(self):
+    def postprocess(self, postprocess_flag):
         """
         run post-process
         :return:
         """
         print_colour("green", "running ecmwf postprocessing..")
-        super(PluginECMWF, self).postprocess()
+        super(PluginECMWF, self).postprocess(postprocess_flag)
 

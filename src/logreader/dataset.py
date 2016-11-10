@@ -92,6 +92,11 @@ class IngestedDataSet(object):
 
         return self
 
+    @classmethod
+    def from_pickled(cls, path):
+
+        with open(path, 'r') as f:
+            return pickle.load(f)
 
 
     @classmethod
