@@ -97,7 +97,10 @@ class PluginECMWF(PluginBase):
 
         # train recommender system with matched jobs
         recomm_sys = recommender.Recommender()
-        recomm_sys.train_model(matching_jobs)
+        recomm_sys.train_model(matching_jobs, n_ts_bins=3)
+
+        # # apply recommendations to operational jobs..
+        # matching_jobs_mod = recomm_sys.apply_model_to(matching_jobs)
 
         # apply recommendations to accounting jobs..
         acc_model_jobs_mod = recomm_sys.apply_model_to(self.acc_model_jobs)

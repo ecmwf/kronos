@@ -162,6 +162,7 @@ class Statistics(object):
         plt.xlabel('metrics')
         plt.ylabel('sums over all jobs')
         plt.yscale('log')
+        plt.ylim(ymin=1)
         plt_hdl = plt.gca()
         plt_hdl.set_xticks([i + width / 2. for i in xx])
         plt_hdl.set_xticklabels([k for k, v in self.sums_sig.items()])
@@ -182,6 +183,7 @@ class Statistics(object):
         plt.xlabel('metrics')
         plt.ylabel('sums over all jobs')
         plt.yscale('log')
+        plt.ylim(ymin=1)
         plt_hdl = plt.gca()
         plt_hdl.set_xticks([i + width / 2. for i in xx])
         plt_hdl.set_xticklabels([k for k, v in self.sums_sig.items()])
@@ -273,6 +275,7 @@ class Statistics(object):
         plt.xlabel('metrics')
         plt.ylabel('sums over all jobs')
         plt.yscale('log')
+        plt.ylim(ymin=1)
         plt_hdl = plt.gca()
         plt_hdl.set_xticks([i + width / 2. for i in xx])
         plt_hdl.set_xticklabels([k for k, v in self.sums_sig.items()])
@@ -285,19 +288,22 @@ class Statistics(object):
         xx = np.arange(len(requested_metrics.keys()))
         plt.bar(xx + width / 4.0,
                 np.abs(np.asarray([v for k, v in self.sums_sig.items()]) -
-                       np.asarray([v for k, v in allinea_jsons_sums.items()])),
+                       np.asarray([v for k, v in allinea_jsons_sums.items()])) /
+                np.asarray([v for k, v in self.sums_sig.items()]),
                 width / 2.0,
                 color='green',
-                label='abs(diff req-run)')
+                label='(req-run)/req_max')
         plt.xlabel('metrics')
         plt.ylabel('sums over all jobs')
-        plt.yscale('log')
+        # plt.yscale('log')
+        # plt.ylim(ymin=1)
         plt_hdl = plt.gca()
         plt_hdl.set_xticks([i + width / 2. for i in xx])
         plt_hdl.set_xticklabels([k for k, v in self.sums_sig.items()])
         plt.legend(loc='center left', bbox_to_anchor=(1, 0.5))
         plt.savefig(os.path.join(self.config.dir_output, 'out_run_plots.png'))
         plt.show()
+        print max([v for k, v in self.sums_sig.items()])
 
     def read_workload_file(self):
         """

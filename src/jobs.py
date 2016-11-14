@@ -384,17 +384,19 @@ def model_jobs_from_clusters(clusters, labels, start_times_vec, nprocs=2, nnodes
 
     # re-assign recommended values to background jobs..
     print_colour("white", "Re-assigning recommended values..")
-    background_model_job_list = []
+    generated_jobs = []
 
     # vectors of random start-times and cluster indexes in the interval
+    np.random.seed(0)
     vec_clust_indexes = np.random.randint(clusters.shape[0], size=len(start_times_vec))
 
     for cc, idx in enumerate(vec_clust_indexes):
         ts_dict = {}
-        row = clusters[idx]
-        for tt, ts_vv in enumerate(row[:8]):
+        row = clusters[idx,:]
+        ts_yvalues = np.split(row, len(signal_types))
+        for tt, ts_vv in enumerate(ts_yvalues):
             ts_name = signal_types.keys()[tt]
-            ts = TimeSignal(ts_name).from_values(ts_name, np.arange(10), np.ones(10) * ts_vv)
+            ts = TimeSignal(ts_name).from_values(ts_name, np.arange(len(ts_vv)), ts_vv)
             ts_dict[ts_name] = ts
 
         job = ModelJob(
@@ -406,6 +408,6 @@ def model_jobs_from_clusters(clusters, labels, start_times_vec, nprocs=2, nnodes
             label="job-{}".format(cc)
         )
 
-        background_model_job_list.append(job)
+        generated_jobs.append(job)
 
-    return background_model_job_list
+    return generated_jobs

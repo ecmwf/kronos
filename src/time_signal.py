@@ -6,19 +6,19 @@ from kronos_tools import utils
 signal_types = {
 
     # # CPU
-    'flops':         {'type': float, 'category': 'cpu',        'behaviour': 'sum', 'max_value': 1.0e8},
+    'flops':         {'type': float, 'category': 'cpu',        'behaviour': 'sum', 'max_value': 1.0e20},
 
     # (file) I/O
-    'kb_read':       {'type': float, 'category': 'file-read',  'behaviour': 'sum', 'max_value': 1.0e4},
-    'kb_write':      {'type': float, 'category': 'file-write', 'behaviour': 'sum', 'max_value': 1.0e4},
-    'n_read':        {'type': int, 'category': 'file-read',  'behaviour': 'sum', 'max_value': 1.0e3},
-    'n_write':       {'type': int, 'category': 'file-write', 'behaviour': 'sum', 'max_value': 1.0e3},
+    'kb_read':       {'type': float, 'category': 'file-read',  'behaviour': 'sum', 'max_value': 1.0e20},
+    'kb_write':      {'type': float, 'category': 'file-write', 'behaviour': 'sum', 'max_value': 1.0e20},
+    'n_read':        {'type': int, 'category': 'file-read',  'behaviour': 'sum', 'max_value': 1.0e20},
+    'n_write':       {'type': int, 'category': 'file-write', 'behaviour': 'sum', 'max_value': 1.0e20},
 
     # MPI activity
-    'n_pairwise':    {'type': float, 'category': 'mpi',        'behaviour': 'sum', 'max_value': 1.0e3},
-    'kb_pairwise':   {'type': float, 'category': 'mpi',        'behaviour': 'sum', 'max_value': 1.0e4},
-    'n_collective':  {'type': float, 'category': 'mpi',        'behaviour': 'sum', 'max_value': 1.0e3},
-    'kb_collective': {'type': float, 'category': 'mpi',        'behaviour': 'sum', 'max_value': 1.0e4}
+    'n_pairwise':    {'type': float, 'category': 'mpi',        'behaviour': 'sum', 'max_value': 1.0e20},
+    'kb_pairwise':   {'type': float, 'category': 'mpi',        'behaviour': 'sum', 'max_value': 1.0e20},
+    'n_collective':  {'type': float, 'category': 'mpi',        'behaviour': 'sum', 'max_value': 1.0e20},
+    'kb_collective': {'type': float, 'category': 'mpi',        'behaviour': 'sum', 'max_value': 1.0e20}
 }
 
 

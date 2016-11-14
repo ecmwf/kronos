@@ -10,6 +10,8 @@ class ClusteringBase(object):
         self.config = config
         self.clusters = None
         self.labels = None
+        self.n_ts_bins = None
+        self.metrics_only = False
 
         self.check_config()
 
@@ -25,7 +27,7 @@ class ClusteringBase(object):
         :param input_jobs: List of input jobs
         :return:
         """
-        timesignal_matrix = data_analysis.jobs_to_matrix(input_jobs)
+        timesignal_matrix = data_analysis.jobs_to_matrix(input_jobs, self.n_ts_bins)
         (self.clusters, self.labels) = self.apply_clustering(timesignal_matrix)
 
     def apply_clustering(self, input_jobs):
