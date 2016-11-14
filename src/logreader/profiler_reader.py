@@ -10,6 +10,7 @@ from time_signal import TimeSignal
 from exceptions_iows import ConfigurationError
 from logreader.dataset import IngestedDataSet
 import time_signal
+from config import config
 
 allinea_signal_priorities = {
     'flops': 10,
@@ -36,13 +37,13 @@ def read_allinea_log(filename, jobs_n_bins=None):
     #             (default False)
 
     allinea_time_signal_map = {
-        'cpu_time_percentage':  {'name': 'flops'},
+        'instr_fp':             {'name': 'flops',                          'scale_factor': config.Config.CPU_FREQUENCY, 'is_time_percent': True},
         'lustre_bytes_read':    {'name': 'kb_read',       'is_rate': True, 'scale_factor': 1./1024.},
         'lustre_bytes_written': {'name': 'kb_write',      'is_rate': True, 'scale_factor': 1./1024.},
-        'mpi_p2p':              {'name': 'n_pairwise'},
-        'mpi_p2p_bytes':        {'name': 'kb_pairwise',                     'scale_factor': 1./1024.},
-        'mpi_collect':          {'name': 'n_collective'},
-        'mpi_collect_bytes':    {'name': 'kb_collective',                   'scale_factor': 1./1024.}
+        'mpi_p2p':              {'name': 'n_pairwise',    'is_rate': True},
+        'mpi_p2p_bytes':        {'name': 'kb_pairwise',   'is_rate': True, 'scale_factor': 1./1024.},
+        'mpi_collect':          {'name': 'n_collective',  'is_rate': True},
+        'mpi_collect_bytes':    {'name': 'kb_collective', 'is_rate': True, 'scale_factor': 1./1024.}
     }
 
     # A quick sanity check
@@ -103,6 +104,7 @@ def read_allinea_log(filename, jobs_n_bins=None):
 
     # Obtain the timestamps for the (end of) each sampling window, converted into seconds.
     sample_times = np.array(json_data['profile']['sample_times']) / 1000.
+    sample_interval = json_data['profile']['sample_interval'] / 1000.
 
     for ts_name_allinea, ts_config in allinea_time_signal_map.iteritems():
 
@@ -119,6 +121,13 @@ def read_allinea_log(filename, jobs_n_bins=None):
 
         if ts_config.get('per_task', False):
             y_vals *= i_job.ncpus
+
+        if ts_config.get('is_time_percent', False):
+            y_vals *= sample_interval/100.
+
+        # special case: flops areestimated by (cpu_percent*fp_percent*FREQ*Dt/100)
+        if ts_name_allinea == 'instr_fp':
+            y_vals *= np.array([v[2]/100. for v in json_data['profile']['samples']['cpu_time_percentage']])
 
         ts = TimeSignal.from_values(ts_config['name'], sample_times, y_vals,
                                     priority=allinea_signal_priorities [ts_config['name']])
