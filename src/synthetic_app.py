@@ -1,3 +1,4 @@
+from exceptions_iows import ConfigurationError
 from jobs import ModelJob
 import json
 import os
@@ -17,6 +18,7 @@ class SyntheticWorkload(object):
     def __init__(self, config, apps=None):
         self.config = config
         self.app_list = apps
+        self.tuning_factor = None
 
     def __unicode__(self):
         return "SyntheticWorkload - {} jobs".format(len(self.app_list))
@@ -52,7 +54,10 @@ class SyntheticWorkload(object):
             app.export(os.path.join(dir_output, "job-{}.json".format(i)), nbins)
 
     def total_metrics_dict(self, include_tuning_factors=False):
-        print "calculating time signals sums.."
+
+        if not self.tuning_factor:
+            raise ConfigurationError("tuning factors not set!")
+
         tot = {}
         fact = 1.0  # default tuning factor
         # loop oer synthetic apps and return sums of time signals
@@ -75,9 +80,20 @@ class SyntheticWorkload(object):
 
     def set_tuning_factors(self, tuning_factor):
         """ set the stretching factor for all the applications """
-        # loop oer synthetic apps and return sums of time signals
+        # NB each app receives a *copy* of the tuning_factor dictionary..
+        self.tuning_factor = tuning_factor
         for app in self.app_list:
-            app.tuning_factor = tuning_factor
+            app.tuning_factor = dict(tuning_factor)
+
+    def get_scaling_factors(self):
+        return self.tuning_factor
+
+    # def multiply_tuning_factors(self, tuning_factor):
+    #     """ multiply the stretching factor for all the applications """
+    #     # loop oer synthetic apps and return sums of time signals
+    #     for app in self.app_list:
+    #         for ts_name in tuning_factor.keys():
+    #             app.tuning_factor[ts_name] *= tuning_factor[ts_name]
 
     def save(self):
 
@@ -137,9 +153,6 @@ class SyntheticApp(ModelJob):
             json.dump(job_entry, f, ensure_ascii=True, sort_keys=True, indent=4, separators=(',', ': '))
 
     def frame_data(self, n_bins):
-        """
-        Return the cofiguration required for the synthetic app kernels
-        """
 
         # generate kernes from non-null timesignals only..
         self.set_ts_defaults()

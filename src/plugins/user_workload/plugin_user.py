@@ -313,7 +313,7 @@ class PluginUSER(PluginBase):
         plt.close()
 
         # create synthetic apps from clusters..
-        n_export_sa = 15
+        n_export_sa = 4
         job_from_clusters_list = model_jobs_from_clusters(clusters_matrix,
                                                           clusters_labels,
                                                           np.zeros(n_export_sa),
@@ -383,6 +383,6 @@ class PluginUSER(PluginBase):
                     except KeyError:
                         sums_dict[k] = v.sum
                 else:
-                    raise ValueError("ts {} of job {} is None!".format(k,jj))
+                    raise ValueError("ts {} of job {} is None!".format(k, jj))
 
         return sums_dict

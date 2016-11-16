@@ -185,11 +185,11 @@ def ingest_allinea_profiles(path, jobs_n_bins=None, list_json_files=None):
 
     if not list_json_files:
         if os.path.isdir(path):
-            jobs = read_allinea_logs(path, jobs_n_bins)
+            jobs = read_allinea_logs(path, jobs_n_bins=jobs_n_bins)
         else:
-            jobs = [read_allinea_log(path, jobs_n_bins)]
+            jobs = [read_allinea_log(path, jobs_n_bins=jobs_n_bins)]
     else:
-        jobs = read_allinea_logs(path, jobs_n_bins, list_json_files)
+        jobs = read_allinea_logs(path, jobs_n_bins=jobs_n_bins, list_json_files=list_json_files)
 
     return AllineaDataSet(jobs)
 

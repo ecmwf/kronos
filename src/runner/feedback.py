@@ -1,205 +1,245 @@
 import os
+import pickle
+import pprint
 import subprocess
 import time
 import glob
+
+import datetime
+
+import run_control
+from exceptions_iows import ConfigurationError
+from time_signal import signal_types
 
 os.sys.path.append(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
 
 from base_runner import BaseRunner
 from kronos_tools import utils
 from model_workload import ModelWorkload
-from synthetic_app import SyntheticWorkload
 from logreader import profiler_reader
+from kronos_tools import print_colour
 
 
 class FeedbackLoopRunner(BaseRunner):
 
     """ This class implments a Feedback loop refinement of the iows model """
 
-    def __init__(self, config, sa_list=None, sc_dict_init=None, reduce_flag=None):
+    # def __init__(self, config, sa_list=None, sc_dict_init=None, reduce_flag=None):
+    def __init__(self, config):
 
+        # provide defaults if necessary
         self.config = config
-        self.sa_list = sa_list
-        self.sc_dict_init = sc_dict_init
-        self.reduce_flag = reduce_flag
+        self.type = None
+        self.state = None
+        self.tag = None
+        self.hpc_user = None
+        self.hpc_host = None
 
-        # it makes a workload from ssa list..
-        self.synthetic_workload = SyntheticWorkload(self.config, apps=self.sa_list)
-        self.synthetic_workload.export(self.config.IOWSMODEL_TOTAL_METRICS_NBINS)
+        self.hpc_dir_input = None
+        self.hpc_dir_output = None
+        self.local_map2json_file = None
 
-    def no_run(self):
+        self.n_iterations = None
+        self.log_file = None
 
-        """  do not run the fb, ony returns input workload.. """
-        return self.synthetic_workload
+        self.synthetic_workload = None
+        self.updatable_metrics = None
+
+        # Then set the general configuration into the parent class..
+        super(FeedbackLoopRunner, self).__init__(config)
+
+    def check_config(self):
+        """
+        check if the user supplied keys are consistent with this runner
+        :return:
+        """
+
+        # check simple-runner configuration and pull user options..
+        for k, v in self.config.runner.items():
+            if not hasattr(self, k):
+                raise ConfigurationError("Unexpected simple-runner keyword provided - {}:{}".format(k, v))
+            setattr(self, k, v)
 
     def run(self):
+        """
+        Run the model on the HPC host according to the configuration options
+        output files are left
+        :return:
+        None
+        """
 
-        # config parameters
+        if self.config.runner['state'] == "enabled":
 
-        # dir for iows and kronos
-        fl_iows_dir_input = self.config.FL_IOWS_DIR_INPUT
-        fl_iows_dir_output = self.config.FL_IOWS_DIR_OUTPUT
-        fl_iows_dir_backup = self.config.FL_IOWS_DIR_BACKUP
-        fl_kronos_run_dir = self.config.FL_KRONOS_RUN_DIR
+            user_at_host = self.hpc_user + '@' + self.hpc_host
+            time_now_str = datetime.datetime.strftime(datetime.datetime.now(), '%Y-%m-%d_%H-%M-%S')
+            dir_run_results = os.path.join(self.config.dir_output, 'fl_run_{}'.format(time_now_str))
+            log_file = os.path.join(dir_run_results, 'log_file.txt')
 
-        fl_user_host = self.config.FL_USER_HOST
-        fl_user = self.config.FL_USER
-        fl_n_iterations = self.config.FL_n_iterations
-        fl_log_file = self.config.FL_LOG_FILE
+            job_runner = run_control.factory(self.config.controls['hpc_job_sched'], self.config)
 
-        metrics_names = self.config.metrics_names
-        jobs_n_bins = self.config.WORKLOADCORRECTOR_JOBS_NBINS
+            # jobs_n_bins = 3 # TODO: to be removed..
 
-        # ------------ init DIR ---------------
-        if not os.path.exists(fl_iows_dir_backup):
-            os.makedirs(fl_iows_dir_backup)
+            # create run dir
+            if not os.path.exists(dir_run_results):
+                os.makedirs(dir_run_results)
 
-        # initialize the vectors: metric_sums, deltas, etc...
-        tuning_factors = {}
-        for m in metrics_names:
-            tuning_factors[m] = 1.0
+            metrics_sums_history = []
+            scaling_factors_history = []
 
-        # init log file --------------------
-        with open(fl_log_file, "w") as myfile:
-            ts_names_str = ''.join(e + ' ' for e in metrics_names)
-            myfile.write(ts_names_str + '\n')
+            # init log file
+            with open(log_file, "w") as myfile:
+                ts_names_str = ''.join(e + ' ' for e in signal_types.keys())
+                myfile.write(ts_names_str + '\n')
 
-        metrics_sums_history = []
-        scaling_factors_history = []
+            # read the synthetic workload in the output folder
+            with open(os.path.join(self.config.dir_output, 'sa_workload_pickle'), 'r') as f:
+                self.synthetic_workload = pickle.load(f)
 
-        # store input jsons into back-up folder..
-        iter0_json_files = [pos_json for pos_json in os.listdir(fl_iows_dir_input) if pos_json.endswith('.json')]
-        for i_file in iter0_json_files:
-            print "back-up of file: ", i_file
-            subprocess.Popen(["cp", fl_iows_dir_input+"/"+i_file, fl_iows_dir_backup]).wait()
+            metrics_sum_dict_ref = self.synthetic_workload.total_metrics_dict(include_tuning_factors=True)
+            sa_metric_dict = self.synthetic_workload.total_metrics_dict(include_tuning_factors=True)
 
-        metrics_sum_dict_ref = self.synthetic_workload.total_metrics_dict
-        sa_metric_dict = self.synthetic_workload.total_metrics_dict
+            # initialize the vectors: metric_sums, deltas, etc...
+            tuning_factors = self.synthetic_workload.get_scaling_factors()
 
-        print "ts names          : ", metrics_names
-        print "reference metrics : ", utils.sort_dict_list(metrics_sum_dict_ref, metrics_names)
-        print "sa tot metrics    : ", utils.sort_dict_list(sa_metric_dict, metrics_names)
+            pp = pprint.PrettyPrinter(depth=4)
+            print "ts names: "
+            print signal_types.keys()
 
-        # write log file
-        write_log_file(fl_log_file, metrics_sum_dict_ref, tuning_factors, metrics_names)
+            print "reference metrics: "
+            print pp.pprint(metrics_sum_dict_ref)
 
-        # /////////////////////////////////////// main loop.. ////////////////////////////////////////////
-        for i_count in range(0, fl_n_iterations):
-
-            print "=======================================> ITERATION: ", i_count
-
-            # move the synthetic apps output into kernel dir (and also into bk folder..)
-            files = glob.iglob(os.path.join(fl_iows_dir_output, "*.json"))
-            for ff, i_file in enumerate(files):
-                if os.path.isfile(i_file):
-                    # print "scp "+i_file+" "+KRONOS_RUN_DIR+"/input"
-                    os.system("scp " + i_file + " " + fl_user_host + ":" + fl_kronos_run_dir + "/input")
-
-                    # store output into back-up folder..
-                    os.system("cp " + i_file + " " + fl_iows_dir_backup + "/job_sa-" + str(ff) + "_iter-" + str(
-                        i_count + 1) + ".json")
-
-            # ------------------------- run the executor --------------------------------
-            subprocess.Popen(["ssh", fl_user_host, fl_kronos_run_dir + "/input/run_jobs"]).wait()
-            time.sleep(2.0)
-            # ---------------------------------------------------------------------------
-
-            # ..and wait until it completes ----------
-            jobs_completed = False
-            while not jobs_completed:
-                ssh_ls_cmd = subprocess.Popen(["ssh", fl_user_host, "qstat -u "+fl_user],
-                                              shell=False,
-                                              stdout=subprocess.PIPE,
-                                              stderr=subprocess.PIPE)
-                jobs_in_queue = ssh_ls_cmd.stdout.readlines()
-
-                if not jobs_in_queue:
-                    jobs_completed = True
-                    print "jobs completed!"
-
-                time.sleep(2.0)
-            # ----------------------------------------
-
-            # ----------------------------------------
-            sub_hdl = subprocess.Popen(["ssh", fl_user_host,
-                                        "find " + fl_kronos_run_dir + "/output/jobs -name *.map"],
-                                       shell=False, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-            sub_hdl.wait()
-            list_map_files = sub_hdl.stdout.readlines()
-            for (ff, file_name) in enumerate(list_map_files):
-                file_name_ok = file_name.replace("\n", "")
-                subprocess.Popen(["scp",
-                                  fl_user_host+":"+file_name_ok,
-                                  fl_iows_dir_input+"/"+"job-"+str(ff)+".map"]).wait()
-
-                time.sleep(2.0)
-                subprocess.Popen(["python",
-                                  fl_iows_dir_input+"/map2json.py",
-                                  fl_iows_dir_input+"/"+"job-"+str(ff)+".map"]).wait()
-
-            # once all the files have been copied over to local input, rename the host run folder "jobs"
-            subprocess.Popen(["ssh", fl_user_host,
-                             "mv "+fl_kronos_run_dir+"/output/jobs "+
-                             fl_kronos_run_dir+"/output/jobs_iter_"+str(i_count)]).wait()
-            # --------------------------------------------------------------------------
-
-            # re-calculate the workload
-            time.sleep(5.0)
-
-            # ---------- re read the jobs ----------
-            fname_list = []
-            for (ff, file_name) in enumerate(list_map_files):
-                fname = "job-" + str(ff) + "." + str(i_count + 1) + ".json"
-                subprocess.Popen(["cp", fl_iows_dir_input + "/" +fname, fl_iows_dir_backup]).wait()
-                fname_list.append(fname)
-
-            # job_datasets = [logreader.ingest_data('allinea', fname, self.config)]
-            job_datasets = [profiler_reader.ingest_allinea_profiles(fl_iows_dir_input, jobs_n_bins, fname_list)]
-
-            parsed_allinea_workload = ModelWorkload(self.config)
-            parsed_allinea_workload.model_ingested_datasets(job_datasets)
-
-            # append dictionaries to history structures..
-            metrics_sum_dict = parsed_allinea_workload.total_metrics_sum_dict()
-            metrics_sums_history.append(metrics_sum_dict)
-            scaling_factors_history.append(tuning_factors)
-
-            # calculate current scaling factor..
-            sc_factor_dict_new = get_new_scaling_factors(metrics_sum_dict_ref,
-                                                         metrics_sum_dict,
-                                                         tuning_factors,
-                                                         self.config.FL_updatable_metrics)
-
-            print "----------------------- summary: ---------------------------"
-            print "ts names            : ", metrics_names
-            print "scaling factors     : ", utils.sort_dict_list(tuning_factors, metrics_names)
-            print "reference metrics   : ", utils.sort_dict_list(metrics_sum_dict_ref, metrics_names)
-            print "metrics sums        : ", utils.sort_dict_list(metrics_sum_dict, metrics_names)
-            print "scaling factors new : ", utils.sort_dict_list(sc_factor_dict_new, metrics_names)
-            print "------------------------------------------------------------"
-
-            tuning_factors = sc_factor_dict_new
-
-            # update workload through stretching and re-export..
-            self.synthetic_workload.set_tuning_factors(tuning_factors)
-            self.synthetic_workload.export(self.config.IOWSMODEL_TOTAL_METRICS_NBINS, fl_iows_dir_output)
+            print "sa tot metrics: "
+            print pp.pprint(sa_metric_dict)
 
             # write log file
-            write_log_file(fl_log_file, metrics_sum_dict, tuning_factors, metrics_names)
-            # -----------------------------------------
-        # ///////////////////////////////////// end main loop.. /////////////////////////////////////////////
+            write_log_file(log_file, metrics_sum_dict_ref, tuning_factors)
 
-        # finally rescale the workload according to the calculated tuning factors..
-        mean_tuning_factors = {}
-        for metric in metrics_names:
-            tuning_factors_of_metric = [mm[metric] for mm in scaling_factors_history]
-            mean_tuning_factors[metric] = sum(tuning_factors_of_metric)/float(len(tuning_factors_of_metric))
+            # /////////////////////////////////////// main loop.. ////////////////////////////////////////////
+            for i_count in range(0, self.n_iterations):
 
-        # apply the refined tuning factors to the workload
-            self.synthetic_workload.set_tuning_factors(mean_tuning_factors)
+                print "=======================================> ITERATION: ", i_count
 
-        # return the tuned workload
-        return self.synthetic_workload
+                # create the iteration folder structure
+                # -- ROOT iteration folder
+                dir_run_iter = os.path.join(dir_run_results, 'iteration-{}'.format(i_count))
+                if not os.path.exists(dir_run_iter):
+                    os.makedirs(dir_run_iter)
+
+                # -- SA jsons iteration folder
+                dir_run_iter_sa = os.path.join(dir_run_iter, 'sa_jsons')
+                if not os.path.exists(dir_run_iter_sa):
+                    os.makedirs(dir_run_iter_sa)
+
+                # -- MAP jsons iteration folder
+                dir_run_iter_map = os.path.join(dir_run_iter, 'run_jsons')
+                if not os.path.exists(dir_run_iter_map):
+                    os.makedirs(dir_run_iter_map)
+
+                # move the synthetic apps output into HPC input dir (and also into SA iteration folder)
+                files = glob.iglob(os.path.join(self.config.dir_output, "*.json"))
+                for ff, i_file in enumerate(files):
+                    if os.path.isfile(i_file):
+                        os.system("scp " + i_file + " " + user_at_host + ":" + self.hpc_dir_input)
+
+                        # store output into back-up folder..
+                        os.system("cp " + i_file + " " + os.path.join(dir_run_iter_sa, "job_sa-"+str(ff)+".json"))
+
+                # -- run jobs on HPC and wait until they finish --
+                job_runner.remote_run_executor()
+                job_runner.have_jobs_finished()
+                # ------------------------------------------------
+
+                # -- search for ".map" files in the HPC output folder --
+                sub_hdl = subprocess.Popen(["ssh", user_at_host, "find", self.hpc_dir_output, "-name", "*.map"],
+                                           shell=False, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+                sub_hdl.wait()
+
+                # ------ fetch the output map files and copy them into the MAP iteration folder ------
+                list_map_files = sub_hdl.stdout.readlines()
+                if not list_map_files:
+                    raise ValueError("No profiler files have been found after the run!")
+
+                for (ff, file_name) in enumerate(list_map_files):
+                    file_name_ok = file_name.replace("\n", "")
+                    subprocess.Popen(["scp", user_at_host + ":" + file_name_ok,
+                                      os.path.join(dir_run_iter_map, "job-"+str(ff)+".map")]).wait()
+
+                    time.sleep(2.0)
+                    subprocess.Popen(["python", self.local_map2json_file,
+                                      os.path.join(dir_run_iter_map, "job-"+str(ff)+".map")]).wait()
+                # ------------------------------------------------------------------------------------
+
+                # ------------------ Finally rename the HPC output folder ----------------------------
+                output_dst = self.hpc_dir_output.rstrip('/') + "_iter_{}".format(i_count)
+                subprocess.Popen(["ssh", user_at_host, "mv", self.hpc_dir_output, output_dst]).wait()
+                # ------------------------------------------------------------------------------------
+
+                # re-calculate the workload
+                time.sleep(5.0)
+
+                # ---------- Process the run jsons ----------
+                # list of run json in the run "iteration" folder
+                fname_list = [file for file in os.listdir(dir_run_iter_map) if file.endswith('.json')]
+                fname_list.sort()
+                print "fname_list", fname_list
+
+                # job_datasets = [profiler_reader.ingest_allinea_profiles(dir_run_iter_map, jobs_n_bins, fname_list)]
+                job_datasets = [profiler_reader.ingest_allinea_profiles(dir_run_iter_map, list_json_files=fname_list)]
+
+                parsed_allinea_workload = ModelWorkload(self.config)
+                parsed_allinea_workload.model_ingested_datasets(job_datasets)
+
+                # append dictionaries to history structures..
+                metrics_sum_dict = parsed_allinea_workload.total_metrics_sum_dict()
+                metrics_sums_history.append(metrics_sum_dict)
+                scaling_factors_history.append(tuning_factors)
+
+                # calculate current scaling factor..
+                sc_factor_dict_new = get_new_scaling_factors(metrics_sum_dict_ref,
+                                                             metrics_sum_dict,
+                                                             tuning_factors,
+                                                             self.updatable_metrics)
+
+                print "----------------------- summary: ---------------------------"
+                print "ts names                  : ", signal_types.keys()
+                print "scaling factors           : ", utils.sort_dict_list(tuning_factors, signal_types.keys())
+                print "reference metrics         : ", utils.sort_dict_list(metrics_sum_dict_ref, signal_types.keys())
+                print "metrics sums              : ", utils.sort_dict_list(metrics_sum_dict, signal_types.keys())
+                print "scaling factors new       : ", utils.sort_dict_list(sc_factor_dict_new, signal_types.keys())
+                print "scaling factors new (REL) : ", [sc_factor_dict_new[k]/tuning_factors[k] for k in signal_types.keys()]
+                print "------------------------------------------------------------"
+
+                continue_flag = raw_input("Accept these scaling factors? ")
+                if (continue_flag == 'y') or (continue_flag == 'yes'):
+                    tuning_factors = sc_factor_dict_new
+                    pass
+                else:
+                    break
+
+                # update workload through stretching and re-export the synthetic apps..
+                self.synthetic_workload.set_tuning_factors(tuning_factors)
+                self.synthetic_workload.export(self.config.plugin['sa_n_frames'], self.config.dir_output)
+
+                # write log file
+                write_log_file(log_file, metrics_sum_dict, tuning_factors)
+                # -----------------------------------------
+            # ///////////////////////////////////// end main loop.. /////////////////////////////////////////////
+
+            # # finally rescale the workload according to the calculated tuning factors..
+            # mean_tuning_factors = {}
+            # for metric in signal_types.keys():
+            #     tuning_factors_of_metric = [mm[metric] for mm in scaling_factors_history]
+            #     mean_tuning_factors[metric] = sum(tuning_factors_of_metric)/float(len(tuning_factors_of_metric))
+            #
+            # # apply the refined tuning factors to the workload
+            #     self.synthetic_workload.set_tuning_factors(mean_tuning_factors)
+            #
+            # # return the tuned workload
+            # return self.synthetic_workload
+
+        else:
+
+            print_colour.print_colour("orange", "runner NOT enabled. Model did not run!")
 
     def plot_results(self):
         raise NotImplementedError("feedback loop plotter not yet implemented..")
@@ -212,17 +252,17 @@ def get_new_scaling_factors(metrics_ref, metrics_sums, sc_factors, updatable_met
 
     for metric in met_names:
         if metrics_sums[metric] < 1.0e-10 or not updatable_metrics[metric]:
-            sc_factor_dict_new[metric] = 1.0
+            sc_factor_dict_new[metric] = sc_factors[metric]
         else:
             sc_factor_dict_new[metric] = metrics_ref[metric] / metrics_sums[metric] * sc_factors[metric]
 
     return sc_factor_dict_new
 
 
-def write_log_file(logfile, metrics_sum_dict, scaling_factor_dict, metrics_names):
+def write_log_file(logfile, metrics_sum_dict, scaling_factor_dict):
     """ append metrics sums and scaling factors to log file.. """
     with open(logfile, "a") as myfile:
-        metrics_str = ''.join(str(e) + ' ' for e in utils.sort_dict_list(metrics_sum_dict, metrics_names))
-        scaling_str = ''.join(str(e) + ' ' for e in utils.sort_dict_list(scaling_factor_dict, metrics_names))
+        metrics_str = ''.join(str(e) + ' ' for e in utils.sort_dict_list(metrics_sum_dict, signal_types.keys()))
+        scaling_str = ''.join(str(e) + ' ' for e in utils.sort_dict_list(scaling_factor_dict, signal_types.keys()))
         myfile.write(metrics_str + scaling_str + '\n')
 

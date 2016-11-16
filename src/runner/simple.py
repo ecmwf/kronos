@@ -40,14 +40,12 @@ class SimpleRunner(BaseRunner):
             setattr(self, k, v)
 
     def run(self):
-
         """
         Run the model on the HPC host according to the configuration options
         output files are left
         :return:
         None
         """
-
         if self.config.runner['state'] == "enabled":
 
             job_runner = run_control.factory(self.config.controls['hpc_job_sched'], self.config)
@@ -56,7 +54,7 @@ class SimpleRunner(BaseRunner):
             user_at_host = self.hpc_user + '@' + self.hpc_host
 
             # ------------ init DIR ---------------
-            dir_backup = self.config.dir_output+"/"+"backup"
+            dir_backup = os.path.join(self.config.dir_output, "backup")
             if not os.path.exists(dir_backup):
                 os.makedirs(dir_backup)
 
@@ -68,7 +66,7 @@ class SimpleRunner(BaseRunner):
                     os.system("scp " + i_file + " " + user_at_host + ":" + self.hpc_dir_input)
 
                     # store output into back-up folder..
-                    os.system("cp " + i_file + " " + dir_backup + "/job_sa-" + str(ff) + ".json")
+                    os.system("cp " + i_file + " " + os.path.join(dir_backup, "job_sa-"+str(ff)+".json"))
 
             # run jobs and wait until they have all finished..
             job_runner.remote_run_executor()
@@ -81,15 +79,21 @@ class SimpleRunner(BaseRunner):
             list_map_files = sub_hdl.stdout.readlines()
             for (ff, file_name) in enumerate(list_map_files):
                 file_name_ok = file_name.replace("\n", "")
-                subprocess.Popen(["scp", user_at_host+":"+file_name_ok, self.config.dir_input+"/"+"job-"+str(ff)+".map"]).wait()
-
+                subprocess.Popen(["scp",
+                                  user_at_host+":"+file_name_ok,
+                                  os.path.join(self.config.dir_input, "job-"+str(ff)+".map")
+                                  ]).wait()
                 time.sleep(2.0)
-                subprocess.Popen(["python", self.local_map2json_file, self.config.dir_input+"/"+"job-"+str(ff)+".map"]).wait()
+                subprocess.Popen(["python",
+                                  self.local_map2json_file,
+                                  os.path.join(self.config.dir_input, "job-"+str(ff)+".map")
+                                  ]).wait()
+            # -----------------------------------------------------------------------------------
 
-            # once all the files have been copied over to local input, rename the hpc output folder
-            output_dst = self.hpc_dir_output+"_iter_0" if self.hpc_dir_output[-1] is not'/' else self.hpc_dir_output[:-1]+"_iter_0"
+            # -------------------- finally rename the HPC output folder -------------------------
+            output_dst = self.hpc_dir_output.rstrip('/')+"_iter_0"
             subprocess.Popen(["ssh", user_at_host, "mv", self.hpc_dir_output, output_dst]).wait()
-            # --------------------------------------------------------------------------
+            # -----------------------------------------------------------------------------------
 
         else:
 

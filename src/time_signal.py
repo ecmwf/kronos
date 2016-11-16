@@ -1,25 +1,27 @@
+from collections import OrderedDict
+
 import numpy as np
 import math
 from kronos_tools import utils
 
 # The availably types of time-series (or summed/averaged totals) data that we can use
-signal_types = {
+signal_types = OrderedDict([
 
     # # CPU
-    'flops':         {'type': float, 'category': 'cpu',        'behaviour': 'sum', 'max_value': 1.0e20},
+    ('flops',         {'type': float, 'category': 'cpu',        'behaviour': 'sum', 'max_value': 1.0e20}),
 
     # (file) I/O
-    'kb_read':       {'type': float, 'category': 'file-read',  'behaviour': 'sum', 'max_value': 1.0e20},
-    'kb_write':      {'type': float, 'category': 'file-write', 'behaviour': 'sum', 'max_value': 1.0e20},
-    'n_read':        {'type': int, 'category': 'file-read',  'behaviour': 'sum', 'max_value': 1.0e20},
-    'n_write':       {'type': int, 'category': 'file-write', 'behaviour': 'sum', 'max_value': 1.0e20},
+    ('kb_read',       {'type': float, 'category': 'file-read',  'behaviour': 'sum', 'max_value': 1.0e20}),
+    ('kb_write',      {'type': float, 'category': 'file-write', 'behaviour': 'sum', 'max_value': 1.0e20}),
+    ('n_read',        {'type': int, 'category': 'file-read',    'behaviour': 'sum', 'max_value': 1.0e20}),
+    ('n_write',       {'type': int, 'category': 'file-write',   'behaviour': 'sum', 'max_value': 1.0e20}),
 
     # MPI activity
-    'n_pairwise':    {'type': float, 'category': 'mpi',        'behaviour': 'sum', 'max_value': 1.0e20},
-    'kb_pairwise':   {'type': float, 'category': 'mpi',        'behaviour': 'sum', 'max_value': 1.0e20},
-    'n_collective':  {'type': float, 'category': 'mpi',        'behaviour': 'sum', 'max_value': 1.0e20},
-    'kb_collective': {'type': float, 'category': 'mpi',        'behaviour': 'sum', 'max_value': 1.0e20}
-}
+    ('n_pairwise',    {'type': float, 'category': 'mpi',        'behaviour': 'sum', 'max_value': 1.0e20}),
+    ('kb_pairwise',   {'type': float, 'category': 'mpi',        'behaviour': 'sum', 'max_value': 1.0e20}),
+    ('n_collective',  {'type': float, 'category': 'mpi',        'behaviour': 'sum', 'max_value': 1.0e20}),
+    ('kb_collective', {'type': float, 'category': 'mpi',        'behaviour': 'sum', 'max_value': 1.0e20})
+])
 
 
 class TimeSignal(object):

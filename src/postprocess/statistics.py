@@ -124,7 +124,7 @@ class Statistics(object):
             print "---------------------------------------------------------"
             print "Total number of synthetic apps = {}".format(len(self.sa_data_list))
             print "Sums REQUESTED quantities:"
-            for ss in self.sums_sig.keys():
+            for ss in signal_types.keys():
                 print "    {} = {}".format(ss, self.sums_sig[ss])
 
     def plot_sa_stats(self):
@@ -151,11 +151,11 @@ class Statistics(object):
         plt.subplot(n_plots, 1, id_plot)
         plt.subplots_adjust(left=0.2, right=0.8, top=0.9, bottom=0.1)
         xx = np.arange(len(total_metrics.keys()))
-        plt.bar(xx, np.asarray([v for k, v in total_metrics.items()]),
+        plt.bar(xx, np.asarray([total_metrics[k] for k in signal_types.keys()]),
                 width / 2.0,
                 color='grey',
                 label='Model WL')
-        plt.bar(xx + width / 2.0, np.asarray([v for k, v in self.sums_sig.items()]),
+        plt.bar(xx + width / 2.0, np.asarray([self.sums_sig[k] for k in signal_types.keys()]),
                 width / 2.0,
                 color='red',
                 label='Synth WL')
@@ -172,11 +172,11 @@ class Statistics(object):
         plt.subplot(n_plots, 1, id_plot)
         plt.subplots_adjust(left=0.2, right=0.8, top=0.9, bottom=0.1)
         xx = np.arange(len(total_metrics.keys()))
-        plt.bar(xx, np.asarray([v for k, v in total_metrics.items()]),
+        plt.bar(xx, np.asarray([total_metrics[k] for k in signal_types.keys()]),
                 width / 2.0,
                 color='grey',
                 label='Model WL')
-        plt.bar(xx + width / 2.0, np.asarray([v / tuning_factors[k] for k, v in self.sums_sig.items()]),
+        plt.bar(xx + width / 2.0, np.asarray([self.sums_sig[k] / tuning_factors[k] for k in signal_types.keys()]),
                 width / 2.0,
                 color='red',
                 label='Synth WL (rescaled)')
@@ -186,7 +186,7 @@ class Statistics(object):
         plt.ylim(ymin=1)
         plt_hdl = plt.gca()
         plt_hdl.set_xticks([i + width / 2. for i in xx])
-        plt_hdl.set_xticklabels([k for k, v in self.sums_sig.items()])
+        plt_hdl.set_xticklabels([k for k in signal_types.keys()])
         plt.legend(loc='center left', bbox_to_anchor=(1, 0.5))
         plt.savefig(os.path.join(dir_output, 'out_sa_plots.png'))
         plt.show()
@@ -263,12 +263,12 @@ class Statistics(object):
         plt.subplots_adjust(left=0.2, right=0.8, top=0.9, bottom=0.1)
         xx = np.arange(len(requested_metrics.keys()))
         plt.bar(xx,
-                np.asarray([v for k, v in self.sums_sig.items()]),
+                np.asarray([self.sums_sig[k] for k in signal_types.keys()]),
                 width / 2.0,
                 color='red',
                 label='Requested metrics')
         plt.bar(xx + width / 2.0,
-                np.asarray([v for k, v in allinea_jsons_sums.items()]),
+                np.asarray([allinea_jsons_sums[k] for k in signal_types.keys()]),
                 width / 2.0,
                 color='blue',
                 label='Run metrics')
@@ -278,7 +278,7 @@ class Statistics(object):
         plt.ylim(ymin=1)
         plt_hdl = plt.gca()
         plt_hdl.set_xticks([i + width / 2. for i in xx])
-        plt_hdl.set_xticklabels([k for k, v in self.sums_sig.items()])
+        plt_hdl.set_xticklabels([k for k in signal_types.keys()])
         plt.legend(loc='center left', bbox_to_anchor=(1, 0.5))
 
         # requested and run metrics diff..
@@ -287,23 +287,22 @@ class Statistics(object):
         plt.subplots_adjust(left=0.2, right=0.8, top=0.9, bottom=0.1)
         xx = np.arange(len(requested_metrics.keys()))
         plt.bar(xx + width / 4.0,
-                np.abs(np.asarray([v for k, v in self.sums_sig.items()]) -
-                       np.asarray([v for k, v in allinea_jsons_sums.items()])) /
-                np.asarray([v for k, v in self.sums_sig.items()]),
+                np.abs(np.asarray([self.sums_sig[k] for k in signal_types.keys()]) -
+                       np.asarray([allinea_jsons_sums[k] for k in signal_types.keys()])) /
+                np.asarray([self.sums_sig[k] for k in signal_types.keys()]),
                 width / 2.0,
                 color='green',
-                label='(req-run)/req_max')
+                label='|req-run|/req_max')
         plt.xlabel('metrics')
         plt.ylabel('sums over all jobs')
         # plt.yscale('log')
         # plt.ylim(ymin=1)
         plt_hdl = plt.gca()
         plt_hdl.set_xticks([i + width / 2. for i in xx])
-        plt_hdl.set_xticklabels([k for k, v in self.sums_sig.items()])
+        plt_hdl.set_xticklabels([k for k in signal_types.keys()])
         plt.legend(loc='center left', bbox_to_anchor=(1, 0.5))
         plt.savefig(os.path.join(self.config.dir_output, 'out_run_plots.png'))
         plt.show()
-        print max([v for k, v in self.sums_sig.items()])
 
     def read_workload_file(self):
         """
@@ -340,5 +339,5 @@ class Statistics(object):
         print "---------------------------------------------------------"
         print "Sums RUN quantities:"
         print "Total execution time: {}".format(tot_time)
-        for ss in allinea_sums.keys():
+        for ss in signal_types.keys():
             print "    {} = {}".format(ss, allinea_sums[ss])
