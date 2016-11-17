@@ -5,7 +5,6 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 import runner
-# from config.config import Config
 from kronos_tools.print_colour import print_colour
 from time_signal import TimeSignal, signal_types
 from jobs import ModelJob
@@ -19,7 +18,9 @@ from jobs import model_jobs_from_clusters
 
 class PluginUSER(PluginBase):
     """
-    just a simple user-defined workload generated from predefined classes of apps
+    just a simple user-defined workload generated from predefined classes of apps.
+    This plugin is intended to be a HARDCODED example to show how the recommender system
+    and the clustering algorithm work on simplified jobs.
     """
     def __init__(self, config):
         super(PluginUSER, self).__init__(config)
@@ -29,18 +30,21 @@ class PluginUSER(PluginBase):
 
     def generate_model(self):
 
-        # Create jobs from user-specified classes
-        ordered_signals = [
-            'flops',
-            'kb_read',
-            'kb_write',
-            'n_read',
-            'n_write',
-            'n_pairwise',
-            'kb_pairwise',
-            'n_collective',
-            'kb_collective',
-        ]
+        # factors to "scale up" each generated job..
+        scale_up_factors = {
+            "kb_collective": 1.0e3,
+            "n_collective": 1.0e3,
+            "kb_write": 1.0e3,
+            "n_pairwise": 1.0e3,
+            "n_write": 1.0e3,
+            "n_read": 1.0e3,
+            "kb_read": 1.0e3,
+            "flops": 1.0e10,
+            "kb_pairwise": 1.0e3
+        }
+
+        # probability of missing signal = 0.8 # 0 ->no ts available, 1 -> all ts available
+        ts_probability = 1.0
 
         # define number of classes
         # n_procs = 2
@@ -67,22 +71,6 @@ class PluginUSER(PluginBase):
 
         # combinations of signals type and level (for class )
         class_idx_set = [(ot, ol) for ot in ops_types for ol in ops_level]
-
-        # signle factors for each timesignal
-        factors = {
-            "kb_collective": 1.0e3,
-            "n_collective": 1.0e3,
-            "kb_write": 1.0e3,
-            "n_pairwise": 1.0e3,
-            "n_write": 1.0e3,
-            "n_read": 1.0e3,
-            "kb_read": 1.0e3,
-            "flops": 1.0e10,
-            "kb_pairwise": 1.0e3
-        }
-
-        # probability of missing signal = 0.8 # 0 ->no ts available, 1 -> all ts available
-        ts_probability = 1.0
 
         # create all the random indices in one go
         np.random.seed(0)
@@ -115,11 +103,11 @@ class PluginUSER(PluginBase):
                 mpi_io_type = 1
 
             timesignals = {}
-            for tt, ts_name in enumerate(ordered_signals):
+            for tt, ts_name in enumerate(signal_types.keys()):
                 if ts_name == 'flops':
-                    time_yvalues = ops_types[cpu_type] * factors['flops'] * overall_level
+                    time_yvalues = ops_types[cpu_type] * scale_up_factors['flops'] * overall_level
                 elif ts_name != 'flops':
-                    time_yvalues = ops_types[mpi_io_type] * factors[ts_name] * overall_level
+                    time_yvalues = ops_types[mpi_io_type] * scale_up_factors[ts_name] * overall_level
 
                 # create the timesignal
                 ts_prob = np.random.random()
@@ -141,14 +129,11 @@ class PluginUSER(PluginBase):
             )
 
             model_job_list.append(job)
-        # print "--------------------------"
 
-        # pp = pprint.PrettyPrinter(depth=4)
-        # pp.pprint(apps_list)
-        # # print apps_list
         print "done jobs!"
+        # ----------------------------------------------------------------
 
-        # //////////////////////////////////// collect job classes ///////////////////////////////////////////////
+        # --------------------- collect job classes ----------------------
         model_job_classes = []
         count = 0
         for cpu_type in range(0, len(ops_types)):
@@ -166,11 +151,11 @@ class PluginUSER(PluginBase):
                     mpi_io_type = 1
 
                 timesignals = {}
-                for ts_name in ordered_signals:
+                for ts_name in signal_types.keys():
                     if ts_name == 'flops':
-                        time_yvalues = ops_types[cpu_type] * factors['flops'] * overall_level
+                        time_yvalues = ops_types[cpu_type] * scale_up_factors['flops'] * overall_level
                     elif ts_name != 'flops':
-                        time_yvalues = ops_types[mpi_io_type] * factors[ts_name] * overall_level
+                        time_yvalues = ops_types[mpi_io_type] * scale_up_factors[ts_name] * overall_level
 
                     # create the timesignal
                     ts = TimeSignal(ts_name).from_values(ts_name, time_xvalues, time_yvalues)
@@ -190,8 +175,9 @@ class PluginUSER(PluginBase):
                 count += 1
 
         print "done classes!"
+        # ----------------------------------------------------------------
 
-        # plot jobs classes
+        # ---------------------- plot jobs classes -----------------------
         fig_size = (24, 16)
         plt.figure(211, figsize=fig_size, facecolor='w', edgecolor='k')
         ss = 1
@@ -209,56 +195,57 @@ class PluginUSER(PluginBase):
         plt.tight_layout()
         plt.savefig(os.path.join(self.config.dir_output, 'classes.png'))
         plt.close()
+        # ----------------------------------------------------------------
 
-        # apply recommender system
+        # ---------------- apply recommender system ----------------------
         print "model_job_list", len(model_job_list)
         recomm_sys = recommender.Recommender()
         recomm_sys.train_model(model_job_list, n_ts_bins=3)
         model_job_list_mod = recomm_sys.apply_model_to(model_job_list)
         print "recommendersystem applied!"
+        # ----------------------------------------------------------------
 
+        # -------------- plot jobs classes+recomm systems ----------------
+        # Number of jobs to plot
+        n_jobs_to_plot = 10
 
-        # # plot jobs classes+recomm systems
-        # fig_size = (20, 6)
-        #
-        # for cc, app in enumerate(model_job_list_mod[:10]):
-        #
-        #     print "processing app {}".format(cc)
-        #     plt.figure(cc, figsize=fig_size, facecolor='w', edgecolor='k')
-        #
-        #     # plot timesignals values from the actual job..
-        #     for tt, ts_name in enumerate(ordered_signals):
-        #         plt.subplot(2, len(app.timesignals.keys()), tt + 1)
-        #         if app.timesignals[ts_name]:
-        #             if app.timesignals[ts_name].priority == 10:
-        #                 plt.bar(app.timesignals[ts_name].xvalues, app.timesignals[ts_name].yvalues, 0.5, color='b')
-        #             elif app.timesignals[ts_name].priority == 2:
-        #                 plt.bar(app.timesignals[ts_name].xvalues, app.timesignals[ts_name].yvalues, 0.5, color='g')
-        #             else:
-        #                 raise ValueError(
-        #                     "priority not recognized.. {} for ts {}".format(app.timesignals[ts_name].priority, ts_name))
-        #         else:
-        #             plt.bar(time_xvalues, time_xvalues * 0.0, 0.5, color='k')
-        #
-        #         plt.xlabel(ts_name)
-        #         plt.ylabel('')
-        #         plt.gca().xaxis.set_major_locator(plt.NullLocator())
-        #
-        #     # plot timesignals values from the CLASS of that job..
-        #     class_idx = class_idx_vec[cc]
-        #     class_app = model_job_classes[class_idx]
-        #     for tt, ts_name in enumerate(ordered_signals):
-        #         plt.subplot(2, len(class_app.timesignals.keys()), tt + 1 + len(class_app.timesignals.keys()))
-        #         plt.bar(class_app.timesignals[ts_name].xvalues, class_app.timesignals[ts_name].yvalues, 0.5, color='k')
-        #         plt.xlabel(ts_name)
-        #         plt.ylabel('')
-        #
-        #     plt.tight_layout()
-        #     plt.savefig(os.path.join(self.config.dir_output, "classes_with_rs_{}_it2.png".format(cc)))
-        #     plt.close()
-        #
-        # print "figures saved!"
+        fig_size = (20, 6)
+        for cc, app in enumerate(model_job_list_mod[:n_jobs_to_plot]):
 
+            print "processing app {}".format(cc)
+            plt.figure(cc, figsize=fig_size, facecolor='w', edgecolor='k')
+
+            # plot timesignals values from the actual job..
+            for tt, ts_name in enumerate(signal_types.keys()):
+                plt.subplot(2, len(app.timesignals.keys()), tt + 1)
+                if app.timesignals[ts_name]:
+                    if app.timesignals[ts_name].priority == 10:
+                        plt.bar(app.timesignals[ts_name].xvalues, app.timesignals[ts_name].yvalues, 0.5, color='b')
+                    elif app.timesignals[ts_name].priority == 2:
+                        plt.bar(app.timesignals[ts_name].xvalues, app.timesignals[ts_name].yvalues, 0.5, color='g')
+                    else:
+                        raise ValueError(
+                            "priority not recognized.. {} for ts {}".format(app.timesignals[ts_name].priority, ts_name))
+                else:
+                    plt.bar(time_xvalues, time_xvalues * 0.0, 0.5, color='k')
+
+                plt.xlabel(ts_name)
+                plt.ylabel('')
+                plt.gca().xaxis.set_major_locator(plt.NullLocator())
+
+            # plot timesignals values from the CLASS of that job..
+            class_idx = class_idx_vec[cc]
+            class_app = model_job_classes[class_idx]
+            for tt, ts_name in enumerate(signal_types.keys()):
+                plt.subplot(2, len(class_app.timesignals.keys()), tt + 1 + len(class_app.timesignals.keys()))
+                plt.bar(class_app.timesignals[ts_name].xvalues, class_app.timesignals[ts_name].yvalues, 0.5, color='k')
+                plt.xlabel(ts_name)
+                plt.ylabel('')
+
+            plt.tight_layout()
+            plt.savefig(os.path.join(self.config.dir_output, "classes_with_rs_{}_it2.png".format(cc)))
+            plt.close()
+        print "figures saved!"
 
         print "doing clustering"
         clustering_config = self.config.plugin["clustering"]
@@ -266,22 +253,11 @@ class PluginUSER(PluginBase):
         cluster_handler.cluster_jobs(model_job_list_mod)
         clusters_matrix = cluster_handler.clusters
         clusters_labels = cluster_handler.labels
-
         used_clusters = set(clusters_labels)
-        print "number of ACTUAL clusters: {}".format(len(used_clusters))
-        print "clustering done!!"
+        print "clustering done: number of ACTUAL clusters: {}".format(len(used_clusters))
+        # ----------------------------------------------------------------
 
-        # pp = pprint.PrettyPrinter(depth=4)
-        # print "model jobs.."
-        # for job in model_job_list:
-        #     pp.pprint(job.timesignals.items())
-        #
-        # pp = pprint.PrettyPrinter(depth=4)
-        # print "model jobs modified.."
-        # for job in model_job_list_mod:
-        #     pp.pprint(job.timesignals.items())
-
-        # plot clusters..
+        # --------------------- plot clusters.. --------------------------
         # plot jobs
         n_bins = clustering_config['n_ts_bins']
         fig_size = (24, 16)
@@ -311,8 +287,9 @@ class PluginUSER(PluginBase):
         plt.tight_layout()
         plt.savefig(os.path.join(self.config.dir_output, "clusters_rs.png"))
         plt.close()
+        # ----------------------------------------------------------------
 
-        # create synthetic apps from clusters..
+        # ----------- create synthetic apps from clusters.. --------------
         n_export_sa = 4
         job_from_clusters_list = model_jobs_from_clusters(clusters_matrix,
                                                           clusters_labels,
@@ -336,24 +313,16 @@ class PluginUSER(PluginBase):
         sa_workload.set_tuning_factors(self.config.plugin['tuning_factors'])
         sa_workload.export(3)
         sa_workload.save()
-
-        # collect created lists..
-        self.operational_sa_list = operational_sa_list
-        self.model_job_list = model_job_list
-
-        # pp = pprint.PrettyPrinter(depth=4)
-        # print "model jobs.."
-        # for job in job_from_clusters_list:
-        #     pp.pprint(job.timesignals.items())
+        # ----------------------------------------------------------------
 
         print " -------- model sums ---------"
         pp = pprint.PrettyPrinter(depth=4)
-        model_sums = self.calculate_sums(self.model_job_list)
+        model_sums = self.calculate_sums(model_job_list)
         pp.pprint(model_sums)
 
         print " -------- sa sums ---------"
         pp = pprint.PrettyPrinter(depth=4)
-        sa_sums = self.calculate_sums(self.operational_sa_list)
+        sa_sums = self.calculate_sums(operational_sa_list)
         pp.pprint(sa_sums)
 
     def run(self):
