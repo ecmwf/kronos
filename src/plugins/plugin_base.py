@@ -45,7 +45,7 @@ class PluginBase(object):
 
         if postprocess_flag == "input":
             stats = statistics.Statistics(self.config)
-            stats.calculate_sa_metrics()
+            stats.read_sa_metrics_from_jsons()
             stats.print_sa_stats()
             stats.plot_sa_stats()
 

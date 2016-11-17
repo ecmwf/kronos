@@ -217,6 +217,7 @@ class FeedbackLoopRunner(BaseRunner):
                     break
 
                 # update workload through stretching and re-export the synthetic apps..
+                # TODO: Note that this writes back into the output folder!! perhaps not a good choice..
                 self.synthetic_workload.set_tuning_factors(tuning_factors)
                 self.synthetic_workload.export(self.config.plugin['sa_n_frames'], self.config.dir_output)
 
