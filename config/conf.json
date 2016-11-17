@@ -1,0 +1,70 @@
+{
+    "dir_input": "/var/tmp/maab/kronos-core/input",
+    "dir_output": "/var/tmp/maab/kronos-core/output",
+    "plugin": {
+              "name": "user",
+              "clustering": {
+                            "name": "Kmeans",
+                            "rseed": 0,
+                            "max_iter": 100,
+                            "nc_max": 20,
+                            "nc_delta": 1,
+                            "n_ts_bins": 3
+                            },
+              "tuning_factors": {
+                                "flops": 1.0e-2,
+                                "n_collective": 1.0,
+                                "n_pairwise": 1.0,
+                                "kb_collective": 1.0,
+                                "kb_pairwise": 1.0,
+                                "n_write": 1.0e-2,
+                                "n_read": 1.0e-2,
+                                "kb_write": 1.0e-1,
+                                "kb_read": 1.0e-1
+                                },
+              "sa_n_proc": 2,
+              "sa_n_nodes": 1,
+              "sa_n_frames": 3,
+              "total_submit_interval": 60,
+              "submit_rate_factor": 0.1              
+              },
+    "runner": {
+              "type": "feedback",
+              "state": "enabled",
+              "n_iterations": 4,
+              "hpc_user": "maab",
+              "hpc_host": "ccb",
+              "tag": "feedback_run_test",
+              "hpc_dir_input": "/scratch/ma/maab/kronos_run/input",
+              "hpc_dir_output": "/scratch/ma/maab/kronos_run/output",
+              "local_map2json_file": "/home/ma/maab/workspace/Allinea_examples_files/NEXTGenIO_buiilds/map2json/map2json.py",
+              "updatable_metrics": {
+                                 "flops": 1,
+                                 "n_collective": 1,
+                                 "n_pairwise": 1,
+                                 "kb_collective": 1,
+                                 "kb_pairwise": 1,
+                                 "n_write": 0,
+                                 "n_read": 0,
+                                 "kb_write": 1,
+                                 "kb_read": 1
+                                 }
+              },
+    "controls": {
+              "hpc_user": "maab",
+              "hpc_host": "ccb",
+              "hpc_job_sched": "pbs",
+              "hpc_shell_type": "bash",
+              "hpc_module_dir_init": "",
+              "hpc_module_env": ["python"],
+              "hpc_dir_exec": "/perm/ma/maab/builds/kronos/bin",              
+              "hpc_exec_config": "/perm/ma/maab/kronos_run/input/exe_config.json"
+              },
+    "post_process": {
+                     "dir_sa_run_input": "/var/tmp/maab/kronos-core/output",
+                     "dir_sa_run_output": "/var/tmp/maab/kronos-core/output/fl_run_2016-11-17_09-24-16",
+                     "fb_loop": true
+                     },
+    "verbose": true
+}
+
