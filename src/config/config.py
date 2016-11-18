@@ -51,6 +51,7 @@ class Config(object):
     runner = None
     controls = None
     post_process = None
+    ksf_filename = 'schedule.ksf'
 
     metrics_names = time_signal.signal_types.keys()
 

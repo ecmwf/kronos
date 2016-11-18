@@ -6,6 +6,7 @@ import pickle
 
 import app_kernels
 from kronos_tools.print_colour import print_colour
+from ksf_handler import KSFFileHandler
 from time_signal import TimeSignal
 from time_signal import signal_types
 import numpy as np
@@ -40,19 +41,6 @@ class SyntheticWorkload(object):
         output += "=============================================\n"
         return output
 
-    def export(self, nbins, dir_output=None):
-
-        # A default dir, that can be overridden
-        dir_output = dir_output or self.config.dir_output
-
-        # Ensure that the synthetic applications are sorted by start time
-        sorted_apps = sorted(self.app_list, key=lambda a: a.time_start)
-
-        print "Exporting {} synthetic applications to: {}".format(len(sorted_apps), dir_output)
-
-        for i, app in enumerate(sorted_apps):
-            app.export(os.path.join(dir_output, "job-{}.json".format(i)), nbins)
-
     def total_metrics_dict(self, include_tuning_factors=False):
 
         if not self.tuning_factor:
@@ -79,27 +67,57 @@ class SyntheticWorkload(object):
         return tot
 
     def set_tuning_factors(self, tuning_factor):
-        """ set the stretching factor for all the applications """
+        """
+        Set the tuning factor for all the applications
+        """
         # NB each app receives a *copy* of the tuning_factor dictionary..
         self.tuning_factor = tuning_factor
         for app in self.app_list:
             app.tuning_factor = dict(tuning_factor)
 
-    def get_scaling_factors(self):
+    def get_tuning_factors(self):
+        """
+        Get the tuning factors
+        :return:
+        """
         return self.tuning_factor
 
-    # def multiply_tuning_factors(self, tuning_factor):
-    #     """ multiply the stretching factor for all the applications """
-    #     # loop oer synthetic apps and return sums of time signals
-    #     for app in self.app_list:
-    #         for ts_name in tuning_factor.keys():
-    #             app.tuning_factor[ts_name] *= tuning_factor[ts_name]
+    def export_synth_apps(self, nbins, dir_output=None):
+        """
+        Export the synthetic apps to json files
+        :param nbins:
+        :param dir_output:
+        :return:
+        """
 
-    def save(self):
+        # A default dir, that can be overridden
+        dir_output = dir_output or self.config.dir_output
 
+        # Ensure that the synthetic applications are sorted by start time
+        sorted_apps = sorted(self.app_list, key=lambda a: a.time_start)
+
+        print "Exporting {} synthetic applications to: {}".format(len(sorted_apps), dir_output)
+
+        for i, app in enumerate(sorted_apps):
+            app.export(os.path.join(dir_output, "job-{}.json".format(i)), nbins)
+
+    def export_pickle(self):
+        """
+        Export the synthetic workload to pickle file..
+        :return:
+        """
         with open(os.path.join(self.config.dir_output, 'sa_workload_pickle'), 'w') as f:
             pickle.dump(self, f)
             print_colour("green", "synthetic workload pickle file saved to {}".format(self.config.dir_output))
+
+    def export_ksf(self, nbins, filename):
+        """
+        Write a KSF file that describes the synthetic schedule,
+        this file can be given directly to the executor
+        :return:
+        """
+        ksf_file = KSFFileHandler().from_synthetic_workload(self)
+        ksf_file.export(nbins, filename)
 
 
 class SyntheticApp(ModelJob):
@@ -133,7 +151,7 @@ class SyntheticApp(ModelJob):
                     ts = ts.from_values(ts_name, np.zeros(10), np.zeros(10), base_signal_name=None, durations=np.zeros(10)+0.01)
                     self.timesignals[ts_name] = ts
 
-    def export(self, filename, n_bins):
+    def export(self, filename, n_bins, job_entry_only=False):
         """
         Produce a json file suitable to control a synthetic application (coordinator)
         """
@@ -149,8 +167,11 @@ class SyntheticApp(ModelJob):
             }
         }
 
-        with open(filename, 'w') as f:
-            json.dump(job_entry, f, ensure_ascii=True, sort_keys=True, indent=4, separators=(',', ': '))
+        if job_entry_only:
+            return job_entry
+        else:
+            with open(filename, 'wa') as f:
+                json.dump(job_entry, f, ensure_ascii=True, sort_keys=True, indent=4, separators=(',', ': '))
 
     def frame_data(self, n_bins):
 

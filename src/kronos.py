@@ -49,7 +49,7 @@ class Kronos(object):
             print synapps.verbose_description()
 
     def export(self):
-        self.synthetic_apps.export(self.config.IOWSMODEL_TOTAL_METRICS_NBINS)
+        self.synthetic_apps.export_synth_apps(self.config.IOWSMODEL_TOTAL_METRICS_NBINS)
 
     def run(self):
         """

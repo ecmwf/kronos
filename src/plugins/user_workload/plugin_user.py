@@ -44,6 +44,7 @@ class PluginUSER(PluginBase):
         }
 
         # probability of missing signal = 0.8 # 0 ->no ts available, 1 -> all ts available
+        # ts_probability = 1.0
         ts_probability = 1.0
 
         # define number of classes
@@ -205,47 +206,48 @@ class PluginUSER(PluginBase):
         print "recommendersystem applied!"
         # ----------------------------------------------------------------
 
-        # -------------- plot jobs classes+recomm systems ----------------
-        # Number of jobs to plot
-        n_jobs_to_plot = 10
-
-        fig_size = (20, 6)
-        for cc, app in enumerate(model_job_list_mod[:n_jobs_to_plot]):
-
-            print "processing app {}".format(cc)
-            plt.figure(cc, figsize=fig_size, facecolor='w', edgecolor='k')
-
-            # plot timesignals values from the actual job..
-            for tt, ts_name in enumerate(signal_types.keys()):
-                plt.subplot(2, len(app.timesignals.keys()), tt + 1)
-                if app.timesignals[ts_name]:
-                    if app.timesignals[ts_name].priority == 10:
-                        plt.bar(app.timesignals[ts_name].xvalues, app.timesignals[ts_name].yvalues, 0.5, color='b')
-                    elif app.timesignals[ts_name].priority == 2:
-                        plt.bar(app.timesignals[ts_name].xvalues, app.timesignals[ts_name].yvalues, 0.5, color='g')
-                    else:
-                        raise ValueError(
-                            "priority not recognized.. {} for ts {}".format(app.timesignals[ts_name].priority, ts_name))
-                else:
-                    plt.bar(time_xvalues, time_xvalues * 0.0, 0.5, color='k')
-
-                plt.xlabel(ts_name)
-                plt.ylabel('')
-                plt.gca().xaxis.set_major_locator(plt.NullLocator())
-
-            # plot timesignals values from the CLASS of that job..
-            class_idx = class_idx_vec[cc]
-            class_app = model_job_classes[class_idx]
-            for tt, ts_name in enumerate(signal_types.keys()):
-                plt.subplot(2, len(class_app.timesignals.keys()), tt + 1 + len(class_app.timesignals.keys()))
-                plt.bar(class_app.timesignals[ts_name].xvalues, class_app.timesignals[ts_name].yvalues, 0.5, color='k')
-                plt.xlabel(ts_name)
-                plt.ylabel('')
-
-            plt.tight_layout()
-            plt.savefig(os.path.join(self.config.dir_output, "classes_with_rs_{}_it2.png".format(cc)))
-            plt.close()
-        print "figures saved!"
+        # # -------------- plot jobs classes+recomm systems ----------------
+        # # Number of jobs to plot
+        # n_jobs_to_plot = 10
+        #
+        # fig_size = (20, 6)
+        # for cc, app in enumerate(model_job_list_mod[:n_jobs_to_plot]):
+        #
+        #     print "processing app {}".format(cc)
+        #     plt.figure(cc, figsize=fig_size, facecolor='w', edgecolor='k')
+        #
+        #     # plot timesignals values from the actual job..
+        #     for tt, ts_name in enumerate(signal_types.keys()):
+        #         plt.subplot(2, len(app.timesignals.keys()), tt + 1)
+        #         if app.timesignals[ts_name]:
+        #             if app.timesignals[ts_name].priority == 10:
+        #                 plt.bar(app.timesignals[ts_name].xvalues, app.timesignals[ts_name].yvalues, 0.5, color='b')
+        #             elif app.timesignals[ts_name].priority == 2:
+        #                 plt.bar(app.timesignals[ts_name].xvalues, app.timesignals[ts_name].yvalues, 0.5, color='g')
+        #             else:
+        #                 raise ValueError(
+        #                     "priority not recognized.. {} for ts {}".format(app.timesignals[ts_name].priority, ts_name))
+        #         else:
+        #             plt.bar(time_xvalues, time_xvalues * 0.0, 0.5, color='k')
+        #
+        #         plt.xlabel(ts_name)
+        #         plt.ylabel('')
+        #         plt.gca().xaxis.set_major_locator(plt.NullLocator())
+        #
+        #     # plot timesignals values from the CLASS of that job..
+        #     class_idx = class_idx_vec[cc]
+        #     class_app = model_job_classes[class_idx]
+        #     for tt, ts_name in enumerate(signal_types.keys()):
+        #         plt.subplot(2, len(class_app.timesignals.keys()), tt + 1 + len(class_app.timesignals.keys()))
+        #         plt.bar(class_app.timesignals[ts_name].xvalues, class_app.timesignals[ts_name].yvalues, 0.5, color='k')
+        #         plt.xlabel(ts_name)
+        #         plt.ylabel('')
+        #
+        #     plt.tight_layout()
+        #     plt.savefig(os.path.join(self.config.dir_output, "classes_with_rs_{}_it2.png".format(cc)))
+        #     plt.close()
+        # print "figures saved!"
+        # # ----------------------------------------------------------------
 
         print "doing clustering"
         clustering_config = self.config.plugin["clustering"]
@@ -311,13 +313,12 @@ class PluginUSER(PluginBase):
 
         sa_workload = SyntheticWorkload(self.config, apps=operational_sa_list)
         sa_workload.set_tuning_factors(self.config.plugin['tuning_factors'])
-        sa_workload.export(3)
-        sa_workload.save()
+        sa_workload.export_ksf(3, os.path.join(self.config.dir_output, 'schedule.ksf') )
         # ----------------------------------------------------------------
 
         print " -------- model sums ---------"
         pp = pprint.PrettyPrinter(depth=4)
-        model_sums = self.calculate_sums(model_job_list)
+        model_sums = self.calculate_sums(model_job_list_mod)
         pp.pprint(model_sums)
 
         print " -------- sa sums ---------"
@@ -352,6 +353,7 @@ class PluginUSER(PluginBase):
                     except KeyError:
                         sums_dict[k] = v.sum
                 else:
+                    print job.timesignals.items()
                     raise ValueError("ts {} of job {} is None!".format(k, jj))
 
         return sums_dict

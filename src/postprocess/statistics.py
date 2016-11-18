@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pickle
 
-
+from ksf_handler import KSFFileHandler
 from logreader.scheduler_reader import PBSDataSet, AccountingDataSet
 from config.config import Config
 from kronos_tools.print_colour import print_colour
@@ -34,54 +34,54 @@ class Statistics(object):
         self.synthetic_workload = None
         self.plot_handler = PlotHandler()
 
-    @staticmethod
-    def dataset_statistics(dataset):
+        self.ksf_data = None
 
-        if isinstance(dataset, AccountingDataSet) or isinstance(dataset, PBSDataSet):
+    # @staticmethod
+    # def dataset_statistics(dataset):
+    #
+    #     if isinstance(dataset, AccountingDataSet) or isinstance(dataset, PBSDataSet):
+    #
+    #         dataset_data = {}
+    #         queue_list = list(set(i_job.queue_type for i_job in dataset.joblist))
+    #
+    #         for iq in queue_list:
+    #
+    #             list_jobs_in_queue = [i_job for i_job in dataset.joblist if i_job.queue_type == iq]
+    #
+    #             n_jobs = len(list_jobs_in_queue)
+    #             mean_runtime = sum([i_job.runtime for i_job in list_jobs_in_queue])/float(n_jobs)
+    #             mean_queue_time = sum([i_job.time_in_queue for i_job in list_jobs_in_queue])/float(n_jobs)
+    #             total_cpu_hours = sum([i_job.ncpus * i_job.runtime / 3600. for i_job in list_jobs_in_queue])
+    #
+    #             if n_jobs >= 1:
+    #                 dataset_data[iq] = collections.OrderedDict([('N jobs', '{:d}'.format(n_jobs)),
+    #                                                                 ('mean runtime [s]', '{:.1f}'.format(mean_runtime)),
+    #                                                                 ('mean queue time [s]', '{:.1f}'.format(mean_queue_time)),
+    #                                                                 ('total cpu-hours', '{:.1f}'.format(total_cpu_hours))
+    #                                                                 ])
+    #
+    #     else:
+    #
+    #         print_colour("orange", "plotter for {} dataset not implemented!".format(type(dataset)))
+    #         dataset_data = {}
+    #
+    #     return dataset_data
 
-            dataset_data = {}
-            queue_list = list(set(i_job.queue_type for i_job in dataset.joblist))
-
-            for iq in queue_list:
-
-                list_jobs_in_queue = [i_job for i_job in dataset.joblist if i_job.queue_type == iq]
-
-                n_jobs = len(list_jobs_in_queue)
-                mean_runtime = sum([i_job.runtime for i_job in list_jobs_in_queue])/float(n_jobs)
-                mean_queue_time = sum([i_job.time_in_queue for i_job in list_jobs_in_queue])/float(n_jobs)
-                total_cpu_hours = sum([i_job.ncpus * i_job.runtime / 3600. for i_job in list_jobs_in_queue])
-
-                if n_jobs >= 1:
-                    dataset_data[iq] = collections.OrderedDict([('N jobs', '{:d}'.format(n_jobs)),
-                                                                    ('mean runtime [s]', '{:.1f}'.format(mean_runtime)),
-                                                                    ('mean queue time [s]', '{:.1f}'.format(mean_queue_time)),
-                                                                    ('total cpu-hours', '{:.1f}'.format(total_cpu_hours))
-                                                                    ])
-
-        else:
-
-            print_colour("orange", "plotter for {} dataset not implemented!".format(type(dataset)))
-            dataset_data = {}
-
-        return dataset_data
-
-    @staticmethod
-    def read_sa_metrics_from_jsons(dir_sa_jsons):
+    def read_sa_metrics_from_jsons(self):
         """
-        Read the synthetic apps in folder
         Note this routine should work as a "standalone" from the data read from the synthetic apps json files
         :return:
         """
 
-        # read json files of the synthetic apps..
-        json_files = glob.glob(os.path.join(os.path.realpath(dir_sa_jsons), "*.json"))
-        if not json_files:
-            raise OSError("no json files of synthetic apps found in {}".format(dir_sa_jsons))
-        json_files.sort()
+        # # read json files of the synthetic apps..
+        # json_files = glob.glob(os.path.join(os.path.realpath(dir_sa_jsons), "*.json"))
+        # if not json_files:
+        #     raise OSError("no json files of synthetic apps found in {}".format(dir_sa_jsons))
+        # json_files.sort()
 
         # read json files and construct a dictionary of sa structures..
         sa_data_list = []
-        for file_name in json_files:
+        for json_data in self.ksf_data.synth_app_json_data:
 
             # Initialize the sa data
             sa_data = {}
@@ -91,9 +91,9 @@ class Statistics(object):
             for ss in signal_types.keys():
                 sa_data['frames'][ss] = []
 
-            # Read sa data from json file
-            with open(file_name) as data_file:
-                json_data = json.load(data_file)
+            # # Read sa data from json file
+            # with open(file_name) as data_file:
+            #     json_data = json.load(data_file)
 
             # read frame data and append to lists
             for ker_list in json_data['frames']:
@@ -125,15 +125,15 @@ class Statistics(object):
             print "Total number of synthetic apps = {}".format(len(self.sa_data_list))
             print "Sums REQUESTED metrics (read from SApps):"
             for ss in signal_types.keys():
-                print "    {} = {}".format(ss, self.metrics_from_sa_iter0[ss])
+                print "    {} = {}".format(ss, self.ksf_data.unscaled_sums[ss])
 
     def plot_sa_stats(self):
         """
         Plot statistics of the synthetic apps
         """
 
-        synthetic_workload = self.read_workload_file()
-        total_metrics = synthetic_workload.total_metrics_dict()
+        # read the metrics from the ksf data
+        total_metrics = self.ksf_data.unscaled_sums
 
         # ---------- make plot ----------
         fig_size = (16, 6)
@@ -194,7 +194,7 @@ class Statistics(object):
 
         # read initial requested metrics from folder "iteration-0"
         iter0_dir = os.path.join(self.config.post_process["dir_sa_run_output"], 'iteration-0/sa_jsons')
-        self.sa_data_list = self.read_sa_metrics_from_jsons(iter0_dir)
+        self.sa_data_list = self.read_sa_metrics_from_jsons()
         for sa in self.sa_data_list:
             for tt in sa['frames'].keys():
                 self.metrics_from_sa_iter0[tt] += sum(sa['frames'][tt])
@@ -227,9 +227,6 @@ class Statistics(object):
 
             # make plots of total quantities
             self.plot_run_sums(self.metrics_from_sa_iter0, iteration_dirs, dir_plot_output)
-
-            # plots of tuning factors from log file
-            self.plot_from_logfile(dir_plot_output)
 
     def plot_run_sums(self, requested_metrics, iteration_dirs, dir_plot_output):
         """
@@ -347,7 +344,6 @@ class Statistics(object):
             plt.close()
             # plt.show()
 
-
     def read_workload_file(self):
         """
         Read pickle file of the synthetic workload
@@ -359,6 +355,15 @@ class Statistics(object):
             synthetic_workload = pickle.load(f)
 
         return synthetic_workload
+
+    def read_ksf_data(self):
+        """
+        Read pickle file of the synthetic workload
+        :return:
+        """
+        self.ksf_data = KSFFileHandler().from_ksf_file(os.path.join(self.config.dir_output, self.config.ksf_filename))
+        self.sa_data_list = self.read_sa_metrics_from_jsons()
+
 
 
 

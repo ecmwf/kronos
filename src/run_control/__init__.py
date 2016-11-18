@@ -3,6 +3,7 @@ from run_control import controls
 runner_list = {
     "pbs": controls.PBSControls,
     "slurm": controls.SLURMControls,
+    "local": controls.LocalControls
 }
 
 

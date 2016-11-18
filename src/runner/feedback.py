@@ -9,6 +9,7 @@ import datetime
 
 import run_control
 from exceptions_iows import ConfigurationError
+from ksf_handler import KSFFileHandler
 from time_signal import signal_types
 
 os.sys.path.append(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
@@ -44,6 +45,7 @@ class FeedbackLoopRunner(BaseRunner):
 
         self.synthetic_workload = None
         self.updatable_metrics = None
+        self.ksf_filename = self.config.ksf_filename
 
         # Then set the general configuration into the parent class..
         super(FeedbackLoopRunner, self).__init__(config)
@@ -77,7 +79,8 @@ class FeedbackLoopRunner(BaseRunner):
 
             job_runner = run_control.factory(self.config.controls['hpc_job_sched'], self.config)
 
-            # jobs_n_bins = 3 # TODO: to be removed..
+            # handles the ksf file
+            ksf_data = KSFFileHandler().from_ksf_file(os.path.join(self.config.dir_output, self.ksf_filename))
 
             # create run dir
             if not os.path.exists(dir_run_results):
@@ -91,15 +94,10 @@ class FeedbackLoopRunner(BaseRunner):
                 ts_names_str = ''.join(e + ' ' for e in signal_types.keys())
                 myfile.write(ts_names_str + '\n')
 
-            # read the synthetic workload in the output folder
-            with open(os.path.join(self.config.dir_output, 'sa_workload_pickle'), 'r') as f:
-                self.synthetic_workload = pickle.load(f)
-
-            metrics_sum_dict_ref = self.synthetic_workload.total_metrics_dict(include_tuning_factors=True)
-            sa_metric_dict = self.synthetic_workload.total_metrics_dict(include_tuning_factors=True)
-
-            # initialize the vectors: metric_sums, deltas, etc...
-            tuning_factors = self.synthetic_workload.get_scaling_factors()
+            # initialize the vectors: metric_sums, tuning factors
+            metrics_sum_dict_ref = ksf_data.scaled_sums
+            sa_metric_dict = ksf_data.scaled_sums
+            tuning_factors = ksf_data.tuning_factors
 
             pp = pprint.PrettyPrinter(depth=4)
             print "ts names: "
@@ -135,14 +133,13 @@ class FeedbackLoopRunner(BaseRunner):
                 if not os.path.exists(dir_run_iter_map):
                     os.makedirs(dir_run_iter_map)
 
-                # move the synthetic apps output into HPC input dir (and also into SA iteration folder)
-                files = glob.iglob(os.path.join(self.config.dir_output, "*.json"))
-                for ff, i_file in enumerate(files):
-                    if os.path.isfile(i_file):
-                        os.system("scp " + i_file + " " + user_at_host + ":" + self.hpc_dir_input)
-
-                        # store output into back-up folder..
-                        os.system("cp " + i_file + " " + os.path.join(dir_run_iter_sa, "job_sa-"+str(ff)+".json"))
+                # move the ksf file into HPC input dir (and also into SA iteration folder)
+                subprocess.Popen(["scp",
+                                  os.path.join(self.config.dir_output, self.ksf_filename),
+                                  user_at_host+":"+self.hpc_dir_input])
+                subprocess.Popen(["cp",
+                                  os.path.join(self.config.dir_output, self.ksf_filename),
+                                  os.path.join(dir_run_iter_sa, self.ksf_filename)])
 
                 # -- run jobs on HPC and wait until they finish --
                 job_runner.remote_run_executor()
@@ -181,7 +178,6 @@ class FeedbackLoopRunner(BaseRunner):
                 # list of run json in the run "iteration" folder
                 fname_list = [file for file in os.listdir(dir_run_iter_map) if file.endswith('.json')]
                 fname_list.sort()
-                print "fname_list", fname_list
 
                 # job_datasets = [profiler_reader.ingest_allinea_profiles(dir_run_iter_map, jobs_n_bins, fname_list)]
                 job_datasets = [profiler_reader.ingest_allinea_profiles(dir_run_iter_map, list_json_files=fname_list)]
@@ -218,25 +214,14 @@ class FeedbackLoopRunner(BaseRunner):
 
                 # update workload through stretching and re-export the synthetic apps..
                 # TODO: Note that this writes back into the output folder!! perhaps not a good choice..
-                self.synthetic_workload.set_tuning_factors(tuning_factors)
-                self.synthetic_workload.export(self.config.plugin['sa_n_frames'], self.config.dir_output)
+                ksf_data.set_tuning_factors(tuning_factors)
+                ksf_data.export(self.config.plugin['sa_n_frames'],
+                                os.path.join(self.config.dir_output,self.ksf_filename))
 
                 # write log file
                 write_log_file(log_file, metrics_sum_dict, tuning_factors)
                 # -----------------------------------------
             # ///////////////////////////////////// end main loop.. /////////////////////////////////////////////
-
-            # # finally rescale the workload according to the calculated tuning factors..
-            # mean_tuning_factors = {}
-            # for metric in signal_types.keys():
-            #     tuning_factors_of_metric = [mm[metric] for mm in scaling_factors_history]
-            #     mean_tuning_factors[metric] = sum(tuning_factors_of_metric)/float(len(tuning_factors_of_metric))
-            #
-            # # apply the refined tuning factors to the workload
-            #     self.synthetic_workload.set_tuning_factors(mean_tuning_factors)
-            #
-            # # return the tuned workload
-            # return self.synthetic_workload
 
         else:
 

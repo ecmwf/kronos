@@ -47,7 +47,7 @@ def test_modelling_cycle():
     synthetic_apps.print_metrics_sums()
 
     # export the synthetic apps
-    synthetic_apps.export(config.IOWSMODEL_TOTAL_METRICS_NBINS)
+    synthetic_apps.export_synth_apps(config.IOWSMODEL_TOTAL_METRICS_NBINS)
 
 
 if __name__ == '__main__':

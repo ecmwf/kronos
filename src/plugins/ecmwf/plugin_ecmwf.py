@@ -161,8 +161,8 @@ class PluginECMWF(PluginBase):
         sa_workload = SyntheticWorkload(self.config, background_sa_list)
 
         sa_workload.set_tuning_factors(self.config.plugin['tuning_factors'])
-        sa_workload.export(self.config.plugin['sa_n_frames'])
-        sa_workload.save()
+        sa_workload.export_synth_apps(self.config.plugin['sa_n_frames'])
+        sa_workload.export_pickle()
 
     def run(self):
         """

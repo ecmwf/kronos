@@ -45,13 +45,14 @@ class PluginBase(object):
 
         if postprocess_flag == "input":
             stats = statistics.Statistics(self.config)
-            stats.read_sa_metrics_from_jsons()
+            stats.read_ksf_data()
             stats.print_sa_stats()
-            stats.plot_sa_stats()
+            # stats.plot_sa_stats()
 
         if postprocess_flag == "output":
             stats = statistics.Statistics(self.config)
-            stats.calculate_run_metrics()
+            stats.plot_from_logfile(self.config.dir_output)
+            # stats.calculate_run_metrics()
 
 
 
