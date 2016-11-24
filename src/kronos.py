@@ -1,12 +1,12 @@
+import os
 import sys
-import logreader
-import plugins
 import argparse
 
 from exceptions_iows import ConfigurationError
-from model_workload import ModelWorkload
+from kpf_handler import KPFFileHandler
 from config.config import Config
 from kronos_model import IOWSModel
+from workload_data import WorkloadData
 
 
 class Kronos(object):
@@ -17,7 +17,7 @@ class Kronos(object):
     def __init__(self, config):
 
         self.config = config
-        self.job_datasets = None
+        self.workloads = []
         self.model_jobs = None
         self.synthetic_apps = None
 
@@ -28,17 +28,20 @@ class Kronos(object):
         """
         Depending on the supplied config, ingest data of various types.
         """
-        self.job_datasets = []
-        for ingest_type, ingest_path in self.config.profile_sources:
-            self.job_datasets.append(logreader.ingest_data(ingest_type, ingest_path, self.config))
 
-    def model_workload(self):
-        workload = ModelWorkload(self.config)
-        workload.model_ingested_datasets(self.job_datasets)
-        self.model_jobs = workload
+        # load job data sets from a kpf file..
+        self.workloads = KPFFileHandler().load_kpf(os.path.join(self.config.dir_input, self.config.kpf_file))
 
-        if self.config.verbose:
-            print workload.verbose_description()
+        # collect all the ingested data into a workload
+        loaded_workloads = WorkloadData()
+        for wl in self.workloads:
+            loaded_workloads.append_workload(
+                                            model_jobs=wl['jobs'],
+                                            set_tag=wl['tag']
+                                            )
+
+        # try to export the workload
+        loaded_workloads.export_workloads(kpf_filename=os.path.join(self.config.dir_output, 'test_1.kpf'))
 
     def scale_workload(self):
         model = IOWSModel(self.config, self.model_jobs)
@@ -57,18 +60,14 @@ class Kronos(object):
         """
         print "\nBegining data ingestion...\n----------------------------------"
         self.ingest_data()
-        print "\nIngested data sets: [\n" + ",\n".join(["    {}".format(d) for d in self.job_datasets]) +  "\n]"
+        print "\nIngested data sets: [\n" + ",\n".join(["    {}".format(d['tag']) for d in self.workloads]) + "\n]"
 
-        print "\nModelling ingested workload...\n----------------------------------"
-        self.model_workload()
-        print "Generated workload model: {}".format(self.model_jobs)
-
-        print "\nScaling model workload...\n----------------------------------"
-        self.scale_workload()
-        print "Scaled workload: {}".format(self.synthetic_apps)
-
-        print "\nOutputting synthetic app input...\n----------------------------------"
-        self.export()
+        # print "\nScaling model workload...\n----------------------------------"
+        # self.scale_workload()
+        # print "Scaled workload: {}".format(self.synthetic_apps)
+        #
+        # print "\nOutputting synthetic app input...\n----------------------------------"
+        # self.export()
 
 
 if __name__ == "__main__":
@@ -113,17 +112,18 @@ if __name__ == "__main__":
         # if set s input, use a specific plugin
         if config.plugin:
 
-            model = plugins.factory(config.plugin['name'], config)
-
-            if args.model:
-                model.generate_model()
-            elif args.run:
-                model.run()
-            elif args.postprocess:
-                model.postprocess(postprocess_flag)
-            else:
-                print "command line parsing error.."
-                sys.exit(-1)
+            pass
+            # model = plugins.factory(config.plugin['name'], config)
+            #
+            # if args.model:
+            #     model.generate_model()
+            # elif args.run:
+            #     model.run()
+            # elif args.postprocess:
+            #     model.postprocess(postprocess_flag)
+            # else:
+            #     print "command line parsing error.."
+            #     sys.exit(-1)
 
         else:
             app.run()

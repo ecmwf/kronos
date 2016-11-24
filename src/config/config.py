@@ -70,11 +70,7 @@ class Config(object):
 
     dir_output = None
     dir_input = None
-
-    # Sources of profiling data
-
-    profile_sources = []
-    loaded_datasets = []
+    kpf_file = None
 
     ingestion = {}
 

@@ -50,7 +50,7 @@ class ModelWorkload(object):
         self.plot_time_tick = ""
 
     def __unicode__(self):
-        return "ModelWorkload - {} jobs".format(len(self.job_list))
+        return "WorkloadData - {} jobs".format(len(self.job_list))
 
     def __str__(self):
         return unicode(self).encode('utf-8')

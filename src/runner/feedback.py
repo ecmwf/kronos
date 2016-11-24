@@ -1,9 +1,7 @@
 import os
-import pickle
 import pprint
 import subprocess
 import time
-import glob
 
 import datetime
 
@@ -179,7 +177,7 @@ class FeedbackLoopRunner(BaseRunner):
                 fname_list = [file for file in os.listdir(dir_run_iter_map) if file.endswith('.json')]
                 fname_list.sort()
 
-                # job_datasets = [profiler_reader.ingest_allinea_profiles(dir_run_iter_map, jobs_n_bins, fname_list)]
+                # workloads = [profiler_reader.ingest_allinea_profiles(dir_run_iter_map, jobs_n_bins, fname_list)]
                 job_datasets = [profiler_reader.ingest_allinea_profiles(dir_run_iter_map, list_json_files=fname_list)]
 
                 parsed_allinea_workload = ModelWorkload(self.config)
@@ -215,8 +213,8 @@ class FeedbackLoopRunner(BaseRunner):
                 # update workload through stretching and re-export the synthetic apps..
                 # TODO: Note that this writes back into the output folder!! perhaps not a good choice..
                 ksf_data.set_tuning_factors(tuning_factors)
-                ksf_data.export(self.config.plugin['sa_n_frames'],
-                                os.path.join(self.config.dir_output,self.ksf_filename))
+                ksf_data.save_kpf(self.config.plugin['sa_n_frames'],
+                                  os.path.join(self.config.dir_output,self.ksf_filename))
 
                 # write log file
                 write_log_file(log_file, metrics_sum_dict, tuning_factors)

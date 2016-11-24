@@ -99,7 +99,7 @@ class SyntheticWorkload(object):
         print "Exporting {} synthetic applications to: {}".format(len(sorted_apps), dir_output)
 
         for i, app in enumerate(sorted_apps):
-            app.export(os.path.join(dir_output, "job-{}.json".format(i)), nbins)
+            app.save_kpf(os.path.join(dir_output, "job-{}.json".format(i)), nbins)
 
     def export_pickle(self):
         """
@@ -117,7 +117,7 @@ class SyntheticWorkload(object):
         :return:
         """
         ksf_file = KSFFileHandler().from_synthetic_workload(self)
-        ksf_file.export(nbins, filename)
+        ksf_file.save_kpf(nbins, filename)
 
 
 class SyntheticApp(ModelJob):

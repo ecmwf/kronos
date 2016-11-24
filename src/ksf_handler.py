@@ -50,7 +50,7 @@ class KSFFileHandler(object):
             sorted_apps = sorted(self.synth_app_data, key=lambda a: a.time_start)
             synth_app_data_export = []
             for i, app in enumerate(sorted_apps):
-                synth_app_data_export.append(app.export(filename, nbins, job_entry_only=True))
+                synth_app_data_export.append(app.save_kpf(filename, nbins, job_entry_only=True))
         else:
             if nbins > len(self.synth_app_json_data[0]['frames']):
                 print_colour("orange", "exporting with more bins that the stored synthetic apps bins")
