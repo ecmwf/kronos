@@ -32,16 +32,8 @@ class Kronos(object):
         # load job data sets from a kpf file..
         self.workloads = KPFFileHandler().load_kpf(os.path.join(self.config.dir_input, self.config.kpf_file))
 
-        # collect all the ingested data into a workload
-        loaded_workloads = WorkloadData()
-        for wl in self.workloads:
-            loaded_workloads.append_workload(
-                                            model_jobs=wl['jobs'],
-                                            set_tag=wl['tag']
-                                            )
-
         # try to export the workload
-        loaded_workloads.export_workloads(kpf_filename=os.path.join(self.config.dir_output, 'test_1.kpf'))
+        KPFFileHandler().save_kpf(self.workloads, kpf_filename=os.path.join(self.config.dir_output, 'test_1.kpf'))
 
     def scale_workload(self):
         model = IOWSModel(self.config, self.model_jobs)

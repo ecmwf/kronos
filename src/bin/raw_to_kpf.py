@@ -6,6 +6,8 @@ Quick and dirty solution to export a ksp file from dataset
 import json
 import os
 
+from kpf_handler import KPFFileHandler
+
 try:
     import cPickle as pickle
 except:
@@ -67,12 +69,13 @@ if __name__ == "__main__":
                                 })
 
     # the data from the datasets are loaded into a list of model jobs
-    workload = WorkloadData()
+    workloads = []
     for dataset in job_datasets:
-        workload.append_workload(
-            model_jobs=[job for job in dataset['data'].model_jobs()],
-            set_tag=dataset['tag']
-        )
+        wl = WorkloadData(
+                          jobs=[job for job in dataset['data'].model_jobs()],
+                          tag=dataset['tag']
+                         )
+        workloads.append(wl)
 
     # export the workload to a kpf file
-    workload.export_workloads(kpf_filename=os.path.join(file_data['dir_output'], kpf_filename))
+    KPFFileHandler().save_kpf(workloads, os.path.join(file_data['dir_output'], kpf_filename))

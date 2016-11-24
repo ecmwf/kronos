@@ -177,7 +177,7 @@ class FeedbackLoopRunner(BaseRunner):
                 fname_list = [file for file in os.listdir(dir_run_iter_map) if file.endswith('.json')]
                 fname_list.sort()
 
-                # workloads = [profiler_reader.ingest_allinea_profiles(dir_run_iter_map, jobs_n_bins, fname_list)]
+                # jobs = [profiler_reader.ingest_allinea_profiles(dir_run_iter_map, jobs_n_bins, fname_list)]
                 job_datasets = [profiler_reader.ingest_allinea_profiles(dir_run_iter_map, list_json_files=fname_list)]
 
                 parsed_allinea_workload = ModelWorkload(self.config)
