@@ -27,7 +27,6 @@ if __name__ == "__main__":
     # Parser for the required arguments
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--config", "-c", type=str, help="configuration file containing ingestion configurations")
-    parser.add_argument("--kpf_filename", "-o", type=str, help="output kpf filename")
     args = parser.parse_args()
 
     print "ARGS", args
@@ -37,14 +36,15 @@ if __name__ == "__main__":
         print "Please supply --config=<config file name (json)>"
         sys.exit(-1)
 
-    if args.kpf_filename:
-        kpf_filename = args.kpf_filename
-    else:
-        kpf_filename = 'workload_data.kpf'
-
     # read json file of config
     with open(args.config, 'r') as f:
         file_data = json.load(f)
+
+    try:
+        kpf_filename = file_data['kpf_file']
+    except KeyError:
+        print "kpf_file not found in config"
+        sys.exit(-1)
 
     job_datasets = []
 
@@ -78,4 +78,4 @@ if __name__ == "__main__":
         workloads.append(wl)
 
     # export the workload to a kpf file
-    KPFFileHandler().save_kpf(workloads, os.path.join(file_data['dir_output'], kpf_filename))
+    KPFFileHandler().save_kpf(workloads, kpf_filename)
