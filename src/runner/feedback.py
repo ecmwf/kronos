@@ -180,6 +180,7 @@ class FeedbackLoopRunner(BaseRunner):
                 # jobs = [profiler_reader.ingest_allinea_profiles(dir_run_iter_map, jobs_n_bins, fname_list)]
                 job_datasets = [profiler_reader.ingest_allinea_profiles(dir_run_iter_map, list_json_files=fname_list)]
 
+                # TODO: change this to make it working with WorkloadData class
                 parsed_allinea_workload = ModelWorkload(self.config)
                 parsed_allinea_workload.model_ingested_datasets(job_datasets)
 

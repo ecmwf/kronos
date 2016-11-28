@@ -51,7 +51,6 @@ if __name__ == "__main__":
     # ingest datasets from pickled files if any:
     if file_data['loaded_datasets']:
         for ingest_tag, ingest_type, ingest_file in file_data['loaded_datasets']:
-            print "ingesting {}".format(ingest_file)
             job_datasets.append({
                                 'type': ingest_type,
                                 'tag': ingest_tag,
@@ -61,7 +60,6 @@ if __name__ == "__main__":
     # ingest from logs if any:
     if file_data['profile_sources']:
         for ingest_tag, ingest_type, ingest_file in file_data['profile_sources']:
-            print "ingesting {}".format(ingest_file)
             job_datasets.append({
                                 'type': ingest_type,
                                 'tag':  ingest_tag,

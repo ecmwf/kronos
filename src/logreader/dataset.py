@@ -93,9 +93,9 @@ class IngestedDataSet(object):
         return self
 
     @classmethod
-    def from_pickled(cls, path):
-
-        with open(path, 'r') as f:
+    def from_pickled(cls, ingest_file):
+        print "ingesting {}".format(ingest_file)
+        with open(ingest_file, 'r') as f:
             return pickle.load(f)
 
 

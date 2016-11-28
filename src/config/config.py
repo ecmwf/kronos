@@ -71,6 +71,7 @@ class Config(object):
     dir_output = None
     dir_input = None
     kpf_file = None
+    defaults = None
 
     ingestion = {}
 

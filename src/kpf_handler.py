@@ -1,5 +1,6 @@
 import json
 import sys
+from collections import OrderedDict
 
 from jobs import ModelJob
 from kronos_tools import print_colour
@@ -40,40 +41,50 @@ class KPFFileHandler(object):
                 wl_jobs_json = []
                 for job in wl.jobs:
 
-                    job_entry_data = {
-                        'time_start': job.time_start,
-                        'ncpus': job.ncpus,
-                        'nnodes': job.nnodes,
-                        'duration': job.duration,
-                        'label': job.label,
-                        'scheduler_timing': job.scheduler_timing,
-                    }
+                    job_entry_data = OrderedDict([
+                                                ('job_name', job.job_name),
+                                                ('user_name', job.user_name),
+                                                ('cmd_str', job.cmd_str),
+                                                ('queue_name', job.queue_name),
+                                                ('time_queued', job.time_queued),
+                                                ('time_start', job.time_start),
+                                                ('duration', job.duration),
+                                                ('ncpus', job.ncpus),
+                                                ('nnodes', job.nnodes),
+                                                ('stdout', job.stdout),
+                                                ('label', job.label),
+                                                ])
+
+                    # # automatically creates a dictionary with all the class attributes..
+                    # # excluding callable functions and properties
+                    # job_entry_data = {k: v for k, v in ModelJob.__dict__.items()
+                    #                   if not k.startswith('__') and not callable(v) and not isinstance(v, property)}
 
                     # append timeseries signals
                     timesignals_dict = {}
                     for tsk, tsv in job.timesignals.items():
                         if tsv:
-                            timesignals_dict[tsk] = {
-                                'xvalues': list(tsv.xvalues),
-                                'yvalues': list(tsv.yvalues)
-                            }
+                            timesignals_dict[tsk] = OrderedDict([
+                                ('xvalues', list(tsv.xvalues)),
+                                ('yvalues', list(tsv.yvalues)),
+                            ])
 
                     job_entry_data['timesignals'] = timesignals_dict
 
                     # append this job to the dataset job list
                     wl_jobs_json.append(job_entry_data)
 
-                kpf_workload_entry = {
-                    'tag': wl.tag,
-                    'jobs': wl_jobs_json,
-                }
+                kpf_workload_entry = OrderedDict([
+                                                ('tag', wl.tag),
+                                                ('jobs', wl_jobs_json)
+                                                ])
 
                 # for each job write the relevant data
                 kpf_data.append(kpf_workload_entry)
 
             # export kpf file
             with open(kpf_filename, 'w') as f:
-                json.dump(kpf_data, f, sort_keys=True, indent=4, separators=(',', ': '))
+                json.dump(kpf_data, f, indent=4, separators=(',', ': '))
         else:
             print "filename not specified!"
             sys.exit(-1)
@@ -108,12 +119,17 @@ class KPFFileHandler(object):
 
                 model_jobs.append(
                                     ModelJob(
+                                            job_name=job['job_name'],
+                                            user_name=job['user_name'],
+                                            cmd_str=job['cmd_str'],
+                                            queue_name=job['queue_name'],
+                                            time_queued=job['time_queued'],
                                             time_start=job['time_start'],
+                                            duration=job['duration'],
                                             ncpus=job['ncpus'],
                                             nnodes=job['nnodes'],
-                                            duration=job['duration'],
+                                            stdout=job['stdout'],
                                             label=job['label'],
-                                            scheduler_timing=job['scheduler_timing'],
                                             time_series=ts_dict,
                                             )
                                  )
@@ -122,5 +138,3 @@ class KPFFileHandler(object):
 
         # return the workload
         return workloads
-
-

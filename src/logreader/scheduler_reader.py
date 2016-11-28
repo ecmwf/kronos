@@ -153,6 +153,7 @@ def read_pbs_log(filename_in):
             i_job.jobname = str(line_dict['jobname'])
             i_job.user = str(line_dict['user'])
             i_job.queue_type = str(line_dict['queue'])
+            i_job.cmd_str = None  # command line string not available
 
             pbs_jobs.append(i_job)
 
@@ -166,7 +167,7 @@ def read_pbs_log(filename_in):
     pbs_jobs[:] = [job for job in pbs_jobs if job.time_queued != -1]
     pbs_jobs[:] = [job for job in pbs_jobs if job.time_start >= job.time_queued]
     pbs_jobs[:] = [job for job in pbs_jobs if job.ncpus > 0]
-    # pbs_jobs[:] = [i_job for i_job in pbs_jobs if i_job.nnodes > 0]
+    pbs_jobs[:] = [job for job in pbs_jobs if job.nnodes > 0]
 
     for (ii, i_job) in enumerate(pbs_jobs):
         i_job.idx_in_log = ii
@@ -184,6 +185,11 @@ def read_pbs_log(filename_in):
 
 
 def read_accounting_logs(filename_in):
+    """
+    Reads ecmwf accounting logs
+    :param filename_in:
+    :return:
+    """
 
     accounting_jobs = []
 
@@ -259,8 +265,7 @@ def read_accounting_logs(filename_in):
             i_job.jobname = str(line_dict['jobname'])
             i_job.user = str(line_dict['owner_uid'])
             i_job.queue_type = str(line_dict['class'])
-
-            # print i_job.queue_type
+            i_job.cmd_str = None  # command line string not available
 
             # info not available
             i_job.time_created = -1
@@ -368,6 +373,7 @@ def read_epcc_csv_logs(filename_in):
             i_job.time_created = -1
             i_job.time_eligible = -1
             i_job.memory_kb = -1
+            i_job.cmd_str = None  # command line string not available
 
             csv_jobs.append(i_job)
 
@@ -420,16 +426,23 @@ class PBSDataSet(IngestedDataSet):
             assert isinstance(job, IngestedJob)
             assert not job.timesignals
 
-            if job.time_created >= 0:
-                submit_time = job.time_created - self.global_created_time
-            else:
-                submit_time = job.time_start - self.global_start_time
+            # if job.time_created >= 0:
+            #     submit_time = job.time_created - self.global_created_time
+            # else:
+            #     submit_time = job.time_start - self.global_start_time
 
             yield ModelJob(
-                time_start=submit_time,
+                job_name=job.jobname,
+                user_name=job.user,
+                cmd_str=job.cmd_str,
+                queue_name=job.queue_type,
+                time_queued=job.time_queued,
+                time_start=job.time_start,
                 duration=job.time_end-job.time_start,
                 ncpus=job.ncpus,
-                nnodes=job.nnodes
+                nnodes=job.nnodes,
+                stdout=job.stdout,
+                label=None,
             )
 
 
@@ -477,11 +490,28 @@ class AccountingDataSet(IngestedDataSet):
             assert isinstance(job, IngestedJob)
             assert not job.timesignals
 
+            # yield ModelJob(
+            #     time_start=job.time_start - self.global_start_time,
+            #     duration=job.time_end-job.time_start,
+            #     ncpus=job.ncpus,
+            #     nnodes=job.nnodes,
+            #     scheduler_timing=job.time_queued,
+            #     stdout=job.stdout
+            # )
+
             yield ModelJob(
-                time_start=job.time_start - self.global_start_time,
-                duration=job.time_end-job.time_start,
+                job_name=job.jobname,
+                user_name=job.user,
+                cmd_str=job.cmd_str,
+                queue_name=job.queue_type,
+                time_queued=job.time_queued,
+                time_start=job.time_start,
+                duration=job.time_end - job.time_start,
                 ncpus=job.ncpus,
-                nnodes=job.nnodes
+                nnodes=job.nnodes,
+                scheduler_timing=job.time_queued,
+                stdout=job.stdout,
+                label=None,
             )
 
 

@@ -85,6 +85,7 @@ class DarshanIngestedJob(IngestedJob):
     that is run in the submit script).
     """
     # What fields are used by Darshan (that are different to the defaults in IngestedJob)
+    exe_cmd = None
     uid = None
     nprocs = None
     jobid = None
@@ -126,13 +127,19 @@ class DarshanIngestedJob(IngestedJob):
             raise DarshanLogReaderError("Darshan log version unsupported")
 
         return ModelJob(
-            time_start=self.time_start - first_start_time,
-            duration=self.time_end - self.time_start,
-            ncpus=self.nprocs,
-            nnodes=1,
-            time_series=self.model_time_series(),
-            label=self.label
-        )
+                        job_name=self.filename,
+                        user_name=None,  # not provided
+                        cmd_str=self.exe_cmd,
+                        queue_name=None,  # not provided
+                        time_queued=None,  # not provided
+                        time_start=self.time_start,
+                        duration=self.time_end - self.time_start,
+                        ncpus=self.nprocs,
+                        nnodes=None,  # not provided
+                        stdout=None,  # not provided
+                        label=self.label,
+                        time_series=self.model_time_series(),
+                        )
 
     def model_time_series(self):
         """
@@ -196,6 +203,7 @@ class DarshanLogReader(LogReader):
     label_method = "directory"
 
     darshan_params = {
+        'exe': ('exe_cmd', str),
         'uid': ('uid', int),
         'jobid': ('jobid', int),
         'nprocs': ('nprocs', int),
@@ -285,7 +293,10 @@ class DarshanLogReader(LogReader):
                 parameter_key = bits[0][1:].strip()
                 job_key, key_type = self.darshan_params.get(parameter_key, (None, None))
                 if job_key:
-                    params[job_key] = key_type(bits[1].split()[0].strip())
+                    if job_key == 'exe_cmd':
+                        params[job_key] = key_type(bits[1].strip())
+                    else:
+                        params[job_key] = key_type(bits[1].split()[0].strip())
             else:
                 # A data line
                 bits = trimmed_line.split()

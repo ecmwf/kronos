@@ -107,12 +107,26 @@ class TimeSignal(object):
         A fatory method to construct TimeSignals from the correct elements
         :return: A newly constructed TimeSignal
         """
+
+        # sort xvals and yvals before passing them to the time-signal
+        x_vec = np.asarray(xvals)
+        x_vec = x_vec.reshape(x_vec.flatten().size, 1)
+
+        y_vec = np.asarray(yvals)
+        y_vec = y_vec.reshape(y_vec.flatten().size, 1)
+
+        if x_vec.size != y_vec.size:
+            raise ValueError("timesignal error: xvec size {} differ from yvec size {}". format(x_vec.shape, y_vec.shape))
+
+        xy_vec = np.hstack((x_vec, y_vec))
+        xy_vec_sort = xy_vec[xy_vec[:, 0].argsort()]
+
         return TimeSignal(
             name,
             base_signal_name=base_signal_name,
             durations=np.asarray(durations) if durations is not None else None,
-            xvalues=np.asarray(xvals),
-            yvalues=np.asarray(yvals),
+            xvalues=xy_vec_sort[:, 0],
+            yvalues=xy_vec_sort[:, 1],
             priority=priority
         )
 

@@ -2,6 +2,7 @@ import os
 import sys
 import argparse
 
+import plugins
 from exceptions_iows import ConfigurationError
 from kpf_handler import KPFFileHandler
 from config.config import Config
@@ -32,8 +33,8 @@ class Kronos(object):
         # load job data sets from a kpf file..
         self.workloads = KPFFileHandler().load_kpf(os.path.join(self.config.dir_input, self.config.kpf_file))
 
-        # try to export the workload
-        KPFFileHandler().save_kpf(self.workloads, kpf_filename=os.path.join(self.config.dir_output, 'test_1.kpf'))
+        # # try to export the workload
+        # KPFFileHandler().save_kpf(self.workloads, kpf_filename=os.path.join(self.config.dir_output, 'test_1.kpf'))
 
     def scale_workload(self):
         model = IOWSModel(self.config, self.model_jobs)
@@ -104,18 +105,17 @@ if __name__ == "__main__":
         # if set s input, use a specific plugin
         if config.plugin:
 
-            pass
-            # model = plugins.factory(config.plugin['name'], config)
-            #
-            # if args.model:
-            #     model.generate_model()
-            # elif args.run:
-            #     model.run()
-            # elif args.postprocess:
-            #     model.postprocess(postprocess_flag)
-            # else:
-            #     print "command line parsing error.."
-            #     sys.exit(-1)
+            model = plugins.factory(config.plugin['name'], config)
+
+            if args.model:
+                model.generate_model()
+            elif args.run:
+                model.run()
+            elif args.postprocess:
+                model.postprocess(postprocess_flag)
+            else:
+                print "command line parsing error.."
+                sys.exit(-1)
 
         else:
             app.run()

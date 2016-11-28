@@ -37,15 +37,7 @@ class PluginECMWF(PluginBase):
         ingest data (from files or cached pickles..)
         :return:
         """
-
         super(PluginECMWF, self).ingest_data()
-
-        # retrieve the loaded datasets for further use
-        self.darshan_dataset = self.job_datasets[0]
-        self.ipm_dataset = self.job_datasets[1]
-        self.acc_dataset = self.job_datasets[2]
-
-        self.acc_model_jobs = [j for j in self.acc_dataset.model_jobs()]
 
     def generate_model(self):
         """
@@ -57,15 +49,12 @@ class PluginECMWF(PluginBase):
         # ingest data..
         self.ingest_data()
 
-        # the matching will be focused on darshan records..
-        # only 6 hours from the start are retained..
-        dsh_times = [job.time_start for job in self.darshan_dataset.joblist]
-        dsh_t0 = min(dsh_times)
-        self.darshan_dataset.joblist = [job for job in self.darshan_dataset.joblist if job.time_start < (dsh_t0 + 6.0 * 3600.0)]
+        dsh_model_jobs = next(w.jobs for w in self.workloads if w.tag == 'operational-darshan')
+        dsh_t0 = min(job.time_start for job in dsh_model_jobs)
+        dsh_model_jobs = [job for job in dsh_model_jobs if job.time_start < (dsh_t0 + 6.0 * 3600.0)]
 
-        # model all jobs
-        dsh_model_jobs = [j for j in self.darshan_dataset.model_jobs()]
-        ipm_model_jobs = [j for j in self.ipm_dataset.model_jobs()]
+        ipm_model_jobs = next(w.jobs for w in self.workloads if w.tag == 'operational-ipm')
+        acc_model_jobs = next(w.jobs for w in self.workloads if w.tag == 'background')
 
         matching_jobs = []
         n_match_ipm = 0
@@ -103,7 +92,7 @@ class PluginECMWF(PluginBase):
         # matching_jobs_mod = recomm_sys.apply_model_to(matching_jobs)
 
         # apply recommendations to accounting jobs..
-        acc_model_jobs_mod = recomm_sys.apply_model_to(self.acc_model_jobs)
+        acc_model_jobs_mod = recomm_sys.apply_model_to(acc_model_jobs)
 
         # apply clustering to the accounting jobs
         cluster_handler = data_analysis.factory(self.config.plugin['clustering']['name'], self.config.plugin['clustering'])

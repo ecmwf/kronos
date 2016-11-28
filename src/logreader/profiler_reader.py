@@ -53,13 +53,13 @@ def read_allinea_log(filename, jobs_n_bins=None):
     with open(filename) as json_file:
         json_data = json.load(json_file)
 
-    # fill in the workload structure
-    i_job = IngestedJob()
+    # # fill in the workload structure
+    # i_job = IngestedJob()
 
-    time_start = json_data['profile']['timestamp']
-    runtime = float(json_data['profile']['runtime_ms']) / 1000.
-    time_start_epoch = (datetime.strptime(time_start, "%a %b %d %H:%M:%S %Y") -
-                        datetime(1970, 1, 1)).total_seconds()
+    # time_start = json_data['profile']['timestamp']
+    # runtime = float(json_data['profile']['runtime_ms']) / 1000.
+    # time_start_epoch = (datetime.strptime(time_start, "%a %b %d %H:%M:%S %Y") -
+    #                     datetime(1970, 1, 1)).total_seconds()
 
     # fill in the workload structure
     i_job = IngestedJob()
@@ -80,8 +80,8 @@ def read_allinea_log(filename, jobs_n_bins=None):
     i_job.time_in_queue = i_job.time_start - i_job.time_queued
 
     # Threads are not considered for now..
-    i_job.nnodes = json_data['profile']["nodes"]
-    i_job.ncpus = json_data['profile']['targetProcs']
+    i_job.nnodes = int(json_data['profile']["nodes"])
+    i_job.ncpus = int(json_data['profile']['targetProcs'])
 
     # average memory used is taken from sample average of "node_mem_percent"
     mem_val_bk = json_data['profile']['samples']['node_mem_percent']
@@ -92,10 +92,10 @@ def read_allinea_log(filename, jobs_n_bins=None):
 
     i_job.cpu_percent = 0
 
-    i_job.jobname = filename
+    i_job.jobname = os.path.basename(filename)
     i_job.user = "job-profiler"
     i_job.group = ""
-    i_job.queue_type = ""
+    i_job.queue_type = None
 
     # # times relative to start of log
     # profiler jobs are considered as if they were started at T0
@@ -143,7 +143,7 @@ def read_allinea_logs(log_dir, jobs_n_bins=None, list_json_files=None):
     """
     Collect info from Allinea logs
     """
-  # pick up the list of json files to process
+    # pick up the list of json files to process
     if list_json_files is None:
         json_files = glob.glob(os.path.join(os.path.realpath(log_dir), "*.json"))
         json_files.sort()
@@ -168,11 +168,18 @@ class AllineaDataSet(IngestedDataSet):
             assert isinstance(job, IngestedJob)
 
             yield ModelJob(
-                time_start=job.time_created-self.global_start_time,
-                duration=job.time_end-job.time_start,
+                job_name=job.jobname,
+                user_name=job.user,
+                queue_name=job.queue_type,
+                cmd_str=job.cmd_str,
+                time_queued=job.time_queued,
+                time_start=job.time_start,
+                duration=job.time_end - job.time_start,
                 ncpus=job.ncpus,
                 nnodes=job.nnodes,
-                time_series=job.timesignals
+                stdout=job.stdout,
+                label=None,
+                time_series=job.timesignals,
             )
 
 

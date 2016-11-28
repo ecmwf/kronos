@@ -70,7 +70,7 @@ class IPMTaskInfo(object):
 
 class IPMIngestedJob(IngestedJob):
     """
-    N.B. Darshan may produce MULTIPLE output files for each of the actual HPC jobs (as it produces one per command
+    N.B. IPM may produce MULTIPLE output files for each of the actual HPC jobs (as it produces one per command
     that is run in the submit script).
     """
     # What fields are used by IPM (that are different to the defaults in IngestedJob)
@@ -104,13 +104,20 @@ class IPMIngestedJob(IngestedJob):
 
         # TODO: We want to capture multi-threading as well as multi-processing somewhere3
         return ModelJob(
-            label=self.label,
-            time_series=self.model_time_series(),
-            time_start=time_start-global_start_time,
+            job_name=self.jobname,
+            user_name=self.user,
+            queue_name=self.queue_type,
+            time_queued=self.time_queued,
+            time_start=self.time_start,
             duration=duration,
             ncpus=ntasks,
-            nnodes=nhosts
+            nnodes=nhosts,
+            stdout=self.stdout,
+            label=self.label,
+            time_series=self.model_time_series(),
         )
+
+
 
     def aggregate(self, rhs):
 

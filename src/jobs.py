@@ -10,28 +10,35 @@ from time_signal import TimeSignal, signal_types
 
 class ModelJob(object):
     """
-    A model job is as fully specified, abstract job, which is output from the combined data ingestion
-    and processing units.
+    A model job is as fully specified, abstract job, which is output from the data ingestion
     """
-    # Declare the fields that have been used (so they can be found by IDEs, etc.)
+
+    # --------- absolutely required fields --------------
+    job_name = None
+    user_name = None
+    cmd_str = None
+    queue_name = None
+    time_queued = None
     time_start = None
+    duration = None
     ncpus = None
     nnodes = None
-    duration = None
-    label = None
+    stdout = None
+    label = None  # placeholder for user defined labels..
 
+    # -------------- optional fields ------------------
     # Times may come from the scheduler (+ associated systems), or from other profiling sources. Those from the
     # scheduler (n.b. None works as False)
     scheduler_timing = None
+    # label = None
 
-    # Does what it says on the tin
-    required_fields = [
-
-        'time_start',
-
-        'ncpus',
-        'nnodes'
-    ]
+    # # Does what it says on the tin
+    # required_fields = [
+    #     'time_start'
+    #     'duration',
+    #     'ncpus',
+    #     'nnodes'
+    # ]
 
     def __init__(self, time_series=None, **kwargs):
         """
@@ -186,17 +193,17 @@ class ModelJob(object):
         if not self.is_valid():
             raise KeyError("Job is missing field")
 
-    def is_valid(self):
-        """
-        Return false if the job is not complete, and usable
-        :return:
-        """
-        for field in self.required_fields:
-            if getattr(self, field, None) is None:
-                print_colour("red", "Job is incomplete. Missing field: {}".format(field))
-                return False
-
-        return True
+    # def is_valid(self):
+    #     """
+    #     Return false if the job is not complete, and usable
+    #     :return:
+    #     """
+    #     for field in self.required_fields:
+    #         if getattr(self, field, None) is None:
+    #             print_colour("red", "Job is incomplete. Missing field: {}".format(field))
+    #             return False
+    #
+    #     return True
 
     @property
     def job_impact_index(self):
@@ -250,12 +257,14 @@ class IngestedJob(object):
     nnodes = None
     memory_kb = None
     filename = None
+    stdout = None
 
     # self.cpu_percent = None
     group = None
     jobname = None
     user = None
     queue_type = None
+    cmd_str = None
 
     # derived
     runtime = None
