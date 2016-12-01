@@ -30,19 +30,24 @@ class KronosModel(object):
 
     def generate_model(self):
         """
-        takes the list of owrkloads and applies user instructions to generate a model
+        takes the list of workloads and applies user instructions to generate a model
         :return:
         """
 
-        # apply defaults if they are specified
+        # 1) apply user strategies
+        self._apply_workload_straegies()
+
+        # 2) apply modelling pipeline
+        self._apply_model_pipeline()
+
+    def _apply_workload_straegies(self):
+        """
+        Apply user requested strategies to the workloads
+        :return:
+        """
         defaults_values = self.config.model.get('defaults', None)
         look_up_table = self.config.model.get('lookup_table', None)
         recomm_system = self.config.model.get('recommender_system', None)
-        model_pipeline = self.config.model.get('model_pipeline', None)
-
-        # apply a sequence of user defined strategies to fill up the data
-        # TODO: apply priority to the assigned timeseries values.. (e.g. a value given as default is less valuable that
-        # a value assigned by RS  which is in turn less valuable that a value given by look up table etc..)
 
         # try default values first
         if defaults_values:
@@ -55,9 +60,6 @@ class KronosModel(object):
         # try a look up table
         if look_up_table:
             self._apply_lookup_table(look_up_table)
-
-        if model_pipeline:
-            self._apply_model_pipeline(model_pipeline)
 
     def export_synthetic_workload(self):
         """
@@ -145,7 +147,7 @@ class KronosModel(object):
 
         return clusters_matrix, clusters_labels
 
-    def _apply_model_pipeline(self, model_pipeline):
+    def _apply_model_pipeline(self):
         """
         Apply modelling pipeline to selected workloads (listed in model_pipeline dictionary)
         :param model_pipeline:
@@ -156,6 +158,8 @@ class KronosModel(object):
         # NB: the preliminary phase of workload manipulation (defaults, lookup tables and recommender sys
         # should have produced a set of "complete" and therefore valid jobs)
         self._check_jobs()
+
+        model_pipeline = self.config.model.get('model_pipeline', None)
 
         total_submit_interval = model_pipeline['total_submit_interval']
         submit_rate_factor = model_pipeline['submit_rate_factor']
@@ -213,3 +217,5 @@ class KronosModel(object):
 
             self.modelled_sa_jobs.extend(modelled_sa_jobs)
         # --------------------------------------------------------------------------
+
+
