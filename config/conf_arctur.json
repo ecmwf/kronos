@@ -5,30 +5,46 @@
     "ksf_filename": "schedule_arctur.ksf",
     "model": {
               "name": "arctur",
-              "defaults": {
-                            "default-background": {
-                                                    "apply_to": ["background"],
-                                                    "metrics":{
-                                                                "kb_collective": [100, 1000],
-                                                                "n_collective": [10, 1000],
-                                                                "kb_write": [100, 1000],
-                                                                "n_pairwise": [10, 1000],
-                                                                "n_write": [10, 1000],
-                                                                "n_read": [10, 1000], 
-                                                                "kb_read": [100, 1000],
-                                                                "flops": [1e6, 1e8], 
-                                                                "kb_pairwise": [100, 1000]
-                                                                }
-                                                    }
+              "strategies":{
+                            "defaults": {
+                                          "default-background": {
+                                                                  "apply_to": ["background"],
+                                                                  "metrics":{
+                                                                              "kb_collective": [100, 1000],
+                                                                              "n_collective": [10, 1000],
+                                                                              "kb_write": [100, 1000],
+                                                                              "n_pairwise": [10, 1000],
+                                                                              "n_write": [10, 1000],
+                                                                              "n_read": [10, 1000], 
+                                                                              "kb_read": [100, 1000],
+                                                                              "flops": [1e6, 1e8], 
+                                                                              "kb_pairwise": [100, 1000]
+                                                                              }
+                                                                  },
+                                          "allinea-corrections": {
+                                                                  "apply_to": ["cfd-run", "blender-run"],
+                                                                  "metrics":{
+                                                                              "kb_collective": [100, 1000],
+                                                                              "n_collective": [10, 1000],
+                                                                              "kb_write": [100, 1000],
+                                                                              "n_pairwise": [10, 1000],
+                                                                              "n_write": [10, 1000],
+                                                                              "n_read": [10, 1000], 
+                                                                              "kb_read": [100, 1000],
+                                                                              "flops": [1e6, 1e8], 
+                                                                              "kb_pairwise": [100, 1000]
+                                                                              }
+                                                                  }                                                                  
+                                          },
+                            "lookup_table": {
+                                              "similarity_threshold": 0.3,
+                                              "source_workloads": ["cfd-run", "blender-run"],
+                                              "apply_to": ["background"]
+                                            },
+                            "recommender_system": {
+                                                  "apply_to": ["background"]
+                                                  }
                             },
-              "lookup_table": {
-                                "similarity_threshold": 0.3,
-                                "source_workloads": ["cfd-run", "blender-run"],
-                                "apply_to": ["background"]
-                              },
-              "recommender_system": {
-                                    "apply_to": ["background"]
-                                    },
               "model_pipeline": {
                                  "apply_to": [
                                                ["background"]

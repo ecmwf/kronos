@@ -5,32 +5,53 @@
     "ksf_filename": "schedule_epcc.ksf",
     "model": {
               "name": "epcc",
-              "defaults": {
-                            "default-background": {
-                                                    "apply_to": ["background"],
-                                                    "metrics":{
-                                                                "kb_collective": [100, 1000],
-                                                                "n_collective": [10, 1000],
-                                                                "kb_write": [100, 1000],
-                                                                "n_pairwise": [10, 1000],
-                                                                "n_write": [10, 1000],
-                                                                "n_read": [10, 1000], 
-                                                                "kb_read": [100, 1000],
-                                                                "flops": [1e6, 1e8], 
-                                                                "kb_pairwise": [100, 1000]
-                                                                }
-                                                    }
+              "strategies":{
+                            "defaults": {
+                                          "default-background": {
+                                                                  "apply_to": ["background"],
+                                                                  "metrics":{
+                                                                              "kb_collective": [100, 1000],
+                                                                              "n_collective": [10, 1000],
+                                                                              "kb_write": [100, 1000],
+                                                                              "n_pairwise": [10, 1000],
+                                                                              "n_write": [10, 1000],
+                                                                              "n_read": [10, 1000], 
+                                                                              "kb_read": [100, 1000],
+                                                                              "flops": [1e6, 1e8], 
+                                                                              "kb_pairwise": [100, 1000]
+                                                                              }
+                                                                  },
+                                          "allinea-corrections": {
+                                                                  "apply_to": ["castep-768p",
+                                                                               "cp2k-h2o", 
+                                                                               "cp2k-lih", 
+                                                                               "gromacs16", 
+                                                                               "gromacs32", 
+                                                                               "vasp"],
+                                                                  "metrics":{
+                                                                              "kb_collective": [100, 1000],
+                                                                              "n_collective": [10, 1000],
+                                                                              "kb_write": [100, 1000],
+                                                                              "n_pairwise": [10, 1000],
+                                                                              "n_write": [10, 1000],
+                                                                              "n_read": [10, 1000], 
+                                                                              "kb_read": [100, 1000],
+                                                                              "flops": [1e6, 1e8], 
+                                                                              "kb_pairwise": [100, 1000]
+                                                                              }
+                                                                  }
+                                          },
+                            "lookup_table": {
+                                              "similarity_threshold": 0.3,
+                                              "source_workloads": ["castep-768p",
+                                                                   "cp2k-h2o", 
+                                                                   "cp2k-lih", 
+                                                                   "gromacs16", 
+                                                                   "gromacs32", 
+                                                                   "vasp"],
+                                              "apply_to": ["background"]
+                                            }
                             },
-              "lookup_table": {
-                                "similarity_threshold": 0.3,
-                                "source_workloads": ["castep-768p",
-                                                     "cp2k-h2o", 
-                                                     "cp2k-lih", 
-                                                     "gromacs16", 
-                                                     "gromacs32", 
-                                                     "vasp"],
-                                "apply_to": ["background"]
-                              },
               "model_pipeline": {
                                  "apply_to": [
                                                ["background"]

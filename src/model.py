@@ -45,9 +45,9 @@ class KronosModel(object):
         Apply user requested strategies to the workloads
         :return:
         """
-        defaults_values = self.config.model.get('defaults', None)
-        look_up_table = self.config.model.get('lookup_table', None)
-        recomm_system = self.config.model.get('recommender_system', None)
+        defaults_values = self.config.model['strategies'].get('defaults', None)
+        look_up_table = self.config.model['strategies'].get('lookup_table', None)
+        recomm_system = self.config.model['strategies'].get('recommender_system', None)
 
         # try default values first
         if defaults_values:
