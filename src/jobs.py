@@ -206,7 +206,8 @@ class ModelJob(object):
 
         # check that all the timesignals are not null
         if not all(self.timesignals.values()):
-            print_colour("red", "timesignals are not all complete {}".format(self.timesignals))
+            null_ts = [k for k,v in self.timesignals.items() if not v]
+            print_colour("red", " job [{}] has null timesignals: {}".format(self.job_name, null_ts))
             return False
 
         return True
