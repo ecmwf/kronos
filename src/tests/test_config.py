@@ -44,12 +44,11 @@ class ConfigTests(unittest.TestCase):
         config_dict = {
             'dir_input': existing_path,
             'dir_output': existing_path,
-            'profile_sources': [1, 2, 3, 4]
         }
         cfg = Config(config_dict=config_dict)
         self.assertEqual(cfg.dir_input, existing_path)
         self.assertEqual(cfg.dir_output, existing_path)
-        self.assertEqual(cfg.profile_sources, [1, 2, 3, 4])
+        # self.assertEqual(cfg.profile_sources, [1, 2, 3, 4])
 
         # Unexpected parameters throw exceptions
         config_dict['unexpected'] = 'parameter'
@@ -81,23 +80,21 @@ class ConfigTests(unittest.TestCase):
         with tempfile.NamedTemporaryFile() as f:
             f.write("""{{
                 "dir_input": "{}",
-                "dir_output": "{}",
                 #"unknown": "parameter",
-                "profile_sources": [1, 2, 3, 4]
+                "dir_output": "{}"
             }}""".format(existing_path, existing_path))
             f.flush()
             cfg = Config(config_path=f.name)
         self.assertEqual(cfg.dir_input, existing_path)
         self.assertEqual(cfg.dir_output, existing_path)
-        self.assertEqual(cfg.profile_sources, [1, 2, 3, 4])
+        # self.assertEqual(cfg.profile_sources, [1, 2, 3, 4])
 
         # Unexpected parameters throw exceptions
         with tempfile.NamedTemporaryFile() as f:
             f.write("""{{
                 "dir_input": "abcdef",
                 "dir_output": "{}",
-                "unknown": "{}",
-                "profile_sources": [1, 2, 3, 4]
+                "unknown": "{}"
             }}""".format(existing_path, existing_path))
             f.flush()
             self.assertRaises(ConfigurationError, lambda: Config(config_path=f.name))

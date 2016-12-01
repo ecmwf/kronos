@@ -300,7 +300,7 @@ class DarshanIngestedJobTest(unittest.TestCase):
             file_details={},
             log_version="0.1"
         )
-        self.assertRaises(DarshanLogReaderError, lambda: job.model_job(0))
+        self.assertRaises(DarshanLogReaderError, lambda: job.model_job())
 
         # If there are no files associated with the job, then the totals should all be zeros.
         job1 = DarshanIngestedJob(
@@ -314,10 +314,10 @@ class DarshanIngestedJobTest(unittest.TestCase):
             uid=777
         )
 
-        m = job1.model_job(11)
+        m = job1.model_job()
 
         self.assertEqual(m.label, "jobA")
-        self.assertEqual(m.time_start, 99-11)
+        self.assertEqual(m.time_start, 99)
         self.assertEqual(m.ncpus, 17)
         self.assertIsNone(m.timesignals['kb_read'])
         self.assertIsNone(m.timesignals['kb_write'])
@@ -352,7 +352,7 @@ class DarshanIngestedJobTest(unittest.TestCase):
             uid=777
         )
 
-        m = job1.model_job(11)
+        m = job1.model_job()
 
         self.assertEqual(m.label, "jobB")
         self.assertEqual(m.timesignals['kb_read'].sum, 199)

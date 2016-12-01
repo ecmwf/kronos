@@ -172,7 +172,7 @@ class IPMIngestedJobTest(unittest.TestCase):
         task1.mpi_pairwise_count_send = 12
         job = IPMIngestedJob(label="a-label", tasks=[task1])
 
-        m = job.model_job(0)
+        m = job.model_job()
 
         self.assertEqual(m.label, "a-label")
         for s in self.expected_series:
@@ -205,10 +205,10 @@ class IPMIngestedJobTest(unittest.TestCase):
         task2 = IPMTaskInfo("2.0.2", 101, 91, 1, 55, 77)
         job = IPMIngestedJob(label="a-label", tasks=[task1, task2])
 
-        m = job.model_job(9)
+        m = job.model_job()
 
         # n.b. Subtracted a global 9 seconds off the start time for the global start time
-        self.assertEqual(m.time_start, 35)
+        self.assertEqual(m.time_start, 44)
         self.assertEqual(m.duration, 33)
         self.assertEqual(m.ncpus, 101)
         self.assertEqual(m.nnodes, 91)

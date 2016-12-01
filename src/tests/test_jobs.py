@@ -23,7 +23,7 @@ class ModelJobTest(unittest.TestCase):
 
         # Test that we can override specified fields
         job = ModelJob(
-            time_series={
+            timesignals={
                 'kb_read': time_signal.TimeSignal.from_values('kb_read', [0.0], [0.0]),
                 'kb_write': time_signal.TimeSignal.from_values('kb_write', [0.0], [0.0]),
             },
@@ -57,7 +57,7 @@ class ModelJobTest(unittest.TestCase):
         self.assertRaises(
             ModellingError,
             lambda: ModelJob(
-                time_series={
+                timesignals={
                     'kb_write': time_signal.TimeSignal.from_values('kb_read', [0.0], [0.0]),
                 }))
 
@@ -79,8 +79,8 @@ class ModelJobTest(unittest.TestCase):
         kb_read = time_signal.TimeSignal.from_values('kb_read', [0.0], [1.0])
         kb_write = time_signal.TimeSignal.from_values('kb_write', [0.0], [0.0])  # n.b. zero data
 
-        job1 = ModelJob(label="label1", time_series={'kb_read': kb_read})
-        job2 = ModelJob(label="label1", time_series={'kb_write': kb_write})
+        job1 = ModelJob(label="label1", timesignals={'kb_read': kb_read})
+        job2 = ModelJob(label="label1", timesignals={'kb_write': kb_write})
 
         self.assertIsNone(job1.timesignals['kb_write'])
         self.assertIsNotNone(job2.timesignals['kb_write'])
@@ -95,14 +95,14 @@ class ModelJobTest(unittest.TestCase):
         kb_read = time_signal.TimeSignal.from_values('kb_read', [0.0], [1.0])
         kb_write = time_signal.TimeSignal.from_values('kb_read', [0.0], [1.0])  # n.b. mislabelled
 
-        job1 = ModelJob(label="label1", time_series={'kb_read': kb_read})
+        job1 = ModelJob(label="label1", timesignals={'kb_read': kb_read})
         job2 = ModelJob(label="label1")
         job2.timesignals['kb_write'] = kb_write
 
         self.assertRaises(ModellingError, lambda: job1.merge(job2))
 
         # And the other way around
-        job2 = ModelJob(label="label1", time_series={'kb_read': kb_read})
+        job2 = ModelJob(label="label1", timesignals={'kb_read': kb_read})
         job1 = ModelJob(label="label1")
         job1.timesignals['kb_write'] = kb_write
 
@@ -121,8 +121,8 @@ class ModelJobTest(unittest.TestCase):
         kb_write1 = time_signal.TimeSignal.from_values('kb_write', [0.0], [1.0], priority=8)
 
         # Test that we take the union of the available time series
-        job1 = ModelJob(label="label1", time_series={'kb_read': kb_read1})
-        job2 = ModelJob(label="label1", time_series={'kb_write': kb_write1})
+        job1 = ModelJob(label="label1", timesignals={'kb_read': kb_read1})
+        job2 = ModelJob(label="label1", timesignals={'kb_write': kb_write1})
         job1.merge(job2)
 
         self.assertEqual(len(job1.timesignals), len(time_signal.signal_types))
@@ -137,8 +137,8 @@ class ModelJobTest(unittest.TestCase):
             self.assertIsNone(job1.timesignals[ts_name])
 
         # check that when merging we take the signal with highest priority index
-        job1 = ModelJob(label="label1", time_series={'kb_read': kb_read1})
-        job2 = ModelJob(label="label1", time_series={'kb_read': kb_read2})
+        job1 = ModelJob(label="label1", timesignals={'kb_read': kb_read1})
+        job2 = ModelJob(label="label1", timesignals={'kb_read': kb_read2})
         job1.merge(job2)
         self.assertEqual(job1.timesignals['kb_read'], kb_read2)
 
@@ -150,11 +150,16 @@ class ModelJobTest(unittest.TestCase):
         self.assertFalse(job.is_valid())
 
         # If all of the required arguments are supplied, this should result in a valid job
+        ts_complete_set = {tsk: time_signal.TimeSignal.from_values(tsk, [0., 0.1], [1., 999.])
+                           for tsk in time_signal.signal_types.keys()}
+
         valid_args = {
             'time_start': 0,
             'ncpus': 1,
-            'nnodes': 1
-        }
+            'nnodes': 1,
+            'timesignals': ts_complete_set
+            }
+
         self.assertTrue(ModelJob(**valid_args).is_valid())
 
         # If any of the supplied arguments are missing, this should invalidate things
