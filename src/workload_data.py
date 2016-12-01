@@ -86,7 +86,7 @@ class WorkloadData(object):
         assert isinstance(look_up_wl, WorkloadData)
         assert isinstance(treshold, float)
 
-        n_replaced = 0
+        n_jobs_replaced = 0
         for job in self.jobs:
 
             # for this job looks into the provided look-up worklaod and search for best match
@@ -104,8 +104,13 @@ class WorkloadData(object):
             # pick up the timesignals of the job for which we got the best match
             if best_match_ratio > treshold:
                 print "Applying lookup metrics: from {} -----> to {}".format(best_match_name, job.job_name)
-                job.timesignals = next(job for job in look_up_wl.jobs if job.job_name == best_match_name).timesignals
-                n_replaced += 1
+                n_jobs_replaced += 1
 
-        return n_replaced
+                # check and apply only the non None timesignals..
+                for tsk in job.timesignals.keys():
+                    new_ts = next(job for job in look_up_wl.jobs if job.job_name == best_match_name).timesignals[tsk]
+                    if new_ts:
+                        job.timesignals[tsk] = new_ts
+
+        return n_jobs_replaced
 
