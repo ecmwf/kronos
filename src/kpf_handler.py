@@ -24,7 +24,12 @@ class KPFFileHandler(object):
         :return:
         """
 
-        assert all(isinstance(wl, WorkloadData) for wl in workloads)
+        # if the workloads is only one workload, translate it to a list
+        if isinstance(workloads, WorkloadData):
+            workloads = [workloads]
+        else:
+            assert all(isinstance(wl, WorkloadData) for wl in workloads)
+
         print_colour.print_colour('white', 'exporting kpf file: {}'.format(kpf_filename))
 
         if kpf_filename:
@@ -130,7 +135,7 @@ class KPFFileHandler(object):
                                             nnodes=job['nnodes'],
                                             stdout=job['stdout'],
                                             label=job['label'],
-                                            time_series=ts_dict,
+                                            timesignals=ts_dict,
                                             )
                                  )
 

@@ -86,7 +86,7 @@ class IPMIngestedJob(IngestedJob):
 
         return min([t.time_start for t in self.tasks])
 
-    def model_job(self, global_start_time):
+    def model_job(self):
         """
         Return a ModelJob from the supplied information
         """
@@ -114,7 +114,7 @@ class IPMIngestedJob(IngestedJob):
             nnodes=nhosts,
             stdout=self.stdout,
             label=self.label,
-            time_series=self.model_time_series(),
+            timesignals=self.model_time_series(),
         )
 
 

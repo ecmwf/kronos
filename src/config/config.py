@@ -2,7 +2,6 @@ import os
 import json
 
 from exceptions_iows import ConfigurationError
-import time_signal
 
 
 class Config(object):
@@ -12,81 +11,30 @@ class Config(object):
 
     # name of the plugin to load up
     plugin = None
-
-    # DIR_LOG_OUTPUT = "/perm/ma/maab/temp/test_logs"
-    # DIR_DARSHAN_LIB = "/usr/local/apps/darshan/2.3.1-ecm1.1/lib64"
-    # DIR_OPENMPI_SRC = "/usr/lib64/mpi/gcc/openmpi/include"
-    # DIR_OPENMPI_LIB = "/usr/lib64/mpi/gcc/openmpi/lib64"
-    # DIR_BOOST_SRC = "/usr/local/apps/boost/1.55.0/include"
-    # DIR_BOOST_LIB = "/usr/local/apps/boost/1.55.0/lib"
-    # FNAME_CSV_OUT = "raw_data.csv"
-
-    # ------- real workload ----------
-    REALWORKLOAD_TOTAL_METRICS_NBINS = 10
-
-    # --------- WL corrector ---------
-    WORKLOADCORRECTOR_EPS = 1.0e-5  # tolerance for ANN estimates
-    WORKLOADCORRECTOR_NTIME = 100
-    WORKLOADCORRECTOR_NFREQ = 3
-    WORKLOADCORRECTOR_ANN_INPUT_NAMES = ["ncpus", "runtime"]
-    WORKLOADCORRECTOR_ANN_NNEURONS = 20
-    WORKLOADCORRECTOR_ANN_LEARNINGRATE = 0.001
-    WORKLOADCORRECTOR_ANN_MOMENTUM = 0.002
-    WORKLOADCORRECTOR_ANN_WEIGHTDECAY = 0.00001
-    WORKLOADCORRECTOR_ANN_SPLITRATIO = 0.9
-    WORKLOADCORRECTOR_ANN_EPOCHS = 10
-
-    WORKLOADCORRECTOR_JOBS_NBINS = 10
-
-    # Kronos Model
-
-    IOWSMODEL_TOTAL_METRICS_NBINS = 1
-    IOWSMODEL_KMEANS_MAXITER = 8000
-    IOWSMODEL_KMEANS_KMEANS_RSEED = 170
-    IOWSMODEL_JOB_IMPACT_INDEX_REL_TSH = 0.2
-    IOWSMODEL_SUPPORTED_SYNTH_APPS = ['cpu', 'file-read', 'file-write', 'mpi']
-
-    # model run options (each runner has different options)
-    # TODO: addd consistency checks..
     runner = None
     controls = None
     post_process = None
     ksf_filename = 'schedule.ksf'
-
-    metrics_names = time_signal.signal_types.keys()
-
-    # unit scaling factors
-    unit_sc_dict = {}
-    for m in metrics_names:
-        unit_sc_dict[m] = 1.0
     # ---------------------------------------------------------
 
-
-
     # Directory choices
-
-    # dir_output = os.path.join(os.getcwd(), 'output')
-    # dir_input = os.path.join(os.getcwd(), 'input')
-
     dir_output = None
     dir_input = None
     kpf_file = None
     defaults = None
+    model = None
 
     ingestion = {}
 
     # Modelling and data_analysis details
-
     model_clustering = "none"
     model_clustering_algorithm = None
     model_scaling_factor = 1.0
 
     # hardware
-
     CPU_FREQUENCY = 2.3e9  # Hz
 
     # Debugging info
-
     verbose = False
 
     def __init__(self, config_dict=None, config_path=None):

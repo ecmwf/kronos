@@ -2,12 +2,12 @@ import os
 import sys
 import argparse
 
-import plugins
+import runner
 from exceptions_iows import ConfigurationError
 from kpf_handler import KPFFileHandler
 from config.config import Config
-from kronos_model import IOWSModel
-from workload_data import WorkloadData
+from model import KronosModel
+from postprocess.run_plotter import RunPlotter
 
 
 class Kronos(object):
@@ -18,49 +18,53 @@ class Kronos(object):
     def __init__(self, config):
 
         self.config = config
-        self.workloads = []
+        self.workloads = None
+        self.workload_model = None
         self.model_jobs = None
         self.synthetic_apps = None
 
         if self.config.verbose:
             print "VERBOSE logging enabled"
 
-    def ingest_data(self):
+    def model(self):
         """
         Depending on the supplied config, ingest data of various types.
         """
-
-        # load job data sets from a kpf file..
+        print "\nBegining data ingestion...\n----------------------------------"
         self.workloads = KPFFileHandler().load_kpf(os.path.join(self.config.dir_input, self.config.kpf_file))
+        print "\nIngested workloads: [\n" + ",\n".join(["    {}".format(d.tag) for d in self.workloads]) + "\n]"
 
-        # # try to export the workload
-        # KPFFileHandler().save_kpf(self.workloads, kpf_filename=os.path.join(self.config.dir_output, 'test_1.kpf'))
+        print "\nGenerating model workload...\n----------------------------------"
+        self.workload_model = KronosModel(self.workloads, self.config)
+        self.workload_model.generate_model()
+        self.workload_model.export_synthetic_workload()
 
-    def scale_workload(self):
-        model = IOWSModel(self.config, self.model_jobs)
-        synapps = model.create_scaled_workload("time_plane", "Kmeans", self.config.unit_sc_dict)
-        self.synthetic_apps = synapps
+        # run_data = RunData(self.config.post_process['dir_sa_run_output'])
+        # run_data.print_schedule_summary()
 
-        if self.config.verbose:
-            print synapps.verbose_description()
+        # if self.config.verbose:
+        #     print self.synthetic_apps.verbose_description()
 
     def export(self):
-        self.synthetic_apps.export_synth_apps(self.config.IOWSMODEL_TOTAL_METRICS_NBINS)
+        print "\nOutputting synthetic app input...\n----------------------------------"
+        self.workload_model.export_synthetic_workload()
 
     def run(self):
         """
         Main execution routine (default if no specific plugin is requested)
         """
-        print "\nBegining data ingestion...\n----------------------------------"
-        self.ingest_data()
-        print "\nIngested data sets: [\n" + ",\n".join(["    {}".format(d['tag']) for d in self.workloads]) + "\n]"
+        print "\nRun model...\n----------------------------------"
+        kronos_runner = runner.factory(self.config.runner['type'], self.config)
+        kronos_runner.run()
 
-        # print "\nScaling model workload...\n----------------------------------"
-        # self.scale_workload()
-        # print "Scaled workload: {}".format(self.synthetic_apps)
-        #
-        # print "\nOutputting synthetic app input...\n----------------------------------"
-        # self.export()
+    def postprocess(self):
+        """
+        Postprocess the results of the run
+        :return:
+        """
+        print "\nPostprocess run..\n----------------------------------"
+        plotter = RunPlotter(self.config.post_process['dir_sa_run_output'])
+        plotter.plot_run()
 
 
 if __name__ == "__main__":
@@ -74,16 +78,6 @@ if __name__ == "__main__":
     parser.add_argument('-i', "--input", help="postprocess sa workload", action='store_true')
     parser.add_argument('-o', "--output", help="postprocess sa run results", action='store_true')
     args = parser.parse_args()
-
-    # command line keys checks..
-    postprocess_flag = None
-    if args.postprocess and not (args.input or args.output):
-        raise ConfigurationError(" specify either 'input' or 'output'")
-    else:
-        if args.input:
-            postprocess_flag = 'input'
-        elif args.output:
-            postprocess_flag = 'output'
 
     try:
         try:
@@ -102,23 +96,15 @@ if __name__ == "__main__":
         # And get going!!!
         app = Kronos(config)
 
-        # if set s input, use a specific plugin
-        if config.plugin:
-
-            model = plugins.factory(config.plugin['name'], config)
-
-            if args.model:
-                model.generate_model()
-            elif args.run:
-                model.run()
-            elif args.postprocess:
-                model.postprocess(postprocess_flag)
-            else:
-                print "command line parsing error.."
-                sys.exit(-1)
-
-        else:
+        if args.model:
+            app.model()
+        elif args.run:
             app.run()
+        elif args.postprocess:
+            app.postprocess()
+        else:
+            print "command line parsing error.."
+            sys.exit(-1)
 
     except ConfigurationError as e:
         print "Error in Kronos configuration: {}".format(e)

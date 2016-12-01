@@ -1,7 +1,7 @@
 import os
 import subprocess
 import time
-import glob
+import datetime
 
 import run_control
 from base_runner import BaseRunner
@@ -18,15 +18,19 @@ class SimpleRunner(BaseRunner):
     def __init__(self, config):
 
         # Runner-specific configuration needed
+        self.config = config
+
         self.type = None
         self.state = None
-        self.tag = None
         self.hpc_user = None
         self.hpc_host = None
+        self.tag = None
 
         self.hpc_dir_input = None
         self.hpc_dir_output = None
         self.local_map2json_file = None
+
+        self.ksf_filename = self.config.ksf_filename
 
         # Then set the general configuration into the parent class..
         super(SimpleRunner, self).__init__(config)
@@ -53,20 +57,36 @@ class SimpleRunner(BaseRunner):
             # rewrite user+host for convenience
             user_at_host = self.hpc_user + '@' + self.hpc_host
 
-            # ------------ init DIR ---------------
-            dir_backup = os.path.join(self.config.dir_output, "backup")
-            if not os.path.exists(dir_backup):
-                os.makedirs(dir_backup)
+            user_at_host = self.hpc_user + '@' + self.hpc_host
+            time_now_str = datetime.datetime.strftime(datetime.datetime.now(), '%Y-%m-%d_%H-%M-%S')
+            dir_run_results = os.path.join(self.config.dir_output, 'fl_run_{}'.format(time_now_str))
 
-            # move the synthetic apps output into kernel dir (and also into bk folder..)
-            files = glob.iglob(os.path.join(self.config.dir_output, "*.json"))
-            for ff, i_file in enumerate(files):
-                if os.path.isfile(i_file):
+            job_runner = run_control.factory(self.config.controls['hpc_job_sched'], self.config)
 
-                    os.system("scp " + i_file + " " + user_at_host + ":" + self.hpc_dir_input)
+            # # handles the ksf file (not needed to read it here..)
+            # ksf_data = KSFFileHandler().from_ksf_file(os.path.join(self.config.dir_output, self.ksf_filename))
 
-                    # store output into back-up folder..
-                    os.system("cp " + i_file + " " + os.path.join(dir_backup, "job_sa-"+str(ff)+".json"))
+            # create run dir
+            if not os.path.exists(dir_run_results):
+                os.makedirs(dir_run_results)
+
+            # -- SA jsons iteration folder
+            dir_run_iter_sa = os.path.join(dir_run_results, 'sa_jsons')
+            if not os.path.exists(dir_run_iter_sa):
+                os.makedirs(dir_run_iter_sa)
+
+            # -- MAP jsons iteration folder
+            dir_run_iter_map = os.path.join(dir_run_results, 'run_jsons')
+            if not os.path.exists(dir_run_iter_map):
+                os.makedirs(dir_run_iter_map)
+
+            # move the ksf file into HPC input dir (and also into SA iteration folder)
+            subprocess.Popen(["scp",
+                              os.path.join(self.config.dir_output, self.ksf_filename),
+                              user_at_host + ":" + self.hpc_dir_input])
+            subprocess.Popen(["cp",
+                              os.path.join(self.config.dir_output, self.ksf_filename),
+                              os.path.join(dir_run_results, self.ksf_filename)])
 
             # run jobs and wait until they have all finished..
             job_runner.remote_run_executor()
@@ -76,17 +96,19 @@ class SimpleRunner(BaseRunner):
             sub_hdl = subprocess.Popen(["ssh", user_at_host, "find", self.hpc_dir_output, "-name", "*.map"],
                                        shell=False, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
             sub_hdl.wait()
+
+            # ------ fetch the output map files and copy them into the MAP iteration folder ------
             list_map_files = sub_hdl.stdout.readlines()
             for (ff, file_name) in enumerate(list_map_files):
                 file_name_ok = file_name.replace("\n", "")
                 subprocess.Popen(["scp",
                                   user_at_host+":"+file_name_ok,
-                                  os.path.join(self.config.dir_input, "job-"+str(ff)+".map")
+                                  os.path.join(dir_run_iter_map, "job-"+str(ff)+".map")
                                   ]).wait()
                 time.sleep(2.0)
                 subprocess.Popen(["python",
                                   self.local_map2json_file,
-                                  os.path.join(self.config.dir_input, "job-"+str(ff)+".map")
+                                  os.path.join(dir_run_iter_map, "job-"+str(ff)+".map")
                                   ]).wait()
             # -----------------------------------------------------------------------------------
 

@@ -119,7 +119,7 @@ class DarshanIngestedJob(IngestedJob):
             else:
                 self.file_details[filename] = file_detail
 
-    def model_job(self, first_start_time):
+    def model_job(self):
         """
         Return a ModelJob from the supplied information
         """
@@ -138,7 +138,7 @@ class DarshanIngestedJob(IngestedJob):
                         nnodes=None,  # not provided
                         stdout=None,  # not provided
                         label=self.label,
-                        time_series=self.model_time_series(),
+                        timesignals=self.model_time_series(),
                         )
 
     def model_time_series(self):

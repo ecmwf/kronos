@@ -2,16 +2,10 @@
 """
 Quick and dirty solution to export a ksp file from dataset
 """
-# from logreader.base import LogReader
 import json
 import os
 
 from kpf_handler import KPFFileHandler
-
-try:
-    import cPickle as pickle
-except:
-    import pickle
 import argparse
 import sys
 

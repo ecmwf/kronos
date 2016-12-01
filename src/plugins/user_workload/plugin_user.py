@@ -125,7 +125,7 @@ class PluginUSER(PluginBase):
                 duration=3.0,
                 ncpus=n_procs,
                 nnodes=n_nodes,
-                time_series=timesignals,
+                timesignals=timesignals,
                 label="app_id-{}".format(app)
             )
 
@@ -167,7 +167,7 @@ class PluginUSER(PluginBase):
                     duration=3.0,
                     ncpus=n_procs,
                     nnodes=n_nodes,
-                    time_series=timesignals,
+                    timesignals=timesignals,
                     label="app_id-{}".format(count)
                 )
 

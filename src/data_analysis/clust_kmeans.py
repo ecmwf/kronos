@@ -16,6 +16,7 @@ class ClusteringKmeans(ClusteringBase):
     def __init__(self, config):
 
         self.name = None
+        self.ok_if_low_rank = None
         self.rseed = None
         self.max_iter = None
         self.nc_max = None

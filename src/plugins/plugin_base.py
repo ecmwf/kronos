@@ -2,9 +2,6 @@ import os
 
 from kpf_handler import KPFFileHandler
 from kronos_tools.print_colour import print_colour
-import logreader
-from logreader.dataset import IngestedDataSet
-from postprocess import statistics
 
 
 class PluginBase(object):
@@ -50,16 +47,16 @@ class PluginBase(object):
         :return:
         """
 
-        if postprocess_flag == "input":
-            stats = statistics.Statistics(self.config)
-            stats.read_ksf_data()
-            stats.print_sa_stats()
-            # stats.plot_sa_stats()
-
-        if postprocess_flag == "output":
-            stats = statistics.Statistics(self.config)
-            stats.plot_from_logfile(self.config.dir_output)
-            # stats.calculate_run_metrics()
+        # if postprocess_flag == "input":
+        #     stats = statistics.Statistics(self.config)
+        #     stats.read_ksf_data()
+        #     stats.print_sa_stats()
+        #     # stats.plot_sa_stats()
+        #
+        # if postprocess_flag == "output":
+        #     stats = statistics.Statistics(self.config)
+        #     stats.plot_from_logfile(self.config.dir_output)
+        #     # stats.calculate_run_metrics()
 
 
 

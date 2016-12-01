@@ -179,7 +179,7 @@ class AllineaDataSet(IngestedDataSet):
                 nnodes=job.nnodes,
                 stdout=job.stdout,
                 label=None,
-                time_series=job.timesignals,
+                timesignals=job.timesignals,
             )
 
 

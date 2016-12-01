@@ -99,7 +99,7 @@ class SyntheticWorkload(object):
         print "Exporting {} synthetic applications to: {}".format(len(sorted_apps), dir_output)
 
         for i, app in enumerate(sorted_apps):
-            app.save_kpf(os.path.join(dir_output, "job-{}.json".format(i)), nbins)
+            app.export(os.path.join(dir_output, "job-{}.json".format(i)), nbins)
 
     def export_pickle(self):
         """
@@ -110,14 +110,14 @@ class SyntheticWorkload(object):
             pickle.dump(self, f)
             print_colour("green", "synthetic workload pickle file saved to {}".format(self.config.dir_output))
 
-    def export_ksf(self, nbins, filename):
+    def export_ksf(self, filename, nbins):
         """
         Write a KSF file that describes the synthetic schedule,
         this file can be given directly to the executor
         :return:
         """
         ksf_file = KSFFileHandler().from_synthetic_workload(self)
-        ksf_file.save_kpf(nbins, filename)
+        ksf_file.export(filename, nbins)
 
 
 class SyntheticApp(ModelJob):
@@ -128,7 +128,7 @@ class SyntheticApp(ModelJob):
     def __init__(self, job_name=None, time_signals=None, **kwargs):
 
         super(SyntheticApp, self).__init__(
-            time_series=time_signals,
+            timesignals=time_signals,
             duration=None,  # Duration is not specified for a Synthetic App - that is an output
             **kwargs
         )

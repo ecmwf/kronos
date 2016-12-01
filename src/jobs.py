@@ -32,15 +32,16 @@ class ModelJob(object):
     scheduler_timing = None
     # label = None
 
-    # # Does what it says on the tin
-    # required_fields = [
-    #     'time_start'
-    #     'duration',
-    #     'ncpus',
-    #     'nnodes'
-    # ]
+    timesignals = None
 
-    def __init__(self, time_series=None, **kwargs):
+    # Does what it says on the tin
+    required_fields = [
+        'time_start',
+        'ncpus',
+        'nnodes'
+    ]
+
+    def __init__(self, timesignals=None, **kwargs):
         """
         Set the fields as passed in
         """
@@ -57,8 +58,8 @@ class ModelJob(object):
         for series in time_signal.signal_types:
             self.timesignals[series] = None
 
-        if time_series:
-            for series, values in time_series.iteritems():
+        if timesignals:
+            for series, values in timesignals.iteritems():
 
                 # if this timeseries is available then get it into the modeljob timeseries..
                 if values:
@@ -191,19 +192,24 @@ class ModelJob(object):
         Some quick sanity checks
         """
         if not self.is_valid():
-            raise KeyError("Job is missing field")
+            raise KeyError("Job {} is missing field".format(self.job_name))
 
-    # def is_valid(self):
-    #     """
-    #     Return false if the job is not complete, and usable
-    #     :return:
-    #     """
-    #     for field in self.required_fields:
-    #         if getattr(self, field, None) is None:
-    #             print_colour("red", "Job is incomplete. Missing field: {}".format(field))
-    #             return False
-    #
-    #     return True
+    def is_valid(self):
+        """
+        Return false if the job is not complete, and usable
+        :return:
+        """
+        for field in self.required_fields:
+            if getattr(self, field, None) is None:
+                print_colour("red", "Job is incomplete. Missing field: {}".format(field))
+                return False
+
+        # check that all the timesignals are not null
+        if not all(self.timesignals.values()):
+            print_colour("red", "timesignals are not all complete {}".format(self.timesignals))
+            return False
+
+        return True
 
     @property
     def job_impact_index(self):
@@ -384,12 +390,12 @@ def concatenate_modeljobs(cat_job_label, job_list):
         duration=cat_duration,
         ncpus=2,
         nnodes=1,
-        time_series=cat_time_series,
+        timesignals=cat_time_series,
         label=cat_job_label
     )
 
 
-def model_jobs_from_clusters(clusters, labels, start_times_vec, nprocs=2, nnodes=1):
+def model_jobs_from_clusters(clusters, start_times_vec, nprocs=2, nnodes=1):
 
     # re-assign recommended values to background jobs..
     print_colour("white", "Re-assigning recommended values..")
@@ -399,7 +405,11 @@ def model_jobs_from_clusters(clusters, labels, start_times_vec, nprocs=2, nnodes
     np.random.seed(0)
     vec_clust_indexes = np.random.randint(clusters.shape[0], size=len(start_times_vec))
 
+    print "generated random num", vec_clust_indexes.shape
+
     for cc, idx in enumerate(vec_clust_indexes):
+
+        # print "---------1", idx
         ts_dict = {}
         row = clusters[idx,:]
         ts_yvalues = np.split(row, len(signal_types))
@@ -408,15 +418,18 @@ def model_jobs_from_clusters(clusters, labels, start_times_vec, nprocs=2, nnodes
             ts = TimeSignal(ts_name).from_values(ts_name, np.arange(len(ts_vv)), ts_vv)
             ts_dict[ts_name] = ts
 
+        # print "---------2", idx
         job = ModelJob(
             time_start=start_times_vec[cc],
             duration=None,
             ncpus=nprocs,
             nnodes=nnodes,
-            time_series=ts_dict,
+            timesignals=ts_dict,
             label="job-{}".format(cc)
         )
-
+        # print "---------3", idx
         generated_jobs.append(job)
+
+    print "loop has finished", idx
 
     return generated_jobs

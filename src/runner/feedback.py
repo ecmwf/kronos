@@ -7,14 +7,15 @@ import datetime
 
 import run_control
 from exceptions_iows import ConfigurationError
+from kpf_handler import KPFFileHandler
 from ksf_handler import KSFFileHandler
 from time_signal import signal_types
+from workload_data import WorkloadData
 
 os.sys.path.append(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
 
 from base_runner import BaseRunner
 from kronos_tools import utils
-from model_workload import ModelWorkload
 from logreader import profiler_reader
 from kronos_tools import print_colour
 
@@ -72,7 +73,8 @@ class FeedbackLoopRunner(BaseRunner):
 
             user_at_host = self.hpc_user + '@' + self.hpc_host
             time_now_str = datetime.datetime.strftime(datetime.datetime.now(), '%Y-%m-%d_%H-%M-%S')
-            dir_run_results = os.path.join(self.config.dir_output, 'fl_run_{}'.format(time_now_str))
+            dir_run_results = os.path.join(self.config.dir_output,
+                                           self.config.model['name']+'_run_{}'.format(time_now_str))
             log_file = os.path.join(dir_run_results, 'log_file.txt')
 
             job_runner = run_control.factory(self.config.controls['hpc_job_sched'], self.config)
@@ -176,16 +178,18 @@ class FeedbackLoopRunner(BaseRunner):
                 # list of run json in the run "iteration" folder
                 fname_list = [file for file in os.listdir(dir_run_iter_map) if file.endswith('.json')]
                 fname_list.sort()
+                job_map_dataset = profiler_reader.ingest_allinea_profiles(dir_run_iter_map, list_json_files=fname_list)
 
-                # jobs = [profiler_reader.ingest_allinea_profiles(dir_run_iter_map, jobs_n_bins, fname_list)]
-                job_datasets = [profiler_reader.ingest_allinea_profiles(dir_run_iter_map, list_json_files=fname_list)]
+                # the data from the datasets are loaded into a list of model jobs
+                map_workload = WorkloadData(jobs=[job for job in job_map_dataset.model_jobs()],
+                                            tag='allinea_map_files')
 
-                # TODO: change this to make it working with WorkloadData class
-                parsed_allinea_workload = ModelWorkload(self.config)
-                parsed_allinea_workload.model_ingested_datasets(job_datasets)
+                # export the workload to a kpf file
+                KPFFileHandler().save_kpf(map_workload, os.path.join(dir_run_iter_map, 'kpf_output.kpf'))
+                # ///////////////////////////////////////////////////////////////////////////////////////
 
                 # append dictionaries to history structures..
-                metrics_sum_dict = parsed_allinea_workload.total_metrics_sum_dict()
+                metrics_sum_dict = map_workload.total_metrics_sum_dict()
                 metrics_sums_history.append(metrics_sum_dict)
                 scaling_factors_history.append(tuning_factors)
 
@@ -214,8 +218,10 @@ class FeedbackLoopRunner(BaseRunner):
                 # update workload through stretching and re-export the synthetic apps..
                 # TODO: Note that this writes back into the output folder!! perhaps not a good choice..
                 ksf_data.set_tuning_factors(tuning_factors)
-                ksf_data.save_kpf(self.config.plugin['sa_n_frames'],
-                                  os.path.join(self.config.dir_output,self.ksf_filename))
+
+                print os.path.join(self.config.dir_output, self.ksf_filename)
+                ksf_data.export(os.path.join(self.config.dir_output, self.ksf_filename),
+                                self.config.model['model_pipeline']['sa_n_frames'])
 
                 # write log file
                 write_log_file(log_file, metrics_sum_dict, tuning_factors)
