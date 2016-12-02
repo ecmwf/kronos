@@ -9,20 +9,19 @@ class Config(object):
     A storage place for global configuration, including parsing of input JSON, and error checking
     """
 
-    # name of the plugin to load up
-    plugin = None
-    runner = None
-    controls = None
-    post_process = None
-    ksf_filename = 'schedule.ksf'
-    # ---------------------------------------------------------
+    # Debugging info
+    verbose = False
 
     # Directory choices
-    dir_output = None
     dir_input = None
+    dir_output = None
     kpf_file = None
-    defaults = None
+    ksf_filename = 'schedule.ksf'
+
     model = None
+    run = None
+    analysis = None
+    # ---------------------------------------------------------
 
     ingestion = {}
 
@@ -33,9 +32,6 @@ class Config(object):
 
     # hardware
     CPU_FREQUENCY = 2.3e9  # Hz
-
-    # Debugging info
-    verbose = False
 
     def __init__(self, config_dict=None, config_path=None):
 
@@ -58,6 +54,7 @@ class Config(object):
         if not isinstance(config_dict, dict):
             raise ConfigurationError("no keys found in configuration file")
 
+        # check all the configurations
         for k, v in config_dict.iteritems():
             if not hasattr(self, k):
                 raise ConfigurationError("Unexpected configuration keyword provided - {}:{}".format(k, v))

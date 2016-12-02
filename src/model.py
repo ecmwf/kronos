@@ -3,6 +3,7 @@ import numpy as np
 
 import data_analysis
 import workload_data
+from exceptions_iows import ConfigurationError
 
 from jobs import model_jobs_from_clusters
 from synthetic_app import SyntheticApp, SyntheticWorkload
@@ -13,7 +14,7 @@ from config.config import Config
 class KronosModel(object):
     """
     The model class operates on a list of workloads:
-    1) applies corrections to the worklaods according to the configuration instructions passed by the user
+    1) applies corrections to the workloads according to the configuration instructions passed by the user
     2) applies a modelling strategy
     3) returns a synthetic workload
     """
@@ -23,10 +24,22 @@ class KronosModel(object):
         assert all(isinstance(wl, workload_data.WorkloadData) for wl in workloads)
         assert isinstance(config, Config)
 
+        # configuration parameters
         self.config = config
+        self.fill_in = None
+        self.classification = None
+        self.generator = None
+
         self.workloads = workloads
         self.jobs_for_clustering = []
+        self.clusters = []
         self.modelled_sa_jobs = []
+
+        # check all the configurations
+        for k, v in self.config.model.iteritems():
+            if not hasattr(self, k):
+                raise ConfigurationError("Unexpected configuration keyword provided - {}:{}".format(k, v))
+            setattr(self, k, v)
 
     def generate_model(self):
         """
@@ -34,45 +47,41 @@ class KronosModel(object):
         :return:
         """
 
-        # 1) apply user strategies
-        self._apply_workload_straegies()
+        # 1) apply fill-in strategies
+        self._apply_workload_fillin()
 
-        # 2) apply modelling pipeline
-        self._apply_model_pipeline()
+        # 2) apply classification
+        self._apply_classification()
 
-    def _apply_workload_straegies(self):
+        # 3) apply generation
+        self._apply_generation()
+
+    def _apply_workload_fillin(self):
         """
         Apply user requested strategies to the workloads
         :return:
         """
-        defaults_values = self.config.model['strategies'].get('defaults', None)
-        look_up_table = self.config.model['strategies'].get('lookup_table', None)
-        recomm_system = self.config.model['strategies'].get('recommender_system', None)
 
-        # try default values first
-        if defaults_values:
-            self._apply_defaults(defaults_values)
-
-        # apply a recommender system solution
-        if recomm_system:
-            self._apply_recommender_system(recomm_system)
-
-        # try a look up table
-        if look_up_table:
-            self._apply_lookup_table(look_up_table)
+        # call functions corresponding to fill_in types
+        for fillin_function in self.fill_in:
+            getattr(self, fillin_function['type'])()
 
     def export_synthetic_workload(self):
         """
         Export the synthetic workload generated from the model
         :return:
         """
+
+        if not self.modelled_sa_jobs:
+            raise ConfigurationError("cannot export before generating the model!")
+
         # set up the synthetic workload
         sa_workload = SyntheticWorkload(self.config, self.modelled_sa_jobs)
-        sa_workload.set_tuning_factors(self.config.model['model_pipeline']['tuning_factors'])
+        sa_workload.set_tuning_factors(self.generator['tuning_factors'])
 
         # export the synthetic workload
         ksf_path = os.path.join(self.config.dir_output, self.config.ksf_filename)
-        sa_workload.export_ksf(ksf_path, self.config.model['model_pipeline']['sa_n_frames'])
+        sa_workload.export_ksf(ksf_path, self.generator['sa_n_frames'])
 
     def postprocess(self):
         """
@@ -81,46 +90,47 @@ class KronosModel(object):
         """
         pass
 
-    def _apply_defaults(self, defaults_values):
+    def fill_missing_entries(self):
         """
         Apply default values if specified
-        :param defaults_values:
         :return:
         """
-        for def_k, def_v in defaults_values.items():
-            for wl in self.workloads:
-                if wl.tag in def_v['apply_to']:
-                    wl.apply_default_metrics(def_v['metrics'])
 
-    def _apply_lookup_table(self, look_up_table):
+        default_list = [entry for entry in self.fill_in if entry['type'] == "fill_missing_entries"]
+
+        for i_def in default_list:
+            for wl in self.workloads:
+                if wl.tag in i_def['apply_to']:
+                    wl.apply_default_metrics(i_def['metrics'])
+
+    def match_by_keyword(self):
         """
         Apply a lookup table to add metrics from jobs in a workload to another
-        :param look_up_table:
         :return:
         """
 
-        assert isinstance(look_up_table, dict)
+        match_list = [entry for entry in self.fill_in if entry['type'] == "match_by_keyword"]
 
-        # apply each source workload into each destination workload
+        # Apply each source workload into each destination workload
         n_job_matched = 0
         n_destination_jobs = 0
-        for wl_source_tag in look_up_table['source_workloads']:
-            wl_source = next(wl for wl in self.workloads if wl.tag == wl_source_tag)
-            for wl_dest_tag in look_up_table['apply_to']:
-                wl_dest = next(wl for wl in self.workloads if wl.tag == wl_dest_tag)
-                n_destination_jobs += len(wl_dest.jobs)
-                n_job_matched += wl_dest.apply_lookup_table(wl_source, look_up_table['similarity_threshold'])
+
+        for i_match in match_list:
+            for wl_source_tag in i_match['source_workloads']:
+                wl_source = next(wl for wl in self.workloads if wl.tag == wl_source_tag)
+                for wl_dest_tag in i_match['apply_to']:
+                    wl_dest = next(wl for wl in self.workloads if wl.tag == wl_dest_tag)
+                    n_destination_jobs += len(wl_dest.jobs)
+                    n_job_matched += wl_dest.apply_lookup_table(wl_source, i_match['similarity_threshold'])
 
         print_colour("white", "jobs matched/destination jobs = [{}/{}]".format(n_job_matched, n_destination_jobs))
 
-    def _apply_recommender_system(self, recomm_system):
+    def recommender_system(self):
         """
         This implements the recommender system corrections
-        :param recomm_system:
         :return:
         """
         print "TO IMPLEMENT RECOMMENDER SYSTEM"
-        return recomm_system
 
     def _check_jobs(self):
         """
@@ -138,8 +148,8 @@ class KronosModel(object):
         """
 
         # apply clustering to the accounting jobs
-        cluster_handler = data_analysis.factory(self.config.model['model_pipeline']['clustering']['name'],
-                                                self.config.model['model_pipeline']['clustering'])
+        cluster_handler = data_analysis.factory(self.classification['clustering']['type'],
+                                                self.classification['clustering'])
 
         cluster_handler.cluster_jobs(jobs)
         clusters_matrix = cluster_handler.clusters
@@ -147,10 +157,9 @@ class KronosModel(object):
 
         return clusters_matrix, clusters_labels
 
-    def _apply_model_pipeline(self):
+    def _apply_classification(self):
         """
-        Apply modelling pipeline to selected workloads (listed in model_pipeline dictionary)
-        :param model_pipeline:
+        Apply modelling classification to selected workloads
         :return:
         """
 
@@ -159,28 +168,36 @@ class KronosModel(object):
         # should have produced a set of "complete" and therefore valid jobs)
         self._check_jobs()
 
-        model_pipeline = self.config.model.get('model_pipeline', None)
-
-        total_submit_interval = model_pipeline['total_submit_interval']
-        submit_rate_factor = model_pipeline['submit_rate_factor']
-
         # loop over all the workloads used to create the synthetic workload
-        for wl_entry in model_pipeline['apply_to']:
-
-            # retrieve all the jobs of this entry
-            wl_jobs = []
-            for wl_tag in wl_entry:
-                wl = next(wl for wl in self.workloads if wl.tag == wl_tag)
-                wl_jobs.extend(wl.jobs)
+        wl_jobs = []
+        for wl_entry in self.classification['apply_to']:
+            wl = next(wl for wl in self.workloads if wl.tag == wl_entry)
+            wl_jobs.extend(wl.jobs)
 
             # Apply clustering
             clusters_matrix, clusters_labels = self._apply_clustering(wl_jobs)
 
-            # calculate the submittal rate from the selected workload
-            submit_times = [j.time_queued for j in wl_jobs]
+            self.clusters.append({
+                                  'source-workload': wl_entry,
+                                  'jobs_for_clustering': wl_jobs,
+                                  'cluster_matrix': clusters_matrix,
+                                  'labels': clusters_labels,
+                                  })
+
+    def _apply_generation(self):
+        """
+        Generate synthetic workload form the supplied model jobs
+        :return:
+        """
+
+        # generate a synthetic workload for each cluster of jobs
+        for cluster in self.clusters:
+
+            # calculate the submit rate from the selected workload
+            submit_times = [j.time_queued for j in cluster['jobs_for_clustering']]
             real_submit_rate = float(len(submit_times)) / (max(submit_times) - min(submit_times))
-            requested_submit_rate = real_submit_rate * submit_rate_factor
-            n_modelled_jobs = int(requested_submit_rate * total_submit_interval)
+            requested_submit_rate = real_submit_rate * self.generator['submit_rate_factor']
+            n_modelled_jobs = int(requested_submit_rate * self.generator['total_submit_interval'])
 
             if not n_modelled_jobs:
                 print_colour("orange", "Low submit rate (real={} jobs/sec, requested={} jobs/sec), => number of jobs={}"
@@ -189,16 +206,16 @@ class KronosModel(object):
                 # set n jobs to one! (the very minimum)
                 n_modelled_jobs = 1
 
-            start_times_vec = np.random.rand(n_modelled_jobs) * total_submit_interval
+            start_times_vec = np.random.rand(n_modelled_jobs) * self.generator['total_submit_interval']
 
             print "real_submit_rate", real_submit_rate
             print "n_jobs", n_modelled_jobs
 
             # create model jobs from clusters and time rates..
-            modelled_jobs = model_jobs_from_clusters(clusters_matrix,
+            modelled_jobs = model_jobs_from_clusters(cluster['cluster_matrix'],
                                                      start_times_vec,
-                                                     nprocs=model_pipeline['sa_n_proc'],
-                                                     nnodes=model_pipeline['sa_n_nodes']
+                                                     nprocs=self.generator['sa_n_proc'],
+                                                     nnodes=self.generator['sa_n_nodes']
                                                      )
 
             # create synthetic workload from modelled jobs
@@ -208,14 +225,12 @@ class KronosModel(object):
                 app = SyntheticApp(
                     job_name="RS-appID-{}".format(cc),
                     time_signals=job.timesignals,
-                    ncpus=model_pipeline['sa_n_proc'],
-                    nnodes=model_pipeline['sa_n_nodes'],
+                    ncpus=self.generator['sa_n_proc'],
+                    nnodes=self.generator['sa_n_nodes'],
                     time_start=job.time_start
                 )
 
                 modelled_sa_jobs.append(app)
 
             self.modelled_sa_jobs.extend(modelled_sa_jobs)
-        # --------------------------------------------------------------------------
-
 
