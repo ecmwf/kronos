@@ -1,6 +1,7 @@
 import csv
 import os
 
+from exceptions_iows import ConfigurationError
 from kpf_handler import KPFFileHandler
 from ksf_handler import KSFFileHandler
 
@@ -26,7 +27,13 @@ class RunData(object):
         """
 
         iter_id = iteration if iteration else 0
-        ksf_filename = os.path.join(self.path_root, 'iteration-{}/sa_jsons/schedule.ksf'.format(iter_id))
+
+        # find the ksf file in the run folder
+        ksf_iteration_dir = os.path.join(self.path_root, 'iteration-{}/sa_jsons'.format(iter_id))
+        ksf_files_in_dir = [fname for fname in os.listdir(ksf_iteration_dir) if fname.endswith(".ksf")]
+        if len(ksf_files_in_dir) > 1:
+            raise ConfigurationError("found more than one ksf file in run folder!")
+        ksf_filename = os.path.join(ksf_iteration_dir, ksf_files_in_dir[0])
 
         return KSFFileHandler().from_ksf_file(ksf_filename)
 
@@ -38,10 +45,17 @@ class RunData(object):
         """
 
         iter_id = iteration if iteration else 0
-        ksf_filename = os.path.join(self.path_root, 'iteration-{}/run_jsons/kpf_output.kpf'.format(iter_id))
+
+        # find the kpf file in the run folder
+        kpf_iteration_dir = os.path.join(self.path_root, 'iteration-{}/run_jsons'.format(iter_id))
+        kpf_files_in_dir = [fname for fname in os.listdir(kpf_iteration_dir) if fname.endswith(".kpf")]
+        if len(kpf_files_in_dir) > 1:
+            raise ConfigurationError("found more than one ksf file in run folder!")
+        kpf_filename = os.path.join(kpf_iteration_dir, kpf_files_in_dir[0])
+
         print "getting kpf data for iteration {}".format(iter_id)
 
-        return KPFFileHandler().load_kpf(ksf_filename)
+        return KPFFileHandler().load_kpf(kpf_filename)
 
     def get_n_iterations(self):
         """
@@ -84,7 +98,14 @@ class RunData(object):
         """
 
         iter_id = iteration if iteration else 0
-        ksf_filename = os.path.join(self.path_root, 'iteration-{}/sa_jsons/schedule.ksf'.format(iter_id))
+
+        # find the ksf file in the run folder
+        ksf_iteration_dir = os.path.join(self.path_root, 'iteration-{}/sa_jsons'.format(iter_id))
+        ksf_files_in_dir = [fname for fname in os.listdir(ksf_iteration_dir) if fname.endswith(".ksf")]
+        if len(ksf_files_in_dir) > 1:
+            raise ConfigurationError("found more than one ksf file in run folder!")
+        ksf_filename = os.path.join(ksf_iteration_dir, ksf_files_in_dir[0])
+
         print "getting ksf data for iteration {}".format(iter_id)
 
         KSFFileHandler().from_ksf_file(ksf_filename).print_statistics()
