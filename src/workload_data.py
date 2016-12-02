@@ -15,9 +15,14 @@ class WorkloadData(object):
 
     def __init__(self, jobs=None, tag=None):
 
-        # a workload data essentially contains a list of model jobs + tag
+        # a workload data contains a list of model jobs + some global properties
         self.jobs = jobs if jobs else None
         self.tag = tag if tag else str(WorkloadData.tag_default+1)
+
+        # workload-level properties
+        self.min_start_time = None
+        self.max_start_time = None
+        self.total_metrics = None
 
     def __unicode__(self):
         return "WorkloadData - {} job sets".format(len(self.jobs))
@@ -49,7 +54,37 @@ class WorkloadData(object):
 
         return metrics_sum_dict
 
+    def total_metrics_timesignals(self):
+        """
+        Return a dictionary with the total time signal..
+        :return:
+        """
 
+        self.min_start_time = min([i_job.time_start for i_job in self.jobs])
+        self.max_start_time = max([i_job.time_start for i_job in self.jobs])
+
+        # Concatenate all the available time series data for each of the jobs
+        if not self.total_metrics:
+            self.total_metrics = {}
+            for signal_name, signal_details in signal_types.iteritems():
+
+                try:
+                    times_vec = np.concatenate([job.timesignals[signal_name].xvalues+job.time_start
+                                                for job in self.jobs if job.timesignals[signal_name] is not None])
+
+                    data_vec = np.concatenate([job.timesignals[signal_name].yvalues
+                                               for job in self.jobs if job.timesignals[signal_name] is not None])
+
+                    ts = TimeSignal.from_values(signal_name, times_vec, data_vec, base_signal_name=signal_name)
+                    self.total_metrics[signal_name] = ts
+
+                except ValueError:
+                    print_colour("orange", "No jobs found with time series for {}".format(signal_name))
+
+            return self.total_metrics
+
+        else:  # if it's already been calculated
+            return self.total_metrics
 
     def apply_default_metrics(self, defaults_dict):
         """

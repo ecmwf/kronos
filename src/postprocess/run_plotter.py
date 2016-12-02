@@ -1,4 +1,4 @@
-
+import os
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -10,12 +10,12 @@ from kronos_tools.print_colour import print_colour
 
 class RunPlotter(object):
 
-    def __init__(self, run_path):
+    def __init__(self, run_dir):
 
-        assert isinstance(run_path, unicode)
+        assert isinstance(run_dir, str)
         self.plot_handler = PlotHandler()
-
-        self.run_data = RunData(run_path)
+        self.run_dir = run_dir
+        self.run_data = RunData(run_dir)
 
     def plot_run(self):
         """
@@ -30,8 +30,6 @@ class RunPlotter(object):
         # ksf_scaled_sums_0 = ksf_data_0.scaled_sums
         ksf_unscaled_sums_0 = ksf_data_0.unscaled_sums
 
-        # print "ksf_unscaled_sums_0", ksf_unscaled_sums_0
-
         # loop over all the iterations
         for i_iter in range(n_iterations):
 
@@ -45,7 +43,7 @@ class RunPlotter(object):
             try:
                 assert len(kpf_data) == 1
             except AssertionError:
-                print_colour("red", "kpf file from ru nprofiling contains more than 1 workload")
+                print_colour("red", "kpf file from run profiling contains more than 1 workload")
             # ----------------------------------------------------
 
             # ------ retrieve data from ksp from iterations ------
@@ -83,12 +81,12 @@ class RunPlotter(object):
             nproc_running_vec = np.cumsum(all_vec_sort[:, 1])
 
             # ---------- make plot ----------
-            fig_size = (16, 9)
+            n_plots = len(kpf_workload.total_metrics_timesignals().keys()) + 1
+            fig_size = (16, 3*n_plots)
             plt.figure(self.plot_handler.get_fig_handle_ID(), figsize=fig_size)
-            width = 0.8
             id_plot = 0
-            n_plots = 3
 
+            # initial plot with the running jobs/processes
             id_plot += 1
             plt.subplot(n_plots, 1, id_plot)
             plt.subplots_adjust(left=0.2, right=0.8, top=0.9, bottom=0.1)
@@ -107,7 +105,33 @@ class RunPlotter(object):
             plt.xlabel('time')
             plt.ylabel('jobs')
             plt.legend(loc='center left', bbox_to_anchor=(1, 0.5))
-            plt.title("plot iteration {}".format(i_iter))
+            plt.title('Time profiles of iteration: {}'.format(i_iter))
+            plt.legend(loc='center left', bbox_to_anchor=(1, 0.5))
+
+            # plot of the total timesignals
+            for ts_name in kpf_workload.total_metrics_timesignals():
+
+                t0 = kpf_workload.total_metrics_timesignals()[ts_name].xvalues[0]
+
+                id_plot += 1
+                plt.subplot(n_plots, 1, id_plot)
+                plt.subplots_adjust(left=0.2, right=0.8, top=0.9, bottom=0.1)
+                plt.plot(kpf_workload.total_metrics_timesignals()[ts_name].xvalues - t0,
+                         kpf_workload.total_metrics_timesignals()[ts_name].yvalues,
+                         color='b',
+                         label=ts_name)
+                plt.xlabel('time')
+                plt.ylabel(ts_name)
+
+            plt.savefig(os.path.join(self.run_dir, 'time_profiles_iter-{}.png'.format(i_iter)))
+            plt.close()
+
+            # ------------ plot of requested and run metrics --------------------
+            n_plots = 2
+            fig_size = (16, 3*n_plots)
+            plt.figure(self.plot_handler.get_fig_handle_ID(), figsize=fig_size)
+            width = 0.8
+            id_plot = 0
 
             # requested and run metrics..
             id_plot += 1
@@ -124,14 +148,15 @@ class RunPlotter(object):
                     width / 2.0,
                     color='blue',
                     label='Run metrics')
-            plt.xlabel('metrics')
-            plt.ylabel('sums over all jobs')
+            # plt.xlabel('metrics')
+            # plt.ylabel('sums over all jobs')
             plt.yscale('log')
             plt.ylim(ymin=1)
             plt_hdl = plt.gca()
             plt_hdl.set_xticks([i + width / 2. for i in xx])
             plt_hdl.set_xticklabels([k for k in signal_types.keys()])
             plt.legend(loc='center left', bbox_to_anchor=(1, 0.5))
+            plt.title('Total metrics of iteration: {}'.format(i_iter))
 
             # requested and run metrics diff..
             id_plot += 1
@@ -145,14 +170,12 @@ class RunPlotter(object):
                     width / 2.0,
                     color='green',
                     label='|req-run|/req_max')
-            plt.xlabel('metrics')
-            plt.ylabel('sums over all jobs')
+            # plt.xlabel('metrics')
             # plt.yscale('log')
             # plt.ylim(ymin=1)
             plt_hdl = plt.gca()
             plt_hdl.set_xticks([i + width / 2. for i in xx])
             plt_hdl.set_xticklabels([k for k in signal_types.keys()])
             plt.legend(loc='center left', bbox_to_anchor=(1, 0.5))
-            # plt.savefig(os.path.join(dir_plot_output, 'out_run_plots_iter-{}.png'.format(i_iter)))
-            # plt.close()
-            plt.show()
+            plt.savefig(os.path.join(self.run_dir, 'summary_metrics_iter-{}.png'.format(i_iter)))
+            plt.close()

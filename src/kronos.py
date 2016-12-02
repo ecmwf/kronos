@@ -57,13 +57,13 @@ class Kronos(object):
         kronos_runner = runner.factory(self.config.runner['type'], self.config)
         kronos_runner.run()
 
-    def postprocess(self):
+    def postprocess(self, run_dir):
         """
         Postprocess the results of the run
         :return:
         """
         print "\nPostprocess run..\n----------------------------------"
-        plotter = RunPlotter(self.config.post_process['dir_sa_run_output'])
+        plotter = RunPlotter(run_dir)
         plotter.plot_run()
 
 
@@ -75,9 +75,14 @@ if __name__ == "__main__":
     parser.add_argument('-m', "--model", help="generate model", action='store_true')
     parser.add_argument('-r', "--run", help="run the model on HPC", action='store_true')
     parser.add_argument('-p', "--postprocess", help="postprocess run results", action='store_true')
-    parser.add_argument('-i', "--input", help="postprocess sa workload", action='store_true')
-    parser.add_argument('-o', "--output", help="postprocess sa run results", action='store_true')
+    parser.add_argument('-o', "--run_dir", help="Path with run results")
     args = parser.parse_args()
+
+    # command line keys checks..
+    if args.postprocess and not args.run_dir:
+        raise ConfigurationError("Specify path of results to post-process: --run_dir=<path-to-results>")
+    elif not os.path.exists(args.run_dir):
+        raise ConfigurationError("Path of results {} does not exist".format(args.run_dir))
 
     try:
         try:
@@ -101,7 +106,7 @@ if __name__ == "__main__":
         elif args.run:
             app.run()
         elif args.postprocess:
-            app.postprocess()
+            app.postprocess(args.run_dir)
         else:
             print "command line parsing error.."
             sys.exit(-1)

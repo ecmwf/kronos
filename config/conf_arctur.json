@@ -1,4 +1,5 @@
 {
+    "verbose": true,
     "dir_input": "/var/tmp/maab/kronos-core/input",
     "dir_output": "/var/tmp/maab/kronos-core/output",
     "kpf_file": "arctur_x0.kpf",
@@ -108,12 +109,6 @@
               "hpc_module_env": [""],
               "hpc_dir_exec": "/perm/ma/maab/builds/kronos/bin",              
               "hpc_exec_config": "/perm/ma/maab/test_executor/executor_config/exe_config.json"
-              },
-    "post_process": {
-                     "dir_sa_run_input": "/var/tmp/maab/kronos-core/output",
-                     "dir_sa_run_output": "/var/tmp/maab/kronos-core/output/fl_run_2016-12-01_12-43-00",
-                     "fb_loop": false
-                     },
-    "verbose": true
+              }
 }
 
