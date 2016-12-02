@@ -5,110 +5,123 @@
     "kpf_file": "arctur_x0.kpf",
     "ksf_filename": "schedule_arctur.ksf",
     "model": {
-              "name": "arctur",
-              "strategies":{
-                            "defaults": {
-                                          "default-background": {
-                                                                  "apply_to": ["background"],
-                                                                  "metrics":{
-                                                                              "kb_collective": [100, 1000],
-                                                                              "n_collective": [10, 1000],
-                                                                              "kb_write": [100, 1000],
-                                                                              "n_pairwise": [10, 1000],
-                                                                              "n_write": [10, 1000],
-                                                                              "n_read": [10, 1000], 
-                                                                              "kb_read": [100, 1000],
-                                                                              "flops": [1e6, 1e8], 
-                                                                              "kb_pairwise": [100, 1000]
-                                                                              }
-                                                                  },
-                                          "allinea-corrections": {
-                                                                  "apply_to": ["cfd-run", "blender-run"],
-                                                                  "metrics":{
-                                                                              "kb_collective": [100, 1000],
-                                                                              "n_collective": [10, 1000],
-                                                                              "kb_write": [100, 1000],
-                                                                              "n_pairwise": [10, 1000],
-                                                                              "n_write": [10, 1000],
-                                                                              "n_read": [10, 1000], 
-                                                                              "kb_read": [100, 1000],
-                                                                              "flops": [1e6, 1e8], 
-                                                                              "kb_pairwise": [100, 1000]
-                                                                              }
-                                                                  }                                                                  
-                                          },
-                            "lookup_table": {
-                                              "similarity_threshold": 0.3,
-                                              "source_workloads": ["cfd-run", "blender-run"],
-                                              "apply_to": ["background"]
-                                            },
-                            "recommender_system": {
-                                                  "apply_to": ["background"]
-                                                  }
-                            },
-              "model_pipeline": {
-                                 "apply_to": [
-                                               ["background"]
-                                             ],
-                                 "clustering": {
-                                                "name": "Kmeans",
-                                                "ok_if_low_rank": false,
-                                                "rseed": 0,
-                                                "max_iter": 100,
-                                                "nc_max": 20,
-                                                "nc_delta": 1,
-                                                "n_ts_bins": 1, 
-                                                "metrics_only": false
-                                                },
-                                 "tuning_factors": {
-                                                   "kb_collective": 1.0,
-                                                   "n_collective": 1.0,
-                                                   "kb_write": 1.0,
-                                                   "n_pairwise": 1.0,
-                                                   "n_write": 1.0,
-                                                   "n_read": 1.0,
-                                                   "kb_read": 1.0,
-                                                   "flops": 10.0,
-                                                   "kb_pairwise": 1.0
-                                                   },
-                                 "submit_rate_factor": 1e4,              
-                                 "sa_n_proc": 2,
-                                 "sa_n_nodes": 1,
-                                 "sa_n_frames": 1,
-                                 "total_submit_interval": 60
-                                 }
+              "fill_in":[
+                          { 
+                          "type": "fill_missing_entries",
+                          "apply_to": ["background"],
+                          "priority": 0,                          
+                          "metrics":{
+                                    "kb_collective": [100, 1000],
+                                    "n_collective": [10, 1000],
+                                    "kb_write": [100, 1000],
+                                    "n_pairwise": [10, 1000],
+                                    "n_write": [10, 1000],
+                                    "n_read": [10, 1000], 
+                                    "kb_read": [100, 1000],
+                                    "flops": [1e6, 1e8], 
+                                    "kb_pairwise": [100, 1000]
+                                    }
+                          },
+                          {
+                          "type": "fill_missing_entries",
+                          "apply_to": ["cfd-run", "blender-run"],
+                          "priority": 0,                          
+                          "metrics":{
+                                    "kb_collective": [100, 1000],
+                                    "n_collective": [10, 1000],
+                                    "kb_write": [100, 1000],
+                                    "n_pairwise": [10, 1000],
+                                    "n_write": [10, 1000],
+                                    "n_read": [10, 1000], 
+                                    "kb_read": [100, 1000],
+                                    "flops": [1e6, 1e8], 
+                                    "kb_pairwise": [100, 1000]
+                                    }
+                          },
+                          { 
+                          "type": "match_by_keyword",
+                          "priority": 0,                          
+                          "similarity_threshold": 0.3,
+                          "source_workloads": ["blender-run"],
+                          "apply_to": ["background"]
+                          },
+                          {
+                          "type": "match_by_keyword",
+                          "priority": 0,                          
+                          "similarity_threshold": 0.3,
+                          "source_workloads": ["cfd-run"],
+                          "apply_to": ["background"]
+                          },
+                          {
+                          "type": "recommender_system",
+                          "priority": 0,                          
+                          "apply_to": ["background"]
+                          }
+                         ],
+              "classification": {
+                                "apply_to": ["background"],
+                                "clustering": {
+                                              "type": "Kmeans",
+                                              "ok_if_low_rank": false,
+                                              "rseed": 0,
+                                              "max_iter": 100,
+                                              "nc_max": 20,
+                                              "nc_delta": 1,
+                                              "n_ts_bins": 1, 
+                                              "metrics_only": false
+                                               }
+                                },
+              "generator": {                                 
+                           "tuning_factors": {
+                                             "kb_collective": 1.0,
+                                             "n_collective": 1.0,
+                                             "kb_write": 1.0,
+                                             "n_pairwise": 1.0,
+                                             "n_write": 1.0,
+                                             "n_read": 1.0,
+                                             "kb_read": 1.0,
+                                             "flops": 10.0,
+                                             "kb_pairwise": 1.0
+                                             },
+                           "submit_rate_factor": 1e4,              
+                           "sa_n_proc": 2,
+                           "sa_n_nodes": 1,
+                           "sa_n_frames": 1,
+                           "total_submit_interval": 60
+                           }
              },
-    "runner": {               
-              "type": "feedback",
-              "state": "enabled",
-              "n_iterations": 1,
-              "hpc_user": "maab",
-              "hpc_host": "nebula",
-              "tag": "feedback_run_test",
-              "hpc_dir_input": "/perm/ma/maab/test_executor/input",
-              "hpc_dir_output": "/perm/ma/maab/test_executor/output",
-              "local_map2json_file": "/home/ma/maab/workspace/Allinea_examples_files/NEXTGenIO_buiilds/map2json/map2json.py",
-              "updatable_metrics": {
-                                 "flops": 0,
-                                 "n_collective": 0,
-                                 "n_pairwise": 0,
-                                 "kb_collective": 0,
-                                 "kb_pairwise": 0,
-                                 "n_write": 0,
-                                 "n_read": 0,
-                                 "kb_write": 0,
-                                 "kb_read": 0
-                                 }                
-              },
-    "controls": {
-              "hpc_user": "maab",
-              "hpc_host": "nebula",
-              "hpc_job_sched": "local",
-              "hpc_shell_type": "bash",
-              "hpc_module_dir_init": "",
-              "hpc_module_env": [""],
-              "hpc_dir_exec": "/perm/ma/maab/builds/kronos/bin",              
-              "hpc_exec_config": "/perm/ma/maab/test_executor/executor_config/exe_config.json"
-              }
+    "run": {               
+            "type": "feedback",
+            "state": "enabled",
+            "n_iterations": 1,
+            "hpc_user": "maab",
+            "hpc_host": "nebula",
+            "tag": "feedback_run_test",
+            "hpc_dir_input": "/perm/ma/maab/test_executor/input",
+            "hpc_dir_output": "/perm/ma/maab/test_executor/output",
+            "local_map2json_file": "/home/ma/maab/workspace/Allinea_examples_files/NEXTGenIO_buiilds/map2json/map2json.py",
+            "updatable_metrics": {
+                                  "flops": 0,
+                                  "n_collective": 0,
+                                  "n_pairwise": 0,
+                                  "kb_collective": 0,
+                                  "kb_pairwise": 0,
+                                  "n_write": 0,
+                                  "n_read": 0,
+                                  "kb_write": 0,
+                                  "kb_read": 0
+                                  },
+            "controls": {
+                        "hpc_user": "maab",
+                        "hpc_host": "nebula",
+                        "hpc_job_sched": "local",
+                        "hpc_shell_type": "bash",
+                        "hpc_module_dir_init": "",
+                        "hpc_module_env": [""],
+                        "hpc_dir_exec": "/perm/ma/maab/builds/kronos/bin",              
+                        "hpc_exec_config": "/perm/ma/maab/test_executor/executor_config/exe_config.json"
+                        }
+           },
+    "analysis": {} 
 }
 
