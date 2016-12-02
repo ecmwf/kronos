@@ -81,7 +81,7 @@ if __name__ == "__main__":
     # command line keys checks..
     if args.postprocess and not args.run_dir:
         raise ConfigurationError("Specify path of results to post-process: --run_dir=<path-to-results>")
-    elif not os.path.exists(args.run_dir):
+    elif args.postprocess and not os.path.exists(args.run_dir):
         raise ConfigurationError("Path of results {} does not exist".format(args.run_dir))
 
     try:
