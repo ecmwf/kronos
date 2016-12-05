@@ -417,7 +417,8 @@ class IPMDataSet(IngestedDataSet):
         """
         # The created times are all in seconds since an arbitrary reference, so we want to get
         # them relative to a zero-time
-        global_start_time = min((j.time_start for j in self.joblist))
+        # global_start_time = min((j.time_start for j in self.joblist))
 
         for job in self.joblist:
-            yield job.model_job(global_start_time)
+            # yield job.model_job(global_start_time)
+            yield job.model_job()
