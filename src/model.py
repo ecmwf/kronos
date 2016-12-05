@@ -27,10 +27,10 @@ class KronosModel(object):
 
         # configuration parameters
         self.config = config
-        self.fill_in = None
-        self.classification = None
-        self.generator = None
-        self.functions = None
+        self.config_fill_in = None
+        self.config_classification = None
+        self.config_generator = None
+        self.config_functions = None
 
         self.workloads = workloads
         self.jobs_for_clustering = []
@@ -39,9 +39,9 @@ class KronosModel(object):
 
         # check all the configurations
         for k, v in self.config.model.iteritems():
-            if not hasattr(self, k):
+            if not hasattr(self, 'config_'+k):
                 raise ConfigurationError("Unexpected configuration keyword provided - {}:{}".format(k, v))
-            setattr(self, k, v)
+            setattr(self, 'config_'+k, v)
 
     def generate_model(self):
         """
@@ -72,10 +72,10 @@ class KronosModel(object):
         :return:
         """
 
-        filler = WorkloadFiller(self.fill_in, self.functions, self.workloads)
+        filler = WorkloadFiller(self.config_fill_in, self.config_functions, self.workloads)
 
         # call functions corresponding to fill_in types
-        for fillin_function in self.fill_in:
+        for fillin_function in self.config_fill_in:
             getattr(filler, fillin_function['type'])()
 
     def export_synthetic_workload(self):
@@ -89,17 +89,19 @@ class KronosModel(object):
 
         # set up the synthetic workload
         sa_workload = SyntheticWorkload(self.config, self.modelled_sa_jobs)
-        sa_workload.set_tuning_factors(self.generator['tuning_factors'])
+        sa_workload.set_tuning_factors(self.config_generator['tuning_factors'])
 
         # export the synthetic workload
         ksf_path = os.path.join(self.config.dir_output, self.config.ksf_filename)
-        sa_workload.export_ksf(ksf_path, self.generator['sa_n_frames'])
+        sa_workload.export_ksf(ksf_path, self.config_generator['sa_n_frames'])
 
     def _check_jobs(self):
         """
         Check that all jobs have the minimum required fields..
         :return:
         """
+        print_colour("green", "Checking all jobs before classification..")
+
         for wl in self.workloads:
             for job in wl.jobs:
                 job.check_job()
@@ -111,8 +113,8 @@ class KronosModel(object):
         """
 
         # apply clustering to the accounting jobs
-        cluster_handler = data_analysis.factory(self.classification['clustering']['type'],
-                                                self.classification['clustering'])
+        cluster_handler = data_analysis.factory(self.config_classification['clustering']['type'],
+                                                self.config_classification['clustering'])
 
         cluster_handler.cluster_jobs(jobs)
         clusters_matrix = cluster_handler.clusters
@@ -128,7 +130,7 @@ class KronosModel(object):
 
         # loop over all the workloads used to create the synthetic workload
         wl_jobs = []
-        for wl_entry in self.classification['apply_to']:
+        for wl_entry in self.config_classification['apply_to']:
             wl = next(wl for wl in self.workloads if wl.tag == wl_entry)
             wl_jobs.extend(wl.jobs)
 
@@ -154,8 +156,8 @@ class KronosModel(object):
             # calculate the submit rate from the selected workload
             submit_times = [j.time_queued for j in cluster['jobs_for_clustering']]
             real_submit_rate = float(len(submit_times)) / (max(submit_times) - min(submit_times))
-            requested_submit_rate = real_submit_rate * self.generator['submit_rate_factor']
-            n_modelled_jobs = int(requested_submit_rate * self.generator['total_submit_interval'])
+            requested_submit_rate = real_submit_rate * self.config_generator['submit_rate_factor']
+            n_modelled_jobs = int(requested_submit_rate * self.config_generator['total_submit_interval'])
 
             if not n_modelled_jobs:
                 print_colour("orange", "Low submit rate (real={} jobs/sec, requested={} jobs/sec), => number of jobs={}"
@@ -164,7 +166,7 @@ class KronosModel(object):
                 # set n jobs to one! (the very minimum)
                 n_modelled_jobs = 1
 
-            start_times_vec = np.random.rand(n_modelled_jobs) * self.generator['total_submit_interval']
+            start_times_vec = np.random.rand(n_modelled_jobs) * self.config_generator['total_submit_interval']
 
             print "real_submit_rate", real_submit_rate
             print "n_jobs", n_modelled_jobs
@@ -172,8 +174,8 @@ class KronosModel(object):
             # create model jobs from clusters and time rates..
             modelled_jobs = model_jobs_from_clusters(cluster['cluster_matrix'],
                                                      start_times_vec,
-                                                     nprocs=self.generator['sa_n_proc'],
-                                                     nnodes=self.generator['sa_n_nodes']
+                                                     nprocs=self.config_generator['sa_n_proc'],
+                                                     nnodes=self.config_generator['sa_n_nodes']
                                                      )
 
             # create synthetic workload from modelled jobs
@@ -183,8 +185,8 @@ class KronosModel(object):
                 app = SyntheticApp(
                     job_name="RS-appID-{}".format(cc),
                     time_signals=job.timesignals,
-                    ncpus=self.generator['sa_n_proc'],
-                    nnodes=self.generator['sa_n_nodes'],
+                    ncpus=self.config_generator['sa_n_proc'],
+                    nnodes=self.config_generator['sa_n_nodes'],
                     time_start=job.time_start
                 )
 

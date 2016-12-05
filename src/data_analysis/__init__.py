@@ -33,6 +33,7 @@ def jobs_to_matrix(input_jobs, n_ts_bins=1):
 
     # append ncpu, nnodes, duration to each row if required
     input_jobs_matrix = np.zeros((len(input_jobs), len(signal_types)*n_ts_bins))
+    non_value_flag = -999
 
     # loop over jobs and fill the matrix as appropriate
     for cc, job in enumerate(input_jobs):
@@ -44,9 +45,22 @@ def jobs_to_matrix(input_jobs, n_ts_bins=1):
                 xvals, yvals = ts.digitized(n_ts_bins)
                 row.extend(yvals)
             else:
-                row.extend([0 for vv in range(0,n_ts_bins)])
+                row.extend([non_value_flag for vv in range(0,n_ts_bins)])
 
         input_jobs_matrix[cc, :] = np.asarray(row)
+
+    # once the matrix is filled, look for missing columns:
+    missing_columns = np.zeros(input_jobs_matrix.shape[1])
+    for col_idx in range(input_jobs_matrix.shape[1]):
+        if (input_jobs_matrix[:, col_idx] == non_value_flag).all():
+            missing_columns[col_idx] = 1
+
+    for tt, ts in enumerate(signal_types.keys()):
+        if missing_columns[tt*n_ts_bins]:
+            print "Column [{}] has all none values!".format(ts)
+
+    if missing_columns.any():
+        raise ValueError("Some metrics are missing from all the jobs => Recommender system cannot be applied!")
 
     return input_jobs_matrix
 

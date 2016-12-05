@@ -6,10 +6,10 @@ class WorkloadFiller(object):
     A workload filler has the methods for filling up missing information of a workload
     """
 
-    def __init__(self, fillin_config, functions, workloads):
+    def __init__(self, fillin_config, functions_config, workloads):
 
         self.fillin_config = fillin_config
-        self.functions = functions
+        self.functions_config = functions_config
         self.workloads = workloads
 
     def fill_missing_entries(self):
@@ -23,7 +23,7 @@ class WorkloadFiller(object):
         for def_config in default_list:
             for wl in self.workloads:
                 if wl.tag in def_config['apply_to']:
-                    wl.apply_default_metrics(def_config['metrics'], self.functions)
+                    wl.apply_default_metrics(def_config['metrics'], self.functions_config)
 
     def match_by_keyword(self):
         """
@@ -61,4 +61,14 @@ class WorkloadFiller(object):
         This implements the recommender system corrections
         :return:
         """
-        print "TO IMPLEMENT RECOMMENDER SYSTEM"
+
+        recomm_config_list = [entry for entry in self.fillin_config if entry['type'] == "recommender_system"]
+
+        # the recommender system technique is applied to each workload of the list individually..
+        for rs_config in recomm_config_list:
+
+            for wl_name in rs_config['apply_to']:
+                print_colour("green", "Applying recommender system on workload: {}".format(wl_name))
+                wl_dest = next(wl for wl in self.workloads if wl.tag == wl_name)
+                wl_dest.apply_recommender_system(rs_config['n_bins'])
+

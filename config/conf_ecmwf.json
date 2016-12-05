@@ -49,8 +49,9 @@
                           },
                           {
                           "type": "recommender_system",
-                          "priority": 0,                          
-                          "apply_to": ["background"]
+                          "priority": 0,
+                          "n_bins": 3,
+                          "apply_to": ["operational-ipm"]
                           }
                          ],
               "classification": {

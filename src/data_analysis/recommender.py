@@ -38,29 +38,28 @@ class Recommender(object):
 
         # item-item similarity matrix (metrics only)
         self.item_max_train = np.max(self.input_jobs_matrix, axis=0)
+        mat_norm = self.input_jobs_matrix / (self.item_max_train[None, :] + 1.e-20)
+        self.item_simil_mat = -pairwise_distances(mat_norm.T, metric='cosine')+1
 
         # np.set_printoptions(formatter={'float': '{: 0.3f}'.format}, linewidth=200)
         # print "recomm_sys.input_jobs_matrix", self.input_jobs_matrix
         # print "self.item_max_train :", self.item_max_train
 
-        mat_norm = self.input_jobs_matrix / (self.item_max_train[None, :] + 1.e-20)
-        self.item_simil_mat = -pairwise_distances(mat_norm.T, metric='cosine')+1
-
-    def apply_model_to(self, production_jobs=None):
+    def apply_model_to(self, jobs_to_fill=None):
         """
         Apply recommender system to accounting jobs..
         """
 
-        if not production_jobs:
-            raise ValueError("production_jobs not set")
+        if not jobs_to_fill:
+            raise ValueError("jobs_to_fill not set")
 
-        if not isinstance(production_jobs, list):
-            raise ValueError("production_jobs not a list")
+        if not isinstance(jobs_to_fill, list):
+            raise ValueError("jobs_to_fill not a list")
 
         print_colour("green", "Applying recommender system..")
 
         # Add the accounting job records
-        metrics_mat = jobs_to_matrix(production_jobs, n_ts_bins=self.n_ts_bins)
+        metrics_mat = jobs_to_matrix(jobs_to_fill, n_ts_bins=self.n_ts_bins)
 
         # Apply recommender system values:
         metrics_mat_norm = metrics_mat / (self.item_max_train[None, :] + 1.e-16)
@@ -68,6 +67,6 @@ class Recommender(object):
                                np.array([np.abs(self.item_simil_mat).sum(axis=1)])
         item_prediction = item_prediction_norm * self.item_max_train
 
-        filled_jobs = apply_matrix_to_jobs(production_jobs, item_prediction)
+        filled_jobs = apply_matrix_to_jobs(jobs_to_fill, item_prediction)
 
         return filled_jobs

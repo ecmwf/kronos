@@ -2,6 +2,7 @@ import numpy as np
 from difflib import SequenceMatcher
 
 # from kpf_handler import KPFFileHandler
+from data_analysis import recommender
 from exceptions_iows import ConfigurationError
 from kronos_tools.print_colour import print_colour
 from time_signal import signal_types, TimeSignal
@@ -196,3 +197,19 @@ class WorkloadData(object):
             raise ConfigurationError("matching threshold should be in [0,1], provided {} instead".format(threshold))
 
         return n_jobs_replaced
+
+    def apply_recommender_system(self, n_bins):
+        """
+        Apply a recommender system technique to the jobs of this workload
+        :param n_bins:
+        :return:
+        """
+
+        # uses a recommender model
+        recomm_sys = recommender.Recommender()
+
+        # train it according to a selected number of bins for each metric
+        recomm_sys.train_model(self.jobs, n_ts_bins=n_bins)
+
+        # re-apply it on the jobs
+        self.jobs = recomm_sys.apply_model_to(self.jobs)
