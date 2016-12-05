@@ -5,6 +5,19 @@
     "kpf_file": "epcc_x0.kpf",
     "ksf_filename": "schedule_epcc.ksf",
     "model": {
+              "functions":[
+                            {
+                              "type": "step",                              
+                              "name": "step-1",                              
+                              "x_step": 0.5
+                            },
+                            {
+                              "type": "custom",                              
+                              "name": "custom-1",                              
+                              "x_values": [0, 0.1, 0.2, 0.3, 0.5, 0.8, 0.9, 1.0],
+                              "y_values": [0, 0.1, 0.2, 0.3, 0.5, 0.8, 0.9, 1.0]
+                            }
+                          ],
               "fill_in":[
                           { 
                           "type": "fill_missing_entries",
@@ -13,8 +26,12 @@
                           "metrics":{
                                       "kb_collective": [100, 1000],
                                       "n_collective": [10, 1000],
-                                      "kb_write": [100, 1000],
-                                      "n_pairwise": [10, 1000],
+                                      "kb_write": {"function": "step-1",
+                                                   "scaling": 1000.0
+                                                   },
+                                      "n_pairwise": {"function": "custom-1",
+                                                    "scaling": 1000.0
+                                                    },
                                       "n_write": [10, 1000],
                                       "n_read": [10, 1000], 
                                       "kb_read": [100, 1000],

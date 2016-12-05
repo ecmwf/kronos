@@ -1,9 +1,11 @@
-# from kpf_handler import KPFFileHandler
+import numpy as np
 from difflib import SequenceMatcher
 
+# from kpf_handler import KPFFileHandler
+from exceptions_iows import ConfigurationError
 from kronos_tools.print_colour import print_colour
 from time_signal import signal_types, TimeSignal
-import numpy as np
+import fill_in_functions as fillf
 
 
 class WorkloadData(object):
@@ -86,10 +88,11 @@ class WorkloadData(object):
         else:  # if it's already been calculated
             return self.total_metrics
 
-    def apply_default_metrics(self, defaults_dict):
+    def apply_default_metrics(self, defaults_dict, functions_config):
         """
         Apply passed defaults values of the time series..
         :param defaults_dict:
+        :param functions_config:
         :return:
         """
         print_colour('green', 'Applying default values on workload: {}'.format(self.tag))
@@ -101,14 +104,38 @@ class WorkloadData(object):
                 # append defaults only if the time-series is missing..
                 if not job.timesignals[ts_name]:
 
-                    # generate a random number between provided min and max values
-                    y_min = defaults_dict[ts_name][0]
-                    y_max = defaults_dict[ts_name][1]
-                    random_y_value = y_min + np.random.rand() * (y_max - y_min)
-                    job.timesignals[ts_name] = TimeSignal.from_values(name=ts_name,
-                                                                      xvals=0.,
-                                                                      yvals=float(random_y_value),
-                                                                      )
+                    # if the entry is a list, generate the random number in [min, max]
+                    if isinstance(defaults_dict[ts_name], list):
+                        # generate a random number between provided min and max values
+                        y_min = defaults_dict[ts_name][0]
+                        y_max = defaults_dict[ts_name][1]
+                        random_y_value = y_min + np.random.rand() * (y_max - y_min)
+                        job.timesignals[ts_name] = TimeSignal.from_values(name=ts_name,
+                                                                          xvals=0.,
+                                                                          yvals=float(random_y_value),
+                                                                          )
+                    elif isinstance(defaults_dict[ts_name], dict):
+                        # this entry is specified through a function (name and scaling)
+
+                        # find required function configuration by name
+                        ff_config = [ff for ff in functions_config if ff["name"] == defaults_dict[ts_name]['function']]
+                        if len(ff_config) > 1:
+                            raise ConfigurationError("Error: multiple function have been named {}!".format(defaults_dict[ts_name]))
+                        else:
+                            ff_config = ff_config[0]
+
+                        x_vec_norm, y_vec_norm = fillf.function_mapping[ff_config['type']](ff_config)
+
+                        # rescale x and y according to job duration and scaling factor
+                        x_vec = x_vec_norm * job.duration
+                        y_vec = y_vec_norm * defaults_dict[ts_name]['scaling']
+
+                        job.timesignals[ts_name] = TimeSignal.from_values(name=ts_name,
+                                                                          xvals=x_vec,
+                                                                          yvals=y_vec,
+                                                                          )
+                    else:
+                        raise ConfigurationError('fill in "metrics" entry should be either a list or dictionary')
 
     def apply_lookup_table(self, look_up_wl, treshold):
         """

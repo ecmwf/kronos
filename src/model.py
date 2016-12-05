@@ -9,6 +9,7 @@ from jobs import model_jobs_from_clusters
 from synthetic_app import SyntheticApp, SyntheticWorkload
 from kronos_tools.print_colour import print_colour
 from config.config import Config
+from workload_fill_in import WorkloadFiller
 
 
 class KronosModel(object):
@@ -29,6 +30,7 @@ class KronosModel(object):
         self.fill_in = None
         self.classification = None
         self.generator = None
+        self.functions = None
 
         self.workloads = workloads
         self.jobs_for_clustering = []
@@ -43,12 +45,20 @@ class KronosModel(object):
 
     def generate_model(self):
         """
-        takes the list of workloads and applies user instructions to generate a model
+        takes the list of workloads and performs three actions in sequence:
+        1) applies user instructions on potentially partially filled workloads
+        2) generate a workload model through clustering+generation process
+        3) export the workload as a synthetic workload
         :return:
         """
 
         # 1) apply fill-in strategies
         self._apply_workload_fillin()
+
+        # check validity of jobs before doing the actual modelling..
+        # NB: the preliminary phase of workload manipulation (defaults, lookup tables and recommender sys
+        # should have produced a set of "complete" and therefore valid jobs)
+        self._check_jobs()
 
         # 2) apply classification
         self._apply_classification()
@@ -62,9 +72,11 @@ class KronosModel(object):
         :return:
         """
 
+        filler = WorkloadFiller(self.fill_in, self.functions, self.workloads)
+
         # call functions corresponding to fill_in types
         for fillin_function in self.fill_in:
-            getattr(self, fillin_function['type'])()
+            getattr(filler, fillin_function['type'])()
 
     def export_synthetic_workload(self):
         """
@@ -82,55 +94,6 @@ class KronosModel(object):
         # export the synthetic workload
         ksf_path = os.path.join(self.config.dir_output, self.config.ksf_filename)
         sa_workload.export_ksf(ksf_path, self.generator['sa_n_frames'])
-
-    def postprocess(self):
-        """
-        Postprocess the results of the run
-        :return:
-        """
-        pass
-
-    def fill_missing_entries(self):
-        """
-        Apply default values if specified
-        :return:
-        """
-
-        default_list = [entry for entry in self.fill_in if entry['type'] == "fill_missing_entries"]
-
-        for i_def in default_list:
-            for wl in self.workloads:
-                if wl.tag in i_def['apply_to']:
-                    wl.apply_default_metrics(i_def['metrics'])
-
-    def match_by_keyword(self):
-        """
-        Apply a lookup table to add metrics from jobs in a workload to another
-        :return:
-        """
-
-        match_list = [entry for entry in self.fill_in if entry['type'] == "match_by_keyword"]
-
-        # Apply each source workload into each destination workload
-        n_job_matched = 0
-        n_destination_jobs = 0
-
-        for i_match in match_list:
-            for wl_source_tag in i_match['source_workloads']:
-                wl_source = next(wl for wl in self.workloads if wl.tag == wl_source_tag)
-                for wl_dest_tag in i_match['apply_to']:
-                    wl_dest = next(wl for wl in self.workloads if wl.tag == wl_dest_tag)
-                    n_destination_jobs += len(wl_dest.jobs)
-                    n_job_matched += wl_dest.apply_lookup_table(wl_source, i_match['similarity_threshold'])
-
-        print_colour("white", "jobs matched/destination jobs = [{}/{}]".format(n_job_matched, n_destination_jobs))
-
-    def recommender_system(self):
-        """
-        This implements the recommender system corrections
-        :return:
-        """
-        print "TO IMPLEMENT RECOMMENDER SYSTEM"
 
     def _check_jobs(self):
         """
@@ -162,11 +125,6 @@ class KronosModel(object):
         Apply modelling classification to selected workloads
         :return:
         """
-
-        # check validity of jobs before doing the actual modelling..
-        # NB: the preliminary phase of workload manipulation (defaults, lookup tables and recommender sys
-        # should have produced a set of "complete" and therefore valid jobs)
-        self._check_jobs()
 
         # loop over all the workloads used to create the synthetic workload
         wl_jobs = []
@@ -233,4 +191,3 @@ class KronosModel(object):
                 modelled_sa_jobs.append(app)
 
             self.modelled_sa_jobs.extend(modelled_sa_jobs)
-
