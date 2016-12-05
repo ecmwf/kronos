@@ -137,42 +137,62 @@ class WorkloadData(object):
                     else:
                         raise ConfigurationError('fill in "metrics" entry should be either a list or dictionary')
 
-    def apply_lookup_table(self, look_up_wl, treshold):
+    def apply_lookup_table(self, look_up_wl, threshold, priority, match_keywords):
         """
         Uses another workload as lookup table to fill missing job information
-        :param workload:
+        :param look_up_wl:
+        :param threshold:
+        :param priority:
+        :param match_keywords:
         :return:
         """
         print_colour('green', 'Applying look up from workload: {} onto workload: {}'.format(look_up_wl.tag, self.tag))
 
         assert isinstance(look_up_wl, WorkloadData)
-        assert isinstance(treshold, float)
+        assert isinstance(threshold, float)
+        assert isinstance(priority, int)
+        assert isinstance(match_keywords, list)
 
         n_jobs_replaced = 0
-        for job in self.jobs:
 
-            # for this job looks into the provided look-up worklaod and search for best match
-            # if this match exceed the treshold, then assign the timeseries to this job
-            job_matches = []
-            for lu_job in look_up_wl.jobs:
-                job_matches.append((lu_job.job_name, SequenceMatcher(lambda x: x in "-_", job.job_name, lu_job.job_name).ratio()) )
+        # apply matching logic (if threshold < 1.0 - so not an exact matching is sought)
+        if threshold < 1.0:
+            for jj, job in enumerate(self.jobs):
 
-            lu_names, lu_matches = zip(*job_matches)
+                if not int(jj % (len(self.jobs) / 100.)):
+                    print "Scanned {}% of source jobs".format(int(jj / float(len(self.jobs)) * 100.))
 
-            best_match_ratio = max(lu_matches)
-            best_match_ratio_idx = lu_matches.index(best_match_ratio)
-            best_match_name = lu_names[best_match_ratio_idx]
+                for lu_job in look_up_wl.jobs:
 
-            # pick up the timesignals of the job for which we got the best match
-            if best_match_ratio > treshold:
-                print "Applying lookup metrics: from {} -----> to {}".format(best_match_name, job.job_name)
-                n_jobs_replaced += 1
+                    # ---------- in case of multiple keys considers tha average matching ratio -----------
+                    current_match = 0
+                    for kw in match_keywords:
+                        if getattr(job, kw) and getattr(lu_job, kw):
+                            current_match += SequenceMatcher(lambda x: x in "-_", str(getattr(job, kw)), str(getattr(lu_job, kw)) ).ratio()
+                    current_match /= float(len(match_keywords))
+                    # -------------------------------------------------------------------------------------
 
-                # check and apply only the non None timesignals..
-                for tsk in job.timesignals.keys():
-                    new_ts = next(job for job in look_up_wl.jobs if job.job_name == best_match_name).timesignals[tsk]
-                    if new_ts:
-                        job.timesignals[tsk] = new_ts
+                    if current_match >= threshold:
+                        n_jobs_replaced += 1
+                        for tsk in job.timesignals.keys():
+                            if not job.timesignals[tsk]:
+                                job.timesignals[tsk] = lu_job.timesignals[tsk]
+
+        # compare directly (much faster..)
+        elif threshold == 1:
+            for jj, job in enumerate(self.jobs):
+
+                if not int(jj % (len(self.jobs) / 100.)):
+                    print "Scanned {}% of source jobs".format(int(jj / float(len(self.jobs)) * 100.))
+
+                for lu_job in look_up_wl.jobs:
+
+                    if all(getattr(job, kw) == getattr(lu_job, kw) for kw in match_keywords):
+                        n_jobs_replaced += 1
+                        for tsk in job.timesignals.keys():
+                            if not job.timesignals[tsk]:
+                                job.timesignals[tsk] = lu_job.timesignals[tsk]
+        else:
+            raise ConfigurationError("matching threshold should be in [0,1], provided {} instead".format(threshold))
 
         return n_jobs_replaced
-

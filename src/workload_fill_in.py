@@ -37,13 +37,22 @@ class WorkloadFiller(object):
         n_job_matched = 0
         n_destination_jobs = 0
 
-        for i_match in match_list:
-            for wl_source_tag in i_match['source_workloads']:
+        # loop over all the match by keyword entries (there could be more than one..)
+        for match_config in match_list:
+            for wl_source_tag in match_config['source_workloads']:
+
                 wl_source = next(wl for wl in self.workloads if wl.tag == wl_source_tag)
-                for wl_dest_tag in i_match['apply_to']:
+
+                for wl_dest_tag in match_config['apply_to']:
+
                     wl_dest = next(wl for wl in self.workloads if wl.tag == wl_dest_tag)
                     n_destination_jobs += len(wl_dest.jobs)
-                    n_job_matched += wl_dest.apply_lookup_table(wl_source, i_match['similarity_threshold'])
+
+                    n_job_matched += wl_dest.apply_lookup_table(wl_source,
+                                                                match_config['similarity_threshold'],
+                                                                match_config['priority'],
+                                                                match_config['keywords'],
+                                                                )
 
         print_colour("white", "jobs matched/destination jobs = [{}/{}]".format(n_job_matched, n_destination_jobs))
 
