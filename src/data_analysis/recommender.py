@@ -18,6 +18,7 @@ class Recommender(object):
         self.item_simil_mat = None
         self.input_jobs_matrix = None
         self.n_ts_bins = None
+        self.col_idxs = None
 
     def train_model(self, input_jobs=None, train_test_ratio=0.8, n_ts_bins=1):
         """
@@ -34,6 +35,7 @@ class Recommender(object):
 
         print_colour("green", "Training recommender system..")
 
+        # self.input_jobs_matrix, self.col_idxs = jobs_to_matrix(input_jobs, n_ts_bins=self.n_ts_bins)
         self.input_jobs_matrix = jobs_to_matrix(input_jobs, n_ts_bins=self.n_ts_bins)
 
         # item-item similarity matrix (metrics only)
@@ -45,13 +47,10 @@ class Recommender(object):
         # print "recomm_sys.input_jobs_matrix", self.input_jobs_matrix
         # print "self.item_max_train :", self.item_max_train
 
-    def apply_model_to(self, jobs_to_fill=None):
+    def apply_model_to(self, jobs_to_fill, priority):
         """
         Apply recommender system to accounting jobs..
         """
-
-        if not jobs_to_fill:
-            raise ValueError("jobs_to_fill not set")
 
         if not isinstance(jobs_to_fill, list):
             raise ValueError("jobs_to_fill not a list")
@@ -67,6 +66,14 @@ class Recommender(object):
                                np.array([np.abs(self.item_simil_mat).sum(axis=1)])
         item_prediction = item_prediction_norm * self.item_max_train
 
-        filled_jobs = apply_matrix_to_jobs(jobs_to_fill, item_prediction)
+        # filled_jobs = apply_matrix_to_jobs(jobs_to_fill,
+        #                                    item_prediction,
+        #                                    col_idxs,
+        #                                    self.n_ts_bins,
+        #                                    priority)
+
+        filled_jobs = apply_matrix_to_jobs(jobs_to_fill,
+                                           item_prediction,
+                                           priority)
 
         return filled_jobs

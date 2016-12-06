@@ -23,7 +23,7 @@ class WorkloadFiller(object):
         for def_config in default_list:
             for wl in self.workloads:
                 if wl.tag in def_config['apply_to']:
-                    wl.apply_default_metrics(def_config['metrics'], self.functions_config)
+                    wl.apply_default_metrics(def_config, self.functions_config)
 
     def match_by_keyword(self):
         """
@@ -70,5 +70,5 @@ class WorkloadFiller(object):
             for wl_name in rs_config['apply_to']:
                 print_colour("green", "Applying recommender system on workload: {}".format(wl_name))
                 wl_dest = next(wl for wl in self.workloads if wl.tag == wl_name)
-                wl_dest.apply_recommender_system(rs_config['n_bins'])
+                wl_dest.apply_recommender_system(rs_config)
 

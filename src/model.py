@@ -102,9 +102,10 @@ class KronosModel(object):
         """
         print_colour("green", "Checking all jobs before classification..")
 
-        for wl in self.workloads:
-            for job in wl.jobs:
-                job.check_job()
+        # check only the jobs to be used for classification..
+        for wl_name in self.config_classification['apply_to']:
+            wl = next(wl for wl in self.workloads if wl.tag == wl_name)
+            wl.check_jobs()
 
     def _apply_clustering(self, jobs):
         """
@@ -135,6 +136,7 @@ class KronosModel(object):
             wl_jobs.extend(wl.jobs)
 
             # Apply clustering
+            print "applying clustering on {}".format(wl_entry)
             clusters_matrix, clusters_labels = self._apply_clustering(wl_jobs)
 
             self.clusters.append({

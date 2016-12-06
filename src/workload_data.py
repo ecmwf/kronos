@@ -98,30 +98,40 @@ class WorkloadData(object):
         """
         print_colour('green', 'Applying default values on workload: {}'.format(self.tag))
 
+        metrics_dict = defaults_dict['metrics']
         np.random.seed(0)
         for job in self.jobs:
             for ts_name in signal_types.keys():
 
-                # append defaults only if the time-series is missing..
+                # go-ahead only if the time-series is missing or priority is less that user key
+                substitute = False
                 if not job.timesignals[ts_name]:
+                    substitute = True
+                elif job.timesignals[ts_name].priority <= defaults_dict['priority']:
+                    substitute = True
+                else:
+                    pass
+
+                if substitute:
 
                     # if the entry is a list, generate the random number in [min, max]
-                    if isinstance(defaults_dict[ts_name], list):
+                    if isinstance(metrics_dict[ts_name], list):
                         # generate a random number between provided min and max values
-                        y_min = defaults_dict[ts_name][0]
-                        y_max = defaults_dict[ts_name][1]
+                        y_min = metrics_dict[ts_name][0]
+                        y_max = metrics_dict[ts_name][1]
                         random_y_value = y_min + np.random.rand() * (y_max - y_min)
                         job.timesignals[ts_name] = TimeSignal.from_values(name=ts_name,
                                                                           xvals=0.,
                                                                           yvals=float(random_y_value),
+                                                                          priority=defaults_dict['priority']
                                                                           )
-                    elif isinstance(defaults_dict[ts_name], dict):
+                    elif isinstance(metrics_dict[ts_name], dict):
                         # this entry is specified through a function (name and scaling)
 
                         # find required function configuration by name
-                        ff_config = [ff for ff in functions_config if ff["name"] == defaults_dict[ts_name]['function']]
+                        ff_config = [ff for ff in functions_config if ff["name"] == metrics_dict[ts_name]['function']]
                         if len(ff_config) > 1:
-                            raise ConfigurationError("Error: multiple function have been named {}!".format(defaults_dict[ts_name]))
+                            raise ConfigurationError("Error: multiple function have been named {}!".format(metrics_dict[ts_name]))
                         else:
                             ff_config = ff_config[0]
 
@@ -129,11 +139,12 @@ class WorkloadData(object):
 
                         # rescale x and y according to job duration and scaling factor
                         x_vec = x_vec_norm * job.duration
-                        y_vec = y_vec_norm * defaults_dict[ts_name]['scaling']
+                        y_vec = y_vec_norm * metrics_dict[ts_name]['scaling']
 
                         job.timesignals[ts_name] = TimeSignal.from_values(name=ts_name,
                                                                           xvals=x_vec,
                                                                           yvals=y_vec,
+                                                                          priority=defaults_dict['priority']
                                                                           )
                     else:
                         raise ConfigurationError('fill in "metrics" entry should be either a list or dictionary')
@@ -176,7 +187,7 @@ class WorkloadData(object):
                     if current_match >= threshold:
                         n_jobs_replaced += 1
                         for tsk in job.timesignals.keys():
-                            if not job.timesignals[tsk]:
+                            if job.timesignals[tsk].priority <= priority:
                                 job.timesignals[tsk] = lu_job.timesignals[tsk]
 
         # compare directly (much faster..)
@@ -191,19 +202,27 @@ class WorkloadData(object):
                     if all(getattr(job, kw) == getattr(lu_job, kw) for kw in match_keywords):
                         n_jobs_replaced += 1
                         for tsk in job.timesignals.keys():
+
                             if not job.timesignals[tsk]:
                                 job.timesignals[tsk] = lu_job.timesignals[tsk]
+                            elif job.timesignals[tsk].priority <= priority:
+                                job.timesignals[tsk] = lu_job.timesignals[tsk]
+                            else:
+                                pass
         else:
             raise ConfigurationError("matching threshold should be in [0,1], provided {} instead".format(threshold))
 
         return n_jobs_replaced
 
-    def apply_recommender_system(self, n_bins):
+    def apply_recommender_system(self, rs_config):
         """
         Apply a recommender system technique to the jobs of this workload
-        :param n_bins:
+        :param rs_config:
         :return:
         """
+
+        n_bins = rs_config['n_bins']
+        priority = rs_config['priority']
 
         # uses a recommender model
         recomm_sys = recommender.Recommender()
@@ -212,4 +231,13 @@ class WorkloadData(object):
         recomm_sys.train_model(self.jobs, n_ts_bins=n_bins)
 
         # re-apply it on the jobs
-        self.jobs = recomm_sys.apply_model_to(self.jobs)
+        self.jobs = recomm_sys.apply_model_to(self.jobs, priority)
+
+    def check_jobs(self):
+        """
+        Check all jobs of this workload (to be used just before classification..)
+        :return:
+        """
+
+        for job in self.jobs:
+            job.check_job()
