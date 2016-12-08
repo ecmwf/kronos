@@ -162,6 +162,7 @@ class AllineaDataSet(IngestedDataSet):
         # The created times are all in seconds since an arbitrary reference, so we want to get
         # them relative to a zero-time
         self.global_start_time = min((j.time_created for j in self.joblist))
+        self.json_label_map = kwargs.get('json_label_map', None)
 
     def model_jobs(self):
         for job in self.joblist:
@@ -178,12 +179,12 @@ class AllineaDataSet(IngestedDataSet):
                 ncpus=job.ncpus,
                 nnodes=job.nnodes,
                 stdout=job.stdout,
-                label=None,
+                label=self.json_label_map[os.path.basename(job.jobname)] if self.json_label_map else None,
                 timesignals=job.timesignals,
             )
 
 
-def ingest_allinea_profiles(path, jobs_n_bins=None, list_json_files=None):
+def ingest_allinea_profiles(path, jobs_n_bins=None, list_json_files=None, json_label_map=None):
     """
     Does what it says on the tin.
     """
@@ -192,12 +193,16 @@ def ingest_allinea_profiles(path, jobs_n_bins=None, list_json_files=None):
 
     if not list_json_files:
         if os.path.isdir(path):
-            jobs = read_allinea_logs(path, jobs_n_bins=jobs_n_bins)
+            jobs = read_allinea_logs(path,
+                                     jobs_n_bins=jobs_n_bins)
         else:
-            jobs = [read_allinea_log(path, jobs_n_bins=jobs_n_bins)]
+            jobs = [read_allinea_log(path,
+                                     jobs_n_bins=jobs_n_bins)]
     else:
-        jobs = read_allinea_logs(path, jobs_n_bins=jobs_n_bins, list_json_files=list_json_files)
+        jobs = read_allinea_logs(path,
+                                 jobs_n_bins=jobs_n_bins,
+                                 list_json_files=list_json_files)
 
-    return AllineaDataSet(jobs)
+    return AllineaDataSet(jobs, json_label_map=json_label_map)
 
 

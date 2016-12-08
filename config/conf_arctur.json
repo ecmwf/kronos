@@ -96,7 +96,7 @@
             "n_iterations": 1,
             "hpc_user": "maab",
             "hpc_host": "nebula",
-            "tag": "feedback_run_test",
+            "tag": "arctur_run",
             "hpc_dir_input": "/perm/ma/maab/test_executor/input",
             "hpc_dir_output": "/perm/ma/maab/test_executor/output",
             "local_map2json_file": "/home/ma/maab/workspace/Allinea_examples_files/NEXTGenIO_buiilds/map2json/map2json.py",

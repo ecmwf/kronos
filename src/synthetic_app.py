@@ -7,9 +7,6 @@ import pickle
 import app_kernels
 from kronos_tools.print_colour import print_colour
 from ksf_handler import KSFFileHandler
-from time_signal import TimeSignal
-from time_signal import signal_types
-import numpy as np
 
 
 class SyntheticWorkload(object):
@@ -139,17 +136,17 @@ class SyntheticApp(ModelJob):
         # this additional "scaling factor" is generated during the workload "tuning" phase
         # and acts on the time series when the synthetic apps are exported
         self.tuning_factor = None
-        self.set_ts_defaults()
+        # self.set_ts_defaults()
 
-    def set_ts_defaults(self):
-        """ Set default values for time-series that are not included
-        in the model job from which this synthetic app has been derived """
-        if self.timesignals:
-            for ts_name in signal_types:
-                if self.timesignals[ts_name] is None:
-                    ts = TimeSignal(ts_name)
-                    ts = ts.from_values(ts_name, np.zeros(10), np.zeros(10), base_signal_name=None, durations=np.zeros(10)+0.01)
-                    self.timesignals[ts_name] = ts
+    # def set_ts_defaults(self):
+    #     """ Set default values for time-series that are not included
+    #     in the model job from which this synthetic app has been derived """
+    #     if self.timesignals:
+    #         for ts_name in signal_types:
+    #             if self.timesignals[ts_name] is None:
+    #                 ts = TimeSignal(ts_name)
+    #                 ts = ts.from_values(ts_name, np.zeros(10), np.zeros(10), base_signal_name=None, durations=np.zeros(10)+0.01)
+    #                 self.timesignals[ts_name] = ts
 
     def export(self, filename, n_bins, job_entry_only=False):
         """
@@ -163,7 +160,8 @@ class SyntheticApp(ModelJob):
             'start_delay': self.time_start,
             'frames': frames,
             'metadata': {
-                'job_name': self.job_name
+                'job_name': self.job_name,
+                'workload_name': self.label,
             }
         }
 
@@ -175,15 +173,22 @@ class SyntheticApp(ModelJob):
 
     def frame_data(self, n_bins):
 
-        # generate kernes from non-null timesignals only..
-        self.set_ts_defaults()
+        # # generate kernes from non-null timesignals only..
+        # self.set_ts_defaults()
 
         # nonnull_timesignals = {k: v for k, v in self.timesignals.items() if (v.xvalues is not None) and (v.yvalues is not None)}
         # print nonnull_timesignals
 
         # (re-)digitize all the time series
+        # np.set_printoptions(edgeitems=3,
+        #                     linewidth=200,
+        #                     precision=1,
+        #                     formatter=None)
+        # print '-------------------------------------------'
         for ts_name, ts in self.timesignals.iteritems():
+            # print 'ts yvalues before {}'.format(ts_name), self.timesignals[ts_name].yvalues
             ts.digitize(n_bins)
+            # print 'ts yvalues AFTER {}'.format(ts_name), self.timesignals[ts_name].yvalues_bins
 
         kernels = []
         for kernel_type in app_kernels.available_kernels:
@@ -205,6 +210,9 @@ class SyntheticApp(ModelJob):
             [kern for kern in frame if not kern.get("empty", False)]
             for frame in frames
         ]
+
+        # then filters out empty frames as well
+        frames = [frame for frame in frames if frame]
 
         return frames
 

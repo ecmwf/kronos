@@ -54,7 +54,7 @@ class Kronos(object):
         Main execution routine (default if no specific plugin is requested)
         """
         print "\nRun model...\n----------------------------------"
-        kronos_runner = runner.factory(self.config.runner['type'], self.config)
+        kronos_runner = runner.factory(self.config.run['type'], self.config)
         kronos_runner.run()
 
     def postprocess(self, run_dir):

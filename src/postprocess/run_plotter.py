@@ -1,11 +1,14 @@
 import os
 import numpy as np
 import matplotlib.pyplot as plt
+from matplotlib.pyplot import cm
+# from collections import defaultdict
 
 from plot_handler import PlotHandler
 from postprocess.run_data import RunData
 from time_signal import signal_types
 from kronos_tools.print_colour import print_colour
+from workload_data import WorkloadData
 
 
 class RunPlotter(object):
@@ -37,6 +40,17 @@ class RunPlotter(object):
             kpf_data = self.run_data.get_kpf_data(iteration=i_iter)
             kpf_workload = kpf_data[0]
 
+            labels_list = set(j.label for j in kpf_workload.jobs)
+            print 'labels_list', labels_list
+            labels_jobs_dict = {}
+            for lab in labels_list:
+                for j in kpf_workload.jobs:
+                    if j.label == lab:
+                        if labels_jobs_dict.get(lab,None):
+                            labels_jobs_dict[lab].append(j)
+                        else:
+                            labels_jobs_dict[lab] = [j]
+
             # print self.run_data.get_kpf_data(iteration=0)[0].total_metrics_sum_dict()
 
             # there should be only one workload in the kpf file
@@ -50,78 +64,115 @@ class RunPlotter(object):
             ksf_data = self.run_data.get_ksf_data(iteration=i_iter)
             # ----------------------------------------------------
 
+            # --------------- global properties of the whole workload --------------------
             total_exe_time = max(sa.time_start+sa.duration for sa in kpf_workload.jobs) - \
                              min(sa.time_start for sa in kpf_workload.jobs)
+
+            global_t0 = kpf_workload.min_time_start
+            # ----------------------------------------------------------------------------
 
             # queuing times of jobs..
             queuing_times_vec = [sa['start_delay'] for sa in ksf_data.synth_app_json_data]
             queuing_times_vec.sort()
 
-            # calculate running jobs in time..
-            start_time_vec = np.asarray([sa.time_start for sa in kpf_workload.jobs])
-            start_time_vec = start_time_vec.reshape(start_time_vec.shape[0], 1)
-            plus_vec = np.hstack((start_time_vec, np.ones(start_time_vec.shape)))
-
-            end_time_vec = np.asarray([sa.time_start+sa.duration for sa in kpf_workload.jobs])
-            end_time_vec = end_time_vec.reshape(end_time_vec.shape[0], 1)
-            minus_vec = np.hstack((end_time_vec, -1 * np.ones(end_time_vec.shape)))
-
-            all_vec = np.vstack((plus_vec, minus_vec))
-            all_vec_sort = all_vec[all_vec[:, 0].argsort()]
-            n_running_vec = np.cumsum(all_vec_sort[:, 1])
-
-            # calculate used procs in time..
-            proc_time_vec = np.asarray([sa.ncpus for sa in kpf_workload.jobs])
-            proc_time_vec = proc_time_vec.reshape(proc_time_vec.shape[0], 1)
-            plus_vec = np.hstack((start_time_vec, proc_time_vec))
-            minus_vec = np.hstack((end_time_vec, -1 * proc_time_vec))
-
-            all_vec = np.vstack((plus_vec, minus_vec))
-            all_vec_sort = all_vec[all_vec[:, 0].argsort()]
-            nproc_running_vec = np.cumsum(all_vec_sort[:, 1])
+            # colors for plots
+            color = iter(cm.rainbow(np.linspace(0, 1, len(labels_list))))
 
             # ---------- make plot ----------
-            n_plots = len(kpf_workload.total_metrics_timesignals().keys()) + 1
-            fig_size = (16, 3*n_plots)
+            n_plots = len(kpf_workload.total_metrics_timesignals.keys()) + 3
+            fig_size = (16, 3 * n_plots)
             plt.figure(self.plot_handler.get_fig_handle_ID(), figsize=fig_size)
             id_plot = 0
 
-            # initial plot with the running jobs/processes
-            id_plot += 1
-            plt.subplot(n_plots, 1, id_plot)
-            plt.subplots_adjust(left=0.2, right=0.8, top=0.9, bottom=0.1)
-            plt.plot(queuing_times_vec + [total_exe_time],
-                     range(len(queuing_times_vec)) + [len(queuing_times_vec) - 1],
-                     color='r',
-                     label='queued jobs')
-            plt.plot(all_vec_sort[:, 0] - all_vec_sort[0, 0],
-                     n_running_vec,
-                     color='b',
-                     label='running jobs')
-            plt.plot(all_vec_sort[:, 0] - all_vec_sort[0, 0],
-                     nproc_running_vec,
-                     color='m',
-                     label='running processors')
-            plt.xlabel('time')
-            plt.ylabel('jobs')
-            plt.legend(loc='center left', bbox_to_anchor=(1, 0.5))
-            plt.title('Time profiles of iteration: {}'.format(i_iter))
-            plt.legend(loc='center left', bbox_to_anchor=(1, 0.5))
+            for ll, label in enumerate(labels_jobs_dict.keys()):
 
-            # plot of the total timesignals
-            for ts_name in kpf_workload.total_metrics_timesignals():
+                label_jobs = labels_jobs_dict[label]
+                kpf_workload = WorkloadData(jobs=label_jobs,
+                                            tag=label)
 
-                t0 = kpf_workload.total_metrics_timesignals()[ts_name].xvalues[0]
+                jobs_start = [j.time_start for j in kpf_workload.jobs]
+                print "------------ label: {}".format(kpf_workload.tag)
+                print "jobs start time", jobs_start
+
+                line_color = next(color)
+
+                # calculate running jobs in time..
+                start_time_vec = np.asarray([sa.time_start for sa in kpf_workload.jobs])
+                start_time_vec = start_time_vec.reshape(start_time_vec.shape[0], 1)
+                plus_vec = np.hstack((start_time_vec, np.ones(start_time_vec.shape)))
+
+                end_time_vec = np.asarray([sa.time_start+sa.duration for sa in kpf_workload.jobs])
+                end_time_vec = end_time_vec.reshape(end_time_vec.shape[0], 1)
+                minus_vec = np.hstack((end_time_vec, -1 * np.ones(end_time_vec.shape)))
+
+                all_vec = np.vstack((plus_vec, minus_vec))
+                all_vec_sort = all_vec[all_vec[:, 0].argsort()]
+                n_running_vec = np.cumsum(all_vec_sort[:, 1])
+
+                # calculate used procs in time..
+                proc_time_vec = np.asarray([sa.ncpus for sa in kpf_workload.jobs])
+                proc_time_vec = proc_time_vec.reshape(proc_time_vec.shape[0], 1)
+                plus_vec = np.hstack((start_time_vec, proc_time_vec))
+                minus_vec = np.hstack((end_time_vec, -1 * proc_time_vec))
+
+                all_vec = np.vstack((plus_vec, minus_vec))
+                all_vec_sort = all_vec[all_vec[:, 0].argsort()]
+                nproc_running_vec = np.cumsum(all_vec_sort[:, 1])
+
+                print 'start_time_vec: {}'.format(start_time_vec)
+                print 'n_running_vec: {}'.format(n_running_vec)
+                print 'nproc_running_vec: {}'.format(nproc_running_vec)
+                print "all_vec_sort: {}".format(all_vec_sort)
+
+                # initial plot with the running jobs/processes
+                id_plot = 1
+                plt.subplot(n_plots, 1, id_plot)
+                plt.subplots_adjust(left=0.2, right=0.8, top=0.9, bottom=0.1)
+                plt.plot(queuing_times_vec + [total_exe_time],
+                         range(len(queuing_times_vec)) + [len(queuing_times_vec) - 1],
+                         color=line_color,
+                         label=label)
+                plt.ylabel('queued jobs')
+                plt.legend(loc='center left', bbox_to_anchor=(1, 0.5))
 
                 id_plot += 1
                 plt.subplot(n_plots, 1, id_plot)
                 plt.subplots_adjust(left=0.2, right=0.8, top=0.9, bottom=0.1)
-                plt.plot(kpf_workload.total_metrics_timesignals()[ts_name].xvalues - t0,
-                         kpf_workload.total_metrics_timesignals()[ts_name].yvalues,
-                         color='b',
-                         label=ts_name)
+                plt.plot(all_vec_sort[:, 0] - all_vec_sort[0, 0],
+                         n_running_vec,
+                         color=line_color,
+                         label=label)
+                plt.ylabel('running jobs')
+
+                id_plot += 1
+                plt.subplot(n_plots, 1, id_plot)
+                plt.subplots_adjust(left=0.2, right=0.8, top=0.9, bottom=0.1)
+                plt.plot(all_vec_sort[:, 0] - all_vec_sort[0, 0],
+                         nproc_running_vec,
+                         color=line_color,
+                         label=label)
+                plt.ylabel('running processors')
+
                 plt.xlabel('time')
-                plt.ylabel(ts_name)
+                plt.ylabel('jobs')
+                plt.title('Time profiles of iteration: {}'.format(i_iter))
+
+                # plot of the total time-signals
+                total_metrics = kpf_workload.total_metrics_timesignals
+                for tt, ts_name in enumerate(total_metrics):
+
+                    id_plot += 1
+                    plt.subplot(n_plots, 1, id_plot)
+                    plt.subplots_adjust(left=0.2, right=0.8, top=0.9, bottom=0.1)
+                    plt.plot(kpf_workload.total_metrics_timesignals[ts_name].xvalues - global_t0,
+                             kpf_workload.total_metrics_timesignals[ts_name].yvalues,
+                             color=line_color,
+                             label=label)
+
+                    plt.ylabel(ts_name)
+
+                    if tt == len(total_metrics)-1:
+                        plt.xlabel('time')
 
             plt.savefig(os.path.join(self.run_dir, 'time_profiles_iter-{}.png'.format(i_iter)))
             plt.close()
@@ -144,7 +195,7 @@ class RunPlotter(object):
                     color='red',
                     label='Requested metrics')
             plt.bar(xx + width / 2.0,
-                    np.asarray([kpf_workload.total_metrics_sum_dict()[k] for k in signal_types.keys()]),
+                    np.asarray([kpf_workload.total_metrics_sum_dict[k] for k in signal_types.keys()]),
                     width / 2.0,
                     color='blue',
                     label='Run metrics')
@@ -165,7 +216,7 @@ class RunPlotter(object):
             xx = np.arange(len(signal_types.keys()))
             plt.bar(xx + width / 4.0,
                     np.abs(np.asarray([ksf_unscaled_sums_0[k] for k in signal_types.keys()]) -
-                           np.asarray([kpf_workload.total_metrics_sum_dict()[k] for k in signal_types.keys()])) /
+                           np.asarray([kpf_workload.total_metrics_sum_dict[k] for k in signal_types.keys()])) /
                     np.asarray([ksf_unscaled_sums_0[k] for k in signal_types.keys()]),
                     width / 2.0,
                     color='green',

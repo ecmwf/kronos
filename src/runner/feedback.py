@@ -1,3 +1,4 @@
+import json
 import os
 import pprint
 import subprocess
@@ -24,26 +25,42 @@ class FeedbackLoopRunner(BaseRunner):
 
     """ This class implments a Feedback loop refinement of the iows model """
 
+    required_fields = [
+        'type',
+        'state',
+        'n_iterations',
+        'hpc_user',
+        'hpc_host',
+        'tag',
+        'hpc_dir_input',
+        'hpc_dir_output',
+        'local_map2json_file',
+        'updatable_metrics',
+    ]
+
     # def __init__(self, config, sa_list=None, sc_dict_init=None, reduce_flag=None):
     def __init__(self, config):
 
         # provide defaults if necessary
         self.config = config
+
         self.type = None
         self.state = None
-        self.tag = None
+        self.n_iterations = None
+
         self.hpc_user = None
         self.hpc_host = None
+        self.tag = None
 
         self.hpc_dir_input = None
         self.hpc_dir_output = None
         self.local_map2json_file = None
 
-        self.n_iterations = None
-        self.log_file = None
-
-        self.synthetic_workload = None
         self.updatable_metrics = None
+        # self.controls = None
+
+        # self.log_file = None
+        self.synthetic_workload = None
         self.ksf_filename = self.config.ksf_filename
 
         # Then set the general configuration into the parent class..
@@ -51,15 +68,14 @@ class FeedbackLoopRunner(BaseRunner):
 
     def check_config(self):
         """
-        check if the user supplied keys are consistent with this runner
+        Check that all the required fields are passed correctly
         :return:
         """
 
-        # check simple-runner configuration and pull user options..
-        for k, v in self.config.runner.items():
-            if not hasattr(self, k):
-                raise ConfigurationError("Unexpected simple-runner keyword provided - {}:{}".format(k, v))
-            setattr(self, k, v)
+        for req_item in self.required_fields:
+            if req_item not in self.config.run.keys():
+                raise ConfigurationError("{} requires to specify {}".format(self.__class__.__name__, req_item))
+            setattr(self, req_item, self.config.run[req_item])
 
     def run(self):
         """
@@ -69,15 +85,15 @@ class FeedbackLoopRunner(BaseRunner):
         None
         """
 
-        if self.config.runner['state'] == "enabled":
+        if self.config.run['state'] == "enabled":
 
             user_at_host = self.hpc_user + '@' + self.hpc_host
             time_now_str = datetime.datetime.strftime(datetime.datetime.now(), '%Y-%m-%d_%H-%M-%S')
             dir_run_results = os.path.join(self.config.dir_output,
-                                           self.config.model['name']+'_run_{}'.format(time_now_str))
+                                           self.tag+'_run_{}'.format(time_now_str))
             log_file = os.path.join(dir_run_results, 'log_file.txt')
 
-            job_runner = run_control.factory(self.config.controls['hpc_job_sched'], self.config)
+            job_runner = run_control.factory(self.config.run['hpc_job_sched'], self.config)
 
             # handles the ksf file
             ksf_data = KSFFileHandler().from_ksf_file(os.path.join(self.config.dir_output, self.ksf_filename))
@@ -156,14 +172,19 @@ class FeedbackLoopRunner(BaseRunner):
                 if not list_map_files:
                     raise ValueError("No profiler files have been found after the run!")
 
-                for (ff, file_name) in enumerate(list_map_files):
+                for file_name in list_map_files:
                     file_name_ok = file_name.replace("\n", "")
+                    file_id = file_name_ok.split('/')[-2]
+
                     subprocess.Popen(["scp", user_at_host + ":" + file_name_ok,
-                                      os.path.join(dir_run_iter_map, "job-"+str(ff)+".map")]).wait()
+                                      os.path.join(dir_run_iter_map, file_id+".map")]).wait()
+
+                    subprocess.Popen(["scp", user_at_host + ":" + os.path.join(os.path.dirname(file_name_ok), 'input.json'),
+                                      os.path.join(dir_run_iter_map, file_id+"_input.json")]).wait()
 
                     time.sleep(2.0)
                     subprocess.Popen(["python", self.local_map2json_file,
-                                      os.path.join(dir_run_iter_map, "job-"+str(ff)+".map")]).wait()
+                                      os.path.join(dir_run_iter_map, file_id+".map")]).wait()
                 # ------------------------------------------------------------------------------------
 
                 # ------------------ Finally rename the HPC output folder ----------------------------
@@ -175,10 +196,28 @@ class FeedbackLoopRunner(BaseRunner):
                 time.sleep(5.0)
 
                 # ---------- Process the run jsons ----------
-                # list of run json in the run "iteration" folder
-                fname_list = [file for file in os.listdir(dir_run_iter_map) if file.endswith('.json')]
+                # list of run json in the run "iteration" folder (and dictionary file->workload_label)
+                fname_list = []
+                dict_name_label = {}
+                for file_name in os.listdir(dir_run_iter_map):
+                    if file_name.endswith('.json') and "_input" not in file_name:
+                        fname_list.append(file_name)
+
+                        print "file_name", file_name
+
+                        # read the corresponding json of the input and read the label
+                        with open(os.path.join(dir_run_iter_map, file_name.split('.')[0]+'_input.json'), 'r') as f:
+                            json_data = json.load(f)
+
+                        label = json_data['metadata']['workload_name']
+                        dict_name_label[file_name] = label
+
+                print 'dict_name_label', dict_name_label
+
                 fname_list.sort()
-                job_map_dataset = profiler_reader.ingest_allinea_profiles(dir_run_iter_map, list_json_files=fname_list)
+                job_map_dataset = profiler_reader.ingest_allinea_profiles(dir_run_iter_map,
+                                                                          list_json_files=fname_list,
+                                                                          json_label_map=dict_name_label)
 
                 # the data from the datasets are loaded into a list of model jobs
                 map_workload = WorkloadData(jobs=[job for job in job_map_dataset.model_jobs()],
@@ -189,7 +228,7 @@ class FeedbackLoopRunner(BaseRunner):
                 # ///////////////////////////////////////////////////////////////////////////////////////
 
                 # append dictionaries to history structures..
-                metrics_sum_dict = map_workload.total_metrics_sum_dict()
+                metrics_sum_dict = map_workload.total_metrics_sum_dict
                 metrics_sums_history.append(metrics_sum_dict)
                 scaling_factors_history.append(tuning_factors)
 
@@ -221,7 +260,7 @@ class FeedbackLoopRunner(BaseRunner):
 
                 print os.path.join(self.config.dir_output, self.ksf_filename)
                 ksf_data.export(os.path.join(self.config.dir_output, self.ksf_filename),
-                                self.config.model['model_pipeline']['sa_n_frames'])
+                                self.config.model['generator']['sa_n_frames'])
 
                 # write log file
                 write_log_file(log_file, metrics_sum_dict, tuning_factors)
