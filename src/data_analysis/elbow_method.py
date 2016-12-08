@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 from plot_handler import PlotHandler
 
 
-def find_n_clusters(avg_d_in_clust):
+def find_n_clusters(avg_d_in_clust, user_does_not_check):
     """
     Find best number of clusters by elbow method
     :param avg_d_in_clust: average in-cluster distance vector
@@ -57,7 +57,8 @@ def find_n_clusters(avg_d_in_clust):
     plt.plot(pp[:, 0], pp[:, 1], 'm--')
     # ------------------------------------------------------------------
 
-    plt.show()
+    if not user_does_not_check:
+        plt.show()
 
     return int(np.ceil(nc_x))
 
