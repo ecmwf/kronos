@@ -17,6 +17,7 @@ class ClusteringKmeans(ClusteringBase):
 
         self.type = None
         self.ok_if_low_rank = None
+        self.user_does_not_check = None
         self.rseed = None
         self.max_iter = None
         self.nc_max = None
@@ -56,7 +57,7 @@ class ClusteringKmeans(ClusteringBase):
             avg_d_in_clust[cc] = np.mean(dist_in_c)
 
         # Calculate best number of clusters by elbow_method
-        n_clusters_optimal = find_n_clusters(avg_d_in_clust)
+        n_clusters_optimal = find_n_clusters(avg_d_in_clust, self.user_does_not_check)
         y_pred = KMeans(n_clusters=n_clusters_optimal,
                         max_iter=self.max_iter,
                         random_state=self.rseed
