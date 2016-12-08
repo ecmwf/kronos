@@ -5,7 +5,7 @@ from exceptions_iows import ModellingError
 from kronos_tools.merge import max_not_none, min_not_none
 from kronos_tools.print_colour import print_colour
 from kronos_tools.time_format import format_seconds
-from time_signal import TimeSignal, signal_types
+from time_signal import TimeSignal
 
 
 class ModelJob(object):
@@ -396,43 +396,3 @@ def concatenate_modeljobs(cat_job_label, job_list):
         timesignals=cat_time_series,
         label=cat_job_label
     )
-
-
-def model_jobs_from_clusters(clusters, start_times_vec, nprocs=2, nnodes=1):
-
-    # re-assign recommended values to background jobs..
-    print_colour("white", "Re-assigning recommended values..")
-    generated_jobs = []
-
-    # vectors of random start-times and cluster indexes in the interval
-    np.random.seed(0)
-    vec_clust_indexes = np.random.randint(clusters.shape[0], size=len(start_times_vec))
-
-    print "generated random num", vec_clust_indexes.shape
-
-    for cc, idx in enumerate(vec_clust_indexes):
-
-        # print "---------1", idx
-        ts_dict = {}
-        row = clusters[idx,:]
-        ts_yvalues = np.split(row, len(signal_types))
-        for tt, ts_vv in enumerate(ts_yvalues):
-            ts_name = signal_types.keys()[tt]
-            ts = TimeSignal(ts_name).from_values(ts_name, np.arange(len(ts_vv)), ts_vv)
-            ts_dict[ts_name] = ts
-
-        # print "---------2", idx
-        job = ModelJob(
-            time_start=start_times_vec[cc],
-            duration=None,
-            ncpus=nprocs,
-            nnodes=nnodes,
-            timesignals=ts_dict,
-            label="job-{}".format(cc)
-        )
-        # print "---------3", idx
-        generated_jobs.append(job)
-
-    print "loop has finished", idx
-
-    return generated_jobs

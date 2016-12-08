@@ -22,10 +22,10 @@ class WorkloadData(object):
         self.jobs = jobs if jobs else None
         self.tag = tag if tag else str(WorkloadData.tag_default+1)
 
-        # workload-level properties
-        self.min_start_time = None
-        self.max_start_time = None
-        self.total_metrics = None
+        # # workload-level properties
+        # self.min_start_time = None
+        # self.max_start_time = None
+        # self.total_metrics = None
 
     def __unicode__(self):
         return "WorkloadData - {} job sets".format(len(self.jobs))
@@ -45,6 +45,7 @@ class WorkloadData(object):
         else:
             self.jobs.append(model_jobs)
 
+    @property
     def total_metrics_sum_dict(self):
         """
         Return a dictionary with the sum of each time signal..
@@ -57,37 +58,39 @@ class WorkloadData(object):
 
         return metrics_sum_dict
 
+    @property
     def total_metrics_timesignals(self):
         """
         Return a dictionary with the total time signal..
         :return:
         """
 
-        self.min_start_time = min([i_job.time_start for i_job in self.jobs])
-        self.max_start_time = max([i_job.time_start for i_job in self.jobs])
-
         # Concatenate all the available time series data for each of the jobs
-        if not self.total_metrics:
-            self.total_metrics = {}
-            for signal_name, signal_details in signal_types.iteritems():
+        total_metrics = {}
+        for signal_name, signal_details in signal_types.iteritems():
 
-                try:
-                    times_vec = np.concatenate([job.timesignals[signal_name].xvalues+job.time_start
-                                                for job in self.jobs if job.timesignals[signal_name] is not None])
+            try:
+                times_vec = np.concatenate([job.timesignals[signal_name].xvalues + job.time_start
+                                            for job in self.jobs if job.timesignals[signal_name] is not None])
 
-                    data_vec = np.concatenate([job.timesignals[signal_name].yvalues
-                                               for job in self.jobs if job.timesignals[signal_name] is not None])
+                data_vec = np.concatenate([job.timesignals[signal_name].yvalues
+                                           for job in self.jobs if job.timesignals[signal_name] is not None])
 
-                    ts = TimeSignal.from_values(signal_name, times_vec, data_vec, base_signal_name=signal_name)
-                    self.total_metrics[signal_name] = ts
+                ts = TimeSignal.from_values(signal_name, times_vec, data_vec, base_signal_name=signal_name)
+                total_metrics[signal_name] = ts
 
-                except ValueError:
-                    print_colour("orange", "No jobs found with time series for {}".format(signal_name))
+            except ValueError:
+                print_colour("orange", "No jobs found with time series for {}".format(signal_name))
 
-            return self.total_metrics
+        return total_metrics
 
-        else:  # if it's already been calculated
-            return self.total_metrics
+    @property
+    def min_time_start(self):
+        return min(j.time_start for j in self.jobs)
+
+    @property
+    def max_time_start(self):
+        return max(j.time_start for j in self.jobs)
 
     def apply_default_metrics(self, defaults_dict, functions_config):
         """
@@ -187,7 +190,7 @@ class WorkloadData(object):
                     if current_match >= threshold:
                         n_jobs_replaced += 1
                         for tsk in job.timesignals.keys():
-                            if job.timesignals[tsk].priority <= priority:
+                            if job.timesignals[tsk].priority <= priority and lu_job.timesignals[tsk]:
                                 job.timesignals[tsk] = lu_job.timesignals[tsk]
 
         # compare directly (much faster..)
@@ -203,9 +206,9 @@ class WorkloadData(object):
                         n_jobs_replaced += 1
                         for tsk in job.timesignals.keys():
 
-                            if not job.timesignals[tsk]:
+                            if not job.timesignals[tsk] and lu_job.timesignals[tsk]:
                                 job.timesignals[tsk] = lu_job.timesignals[tsk]
-                            elif job.timesignals[tsk].priority <= priority:
+                            elif job.timesignals[tsk].priority <= priority and lu_job.timesignals[tsk]:
                                 job.timesignals[tsk] = lu_job.timesignals[tsk]
                             else:
                                 pass
@@ -241,3 +244,43 @@ class WorkloadData(object):
 
         for job in self.jobs:
             job.check_job()
+
+    def split_by_keywords(self, split_config_output):
+
+        # extract configurations for the splitting
+        split_workloads = []
+        for sub_wl_config in split_config_output:
+
+            new_wl_name = sub_wl_config['workload_name']
+            split_attr = sub_wl_config['split_by'][0]
+            kw_include = sub_wl_config['split_by'][1]
+            kw_exclude = sub_wl_config['split_by'][2]
+
+            sub_wl_jobs = []
+            if kw_include and not kw_exclude:
+                for j in self.jobs:
+                    if getattr(j, split_attr):
+                        if all(kw in getattr(j, split_attr) for kw in kw_include):
+                            sub_wl_jobs.append(j)
+
+            elif not kw_include and kw_exclude:
+                for j in self.jobs:
+                    if getattr(j, split_attr):
+                        if not any(kw in getattr(j, split_attr) for kw in kw_exclude):
+                            sub_wl_jobs.append(j)
+
+            elif kw_include and kw_exclude:
+                sub_wl_jobs = [j for j in self.jobs if all(kw in getattr(j, split_attr) for kw in kw_include) and not
+                        any(kw in getattr(j, split_attr) for kw in kw_exclude)]
+
+                for j in self.jobs:
+                    if getattr(j, split_attr):
+                        if all(kw in getattr(j, split_attr) for kw in kw_include) and \
+                                not any(kw in getattr(j, split_attr) for kw in kw_exclude):
+                            sub_wl_jobs.append(j)
+            else:
+                raise ConfigurationError("either included or excluded keywords are needed for splitting a workload")
+
+            split_workloads.append(WorkloadData(jobs=sub_wl_jobs, tag=new_wl_name))
+
+        return split_workloads

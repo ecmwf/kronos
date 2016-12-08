@@ -1,12 +1,11 @@
 import os
-import numpy as np
 
 import data_analysis
 import workload_data
+import generator
 from exceptions_iows import ConfigurationError
 
-from jobs import model_jobs_from_clusters
-from synthetic_app import SyntheticApp, SyntheticWorkload
+from synthetic_app import SyntheticWorkload
 from kronos_tools.print_colour import print_colour
 from config.config import Config
 from workload_fill_in import WorkloadFiller
@@ -54,11 +53,6 @@ class KronosModel(object):
 
         # 1) apply fill-in strategies
         self._apply_workload_fillin()
-
-        # check validity of jobs before doing the actual modelling..
-        # NB: the preliminary phase of workload manipulation (defaults, lookup tables and recommender sys
-        # should have produced a set of "complete" and therefore valid jobs)
-        self._check_jobs()
 
         # 2) apply classification
         self._apply_classification()
@@ -129,19 +123,41 @@ class KronosModel(object):
         :return:
         """
 
+        # Split the workloads if required..
+        if self.config_classification.get('split_workload', None):
+
+            split_config = self.config_classification['split_workload']
+            split_config_output = split_config['output_workloads']
+
+            wl = next(wl for wl in self.workloads if wl.tag == split_config['apply_to'])
+
+            sub_workloads = wl.split_by_keywords(split_config_output)
+
+            # extend the internal workloads with the result of the split operation
+            self.workloads.extend(sub_workloads)
+
+        # check validity of jobs before doing the actual modelling..
+        # NB: the preliminary phase of workload manipulation (defaults, lookup tables and recommender sys
+        # should have produced a set of "complete" and therefore valid jobs)
+        self._check_jobs()
+
         # loop over all the workloads used to create the synthetic workload
-        wl_jobs = []
         for wl_entry in self.config_classification['apply_to']:
             wl = next(wl for wl in self.workloads if wl.tag == wl_entry)
-            wl_jobs.extend(wl.jobs)
+
+            # # check all the jobs in the workload to be used for classification
+            # for jj,job in enumerate(wl.jobs):
+            #     for k, v in job.timesignals.iteritems():
+            #         if v.yvalues.shape[0] > 1:
+            #             print "job: {}, of workload {}, timesignal {}, yvalues {}: ".format(jj, wl.tag, k, v.yvalues)
 
             # Apply clustering
-            print "applying clustering on {}".format(wl_entry)
-            clusters_matrix, clusters_labels = self._apply_clustering(wl_jobs)
+            print "applying clustering on workload: [{}]".format(wl_entry)
+            clusters_matrix, clusters_labels = self._apply_clustering(wl.jobs)
 
             self.clusters.append({
                                   'source-workload': wl_entry,
-                                  'jobs_for_clustering': wl_jobs,
+                                  'jobs_for_clustering': wl.jobs,
                                   'cluster_matrix': clusters_matrix,
                                   'labels': clusters_labels,
                                   })
@@ -152,46 +168,7 @@ class KronosModel(object):
         :return:
         """
 
-        # generate a synthetic workload for each cluster of jobs
-        for cluster in self.clusters:
+        sapps_generator = generator.SyntheticWorkloadGenerator(self.config_generator, self.clusters)
+        self.modelled_sa_jobs = sapps_generator.generate_synthetic_apps()
 
-            # calculate the submit rate from the selected workload
-            submit_times = [j.time_queued for j in cluster['jobs_for_clustering']]
-            real_submit_rate = float(len(submit_times)) / (max(submit_times) - min(submit_times))
-            requested_submit_rate = real_submit_rate * self.config_generator['submit_rate_factor']
-            n_modelled_jobs = int(requested_submit_rate * self.config_generator['total_submit_interval'])
-
-            if not n_modelled_jobs:
-                print_colour("orange", "Low submit rate (real={} jobs/sec, requested={} jobs/sec), => number of jobs={}"
-                             .format(real_submit_rate, requested_submit_rate, n_modelled_jobs))
-
-                # set n jobs to one! (the very minimum)
-                n_modelled_jobs = 1
-
-            start_times_vec = np.random.rand(n_modelled_jobs) * self.config_generator['total_submit_interval']
-
-            print "real_submit_rate", real_submit_rate
-            print "n_jobs", n_modelled_jobs
-
-            # create model jobs from clusters and time rates..
-            modelled_jobs = model_jobs_from_clusters(cluster['cluster_matrix'],
-                                                     start_times_vec,
-                                                     nprocs=self.config_generator['sa_n_proc'],
-                                                     nnodes=self.config_generator['sa_n_nodes']
-                                                     )
-
-            # create synthetic workload from modelled jobs
-            # TODO: append workload tag to the synthetic app here!
-            modelled_sa_jobs = []
-            for cc, job in enumerate(modelled_jobs):
-                app = SyntheticApp(
-                    job_name="RS-appID-{}".format(cc),
-                    time_signals=job.timesignals,
-                    ncpus=self.config_generator['sa_n_proc'],
-                    nnodes=self.config_generator['sa_n_nodes'],
-                    time_start=job.time_start
-                )
-
-                modelled_sa_jobs.append(app)
-
-            self.modelled_sa_jobs.extend(modelled_sa_jobs)
+        print self.modelled_sa_jobs
