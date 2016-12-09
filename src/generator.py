@@ -85,27 +85,20 @@ class SyntheticWorkloadGenerator(object):
             vec_clust_indexes = np.random.randint(cluster['cluster_matrix'].shape[0], size=n_modelled_jobs)
 
             # find the PDF of jobs start times
-            bins = np.linspace(min(start_times), max(start_times), 50)
+            bins = np.linspace(0, self.config_generator['total_submit_interval'], 50)
 
-            # print 'n_modelled_jobs', n_modelled_jobs
-            # print 'start_times', start_times
-            # print 'bins', bins
+            # normalize the vector of start time to make it in [0, max T submit]
+            start_times_vec = np.asarray(start_times)
+            start_times_norm = (start_times_vec-min(start_times_vec))/(max(start_times_vec)-min(start_times_vec))
+            start_times_norm *= self.config_generator['total_submit_interval']
 
-            time_start_pdf, time_start_bin_edges = np.histogram(start_times, bins, density=False)
+            # then calculate the PDF
+            time_start_pdf, time_start_bin_edges = np.histogram(start_times_norm, bins, density=False)
             time_start_pdf_norm = time_start_pdf/float(sum(time_start_pdf))
-
-            # print 'time_start_pdf', time_start_pdf
-            # print 'time_start_pdf_NORM', time_start_pdf_norm
-            # print "SUM of time_start_pdf", float(sum(time_start_pdf))
-            # print "SUM of time_start_pdf_NORM", float(sum(time_start_pdf_norm))
-            # print 'time_start_bin_edges', time_start_bin_edges
-
             time_start_bin_mid = (time_start_bin_edges[:-1]+time_start_bin_edges[1:])/2.0
-            # print 'time_start_bin_mid', time_start_bin_mid
 
+            # then calculate a random distribution of time start from the provided PDF
             start_times_vec = np.random.choice(time_start_bin_mid, p=time_start_pdf_norm, size=n_modelled_jobs)
-            # print 'start_times_vec', start_times_vec
-            # raw_input()
 
             # loop over the clusters and generates jos as needed
             generated_model_jobs = []
@@ -130,7 +123,7 @@ class SyntheticWorkloadGenerator(object):
                 generated_model_jobs.append(job)
 
             # --- then create the synthetic apps from the generated model jobs --
-            modelled_sa_jobs = self.model_jobs_to_sa(generated_model_jobs, cluster['labels'])
+            modelled_sa_jobs = self.model_jobs_to_sa(generated_model_jobs, cluster['source-workload'])
 
             generated_sa_from_all_wl.extend(modelled_sa_jobs)
 
@@ -190,7 +183,7 @@ class SyntheticWorkloadGenerator(object):
                 generated_model_jobs.append(job)
 
             # --- then create the synthetic apps from the generated model jobs --
-            modelled_sa_jobs = self.model_jobs_to_sa(generated_model_jobs, cluster['labels'])
+            modelled_sa_jobs = self.model_jobs_to_sa(generated_model_jobs, cluster['source-workload'])
 
             generated_sa_from_all_wl.extend(modelled_sa_jobs)
 
