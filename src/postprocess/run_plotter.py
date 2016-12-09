@@ -39,6 +39,7 @@ class RunPlotter(object):
             # ------- retrieve kpf data from iteration ----------
             kpf_data = self.run_data.get_kpf_data(iteration=i_iter)
             kpf_workload = kpf_data[0]
+            tot_n_apps = len(kpf_workload.jobs)
 
             labels_list = set(j.label for j in kpf_workload.jobs)
             print 'labels_list', labels_list
@@ -90,10 +91,6 @@ class RunPlotter(object):
                 kpf_workload = WorkloadData(jobs=label_jobs,
                                             tag=label)
 
-                jobs_start = [j.time_start for j in kpf_workload.jobs]
-                print "------------ label: {}".format(kpf_workload.tag)
-                print "jobs start time", jobs_start
-
                 line_color = next(color)
 
                 # calculate running jobs in time..
@@ -132,8 +129,9 @@ class RunPlotter(object):
                          range(len(queuing_times_vec)) + [len(queuing_times_vec) - 1],
                          color=line_color,
                          label=label)
-                plt.ylabel('queued jobs')
+                plt.ylabel('Cumulative queued jobs')
                 plt.legend(loc='center left', bbox_to_anchor=(1, 0.5))
+                plt.title('Time profiles, Number of apps: {} - (FL iteration: {})'.format(tot_n_apps, i_iter))
 
                 id_plot += 1
                 plt.subplot(n_plots, 1, id_plot)
@@ -152,10 +150,6 @@ class RunPlotter(object):
                          color=line_color,
                          label=label)
                 plt.ylabel('running processors')
-
-                plt.xlabel('time')
-                plt.ylabel('jobs')
-                plt.title('Time profiles of iteration: {}'.format(i_iter))
 
                 # plot of the total time-signals
                 total_metrics = kpf_workload.total_metrics_timesignals

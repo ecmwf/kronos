@@ -152,7 +152,6 @@ class KronosModel(object):
             #             print "job: {}, of workload {}, timesignal {}, yvalues {}: ".format(jj, wl.tag, k, v.yvalues)
 
             # Apply clustering
-            print "applying clustering on workload: [{}]".format(wl_entry)
             clusters_matrix, clusters_labels = self._apply_clustering(wl.jobs)
 
             self.clusters.append({
@@ -170,5 +169,3 @@ class KronosModel(object):
 
         sapps_generator = generator.SyntheticWorkloadGenerator(self.config_generator, self.clusters)
         self.modelled_sa_jobs = sapps_generator.generate_synthetic_apps()
-
-        print self.modelled_sa_jobs

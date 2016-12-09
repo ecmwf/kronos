@@ -152,10 +152,10 @@ class FeedbackLoopRunner(BaseRunner):
                 # move the ksf file into HPC input dir (and also into SA iteration folder)
                 subprocess.Popen(["scp",
                                   os.path.join(self.config.dir_output, self.ksf_filename),
-                                  user_at_host+":"+self.hpc_dir_input])
+                                  user_at_host+":"+self.hpc_dir_input]).wait()
                 subprocess.Popen(["cp",
                                   os.path.join(self.config.dir_output, self.ksf_filename),
-                                  os.path.join(dir_run_iter_sa, self.ksf_filename)])
+                                  os.path.join(dir_run_iter_sa, self.ksf_filename)]).wait()
 
                 # -- run jobs on HPC and wait until they finish --
                 job_runner.remote_run_executor()
