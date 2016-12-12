@@ -30,6 +30,8 @@ dependencies:
 - pytz=2016.6.1=py27_0
 - qt=4.8.7=4
 - readline=6.2=2
+- scikit-learn==0.17
+- scipy=0.18.1=np111py27_0
 - setuptools=26.1.1=py27_0
 - sip=4.18=py27_0
 - six=1.10.0=py27_0
@@ -37,5 +39,4 @@ dependencies:
 - tk=8.5.18=0
 - wheel=0.29.0=py27_0
 - zlib=1.2.8=3
-- scipy=0.18.1=np111py27_0
 prefix: /home/ma/mass/.local/miniconda2/envs/kronos
