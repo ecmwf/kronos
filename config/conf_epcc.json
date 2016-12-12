@@ -62,7 +62,8 @@
                           },
                           { 
                           "type": "match_by_keyword",
-                          "priority": 0,                          
+                          "priority": 0,    
+                          "keywords": ["job_name"],
                           "similarity_threshold": 0.3,
                           "source_workloads": ["castep-768p",
                                                 "cp2k-h2o", 
@@ -70,11 +71,6 @@
                                                 "gromacs16", 
                                                 "gromacs32", 
                                                 "vasp"],
-                          "apply_to": ["background"]
-                          },
-                          {
-                          "type": "recommender_system",
-                          "priority": 0,                          
                           "apply_to": ["background"]
                           }
                          ],
@@ -91,7 +87,9 @@
                                               "metrics_only": false
                                                }
                                 },
-              "generator": {                                 
+              "generator": {     
+                            "type": "match_job_pdf",
+                            "random_seed": 0,
                             "tuning_factors": {
                                               "kb_collective": 1e-3,
                                               "n_collective": 1e-2,

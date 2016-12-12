@@ -1,15 +1,15 @@
 #!/usr/bin/env python
 import unittest
-import tempfile
-import os
+# import tempfile
+# import os
 import numpy as np
 
 import time_signal
-from config.config import Config
-from exceptions_iows import ConfigurationError
+# from config.config import Config
+# from exceptions_iows import ConfigurationError
 import generator
 from jobs import ModelJob
-from model import KronosModel
+# from model import KronosModel
 from workload_data import WorkloadData
 
 
@@ -20,31 +20,13 @@ class GeneratorTests(unittest.TestCase):
         The configuration object should have some sane defaults
         """
 
-        # # existing and not existing paths
-        # existing_path = os.getcwd()
-        # obscure_path = '.__$obscure-nonexistent@'
-        # self.assertFalse(os.path.exists(os.path.join(os.getcwd(), obscure_path)))
-        #
-        # # this should not throw a ConfigurationError as input dir is not set
-        # self.assertRaises(ConfigurationError, lambda: Config(config_dict={'dir_output': existing_path}))
-        #
-        # # this should not throw a ConfigurationError as output dir is not set
-        # self.assertRaises(ConfigurationError, lambda: Config(config_dict={'dir_input': existing_path}))
-        #
-        # # this should not throw a ConfigurationError as input dir is not existent
-        # self.assertRaises(ConfigurationError, lambda: Config(config_dict={'dir_input': obscure_path,
-        #                                                                   'dir_output': existing_path}))
-        #
-        # # this should not throw a ConfigurationError as output dir is not existent
-        # self.assertRaises(ConfigurationError, lambda: Config(config_dict={'dir_input': obscure_path,
-        #                                                                   'dir_output': existing_path}))
-
         # If all of the required arguments are supplied, this should result in a valid job
         ts_complete_set = {tsk: time_signal.TimeSignal.from_values(tsk, [0., 0.1], [1., 999.])
                            for tsk in time_signal.signal_types.keys()}
 
         valid_args = {
             'time_start': 0.1,
+            'duration': 0.2,
             'ncpus': 1,
             'nnodes': 1,
             'timesignals': ts_complete_set
@@ -123,6 +105,11 @@ class GeneratorTests(unittest.TestCase):
         sapps_generator = generator.SyntheticWorkloadGenerator(config_generator, [clusters])
         modelled_sa_jobs = sapps_generator.generate_synthetic_apps()
 
+        # check that the produced sapps are produced from one of the clusters in the matrix..
+        self.assertTrue(any(np.equal(input_jobs_matrix, job.timesignals[ts].yvalues).all(1))
+                        for job in modelled_sa_jobs
+                        for ts in time_signal.signal_types.keys()
+                        )
 
     # def test_dict_override(self):
     #

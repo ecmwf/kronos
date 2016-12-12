@@ -37,6 +37,7 @@ class ModelJob(object):
     # Does what it says on the tin
     required_fields = [
         'time_start',
+        'duration',
         'ncpus',
         'nnodes'
     ]

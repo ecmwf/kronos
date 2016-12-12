@@ -40,6 +40,7 @@
                           },
                           { 
                           "type": "match_by_keyword",
+                          "keywords": ["job_name"],
                           "priority": 0,                          
                           "similarity_threshold": 0.3,
                           "source_workloads": ["blender-run"],
@@ -47,14 +48,10 @@
                           },
                           {
                           "type": "match_by_keyword",
+                          "keywords": ["job_name"],
                           "priority": 0,                          
                           "similarity_threshold": 0.3,
                           "source_workloads": ["cfd-run"],
-                          "apply_to": ["background"]
-                          },
-                          {
-                          "type": "recommender_system",
-                          "priority": 0,                          
                           "apply_to": ["background"]
                           }
                          ],
@@ -71,24 +68,26 @@
                                               "metrics_only": false
                                                }
                                 },
-              "generator": {                                 
-                           "tuning_factors": {
-                                             "kb_collective": 1.0,
-                                             "n_collective": 1.0,
-                                             "kb_write": 1.0,
-                                             "n_pairwise": 1.0,
-                                             "n_write": 1.0,
-                                             "n_read": 1.0,
-                                             "kb_read": 1.0,
-                                             "flops": 10.0,
-                                             "kb_pairwise": 1.0
-                                             },
-                           "submit_rate_factor": 1e4,              
-                           "sa_n_proc": 2,
-                           "sa_n_nodes": 1,
-                           "sa_n_frames": 1,
-                           "total_submit_interval": 60
-                           }
+              "generator": {            
+                            "type": "match_job_pdf",
+                            "random_seed": 0,                
+                            "tuning_factors": {
+                                              "kb_collective": 1.0,
+                                              "n_collective": 1.0,
+                                              "kb_write": 1.0,
+                                              "n_pairwise": 1.0,
+                                              "n_write": 1.0,
+                                              "n_read": 1.0,
+                                              "kb_read": 1.0,
+                                              "flops": 10.0,
+                                              "kb_pairwise": 1.0
+                                              },
+                            "submit_rate_factor": 1e4,              
+                            "sa_n_proc": 2,
+                            "sa_n_nodes": 1,
+                            "sa_n_frames": 1,
+                            "total_submit_interval": 60
+                            }
              },
     "run": {               
             "type": "feedback",

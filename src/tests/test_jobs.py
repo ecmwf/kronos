@@ -155,6 +155,7 @@ class ModelJobTest(unittest.TestCase):
 
         valid_args = {
             'time_start': 0,
+            'duration': 0.2,
             'ncpus': 1,
             'nnodes': 1,
             'timesignals': ts_complete_set
