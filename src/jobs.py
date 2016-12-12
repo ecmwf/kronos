@@ -1,7 +1,7 @@
 import numpy as np
 import time_signal
 
-from exceptions_iows import ModellingError
+from exceptions_iows import ModellingError, ConfigurationError
 from kronos_tools.merge import max_not_none, min_not_none
 from kronos_tools.print_colour import print_colour
 from kronos_tools.time_format import format_seconds
@@ -229,6 +229,68 @@ class ModelJob(object):
                 index += np.trapz(abs(series.yvalues), series.xvalues)
 
         return index
+
+    def ts_to_vector(self, n_ts_bins):
+        """
+        Create vector of values from time signals
+        :param n_ts_bins:
+        :return:
+        """
+
+        non_value_flag = -1
+
+        ts_vector = []
+        for tsk in time_signal.signal_types.keys():
+            ts = self.timesignals[tsk]
+            if ts is not None:
+                xvals, yvals = ts.digitized(n_ts_bins)
+                ts_vector.extend(yvals)
+            else:
+                # print "none yvalues..."
+                ts_vector.extend([non_value_flag for vv in range(0, n_ts_bins)])
+
+        return np.asarray(ts_vector)
+
+    def vector_to_ts(self, ts_vector, priority, idx_map=None, n_bins=None):
+        """
+        Apply a vector to the time-signals
+        :param ts_vector:
+        :param idx_map:
+        :return:
+        """
+
+        # check that when the vector does not contain all the values, also the n_bins for each ts is provided
+        if idx_map and not n_bins:
+            raise ConfigurationError("the RS results are mapped to N_columns < N_columns_tot => n_bins is needed!")
+
+        if not idx_map and n_bins:
+            raise ConfigurationError("n_bins need to be specified only for mapped cases")
+
+        if not self.time_start or not self.duration:
+            raise ConfigurationError("both job start-time and duration are needed to accept time-series")
+
+        if not idx_map:
+
+            # case in which all the elements are filled up
+            split_values = np.split(ts_vector, len(time_signal.signal_types.keys()))
+            for tt, ts in enumerate(time_signal.signal_types.keys()):
+                y_values = split_values[tt]
+                x_values = np.linspace(self.time_start, self.time_start + self.duration, len(y_values))
+
+                if not self.timesignals[ts]:
+                    self.timesignals[ts] = TimeSignal(ts).from_values(ts, x_values, y_values, priority=priority)
+                elif self.timesignals[ts].priority <= priority:
+                    self.timesignals[ts] = TimeSignal(ts).from_values(ts, x_values, y_values, priority=priority)
+
+        else:
+
+            # case for which only some columns are filled up (therefore the mapping)
+            row = np.zeros(len(time_signal.signal_types.keys())*n_bins)
+            for tt, ts in enumerate(ts_vector):
+                row[idx_map[tt]] = ts
+
+            # then re-call the same function without mapping
+            self.vector_to_ts(row, priority)
 
 
 class IngestedJob(object):

@@ -206,7 +206,7 @@ class WorkloadData(object):
                         n_jobs_replaced += 1
                         for tsk in job.timesignals.keys():
 
-                            if not job.timesignals[tsk] and lu_job.timesignals[tsk]:
+                            if not job.timesignals[tsk]:
                                 job.timesignals[tsk] = lu_job.timesignals[tsk]
                             elif job.timesignals[tsk].priority <= priority and lu_job.timesignals[tsk]:
                                 job.timesignals[tsk] = lu_job.timesignals[tsk]
@@ -227,14 +227,38 @@ class WorkloadData(object):
         n_bins = rs_config['n_bins']
         priority = rs_config['priority']
 
+        # get the total matrix fro the jobs
+        ts_matrix = self.jobs_to_matrix(n_bins)
+
         # uses a recommender model
-        recomm_sys = recommender.Recommender()
+        recomm_sys = recommender.Recommender(ts_matrix, n_bins)
+        filled_matrix, mapped_columns = recomm_sys.apply()
 
-        # train it according to a selected number of bins for each metric
-        recomm_sys.train_model(self.jobs, n_ts_bins=n_bins)
+        # re-apply filled matrix to jobs
+        self.matrix_to_jobs(filled_matrix, priority, mapped_columns, n_bins)
 
-        # re-apply it on the jobs
-        self.jobs = recomm_sys.apply_model_to(self.jobs, priority)
+    def jobs_to_matrix(self, n_bins):
+        """
+        from jobs to ts_matrix
+        :return:
+        """
+
+        ts_matrix = np.zeros((0, len(signal_types.keys()) * n_bins))
+
+        # stack all the ts vectors
+        for job in self.jobs:
+            ts_matrix = np.vstack((ts_matrix, job.ts_to_vector(n_bins)))
+
+        return ts_matrix
+
+    def matrix_to_jobs(self, filled_matrix, priority, idx_map, n_bins):
+        """
+        from jobs to ts_matrix
+        :return:
+        """
+
+        for rr, row in enumerate(filled_matrix):
+            self.jobs[rr].vector_to_ts(row, priority, idx_map=idx_map, n_bins=n_bins)
 
     def check_jobs(self):
         """

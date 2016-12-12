@@ -101,22 +101,6 @@ class KronosModel(object):
             wl = next(wl for wl in self.workloads if wl.tag == wl_name)
             wl.check_jobs()
 
-    def _apply_clustering(self, jobs):
-        """
-        Apply clustering on the selected workloads
-        :return:
-        """
-
-        # apply clustering to the accounting jobs
-        cluster_handler = data_analysis.factory(self.config_classification['clustering']['type'],
-                                                self.config_classification['clustering'])
-
-        cluster_handler.cluster_jobs(jobs)
-        clusters_matrix = cluster_handler.clusters
-        clusters_labels = cluster_handler.labels
-
-        return clusters_matrix, clusters_labels
-
     def _apply_classification(self):
         """
         Apply modelling classification to selected workloads
@@ -145,14 +129,12 @@ class KronosModel(object):
         for wl_entry in self.config_classification['apply_to']:
             wl = next(wl for wl in self.workloads if wl.tag == wl_entry)
 
-            # # check all the jobs in the workload to be used for classification
-            # for jj,job in enumerate(wl.jobs):
-            #     for k, v in job.timesignals.iteritems():
-            #         if v.yvalues.shape[0] > 1:
-            #             print "job: {}, of workload {}, timesignal {}, yvalues {}: ".format(jj, wl.tag, k, v.yvalues)
-
             # Apply clustering
-            clusters_matrix, clusters_labels = self._apply_clustering(wl.jobs)
+            classific_config = self.config_classification['clustering']
+            cluster_handler = data_analysis.factory(classific_config['type'], classific_config)
+            cluster_handler.cluster_jobs(wl.jobs_to_matrix(classific_config['n_ts_bins']))
+            clusters_matrix = cluster_handler.clusters
+            clusters_labels = cluster_handler.labels
 
             self.clusters.append({
                                   'source-workload': wl_entry,

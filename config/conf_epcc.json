@@ -78,7 +78,7 @@
                                 "apply_to": ["background"],
                                 "clustering": {
                                               "type": "Kmeans",
-                                              "ok_if_low_rank": false,
+                                              "ok_if_low_rank": true,
                                               "rseed": 0,
                                               "max_iter": 100,
                                               "nc_max": 20,

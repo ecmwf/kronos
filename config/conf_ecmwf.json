@@ -46,7 +46,13 @@
                           "similarity_threshold": 1.0,
                           "source_workloads": ["operational-darshan"],
                           "apply_to": ["operational-ipm"]
-                          }
+                          },
+                          {
+                          "type": "recommender_system",
+                          "priority": 5,
+                          "n_bins": 3,
+                          "apply_to": ["operational-ipm"]
+                          }                          
                          ],
               "classification": {
                                 "split_workload": {
