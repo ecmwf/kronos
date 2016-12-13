@@ -5,8 +5,10 @@ dependencies:
 - fontconfig=2.11.1=6
 - freetype=2.5.5=1
 - funcsigs=1.0.2=py27_0
+- functools32=3.2.3.2=py27_0
 - glib=2.43.0=1
 - harfbuzz=0.9.39=1
+- jsonschema=2.5.1=py27_0
 - libffi=3.2.1=0
 - libpng=1.6.22=0
 - libxml2=2.9.2=0
