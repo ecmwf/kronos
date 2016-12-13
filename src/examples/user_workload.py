@@ -260,7 +260,7 @@ def user_workload():
                         "max_iter": 100,
                         "nc_max": 20,
                         "nc_delta": 1,
-                        "n_ts_bins": 1,
+                        "n_ts_bins": 3,
                         "metrics_only": False
                         }
     print "doing clustering"
