@@ -117,6 +117,9 @@ class KronosModel(object):
 
             sub_workloads = wl.split_by_keywords(split_config_output)
 
+            for sub_wl in sub_workloads:
+                print_colour("cyan", "splitting has created workload {} with {} jobs".format(sub_wl.tag, len(sub_wl.jobs)))
+
             # extend the internal workloads with the result of the split operation
             self.workloads.extend(sub_workloads)
 
@@ -128,6 +131,8 @@ class KronosModel(object):
         # loop over all the workloads used to create the synthetic workload
         for wl_entry in self.config_classification['apply_to']:
             wl = next(wl for wl in self.workloads if wl.tag == wl_entry)
+
+            print_colour("green", "-------> applying classification to workload {}".format(wl_entry))
 
             # Apply clustering
             classific_config = self.config_classification['clustering']

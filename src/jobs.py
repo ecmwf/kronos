@@ -266,8 +266,11 @@ class ModelJob(object):
         if not idx_map and n_bins:
             raise ConfigurationError("n_bins need to be specified only for mapped cases")
 
-        if not self.time_start or not self.duration:
-            raise ConfigurationError("both job start-time and duration are needed to accept time-series")
+        if self.time_start is None:
+            raise ConfigurationError("job start-time is needed to accept time-series")
+
+        if self.duration is None:
+            raise ConfigurationError("job duration is needed to accept time-series")
 
         if not idx_map:
 
