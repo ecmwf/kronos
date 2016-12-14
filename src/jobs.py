@@ -278,7 +278,7 @@ class ModelJob(object):
             split_values = np.split(ts_vector, len(time_signal.signal_types.keys()))
             for tt, ts in enumerate(time_signal.signal_types.keys()):
                 y_values = split_values[tt]
-                x_values = np.linspace(self.time_start, self.time_start + self.duration, len(y_values))
+                x_values = np.linspace(0.0, self.duration, len(y_values))
 
                 if not self.timesignals[ts]:
                     self.timesignals[ts] = TimeSignal(ts).from_values(ts, x_values, y_values, priority=priority)
