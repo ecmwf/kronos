@@ -1,0 +1,23 @@
+{
+    "$schema": "http://json-schema.org/draft-03/schema",
+    "type": "object" ,
+    "description": "The KPF format is a standardised interchange format for input profiling data for Kronos",
+    "properties": {
+        "version" : {
+            "required": true,
+            "type": "number",
+            "enum": [%(kronos-version)s],
+            "description": "Version number of the KPF format"
+        },
+        "tag": {
+            "required": true,
+            "enum": ["%(kronos-magic)s"],
+            "description": "Magic value to help test validity of KPF file"
+        },
+        "created": {
+            "required": true,
+            "type": "string",
+            "format": "date-time"
+        }
+    }
+}
