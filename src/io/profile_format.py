@@ -6,9 +6,10 @@ import sys
 #from time_signal import TimeSignal
 #from workload_data import WorkloadData
 
+import strict_rfc3339
+
 import json
 import jsonschema
-import sys
 import os
 
 
@@ -21,17 +22,9 @@ class ProfileFormat(object):
 
     @staticmethod
     def from_file(f):
-
-        with open(os.path.join(os.path.dirname(__file__), "profile_schema.json"), 'r') as fschema:
-            str_schema = fschema.read() % {
-                "kronos-version": ProfileFormat.kpf_version,
-                "kronos-magic": ProfileFormat.kpf_magic
-            }
-            schema = json.loads(str_schema)
-
         data = json.load(f)
 
-        jsonschema.validate(data, schema, format_checker=jsonschema.FormatChecker())
+        ProfileFormat.validate_json(data)
 
     @staticmethod
     def from_filename(filename):
@@ -43,16 +36,47 @@ class ProfileFormat(object):
         Exports the profile as a (standardised) kpf file.
         TODO: Documentation of the format
         """
+        output_dict = {
+            "version": self.kpf_version,
+            "tag": self.kpf_magic,
+            "created": strict_rfc3339.now_to_rfc3339_utcoffset(),
+            "uid": os.getuid()
+        }
 
-        pass
+        self.validate_json(output_dict)
+
+        json.dump(output_dict, f)
 
     def write_filename(self, filename):
         with open(filename, 'w') as f:
             self.write(f)
 
+    @classmethod
+    def schema(cls):
+        """
+        Obtain the json schema for the ProfileFormat
+        """
+        with open(os.path.join(os.path.dirname(__file__), "profile_schema.json"), 'r') as fschema:
+            str_schema = fschema.read() % {
+                "kronos-version": cls.kpf_version,
+                "kronos-magic": cls.kpf_magic
+            }
+            return json.loads(str_schema)
+
+    @classmethod
+    def validate_json(cls, js):
+        """
+        Do validation of a dictionary that has been loaded from (or will be written to) a JSON
+        """
+        jsonschema.validate(js, cls.schema(), format_checker=jsonschema.FormatChecker())
 
 
 if __name__ == "__main__":
+
+    with open('output.kpf', 'w') as f:
+
+        pf = ProfileFormat()
+        pf.write(f)
 
     with open('input.kpf', 'r') as f:
         pf = ProfileFormat.from_file(f)

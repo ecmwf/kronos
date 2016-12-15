@@ -17,7 +17,13 @@
         "created": {
             "required": true,
             "type": "string",
-            "format": "date-time"
+            "format": "date-time",
+            "description": "A timestamp for creation of the KPF file"
+        },
+        "uid": {
+            "required": false,
+            "type": "integer",
+            "description": "The UID of the user who created this file"
         }
     }
 }
