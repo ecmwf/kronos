@@ -131,6 +131,9 @@ class WorkloadData(object):
                     elif isinstance(metrics_dict[ts_name], dict):
                         # this entry is specified through a function (name and scaling)
 
+                        if functions_config is None:
+                            raise ConfigurationError('user functions required but not found!')
+
                         # find required function configuration by name
                         ff_config = [ff for ff in functions_config if ff["name"] == metrics_dict[ts_name]['function']]
                         if len(ff_config) > 1:
@@ -272,39 +275,34 @@ class WorkloadData(object):
     def split_by_keywords(self, split_config_output):
 
         # extract configurations for the splitting
-        split_workloads = []
-        for sub_wl_config in split_config_output:
+        new_wl_name = split_config_output['create_workload']
+        split_attr = split_config_output['split_by']
+        kw_include = split_config_output['keywords_in']
+        kw_exclude = split_config_output['keywords_out']
 
-            new_wl_name = sub_wl_config['workload_name']
-            split_attr = sub_wl_config['split_by'][0]
-            kw_include = sub_wl_config['split_by'][1]
-            kw_exclude = sub_wl_config['split_by'][2]
+        sub_wl_jobs = []
+        if kw_include and not kw_exclude:
+            for j in self.jobs:
+                if getattr(j, split_attr):
+                    if all(kw in getattr(j, split_attr) for kw in kw_include):
+                        sub_wl_jobs.append(j)
 
-            sub_wl_jobs = []
-            if kw_include and not kw_exclude:
-                for j in self.jobs:
-                    if getattr(j, split_attr):
-                        if all(kw in getattr(j, split_attr) for kw in kw_include):
-                            sub_wl_jobs.append(j)
+        elif not kw_include and kw_exclude:
+            for j in self.jobs:
+                if getattr(j, split_attr):
+                    if not any(kw in getattr(j, split_attr) for kw in kw_exclude):
+                        sub_wl_jobs.append(j)
 
-            elif not kw_include and kw_exclude:
-                for j in self.jobs:
-                    if getattr(j, split_attr):
-                        if not any(kw in getattr(j, split_attr) for kw in kw_exclude):
-                            sub_wl_jobs.append(j)
+        elif kw_include and kw_exclude:
+            sub_wl_jobs = [j for j in self.jobs if all(kw in getattr(j, split_attr) for kw in kw_include) and not
+                    any(kw in getattr(j, split_attr) for kw in kw_exclude)]
 
-            elif kw_include and kw_exclude:
-                sub_wl_jobs = [j for j in self.jobs if all(kw in getattr(j, split_attr) for kw in kw_include) and not
-                        any(kw in getattr(j, split_attr) for kw in kw_exclude)]
+            for j in self.jobs:
+                if getattr(j, split_attr):
+                    if all(kw in getattr(j, split_attr) for kw in kw_include) and \
+                            not any(kw in getattr(j, split_attr) for kw in kw_exclude):
+                        sub_wl_jobs.append(j)
+        else:
+            raise ConfigurationError("either included or excluded keywords are needed for splitting a workload")
 
-                for j in self.jobs:
-                    if getattr(j, split_attr):
-                        if all(kw in getattr(j, split_attr) for kw in kw_include) and \
-                                not any(kw in getattr(j, split_attr) for kw in kw_exclude):
-                            sub_wl_jobs.append(j)
-            else:
-                raise ConfigurationError("either included or excluded keywords are needed for splitting a workload")
-
-            split_workloads.append(WorkloadData(jobs=sub_wl_jobs, tag=new_wl_name))
-
-        return split_workloads
+        return WorkloadData(jobs=sub_wl_jobs, tag=new_wl_name)

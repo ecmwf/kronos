@@ -29,7 +29,6 @@ class KronosModel(object):
         self.config_fill_in = None
         self.config_classification = None
         self.config_generator = None
-        self.config_functions = None
 
         self.workloads = workloads
         self.jobs_for_clustering = []
@@ -66,11 +65,11 @@ class KronosModel(object):
         :return:
         """
 
-        filler = WorkloadFiller(self.config_fill_in, self.config_functions, self.workloads)
+        filler = WorkloadFiller(self.config_fill_in, self.workloads)
 
         # call functions corresponding to fill_in types
-        for fillin_function in self.config_fill_in:
-            getattr(filler, fillin_function['type'])()
+        for operation in self.config_fill_in['operations']:
+            getattr(filler, operation['type'])()
 
     def export_synthetic_workload(self):
         """
@@ -97,9 +96,13 @@ class KronosModel(object):
         print_colour("green", "Checking all jobs before classification..")
 
         # check only the jobs to be used for classification..
-        for wl_name in self.config_classification['apply_to']:
-            wl = next(wl for wl in self.workloads if wl.tag == wl_name)
-            wl.check_jobs()
+        for wl_name in self.config_classification['clustering']['apply_to']:
+
+            try:
+                wl = next(wl for wl in self.workloads if wl.tag == wl_name)
+                wl.check_jobs()
+            except StopIteration:
+                raise ValueError(" workload named {} not found!".format(wl_name))
 
     def _apply_classification(self):
         """
@@ -107,21 +110,17 @@ class KronosModel(object):
         :return:
         """
 
-        # Split the workloads if required..
-        if self.config_classification.get('split_workload', None):
+        # apply operations on workloads (if required..)
+        class_operations_config = self.config_classification.get('operations', None)
 
-            split_config = self.config_classification['split_workload']
-            split_config_output = split_config['output_workloads']
-
-            wl = next(wl for wl in self.workloads if wl.tag == split_config['apply_to'])
-
-            sub_workloads = wl.split_by_keywords(split_config_output)
-
-            for sub_wl in sub_workloads:
-                print_colour("cyan", "splitting has created workload {} with {} jobs".format(sub_wl.tag, len(sub_wl.jobs)))
-
-            # extend the internal workloads with the result of the split operation
-            self.workloads.extend(sub_workloads)
+        if class_operations_config is not None:
+            for op_config in class_operations_config:
+                if op_config['type'] == "split":
+                    print_colour("green", "Splitting workload {}".format(op_config['apply_to']))
+                    wl = next(wl for wl in self.workloads if wl.tag == op_config['apply_to'])
+                    sub_workloads = wl.split_by_keywords(op_config)
+                    print_colour("cyan", "splitting has created workload {} with {} jobs".format(sub_workloads.tag, len(sub_workloads.jobs)))
+                    self.workloads.append(sub_workloads)
 
         # check validity of jobs before doing the actual modelling..
         # NB: the preliminary phase of workload manipulation (defaults, lookup tables and recommender sys
@@ -129,15 +128,15 @@ class KronosModel(object):
         self._check_jobs()
 
         # loop over all the workloads used to create the synthetic workload
-        for wl_entry in self.config_classification['apply_to']:
+        clustering_config = self.config_classification['clustering']
+        for wl_entry in clustering_config['apply_to']:
             wl = next(wl for wl in self.workloads if wl.tag == wl_entry)
 
             print_colour("green", "-------> applying classification to workload {}".format(wl_entry))
 
             # Apply clustering
-            classific_config = self.config_classification['clustering']
-            cluster_handler = data_analysis.factory(classific_config['type'], classific_config)
-            cluster_handler.cluster_jobs(wl.jobs_to_matrix(classific_config['n_ts_bins']))
+            cluster_handler = data_analysis.factory(clustering_config['type'], clustering_config)
+            cluster_handler.cluster_jobs(wl.jobs_to_matrix(clustering_config['n_ts_bins']))
             clusters_matrix = cluster_handler.clusters
             clusters_labels = cluster_handler.labels
 

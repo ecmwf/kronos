@@ -6,10 +6,9 @@ class WorkloadFiller(object):
     A workload filler has the methods for filling up missing information of a workload
     """
 
-    def __init__(self, fillin_config, functions_config, workloads):
+    def __init__(self, fillin_config, workloads):
 
         self.fillin_config = fillin_config
-        self.functions_config = functions_config
         self.workloads = workloads
 
     def fill_missing_entries(self):
@@ -18,12 +17,12 @@ class WorkloadFiller(object):
         :return:
         """
 
-        default_list = [entry for entry in self.fillin_config if entry['type'] == "fill_missing_entries"]
+        fill_missing_configs = [entry for entry in self.fillin_config['operations'] if entry['type'] == "fill_missing_entries"]
 
-        for def_config in default_list:
+        for miss_config in fill_missing_configs:
             for wl in self.workloads:
-                if wl.tag in def_config['apply_to']:
-                    wl.apply_default_metrics(def_config, self.functions_config)
+                if wl.tag in miss_config['apply_to']:
+                    wl.apply_default_metrics(miss_config, self.fillin_config.get('user_functions'))
 
     def match_by_keyword(self):
         """
@@ -31,7 +30,7 @@ class WorkloadFiller(object):
         :return:
         """
 
-        match_list = [entry for entry in self.fillin_config if entry['type'] == "match_by_keyword"]
+        match_list = [entry for entry in self.fillin_config['operations'] if entry['type'] == "match_by_keyword"]
 
         # Apply each source workload into each destination workload
         n_job_matched = 0
@@ -62,7 +61,7 @@ class WorkloadFiller(object):
         :return:
         """
 
-        recomm_config_list = [entry for entry in self.fillin_config if entry['type'] == "recommender_system"]
+        recomm_config_list = [entry for entry in self.fillin_config['operations'] if entry['type'] == "recommender_system"]
 
         # the recommender system technique is applied to each workload of the list individually..
         for rs_config in recomm_config_list:

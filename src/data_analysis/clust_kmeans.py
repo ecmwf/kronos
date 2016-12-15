@@ -20,6 +20,7 @@ class ClusteringKmeans(ClusteringBase):
         self.user_does_not_check = None
         self.rseed = None
         self.max_iter = None
+        self.apply_to = None
         self.nc_max = None
         self.nc_delta = None
 

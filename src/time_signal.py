@@ -23,6 +23,8 @@ signal_types = OrderedDict([
     ('kb_collective', {'type': float, 'category': 'mpi',        'behaviour': 'sum', 'max_value': 1.0e20})
 ])
 
+ordered_keys = signal_types.keys()
+
 
 class TimeSignal(object):
 
