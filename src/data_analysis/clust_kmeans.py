@@ -21,8 +21,8 @@ class ClusteringKmeans(ClusteringBase):
         self.rseed = None
         self.max_iter = None
         self.apply_to = None
-        self.nc_max = None
-        self.nc_delta = None
+        self.max_num_clusters = None
+        self.delta_num_clusters = None
 
         # Then set the general configuration into the parent class..
         super(ClusteringKmeans, self).__init__(config)
@@ -41,7 +41,7 @@ class ClusteringKmeans(ClusteringBase):
 
         print_colour("green", "calculating clusters by Kmeans..")
 
-        nc_vec = np.arange(1, self.nc_max, self.nc_delta)
+        nc_vec = np.arange(1, self.max_num_clusters, self.delta_num_clusters)
         avg_d_in_clust = np.zeros(nc_vec.shape[0])
         n_clusters_max = None
 

@@ -63,9 +63,9 @@ class GeneratorTests(unittest.TestCase):
                                 "kb_pairwise": 10e-0
                             },
                             "submit_rate_factor": 8.0,
-                            "sa_n_proc": 2,
-                            "sa_n_nodes": 1,
-                            "sa_n_frames": 10,
+                            "synthapp_n_cpu": 2,
+                            "synthapp_n_nodes": 1,
+                            "synthapp_n_frames": 10,
                             "total_submit_interval": 60
                             }
 

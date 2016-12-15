@@ -80,9 +80,9 @@
                                 "ok_if_low_rank": true,
                                 "rseed": 0,
                                 "max_iter": 100,
-                                "nc_max": 20,
-                                "nc_delta": 1,
-                                "n_ts_bins": 1,
+                                "max_num_clusters": 20,
+                                "delta_num_clusters": 1,
+                                "num_timesignal_bins": 1,
                                 "metrics_only": false
                         }
                 },
@@ -101,9 +101,9 @@
                                 "kb_pairwise": 1e-2
                         },
                         "submit_rate_factor": 1e2,
-                        "sa_n_proc": 2,
-                        "sa_n_nodes": 1,
-                        "sa_n_frames": 1,
+                        "synthapp_n_cpu": 2,
+                        "synthapp_n_nodes": 1,
+                        "synthapp_n_frames": 1,
                         "total_submit_interval": 60
                 }
         },

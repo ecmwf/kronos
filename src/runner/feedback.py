@@ -260,7 +260,7 @@ class FeedbackLoopRunner(BaseRunner):
 
                 print os.path.join(self.config.dir_output, self.ksf_filename)
                 ksf_data.export(os.path.join(self.config.dir_output, self.ksf_filename),
-                                self.config.model['generator']['sa_n_frames'])
+                                self.config.model['generator']['synthapp_n_frames'])
 
                 # write log file
                 write_log_file(log_file, metrics_sum_dict, tuning_factors)

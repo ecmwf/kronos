@@ -19,9 +19,9 @@ class SyntheticWorkloadGenerator(object):
                              "random_seed",
                              "tuning_factors",
                              "submit_rate_factor",
-                             "sa_n_proc",
-                             "sa_n_nodes",
-                             "sa_n_frames",
+                             "synthapp_n_proc",
+                             "synthapp_n_nodes",
+                             "synthapp_n_frames",
                              "total_submit_interval",
                              ]
 
@@ -115,8 +115,8 @@ class SyntheticWorkloadGenerator(object):
                 job = ModelJob(
                     time_start=start_times_vec[cc],
                     duration=None,
-                    ncpus=self.config_generator['sa_n_proc'],
-                    nnodes=self.config_generator['sa_n_nodes'],
+                    ncpus=self.config_generator['synthapp_n_cpu'],
+                    nnodes=self.config_generator['synthapp_n_nodes'],
                     timesignals=ts_dict,
                     label="job-{}".format(cc)
                 )
@@ -175,8 +175,8 @@ class SyntheticWorkloadGenerator(object):
                 job = ModelJob(
                     time_start=start_times_vec[cc],
                     duration=None,
-                    ncpus=self.config_generator['sa_n_proc'],
-                    nnodes=self.config_generator['sa_n_nodes'],
+                    ncpus=self.config_generator['synthapp_n_cpu'],
+                    nnodes=self.config_generator['synthapp_n_nodes'],
                     timesignals=ts_dict,
                     label="job-{}".format(cc)
                 )

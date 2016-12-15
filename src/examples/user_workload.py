@@ -269,16 +269,16 @@ def user_workload():
                         "ok_if_low_rank": True,
                         "rseed": 0,
                         "max_iter": 100,
-                        "nc_max": 20,
-                        "nc_delta": 1,
-                        "n_ts_bins": 3,
+                        "max_num_clusters": 20,
+                        "delta_num_clusters": 1,
+                        "num_timesignal_bins": 3,
                         "metrics_only": False
                         }
     print "doing clustering"
 
     # Apply clustering
     cluster_handler = data_analysis.factory(clustering_config['type'], clustering_config)
-    cluster_handler.cluster_jobs(wl.jobs_to_matrix(clustering_config['n_ts_bins']))
+    cluster_handler.cluster_jobs(wl.jobs_to_matrix(clustering_config['num_timesignal_bins']))
     clusters_matrix = cluster_handler.clusters
     clusters_labels = cluster_handler.labels
     used_clusters = set(clusters_labels)
@@ -288,7 +288,7 @@ def user_workload():
 
     # --------------------- plot clusters.. --------------------------
     # plot jobs
-    n_bins = clustering_config['n_ts_bins']
+    n_bins = clustering_config['num_timesignal_bins']
     fig_size = (24, 16)
     plt.figure(plot_handler.get_fig_handle_ID(), figsize=fig_size, facecolor='w', edgecolor='k')
     ss = 1
@@ -334,9 +334,9 @@ def user_workload():
                                           "kb_pairwise": 1e-0
                                           },
                        "submit_rate_factor": 1.0,
-                       "sa_n_proc": 2,
-                       "sa_n_nodes": 1,
-                       "sa_n_frames": 10,
+                       "synthapp_n_cpu": 2,
+                       "synthapp_n_nodes": 1,
+                       "synthapp_n_frames": 10,
                        "total_submit_interval": max(apps_start_times)
                        }
 

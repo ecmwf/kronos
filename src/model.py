@@ -86,7 +86,7 @@ class KronosModel(object):
 
         # export the synthetic workload
         ksf_path = os.path.join(self.config.dir_output, self.config.ksf_filename)
-        sa_workload.export_ksf(ksf_path, self.config_generator['sa_n_frames'])
+        sa_workload.export_ksf(ksf_path, self.config_generator['synthapp_n_frames'])
 
     def _check_jobs(self):
         """
@@ -136,7 +136,7 @@ class KronosModel(object):
 
             # Apply clustering
             cluster_handler = data_analysis.factory(clustering_config['type'], clustering_config)
-            cluster_handler.cluster_jobs(wl.jobs_to_matrix(clustering_config['n_ts_bins']))
+            cluster_handler.cluster_jobs(wl.jobs_to_matrix(clustering_config['num_timesignal_bins']))
             clusters_matrix = cluster_handler.clusters
             clusters_labels = cluster_handler.labels
 
