@@ -113,8 +113,18 @@ class IntegerSchemaDescription(SchemaDescription):
 
 class StringSchemaDescription(SchemaDescription):
 
+    def __init__(self, schema, depth):
+        super(StringSchemaDescription, self).__init__(schema, depth)
+        self.format = schema.get('format', None)
+
     def details_string(self):
-        return '"<string>"'
+        if self.format is None:
+            fmt = ""
+        elif self.format == "date-time":
+            fmt = " (rfc3339)"
+        else:
+            fmt = " {}".format(self.format)
+        return '"<string>"' + fmt
 
 
 class EnumSchemaDescription(SchemaDescription):
