@@ -7,6 +7,7 @@ import time
 import datetime
 
 import run_control
+import time_signal
 from exceptions_iows import ConfigurationError
 from kpf_handler import KPFFileHandler
 from ksf_handler import KSFFileHandler
@@ -117,7 +118,7 @@ class FeedbackLoopRunner(BaseRunner):
 
             pp = pprint.PrettyPrinter(depth=4)
             print "ts names: "
-            print signal_types.keys()
+            print time_signal.time_signal_names
 
             print "reference metrics: "
             print pp.pprint(metrics_sum_dict_ref)
@@ -239,12 +240,12 @@ class FeedbackLoopRunner(BaseRunner):
                                                              self.updatable_metrics)
 
                 print "----------------------- summary: ---------------------------"
-                print "ts names                  : ", signal_types.keys()
-                print "scaling factors           : ", utils.sort_dict_list(tuning_factors, signal_types.keys())
-                print "reference metrics         : ", utils.sort_dict_list(metrics_sum_dict_ref, signal_types.keys())
-                print "metrics sums              : ", utils.sort_dict_list(metrics_sum_dict, signal_types.keys())
-                print "scaling factors new       : ", utils.sort_dict_list(sc_factor_dict_new, signal_types.keys())
-                print "scaling factors new (REL) : ", [sc_factor_dict_new[k]/tuning_factors[k] for k in signal_types.keys()]
+                print "ts names                  : ", time_signal.time_signal_names
+                print "scaling factors           : ", utils.sort_dict_list(tuning_factors, time_signal.time_signal_names)
+                print "reference metrics         : ", utils.sort_dict_list(metrics_sum_dict_ref, time_signal.time_signal_names)
+                print "metrics sums              : ", utils.sort_dict_list(metrics_sum_dict, time_signal.time_signal_names)
+                print "scaling factors new       : ", utils.sort_dict_list(sc_factor_dict_new, time_signal.time_signal_names)
+                print "scaling factors new (REL) : ", [sc_factor_dict_new[k]/tuning_factors[k] for k in time_signal.time_signal_names]
                 print "------------------------------------------------------------"
 
                 continue_flag = raw_input("Accept these scaling factors? ")
@@ -292,7 +293,7 @@ def get_new_scaling_factors(metrics_ref, metrics_sums, sc_factors, updatable_met
 def write_log_file(logfile, metrics_sum_dict, scaling_factor_dict):
     """ append metrics sums and scaling factors to log file.. """
     with open(logfile, "a") as myfile:
-        metrics_str = ''.join(str(e) + ' ' for e in utils.sort_dict_list(metrics_sum_dict, signal_types.keys()))
-        scaling_str = ''.join(str(e) + ' ' for e in utils.sort_dict_list(scaling_factor_dict, signal_types.keys()))
+        metrics_str = ''.join(str(e) + ' ' for e in utils.sort_dict_list(metrics_sum_dict, time_signal.time_signal_names))
+        scaling_str = ''.join(str(e) + ' ' for e in utils.sort_dict_list(scaling_factor_dict, time_signal.time_signal_names))
         myfile.write(metrics_str + scaling_str + '\n')
 

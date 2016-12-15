@@ -5,7 +5,7 @@ from difflib import SequenceMatcher
 from data_analysis import recommender
 from exceptions_iows import ConfigurationError
 from kronos_tools.print_colour import print_colour
-from time_signal import signal_types, TimeSignal
+import time_signal
 import fill_in_functions as fillf
 
 
@@ -53,7 +53,7 @@ class WorkloadData(object):
         """
 
         metrics_sum_dict = {}
-        for ts_name in signal_types.keys():
+        for ts_name in time_signal.time_signal_names:
             metrics_sum_dict[ts_name] = sum(job.timesignals[ts_name].sum if job.timesignals[ts_name] else 0 for job in self.jobs)
 
         return metrics_sum_dict
@@ -67,7 +67,7 @@ class WorkloadData(object):
 
         # Concatenate all the available time series data for each of the jobs
         total_metrics = {}
-        for signal_name, signal_details in signal_types.iteritems():
+        for signal_name, signal_details in time_signal.signal_types.iteritems():
 
             try:
                 times_vec = np.concatenate([job.timesignals[signal_name].xvalues + job.time_start
@@ -76,7 +76,7 @@ class WorkloadData(object):
                 data_vec = np.concatenate([job.timesignals[signal_name].yvalues
                                            for job in self.jobs if job.timesignals[signal_name] is not None])
 
-                ts = TimeSignal.from_values(signal_name, times_vec, data_vec, base_signal_name=signal_name)
+                ts = time_signal.TimeSignal.from_values(signal_name, times_vec, data_vec, base_signal_name=signal_name)
                 total_metrics[signal_name] = ts
 
             except ValueError:
@@ -104,7 +104,7 @@ class WorkloadData(object):
         metrics_dict = defaults_dict['metrics']
         np.random.seed(0)
         for job in self.jobs:
-            for ts_name in signal_types.keys():
+            for ts_name in time_signal.time_signal_names:
 
                 # go-ahead only if the time-series is missing or priority is less that user key
                 substitute = False
@@ -123,11 +123,11 @@ class WorkloadData(object):
                         y_min = metrics_dict[ts_name][0]
                         y_max = metrics_dict[ts_name][1]
                         random_y_value = y_min + np.random.rand() * (y_max - y_min)
-                        job.timesignals[ts_name] = TimeSignal.from_values(name=ts_name,
-                                                                          xvals=0.,
-                                                                          yvals=float(random_y_value),
-                                                                          priority=defaults_dict['priority']
-                                                                          )
+                        job.timesignals[ts_name] = time_signal.TimeSignal.from_values(name=ts_name,
+                                                                                      xvals=0.,
+                                                                                      yvals=float(random_y_value),
+                                                                                      priority=defaults_dict['priority']
+                                                                                      )
                     elif isinstance(metrics_dict[ts_name], dict):
                         # this entry is specified through a function (name and scaling)
 
@@ -147,11 +147,11 @@ class WorkloadData(object):
                         x_vec = x_vec_norm * job.duration
                         y_vec = y_vec_norm * metrics_dict[ts_name]['scaling']
 
-                        job.timesignals[ts_name] = TimeSignal.from_values(name=ts_name,
-                                                                          xvals=x_vec,
-                                                                          yvals=y_vec,
-                                                                          priority=defaults_dict['priority']
-                                                                          )
+                        job.timesignals[ts_name] = time_signal.TimeSignal.from_values(name=ts_name,
+                                                                                      xvals=x_vec,
+                                                                                      yvals=y_vec,
+                                                                                      priority=defaults_dict['priority']
+                                                                                      )
                     else:
                         raise ConfigurationError('fill in "metrics" entry should be either a list or dictionary')
 
@@ -246,7 +246,7 @@ class WorkloadData(object):
         :return:
         """
 
-        ts_matrix = np.zeros((0, len(signal_types.keys()) * n_bins))
+        ts_matrix = np.zeros((0, len(time_signal.time_signal_names) * n_bins))
 
         # stack all the ts vectors
         for job in self.jobs:

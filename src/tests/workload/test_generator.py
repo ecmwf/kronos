@@ -22,7 +22,7 @@ class GeneratorTests(unittest.TestCase):
 
         # If all of the required arguments are supplied, this should result in a valid job
         ts_complete_set = {tsk: time_signal.TimeSignal.from_values(tsk, [0., 0.1], [1., 999.])
-                           for tsk in time_signal.signal_types.keys()}
+                           for tsk in time_signal.time_signal_names}
 
         valid_args = {
             'time_start': 0.1,
@@ -85,7 +85,7 @@ class GeneratorTests(unittest.TestCase):
         for cc, job in enumerate(input_jobs):
 
             row = []
-            for tsk in time_signal.signal_types.keys():
+            for tsk in time_signal.time_signal_names:
                 ts = job.timesignals[tsk]
                 if ts is not None:
                     xvals, yvals = ts.digitized(n_ts_bins)
@@ -108,7 +108,7 @@ class GeneratorTests(unittest.TestCase):
         # check that the produced sapps are produced from one of the clusters in the matrix..
         self.assertTrue(any(np.equal(input_jobs_matrix, job.timesignals[ts].yvalues).all(1))
                         for job in modelled_sa_jobs
-                        for ts in time_signal.signal_types.keys()
+                        for ts in time_signal.time_signal_names
                         )
 
     # def test_dict_override(self):

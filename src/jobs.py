@@ -56,7 +56,7 @@ class ModelJob(object):
 
         # Default time series values
         self.timesignals = {}
-        for series in time_signal.signal_types:
+        for series in time_signal.time_signal_names:
             self.timesignals[series] = None
 
         if timesignals:
@@ -144,7 +144,7 @@ class ModelJob(object):
         Combine the time signals from multiple sources. Currently we only support one non-zero time signal
         for each signal type
         """
-        for ts_name in time_signal.signal_types:
+        for ts_name in time_signal.time_signal_names:
 
             # There is nothing to copy in, if the other time signal is not valid...
             other_valid = other.timesignals[ts_name] is not None and other.timesignals[ts_name].sum != 0
@@ -240,7 +240,7 @@ class ModelJob(object):
         non_value_flag = -1
 
         ts_vector = []
-        for tsk in time_signal.signal_types.keys():
+        for tsk in time_signal.time_signal_names:
             ts = self.timesignals[tsk]
             if ts is not None:
                 xvals, yvals = ts.digitized(n_ts_bins)
@@ -275,8 +275,8 @@ class ModelJob(object):
         if not idx_map:
 
             # case in which all the elements are filled up
-            split_values = np.split(ts_vector, len(time_signal.signal_types.keys()))
-            for tt, ts in enumerate(time_signal.signal_types.keys()):
+            split_values = np.split(ts_vector, len(time_signal.time_signal_names))
+            for tt, ts in enumerate(time_signal.time_signal_names):
                 y_values = split_values[tt]
                 x_values = np.linspace(0.0, self.duration, len(y_values))
 
@@ -288,7 +288,7 @@ class ModelJob(object):
         else:
 
             # case for which only some columns are filled up (therefore the mapping)
-            row = np.zeros(len(time_signal.signal_types.keys())*n_bins)
+            row = np.zeros(len(time_signal.time_signal_names)*n_bins)
             for tt, ts in enumerate(ts_vector):
                 row[idx_map[tt]] = ts
 
@@ -414,7 +414,7 @@ def concatenate_modeljobs(cat_job_label, job_list):
 
     # 4) interlace time-series
     cat_time_series = {}
-    for ts_type in time_signal.signal_types:
+    for ts_type in time_signal.time_signal_names:
 
         cat_xvalues = []
         cat_yvalues = []

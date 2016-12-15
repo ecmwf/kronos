@@ -4,7 +4,7 @@ from kronos_tools.print_colour import print_colour
 import numpy as np
 
 from synthetic_app import SyntheticApp
-from time_signal import TimeSignal, signal_types
+from time_signal import TimeSignal, time_signal_names
 
 
 class SyntheticWorkloadGenerator(object):
@@ -106,9 +106,9 @@ class SyntheticWorkloadGenerator(object):
 
                 ts_dict = {}
                 row = cluster['cluster_matrix'][idx, :]
-                ts_yvalues = np.split(row, len(signal_types))
+                ts_yvalues = np.split(row, len(time_signal_names))
                 for tt, ts_vv in enumerate(ts_yvalues):
-                    ts_name = signal_types.keys()[tt]
+                    ts_name = time_signal_names[tt]
                     ts = TimeSignal(ts_name).from_values(ts_name, np.arange(len(ts_vv)), ts_vv)
                     ts_dict[ts_name] = ts
 
@@ -166,9 +166,9 @@ class SyntheticWorkloadGenerator(object):
 
                 ts_dict = {}
                 row = cluster['cluster_matrix'][idx, :]
-                ts_yvalues = np.split(row, len(signal_types))
+                ts_yvalues = np.split(row, len(time_signal_names))
                 for tt, ts_vv in enumerate(ts_yvalues):
-                    ts_name = signal_types.keys()[tt]
+                    ts_name = time_signal_names[tt]
                     ts = TimeSignal(ts_name).from_values(ts_name, np.arange(len(ts_vv)), ts_vv)
                     ts_dict[ts_name] = ts
 

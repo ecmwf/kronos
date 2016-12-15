@@ -4,6 +4,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 import generator
+import time_signal
 from config.config import Config
 from plot_handler import PlotHandler
 from workload_data import WorkloadData
@@ -155,7 +156,7 @@ def user_workload():
                 mpi_io_type = 1
 
             timesignals = {}
-            for ts_name in signal_types.keys():
+            for ts_name in time_signal.time_signal_names:
                 if ts_name == 'flops':
                     time_yvalues = ops_types[cpu_type] * scale_up_factors['flops'] * overall_level
                 elif ts_name != 'flops':
@@ -234,10 +235,8 @@ def user_workload():
             if app.timesignals[ts_name]:
                 if app.timesignals[ts_name].priority == 10:
                     plt.bar(app.timesignals[ts_name].xvalues, app.timesignals[ts_name].yvalues, 0.5, color='b')
-                    print "priority 10:", app.timesignals[ts_name].xvalues
                 elif app.timesignals[ts_name].priority == 2:
                     plt.bar(app.timesignals[ts_name].xvalues, app.timesignals[ts_name].yvalues, 0.5, color='g')
-                    print "priority 2:", app.timesignals[ts_name].xvalues
                 else:
                     raise ValueError(
                         "priority not recognized.. {} for ts {}".format(app.timesignals[ts_name].priority, ts_name))
@@ -296,13 +295,10 @@ def user_workload():
     # take only clusters actually found in the labels..
     used_clusters = set(clusters_labels)
 
-    # timesignal_names:
-    ts_names_list = signal_types.keys()
-
     for rr in used_clusters:
 
-        ts_yvalues_all = np.split(clusters_matrix[rr, :], len(signal_types))
-        for tt, ts_name in enumerate(ts_names_list):
+        ts_yvalues_all = np.split(clusters_matrix[rr, :], len(time_signal.time_signal_names))
+        for tt, ts_name in enumerate(time_signal.time_signal_names):
             ts_values = ts_yvalues_all[tt]
             plt.subplot(len(used_clusters), len(ts_yvalues_all), ss)
             plt.bar(np.arange(0, n_bins), ts_values, 0.5, color='r')
