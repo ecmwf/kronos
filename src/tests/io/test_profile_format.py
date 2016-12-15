@@ -31,7 +31,8 @@ class ProfileFormatTest(unittest.TestCase):
             "version": 1,
             "tag": "KRONOS-KPF-MAGIC",
             "created": "2016-12-14T09:57:35Z",  # Timestamp in strict rfc3339 format.
-            "uid": 1234
+            "uid": 1234,
+            "profiled_jobs": []
         }
 
         # Check the validation information
@@ -68,7 +69,8 @@ class ProfileFormatTest(unittest.TestCase):
             "version": 1,
             "tag": "KRONOS-KPF-MAGIC",
             "created": "2016-12-14T09:57:35Z",  # Timestamp in strict rfc3339 format.
-            "uid": 1234
+            "uid": 1234,
+            "profiled_jobs": []
         }
 
         # Check the validation information

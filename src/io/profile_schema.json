@@ -75,10 +75,12 @@
                     },
                     "extra": {
                         "type": "object",
+                        "required": false,
                         "description": "Context or site specific additional information. No further schema is imposed."
                     },
                     "time_series": {
                         "type": "object",
+                        "required": false,
                         "description": "Time dependent profiling data for the specified job and metrics",
                         "patternProperties": {
                             "(n_write|n_read|kb_write|kb_read|n_pairwise|kb_pairwise|n_collective|kb_collective|flops)": {
@@ -87,6 +89,7 @@
                                 "properties": {
                                     "times": {
                                         "type": "array",
+                                        "required": true,
                                         "description": "Timestamps associated with measurement values",
                                         "items": {
                                             "type": "number"
@@ -95,6 +98,7 @@
                                     "values": {
                                         "type": "array",
                                         "description": "Values corresponding to timestamps. See documentation for precise interpretation.",
+                                        "required": true,
                                         "items": {
                                             "type": "number"
                                         }
