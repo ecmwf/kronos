@@ -67,6 +67,10 @@ class ObjectSchemaDescription(SchemaDescription):
             k: SchemaDescription.from_schema(v, depth+1)
             for k, v in schema.get('properties', {}).iteritems()
         }
+        self.properties.update({
+            k: SchemaDescription.from_schema(v, depth+1)
+            for k, v in schema.get('patternProperties', {}).iteritems()
+        })
 
     def details_string(self):
         if len(self.properties) == 0:
@@ -74,7 +78,9 @@ class ObjectSchemaDescription(SchemaDescription):
         else:
             properties = self.newline
             properties += ',{0}{0}'.format(self.newline).join(
-                '    # {}{}    {}: {}'.format(prop_schema.description, self.newline, prop, prop_schema.details_string())
+                '    # {}{}    {}: {}'.format(
+                    "{}    # ".format(self.newline).join(prop_schema.description.split('\n')),
+                    self.newline, prop, prop_schema.details_string())
                 for prop, prop_schema in self.properties.iteritems())
             properties += self.newline
 
@@ -124,7 +130,7 @@ class StringSchemaDescription(SchemaDescription):
             fmt = " (rfc3339)"
         else:
             fmt = " {}".format(self.format)
-        return '"<string>"' + fmt
+        return '<string>' + fmt
 
 
 class EnumSchemaDescription(SchemaDescription):
