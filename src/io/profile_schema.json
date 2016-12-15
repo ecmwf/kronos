@@ -1,7 +1,8 @@
 {
     "$schema": "http://json-schema.org/draft-03/schema",
     "type": "object" ,
-    "description": "The KPF format is a standardised interchange format for input profiling data for Kronos",
+    "title": "Kronos Profile Format",
+    "description": "The Kronos Profile Format (KPF) is a standardised interchange format for input profiling data for Kronos",
     "properties": {
         "version" : {
             "required": true,
@@ -24,6 +25,19 @@
             "required": false,
             "type": "integer",
             "description": "The UID of the user who created this file"
+        },
+        "profiled_jobs": {
+            "required": true,
+            "type": "array",
+            "description": "Profiled data for ingestion",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "timeseries": {
+
+                    }
+                }
+            }
         }
     }
 }

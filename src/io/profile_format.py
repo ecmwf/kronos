@@ -5,6 +5,7 @@ import sys
 #from kronos_tools import print_colour
 #from time_signal import TimeSignal
 #from workload_data import WorkloadData
+from schema_description import SchemaDescription
 
 import strict_rfc3339
 
@@ -70,8 +71,17 @@ class ProfileFormat(object):
         """
         jsonschema.validate(js, cls.schema(), format_checker=jsonschema.FormatChecker())
 
+    @classmethod
+    def describe(cls):
+        """
+        Output a description of the JSON in human-readable format
+        """
+        print SchemaDescription.from_schema(cls.schema())
+
 
 if __name__ == "__main__":
+
+    ProfileFormat.describe()
 
     with open('output.kpf', 'w') as f:
 
