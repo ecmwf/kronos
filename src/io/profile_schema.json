@@ -59,17 +59,17 @@
                         "description": "Job duration in seconds"
                     },
                     "time_queued": {
-                        "type": "string",
+                        "type": "integer",
                         "required": false,
                         "description": "Timestamp (epoch time) that the job was submitted into the scheduler queue"
                     },
                     "ncpus": {
-                        "type": "string",
+                        "type": "integer",
                         "required": false,
                         "description": "The number of CPUs that the job ran across"
                     },
                     "nnodes": {
-                        "type": "string",
+                        "type": "integer",
                         "required": false,
                         "description": "The number of nodes the job ran on"
                     },

@@ -21,6 +21,21 @@ class ProfileFormat(object):
     kpf_version = 1
     kpf_magic = "KRONOS-KPF-MAGIC"
 
+    def __init__(self, model_jobs):
+        self.profiled_jobs = [self.parse_model_job(m) for m in model_jobs]
+
+    @staticmethod
+    def parse_model_job(model_job):
+        return {
+            "time_end": model_job.time_queued,
+            "time_start": model_job.time_start,
+            "duration": model_job.duration,
+            "ncpus": model_job.ncpus,
+            "nnodes": model_job.nnodes,
+            "label": model_job.label,
+            "time_series": {}
+        }
+
     @staticmethod
     def from_file(f):
         data = json.load(f)
@@ -42,7 +57,7 @@ class ProfileFormat(object):
             "tag": self.kpf_magic,
             "created": strict_rfc3339.now_to_rfc3339_utcoffset(),
             "uid": os.getuid(),
-            "profiled_jobs": []
+            "profiled_jobs": self.profiled_jobs
         }
 
         self.validate_json(output_dict)
@@ -80,17 +95,30 @@ class ProfileFormat(object):
         print SchemaDescription.from_schema(cls.schema())
 
 
+try:
+    import cPickle as pickle
+except:
+    import pickle
+sys.path.append(os.path.dirname(os.path.dirname(__file__)))
+
 if __name__ == "__main__":
 
     ProfileFormat.describe()
 
+    with open(sys.argv[1], 'r') as f:
+        ds = pickle.load(f)
+
+    model_jobs = ds.model_jobs()
+    print model_jobs
+
+
     with open('output.kpf', 'w') as f:
 
-        pf = ProfileFormat()
+        pf = ProfileFormat(model_jobs)
         pf.write(f)
-
-    with open('input.kpf', 'r') as f:
-        pf = ProfileFormat.from_file(f)
+#
+#    with open('input.kpf', 'r') as f:
+#        pf = ProfileFormat.from_file(f)
 
 #class KPFFileHandler(object):
 #    """
