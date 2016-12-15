@@ -29,12 +29,56 @@
         "profiled_jobs": {
             "required": true,
             "type": "array",
-            "description": "Profiled data for ingestion",
+            "description": "Profiled data for ingestion. Most data is optional to support many data sources.",
             "items": {
                 "type": "object",
                 "properties": {
-                    "timeseries": {
-
+                    "name": {
+                        "type": "string",
+                        "required": false,
+                        "description": "The job name (from the scheduler or other systems)"
+                    },
+                    "label": {
+                        "type": "string",
+                        "required": false,
+                        "description": "A label that can be used to strictly, and uniquely, identify the job"
+                    },
+                    "user": {
+                        "type": ["string", "integer"],
+                        "required": false,
+                        "description": "The user name or user id to whom the job belongs"
+                    },
+                    "time_start": {
+                        "type": "integer",
+                        "required": false,
+                        "description": "Timestamp (epoch time) that the job started"
+                    },
+                    "duration": {
+                        "type": "integer",
+                        "required": false,
+                        "description": "Job duration in seconds"
+                    },
+                    "time_queued": {
+                        "type": "string",
+                        "required": false,
+                        "description": "Timestamp (epoch time) that the job was submitted into the scheduler queue"
+                    },
+                    "ncpus": {
+                        "type": "string",
+                        "required": false,
+                        "description": "The number of CPUs that the job ran across"
+                    },
+                    "nnodes": {
+                        "type": "string",
+                        "required": false,
+                        "description": "The number of nodes the job ran on"
+                    },
+                    "extra": {
+                        "type": "object",
+                        "description": "Context or site specific additional information. No further schema is imposed."
+                    },
+                    "time_series": {
+                        "type": "array"
                     }
                 }
             }

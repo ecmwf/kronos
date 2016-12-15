@@ -41,7 +41,8 @@ class ProfileFormat(object):
             "version": self.kpf_version,
             "tag": self.kpf_magic,
             "created": strict_rfc3339.now_to_rfc3339_utcoffset(),
-            "uid": os.getuid()
+            "uid": os.getuid(),
+            "profiled_jobs": []
         }
 
         self.validate_json(output_dict)
