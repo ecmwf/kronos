@@ -121,6 +121,7 @@
                 },
                 "generator": {
                         "type": "match_job_pdf",
+                        "n_bins_for_pdf": 20,
                         "random_seed": 0,
                         "tuning_factors": {
                                 "kb_collective": 1e-0,

@@ -115,6 +115,7 @@ class KronosModel(object):
 
         if class_operations_config is not None:
             for op_config in class_operations_config:
+
                 if op_config['type'] == "split":
                     print_colour("green", "Splitting workload {}".format(op_config['apply_to']))
                     wl = next(wl for wl in self.workloads if wl.tag == op_config['apply_to'])
@@ -153,5 +154,13 @@ class KronosModel(object):
         :return:
         """
 
-        sapps_generator = generator.SyntheticWorkloadGenerator(self.config_generator, self.clusters)
+        global_t0 = min(j.time_start for cl in self.clusters for j in cl['jobs_for_clustering'])
+        global_tend = max(j.time_start for cl in self.clusters for j in cl['jobs_for_clustering'])
+
+        sapps_generator = generator.SyntheticWorkloadGenerator(self.config_generator,
+                                                               self.clusters,
+                                                               global_t0,
+                                                               global_tend,
+                                                               n_bins_for_pdf=self.config_generator['n_bins_for_pdf'])
+
         self.modelled_sa_jobs = sapps_generator.generate_synthetic_apps()

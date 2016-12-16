@@ -344,7 +344,13 @@ def user_workload():
                     'labels': clusters_labels,
                     }]
 
-    sapps_generator = generator.SyntheticWorkloadGenerator(config_generator, clusters_dict)
+    # sapps_generator = generator.SyntheticWorkloadGenerator(config_generator, clusters_dict)
+
+    global_t0 = min(j.time_start for cl in clusters_dict for j in cl['jobs_for_clustering'])
+    global_tend = max(j.time_start for cl in clusters_dict for j in cl['jobs_for_clustering'])
+    sapps_generator = generator.SyntheticWorkloadGenerator(config_generator, clusters_dict, global_t0, global_tend)
+
+
     modelled_sa_jobs = sapps_generator.generate_synthetic_apps()
 
     # ------------ plot real/synthetic job distribution ---------------
@@ -359,7 +365,7 @@ def user_workload():
     print "xedge_bins", xedge_bins
     print "tt_hist", tt_hist[0]
 
-    #synthetic start times
+    # synthetic start times
     sa_hist = np.histogram(np.asarray([j.time_start for j in modelled_sa_jobs]), bins=xedge_bins)
     print "sa_hist", sa_hist[0]
 

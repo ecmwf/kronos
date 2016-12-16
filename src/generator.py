@@ -3,6 +3,7 @@ from jobs import ModelJob
 from kronos_tools.print_colour import print_colour
 import numpy as np
 
+from kronos_tools.time_pdf import equiv_time_pdf_exact, equiv_time_pdf
 from synthetic_app import SyntheticApp
 from time_signal import TimeSignal, time_signal_names
 
@@ -25,9 +26,12 @@ class SyntheticWorkloadGenerator(object):
                              "total_submit_interval",
                              ]
 
-    def __init__(self, config_generator, clusters):
+    def __init__(self, config_generator, clusters, global_t0, global_tend, n_bins_for_pdf=None):
         self.config_generator = config_generator
         self.clusters = clusters
+        self.global_t0 = global_t0
+        self.global_tend = global_tend
+        self.n_bins_for_pdf = n_bins_for_pdf
 
     def check_config(self):
         """
@@ -58,47 +62,25 @@ class SyntheticWorkloadGenerator(object):
         Generate jobs matching PDF of jobs in the time window of the workload
         :return:
         """
-        # raise NotImplementedError("not implemented!")
 
         generated_sa_from_all_wl = []
+        n_bins_for_pdf = self.n_bins_for_pdf if self.n_bins_for_pdf else 20
 
         # generate a synthetic workload for each cluster of jobs
         for cluster in self.clusters:
 
-            # calculate the submit rate from the selected workload
             start_times = [j.time_start for j in cluster['jobs_for_clustering']]
-            real_submit_rate = float(len(start_times)) / (max(start_times) - min(start_times))
-            requested_submit_rate = real_submit_rate * self.config_generator['submit_rate_factor']
-            n_modelled_jobs = int(requested_submit_rate * self.config_generator['total_submit_interval'])
+            start_times_vec_sa, _, _ = equiv_time_pdf(start_times,
+                                                      self.global_t0,
+                                                      self.global_tend,
+                                                      self.config_generator['total_submit_interval'],
+                                                      self.config_generator['submit_rate_factor'],
+                                                      n_bins_for_pdf)
 
-            if not n_modelled_jobs:
-                out_str = 'Low submit rate! '
-                out_str += 'real={} jobs/sec '.format(real_submit_rate)
-                out_str += 'requested={} jobs/sec '.format(requested_submit_rate)
-                out_str += 'n of jobs {} '.format(n_modelled_jobs)
-                out_str += '=> Number of jobs will be set to *1*'
-                print_colour("orange", out_str)
-                n_modelled_jobs = 1
-
-            # create random vector of cluster indices and start times consistent with the PDF of the real start times
+            # Random vector of cluster indices
+            n_modelled_jobs = len(start_times_vec_sa)
             np.random.seed(self.config_generator['random_seed'])
             vec_clust_indexes = np.random.randint(cluster['cluster_matrix'].shape[0], size=n_modelled_jobs)
-
-            # find the PDF of jobs start times
-            bins = np.linspace(0, self.config_generator['total_submit_interval'], 50)
-
-            # normalize the vector of start time to make it in [0, max T submit]
-            start_times_vec = np.asarray(start_times)
-            start_times_norm = (start_times_vec-min(start_times_vec))/(max(start_times_vec)-min(start_times_vec))
-            start_times_norm *= self.config_generator['total_submit_interval']
-
-            # then calculate the PDF
-            time_start_pdf, time_start_bin_edges = np.histogram(start_times_norm, bins, density=False)
-            time_start_pdf_norm = time_start_pdf/float(sum(time_start_pdf))
-            time_start_bin_mid = (time_start_bin_edges[:-1]+time_start_bin_edges[1:])/2.0
-
-            # then calculate a random distribution of time start from the provided PDF
-            start_times_vec_sa = np.random.choice(time_start_bin_mid, p=time_start_pdf_norm, size=n_modelled_jobs)
 
             # loop over the clusters and generates jos as needed
             generated_model_jobs = []
@@ -124,7 +106,6 @@ class SyntheticWorkloadGenerator(object):
 
             # --- then create the synthetic apps from the generated model jobs --
             modelled_sa_jobs = self.model_jobs_to_sa(generated_model_jobs, cluster['source-workload'])
-
             generated_sa_from_all_wl.extend(modelled_sa_jobs)
 
         return generated_sa_from_all_wl
@@ -136,36 +117,20 @@ class SyntheticWorkloadGenerator(object):
         """
 
         generated_sa_from_all_wl = []
+        n_bins_for_pdf = self.n_bins_for_pdf if self.n_bins_for_pdf else 20
 
         # generate a synthetic workload for each cluster of jobs
         for cluster in self.clusters:
 
-            # calculate the submit rate from the selected workload
             start_times = [j.time_start for j in cluster['jobs_for_clustering']]
-            # real_submit_rate = float(len(start_times)) / (max(start_times) - min(start_times))
+            start_times_vec_sa, _, _ = equiv_time_pdf_exact(start_times,
+                                                            self.global_t0,
+                                                            self.global_tend,
+                                                            self.config_generator['total_submit_interval'],
+                                                            self.config_generator['submit_rate_factor'],
+                                                            n_bins_for_pdf)
 
-            # find the PDF of jobs start times
-            sa_bins = np.linspace(0, self.config_generator['total_submit_interval'], 15)
-
-            # normalize the vector of start time to make it in [0, max T submit]
-            start_times_vec = np.asarray(start_times)
-            start_times_norm = (start_times_vec - min(start_times_vec)) / (max(start_times_vec) - min(start_times_vec))
-            start_times_norm *= self.config_generator['total_submit_interval']
-
-            # then calculate the PDF
-            time_start_pdf, time_start_bin_edges = np.histogram(start_times_norm, sa_bins, density=False)
-
-            # then calculate an "exact" distribution of time start from the provided PDF
-            sa_time_ratio = self.config_generator['submit_rate_factor']
-            start_times_vec_sa = np.asarray([])
-            for bb in range(len(time_start_pdf)):
-                y_min = sa_bins[bb]
-                y_max = sa_bins[bb + 1]
-                n_sa_bin = int(time_start_pdf[bb] * sa_time_ratio)
-                random_y_values = y_min + np.random.rand(n_sa_bin) * (y_max-y_min)
-                start_times_vec_sa = np.append(start_times_vec_sa, random_y_values)
-
-            # create random vector of cluster indices and start times consistent with the PDF of the real start times
+            # Random vector of cluster indices
             n_modelled_jobs = len(start_times_vec_sa)
             np.random.seed(self.config_generator['random_seed'])
             vec_clust_indexes = np.random.randint(cluster['cluster_matrix'].shape[0], size=n_modelled_jobs)
@@ -198,7 +163,6 @@ class SyntheticWorkloadGenerator(object):
             generated_sa_from_all_wl.extend(modelled_sa_jobs)
 
         return generated_sa_from_all_wl
-
 
     def match_job_rate(self):
         """
