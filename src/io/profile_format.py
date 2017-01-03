@@ -151,30 +151,3 @@ class ProfileFormat(object):
         """
         print SchemaDescription.from_schema(cls.schema())
 
-
-try:
-    import cPickle as pickle
-except:
-    import pickle
-sys.path.append(os.path.dirname(os.path.dirname(__file__)))
-
-if __name__ == "__main__":
-
-    ProfileFormat.describe()
-
-    with open(sys.argv[1], 'r') as f:
-        ds = pickle.load(f)
-
-    model_jobs = ds.model_jobs()
-
-    with open('output.kpf', 'w') as f:
-
-        pf = ProfileFormat(model_jobs)
-        print pf
-        pf.write(f)
-
-    with open('output.kpf', 'r') as f:
-        pf2 = ProfileFormat.from_file(f)
-        print pf2
-
-    print pf == pf2
