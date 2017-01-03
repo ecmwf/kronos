@@ -51,7 +51,7 @@ class ProfileFormat(object):
             return False
 
         for j1, j2 in zip(self.profiled_jobs, other.profiled_jobs):
-            if (j1['time_end'] != j2['time_end'] or
+            if (j1['time_queued'] != j2['time_queued'] or
                     j1['time_start'] != j2['time_start'] or
                     j1['duration'] != j2['duration'] or
                     j1['ncpus'] != j2['ncpus'] or
@@ -75,7 +75,7 @@ class ProfileFormat(object):
     @staticmethod
     def parse_model_job(model_job):
         job = {
-            "time_end": model_job.time_queued,
+            "time_queued": model_job.time_queued,
             "time_start": model_job.time_start,
             "duration": model_job.duration,
             "ncpus": model_job.ncpus,

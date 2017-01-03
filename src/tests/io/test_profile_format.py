@@ -3,9 +3,11 @@
 from io.profile_format import ProfileFormat
 
 from StringIO import StringIO
+from datetime import datetime
 import jsonschema
 import unittest
 import json
+import copy
 
 
 class ProfileFormatTest(unittest.TestCase):
@@ -32,7 +34,19 @@ class ProfileFormatTest(unittest.TestCase):
             "tag": "KRONOS-KPF-MAGIC",
             "created": "2016-12-14T09:57:35Z",  # Timestamp in strict rfc3339 format.
             "uid": 1234,
-            "profiled_jobs": []
+            "profiled_jobs": [{
+                "time_start": 537700,
+                "time_queued": 99,
+                "duration": 147,
+                "ncpus": 72,
+                "nnodes": 2,
+                "time_series": {
+                    "kb_read": {
+                        "times": [0.01, 0.02, 0.03, 0.04],
+                        "values": [15, 16, 17, 18]
+                    }
+                }
+            }]
         }
 
         # Check the validation information
@@ -49,16 +63,126 @@ class ProfileFormatTest(unittest.TestCase):
         invalid['created'] = "1234567"
         self.assertRaises(jsonschema.ValidationError, lambda: ProfileFormat.validate_json(invalid))
 
+        invalid = valid.copy()
+        invalid['profiled_jobs'] = copy.deepcopy(valid['profiled_jobs'])
+        invalid['profiled_jobs'][0] = "boo hiss"
+        self.assertRaises(jsonschema.ValidationError, lambda: ProfileFormat.validate_json(invalid))
+
+        invalid = valid.copy()
+        invalid['profiled_jobs'] = copy.deepcopy(valid['profiled_jobs'])
+        invalid['profiled_jobs'][0]['time_start'] = -1
+        self.assertRaises(jsonschema.ValidationError, lambda: ProfileFormat.validate_json(invalid))
+
+        invalid = valid.copy()
+        invalid['profiled_jobs'] = copy.deepcopy(valid['profiled_jobs'])
+        invalid['profiled_jobs'][0]['time_start'] = "abcd"
+        self.assertRaises(jsonschema.ValidationError, lambda: ProfileFormat.validate_json(invalid))
+
+        invalid = valid.copy()
+        invalid['profiled_jobs'] = copy.deepcopy(valid['profiled_jobs'])
+        invalid['profiled_jobs'][0]['time_queued'] = -1
+        self.assertRaises(jsonschema.ValidationError, lambda: ProfileFormat.validate_json(invalid))
+
+        invalid = valid.copy()
+        invalid['profiled_jobs'] = copy.deepcopy(valid['profiled_jobs'])
+        invalid['profiled_jobs'][0]['time_queued'] = "abcd"
+        self.assertRaises(jsonschema.ValidationError, lambda: ProfileFormat.validate_json(invalid))
+
+        invalid = valid.copy()
+        invalid['profiled_jobs'] = copy.deepcopy(valid['profiled_jobs'])
+        invalid['profiled_jobs'][0]['duration'] = -1
+        self.assertRaises(jsonschema.ValidationError, lambda: ProfileFormat.validate_json(invalid))
+
+        invalid = valid.copy()
+        invalid['profiled_jobs'] = copy.deepcopy(valid['profiled_jobs'])
+        invalid['profiled_jobs'][0]['duration'] = "abcd"
+        self.assertRaises(jsonschema.ValidationError, lambda: ProfileFormat.validate_json(invalid))
+
+        invalid = valid.copy()
+        invalid['profiled_jobs'] = copy.deepcopy(valid['profiled_jobs'])
+        invalid['profiled_jobs'][0]['ncpus'] = -1
+        self.assertRaises(jsonschema.ValidationError, lambda: ProfileFormat.validate_json(invalid))
+
+        invalid = valid.copy()
+        invalid['profiled_jobs'] = copy.deepcopy(valid['profiled_jobs'])
+        invalid['profiled_jobs'][0]['ncpus'] = "abcd"
+        self.assertRaises(jsonschema.ValidationError, lambda: ProfileFormat.validate_json(invalid))
+
+        invalid = valid.copy()
+        invalid['profiled_jobs'] = copy.deepcopy(valid['profiled_jobs'])
+        invalid['profiled_jobs'][0]['nnodes'] = -1
+        self.assertRaises(jsonschema.ValidationError, lambda: ProfileFormat.validate_json(invalid))
+
+        invalid = valid.copy()
+        invalid['profiled_jobs'] = copy.deepcopy(valid['profiled_jobs'])
+        invalid['profiled_jobs'][0]['nnodes'] = "abcd"
+        self.assertRaises(jsonschema.ValidationError, lambda: ProfileFormat.validate_json(invalid))
+
+        invalid = valid.copy()
+        invalid['profiled_jobs'] = copy.deepcopy(valid['profiled_jobs'])
+        invalid['profiled_jobs'][0]['time_series'] = {
+            "invalid_ts": {"times": [0.01, 0.02], "values": [10, 20]}
+        }
+        self.assertRaises(jsonschema.ValidationError, lambda: ProfileFormat.validate_json(invalid))
+
+        invalid = valid.copy()
+        invalid['profiled_jobs'] = copy.deepcopy(valid['profiled_jobs'])
+        del invalid['profiled_jobs'][0]['time_series']['kb_read']['times']
+        self.assertRaises(jsonschema.ValidationError, lambda: ProfileFormat.validate_json(invalid))
+
+        invalid = valid.copy()
+        invalid['profiled_jobs'] = copy.deepcopy(valid['profiled_jobs'])
+        invalid['profiled_jobs'][0]['time_series']['kb_read']['times'][3] = 'a'
+        self.assertRaises(jsonschema.ValidationError, lambda: ProfileFormat.validate_json(invalid))
+
+        invalid = valid.copy()
+        invalid['profiled_jobs'] = copy.deepcopy(valid['profiled_jobs'])
+        del invalid['profiled_jobs'][0]['time_series']['kb_read']['values']
+        self.assertRaises(jsonschema.ValidationError, lambda: ProfileFormat.validate_json(invalid))
+
+        invalid = valid.copy()
+        invalid['profiled_jobs'] = copy.deepcopy(valid['profiled_jobs'])
+        invalid['profiled_jobs'][0]['time_series']['kb_read']['times'][3] = 'b'
+        self.assertRaises(jsonschema.ValidationError, lambda: ProfileFormat.validate_json(invalid))
+
         # UID is not required, but the format must be correct
 
         invalid = valid.copy()
         invalid['uid'] = "abcd"
         self.assertRaises(jsonschema.ValidationError, lambda: ProfileFormat.validate_json(invalid))
 
+        # The profiled_jobs list may be empty or omitted
+
+        valid2 = valid.copy()
+        del valid2['profiled_jobs']
+        ProfileFormat.validate_json(valid2)
+
+        valid2 = valid.copy()
+        valid2['profiled_jobs'] = []
+        ProfileFormat.validate_json(valid2)
+
         # Check that the original one is still valid (i.e. we haven't been getting the validation errors by
         # just damaging the original...
 
         ProfileFormat.validate_json(valid)
+
+        # Check that the data hasn't become inadvertently damaged
+
+        pf = ProfileFormat(json_jobs=valid['profiled_jobs'],
+                           created=datetime(2016, 12, 14, 9, 57, 35),
+                           uid=valid['uid'])
+
+        self.assertEquals(pf.uid, 1234)
+        self.assertEquals(pf.created, datetime(2016, 12, 14, 9, 57, 35))
+        self.assertEquals(len(pf.profiled_jobs), 1)
+        self.assertEquals(pf.profiled_jobs[0]["time_start"], 537700)
+        self.assertEquals(pf.profiled_jobs[0]["time_queued"], 99)
+        self.assertEquals(pf.profiled_jobs[0]["duration"], 147)
+        self.assertEquals(pf.profiled_jobs[0]["ncpus"], 72)
+        self.assertEquals(pf.profiled_jobs[0]["nnodes"], 2)
+        self.assertEquals(len(pf.profiled_jobs[0]["time_series"]), 1)
+        self.assertEquals(pf.profiled_jobs[0]["time_series"]["kb_read"]["times"][2], 0.03)
+        self.assertEquals(pf.profiled_jobs[0]["time_series"]["kb_read"]["values"][2], 17)
 
     def test_from_file(self):
         """
@@ -70,7 +194,19 @@ class ProfileFormatTest(unittest.TestCase):
             "tag": "KRONOS-KPF-MAGIC",
             "created": "2016-12-14T09:57:35Z",  # Timestamp in strict rfc3339 format.
             "uid": 1234,
-            "profiled_jobs": []
+            "profiled_jobs": [{
+                "time_start": 537700,
+                "time_queued": 99,
+                "duration": 147,
+                "ncpus": 72,
+                "nnodes": 2,
+                "time_series": {
+                    "kb_read": {
+                        "times": [0.01, 0.02, 0.03, 0.04],
+                        "values": [15, 16, 17, 18]
+                    }
+                }
+            }]
         }
 
         # Check the validation information
@@ -91,6 +227,47 @@ class ProfileFormatTest(unittest.TestCase):
         # just damaging the original...
 
         pf = ProfileFormat.from_file(StringIO(json.dumps(valid)))
+
+        # Check that things are read correctly
+
+        self.assertEquals(pf.uid, 1234)
+        self.assertEquals(pf.created, datetime(2016, 12, 14, 9, 57, 35))
+        self.assertEquals(len(pf.profiled_jobs), 1)
+        self.assertEquals(pf.profiled_jobs[0]["time_start"], 537700)
+        self.assertEquals(pf.profiled_jobs[0]["time_queued"], 99)
+        self.assertEquals(pf.profiled_jobs[0]["duration"], 147)
+        self.assertEquals(pf.profiled_jobs[0]["ncpus"], 72)
+        self.assertEquals(pf.profiled_jobs[0]["nnodes"], 2)
+        self.assertEquals(len(pf.profiled_jobs[0]["time_series"]), 1)
+        self.assertEquals(pf.profiled_jobs[0]["time_series"]["kb_read"]["times"][2], 0.03)
+        self.assertEquals(pf.profiled_jobs[0]["time_series"]["kb_read"]["values"][2], 17)
+
+    def test_profile_format_equality(self):
+        """
+        Testing equality
+        """
+        valid = {
+            "version": 1,
+            "tag": "KRONOS-KPF-MAGIC",
+            "created": "2016-12-14T09:57:35Z",  # Timestamp in strict rfc3339 format.
+            "uid": 1234,
+            "profiled_jobs": [{
+                "time_start": 537700,
+                "time_queued": 99,
+                "duration": 147,
+                "ncpus": 72,
+                "nnodes": 2,
+                "time_series": {
+                    "kb_read": {
+                        "times": [0.01, 0.02, 0.03, 0.04],
+                        "values": [15, 16, 17, 18]
+                    }
+                }
+            }]
+        }
+
+        pf_valid = ProfileFormat.from_file(StringIO(json.dumps(valid)))
+        print pf_valid
 
 
 if __name__ == "__main__":

@@ -27,11 +27,12 @@
             "description": "The UID of the user who created this file"
         },
         "profiled_jobs": {
-            "required": true,
+            "required": false,
             "type": "array",
             "description": "Profiled data for ingestion. Most data is optional to support many data sources.",
             "items": {
                 "type": "object",
+                "additionalProperties": false,
                 "properties": {
                     "name": {
                         "type": "string",
@@ -50,27 +51,32 @@
                     },
                     "time_start": {
                         "type": "integer",
+                        "minimum": 0,
                         "required": false,
                         "description": "Timestamp (epoch time) that the job started"
                     },
                     "duration": {
                         "type": "integer",
+                        "minimum": 0,
                         "required": false,
                         "description": "Job duration in seconds"
                     },
                     "time_queued": {
                         "type": "integer",
+                        "minimum": 0,
                         "required": false,
                         "description": "Timestamp (epoch time) that the job was submitted into the scheduler queue"
                     },
                     "ncpus": {
                         "type": "integer",
                         "required": false,
+                        "minimum": 0,
                         "description": "The number of CPUs that the job ran across"
                     },
                     "nnodes": {
                         "type": "integer",
                         "required": false,
+                        "minimum": 0,
                         "description": "The number of nodes the job ran on"
                     },
                     "extra": {
@@ -82,6 +88,7 @@
                         "type": "object",
                         "required": false,
                         "description": "Time dependent profiling data for the specified job and metrics",
+                        "additionalProperties": false,
                         "patternProperties": {
                             "(n_write|n_read|kb_write|kb_read|n_pairwise|kb_pairwise|n_collective|kb_collective|flops)": {
                                 "type": "object",
