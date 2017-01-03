@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-from io.profile_format import ProfileFormat
+from kronos_io.profile_format import ProfileFormat
 
 from StringIO import StringIO
 from datetime import datetime

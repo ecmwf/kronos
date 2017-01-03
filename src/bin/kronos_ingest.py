@@ -5,6 +5,9 @@ Kronos data ingestion tool.
 Given a path, ingests the available data to produce a kronos cache file. This cache file may be used in other
 elements of the kronos process.
 """
+import os, sys
+sys.path.append(os.path.dirname(os.path.dirname(__file__)))
+
 from logreader.base import LogReader
 
 try:
@@ -12,7 +15,6 @@ try:
 except:
     import pickle
 import argparse
-import sys
 
 import logreader
 
