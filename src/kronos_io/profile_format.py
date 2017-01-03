@@ -1,10 +1,3 @@
-import sys
-#from collections import OrderedDict
-
-#from jobs import ModelJob
-#from kronos_tools import print_colour
-#from time_signal import TimeSignal
-#from workload_data import WorkloadData
 from schema_description import SchemaDescription
 import time_signal
 
@@ -61,14 +54,20 @@ class ProfileFormat(object):
 
     @staticmethod
     def parse_model_job(model_job):
-        job = {
-            "time_queued": model_job.time_queued,
-            "time_start": model_job.time_start,
-            "duration": model_job.duration,
-            "ncpus": model_job.ncpus,
-            "nnodes": model_job.nnodes,
-            "label": model_job.label,
-        }
+        job = {}
+
+        if model_job.time_queued is not None:
+            job['time_queued'] = model_job.time_queued
+        if model_job.time_start is not None:
+            job['time_start'] = model_job.time_start
+        if model_job.duration is not None:
+            job['duration'] = model_job.duration
+        if model_job.ncpus is not None:
+            job['ncpus'] = model_job.ncpus
+        if model_job.nnodes is not None:
+            job['nnodes'] = model_job.nnodes
+        if model_job.label is not None:
+            job['label'] = model_job.label
 
         # Append any time series data that is present
         time_series = {}
