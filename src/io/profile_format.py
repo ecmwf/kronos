@@ -6,6 +6,7 @@ import sys
 #from time_signal import TimeSignal
 #from workload_data import WorkloadData
 from schema_description import SchemaDescription
+import time_signal
 
 import strict_rfc3339
 
@@ -21,26 +22,52 @@ class ProfileFormat(object):
     kpf_version = 1
     kpf_magic = "KRONOS-KPF-MAGIC"
 
-    def __init__(self, model_jobs):
+    def __init__(self, model_jobs=[]):
         self.profiled_jobs = [self.parse_model_job(m) for m in model_jobs]
+
+    def __unicode__(self):
+        return "KPF(njobs={})".format(len(self.profiled_jobs))
+
+    def __str__(self):
+        return unicode(self).encode('utf-8')
 
     @staticmethod
     def parse_model_job(model_job):
-        return {
+        job = {
             "time_end": model_job.time_queued,
             "time_start": model_job.time_start,
             "duration": model_job.duration,
             "ncpus": model_job.ncpus,
             "nnodes": model_job.nnodes,
             "label": model_job.label,
-            "time_series": {}
         }
+
+        # Append any time series data that is present
+        time_series = {}
+        for name, values in model_job.timesignals.iteritems():
+            assert name in time_signal.signal_types
+            if values is not None:
+                time_series[name] = {
+                    'times': values.xvalues,
+                    'values': values.yvalues
+                }
+
+        # The time series data is only included if it is present.
+        if time_series:
+            job['time_series'] = time_series
+        return job
 
     @staticmethod
     def from_file(f):
+        """
+        Given a KPF file, load it and make the data appropriately available
+        """
         data = json.load(f)
-
         ProfileFormat.validate_json(data)
+
+        pf = ProfileFormat()
+        pf.profiled_jobs = data['profiled_jobs']
+        return pf
 
     @staticmethod
     def from_filename(filename):
@@ -115,10 +142,12 @@ if __name__ == "__main__":
     with open('output.kpf', 'w') as f:
 
         pf = ProfileFormat(model_jobs)
+        print pf
         pf.write(f)
-#
-#    with open('input.kpf', 'r') as f:
-#        pf = ProfileFormat.from_file(f)
+
+    with open('output.kpf', 'r') as f:
+        pf = ProfileFormat.from_file(f)
+        print pf
 
 #class KPFFileHandler(object):
 #    """
