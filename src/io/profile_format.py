@@ -51,26 +51,13 @@ class ProfileFormat(object):
             return False
 
         for j1, j2 in zip(self.profiled_jobs, other.profiled_jobs):
-            if (j1['time_queued'] != j2['time_queued'] or
-                    j1['time_start'] != j2['time_start'] or
-                    j1['duration'] != j2['duration'] or
-                    j1['ncpus'] != j2['ncpus'] or
-                    j1['nnodes'] != j2['nnodes'] or
-                    j1['label'] != j2['label']):
+            if j1 != j2:
                 return False
-
-            if (j1.get('time_series', None) is not None) != (j2.get('time_series', None) is not None):
-                return False
-
-            if j1.get('time_series', None) is not None:
-                for name, values in j1['time_series'].iteritems():
-                    if name not in j2['time_series']:
-                        return False
-                    if (values.get('times', None) != j2['time_series'][name].get('times', None) or
-                            values.get('values', None) != j2['time_series'][name].get('values', None)):
-                        return False
 
         return True
+
+    def __ne__(self, other):
+        return not (self == other)
 
     @staticmethod
     def parse_model_job(model_job):

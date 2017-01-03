@@ -267,7 +267,45 @@ class ProfileFormatTest(unittest.TestCase):
         }
 
         pf_valid = ProfileFormat.from_file(StringIO(json.dumps(valid)))
-        print pf_valid
+
+        pf_valid2 = ProfileFormat.from_file(StringIO(json.dumps(valid)))
+        self.assertEquals(pf_valid, pf_valid2)
+
+        # Modifying the created/uid attributes doesn't make these differ.
+
+        for name, val in [('created', '2016-12-14T09:57:36Z'),
+                          ('uid', 4321)]:
+
+            invalid = copy.deepcopy(valid)
+            invalid[name] = val
+            pf_invalid = ProfileFormat.from_file(StringIO(json.dumps(invalid)))
+
+            self.assertTrue(pf_valid == pf_invalid)
+            self.assertFalse(pf_valid != pf_invalid)
+
+        # Changing _anything_ about the profiled jobs does make the profiles differ
+
+        for name, val in [('ncpus', 73),
+                          ('nnodes', 1),
+                          ('duration', 99),
+                          ('time_queued', 147),
+                          ('time_start', 1234),
+                          ('time_series', None),
+                          ('time_series', {}),
+                          ('time_series', {'kb_write': {'times': [0.01], 'values': [15]}}),
+                          ('time_series', {'kb_read': {'times': [0.01, 0.02, 0.03, 0.05], "values": [15, 16, 17, 18]}}),
+                          ('time_series', {'kb_read': {'times': [0.01, 0.02, 0.03, 0.04], "values": [15, 16, 17, 19]}})
+                          ]:
+
+            invalid = copy.deepcopy(valid)
+            if val is None:
+                del invalid['profiled_jobs'][0][name]
+            else:
+                invalid['profiled_jobs'][0][name] = val
+            pf_invalid = ProfileFormat.from_file(StringIO(json.dumps(invalid)))
+
+            self.assertTrue(pf_valid != pf_invalid)
+            self.assertFalse(pf_valid == pf_invalid)
 
 
 if __name__ == "__main__":
