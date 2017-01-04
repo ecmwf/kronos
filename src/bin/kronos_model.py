@@ -1,10 +1,15 @@
 import os
 import sys
+
+from model_workload import ModelWorkload
+
+sys.path.append(os.path.dirname(os.path.dirname(__file__)))
+
 import argparse
 
 import runner
 from exceptions_iows import ConfigurationError
-from kpf_handler import KPFFileHandler
+from kronos_io.profile_format import ProfileFormat
 from config.config import Config
 from model import KronosModel
 from postprocess.run_plotter import RunPlotter
@@ -31,7 +36,15 @@ class Kronos(object):
         Depending on the supplied config, ingest data of various types.
         """
         print "\nBegining data ingestion...\n----------------------------------"
-        self.workloads = KPFFileHandler().load_kpf(os.path.join(self.config.dir_input, self.config.kpf_file))
+
+        kpf_file = os.path.join(self.config.dir_input, self.config.kpf_file)
+        with open(kpf_file, 'r') as f:
+            model_jobs = ProfileFormat.from_file(f).model_jobs()
+
+        # SDS: I'm not really sure what/how this 'workload' should be built? What does the workload do that is
+        #      different from a dataset? Wy does the KPF handler return workloads (plural)?
+        self.workloads = ...?
+        
         print "\nIngested workloads: [\n" + ",\n".join(["    {}".format(d.tag) for d in self.workloads]) + "\n]"
 
         print "\nGenerating model workload...\n----------------------------------"
