@@ -5,7 +5,6 @@ from jobs import ModelJob
 import strict_rfc3339
 
 from datetime import datetime
-import json
 import os
 
 from kronos_io.json_io_format import JSONIoFormat

@@ -1,0 +1,31 @@
+{
+    "$schema": "http://json-schema.org/draft-03/schema",
+    "type": "object" ,
+    "title": "Kronos Schedule Format",
+    "description": "The Kronos Schedule Format (KSF) is a standardised interchange format for output scheduling and modelling data from Kronos",
+    "additionalProperties": false,
+    "properties": {
+        "version" : {
+            "required": true,
+            "type": "number",
+            "enum": [%(kronos-version)s],
+            "description": "Version number of the KPF format"
+        },
+        "tag": {
+            "required": true,
+            "enum": ["%(kronos-magic)s"],
+            "description": "Magic value to help test validity of KPF file"
+        },
+        "created": {
+            "required": true,
+            "type": "string",
+            "format": "date-time",
+            "description": "A timestamp for creation of the KPF file"
+        },
+        "uid": {
+            "required": false,
+            "type": "integer",
+            "description": "The UID of the user who created this file"
+        }
+    }
+}

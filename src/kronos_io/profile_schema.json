@@ -3,6 +3,7 @@
     "type": "object" ,
     "title": "Kronos Profile Format",
     "description": "The Kronos Profile Format (KPF) is a standardised interchange format for input profiling data for Kronos",
+    "additionalProperties": false,
     "properties": {
         "version" : {
             "required": true,
