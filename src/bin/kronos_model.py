@@ -37,13 +37,10 @@ class Kronos(object):
         """
         print "\nBegining data ingestion...\n----------------------------------"
 
-        kpf_file = os.path.join(self.config.dir_input, self.config.kpf_file)
-        with open(kpf_file, 'r') as f:
-            model_jobs = ProfileFormat.from_file(f).model_jobs()
-
-        # SDS: I'm not really sure what/how this 'workload' should be built? What does the workload do that is
-        #      different from a dataset? Wy does the KPF handler return workloads (plural)?
-        self.workloads = ...?
+        self.workloads = []
+        for filename in self.config.kpf_files:
+            with open(os.path.join(self.config.dir_input, filename), 'r') as f:
+                self.workloads.append(ProfileFormat.from_file(f).workload())
 
         print "\nIngested workloads: [\n" + ",\n".join(["    {}".format(d.tag) for d in self.workloads]) + "\n]"
 
