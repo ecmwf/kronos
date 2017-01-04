@@ -57,7 +57,7 @@ class JSONIoFormat(object):
         """
         Output a description of the JSON in human-readable format
         """
-        print SchemaDescription.from_schema(cls.schema())
+        return SchemaDescription.from_schema(cls.schema())
 
     def output_dict(self):
         """

@@ -9,18 +9,18 @@
             "required": true,
             "type": "number",
             "enum": [%(kronos-version)s],
-            "description": "Version number of the KPF format"
+            "description": "Version number of the KSF format"
         },
         "tag": {
             "required": true,
             "enum": ["%(kronos-magic)s"],
-            "description": "Magic value to help test validity of KPF file"
+            "description": "Magic value to help test validity of KSF file"
         },
         "created": {
             "required": true,
             "type": "string",
             "format": "date-time",
-            "description": "A timestamp for creation of the KPF file"
+            "description": "A timestamp for creation of the KSF file"
         },
         "uid": {
             "required": false,
