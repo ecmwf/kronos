@@ -36,6 +36,7 @@ class ProfileFormatTest(unittest.TestCase):
             "tag": "KRONOS-KPF-MAGIC",
             "created": "2016-12-14T09:57:35Z",  # Timestamp in strict rfc3339 format.
             "uid": 1234,
+            "workload_tag": "A-tag",
             "profiled_jobs": [{
                 "time_start": 537700,
                 "time_queued": 99,
@@ -63,6 +64,14 @@ class ProfileFormatTest(unittest.TestCase):
 
         invalid = valid.copy()
         invalid['created'] = "1234567"
+        self.assertRaises(jsonschema.ValidationError, lambda: ProfileFormat.validate_json(invalid))
+
+        invalid = valid.copy()
+        invalid['workload_tag'] = 666
+        self.assertRaises(jsonschema.ValidationError, lambda: ProfileFormat.validate_json(invalid))
+
+        invalid = valid.copy()
+        del invalid['workload_tag']
         self.assertRaises(jsonschema.ValidationError, lambda: ProfileFormat.validate_json(invalid))
 
         invalid = valid.copy()
@@ -196,6 +205,7 @@ class ProfileFormatTest(unittest.TestCase):
             "tag": "KRONOS-KPF-MAGIC",
             "created": "2016-12-14T09:57:35Z",  # Timestamp in strict rfc3339 format.
             "uid": 1234,
+            "workload_tag": "A-tag",
             "profiled_jobs": [{
                 "time_start": 537700,
                 "time_queued": 99,
@@ -253,6 +263,7 @@ class ProfileFormatTest(unittest.TestCase):
             "tag": "KRONOS-KPF-MAGIC",
             "created": "2016-12-14T09:57:35Z",  # Timestamp in strict rfc3339 format.
             "uid": 1234,
+            "workload_tag": "A-tag",
             "profiled_jobs": [{
                 "time_start": 537700,
                 "time_queued": 99,
@@ -318,6 +329,7 @@ class ProfileFormatTest(unittest.TestCase):
             "tag": "KRONOS-KPF-MAGIC",
             "created": "2016-12-14T09:57:35Z",  # Timestamp in strict rfc3339 format.
             "uid": 1234,
+            "workload_tag": "A-tag",
             "profiled_jobs": [{
                 "time_start": 537700,
                 "time_queued": 99,
@@ -354,6 +366,65 @@ class ProfileFormatTest(unittest.TestCase):
                 self.assertEquals(signal.yvalues, [15, 16, 17, 18])
             else:
                 self.assertIsNone(signal)
+
+    def test_workload(self):
+        """
+        The purpose of the KPF is to be able to (re-)animate ModelJobs from the input data.
+        """
+        valid = {
+            "version": 1,
+            "tag": "KRONOS-KPF-MAGIC",
+            "created": "2016-12-14T09:57:35Z",  # Timestamp in strict rfc3339 format.
+            "uid": 1234,
+            "workload_tag": "A-tag",
+            "profiled_jobs": [{
+                "time_start": 537700,
+                "time_queued": 99,
+                "duration": 147,
+                "ncpus": 72,
+                "nnodes": 2,
+                "time_series": {
+                    "kb_read": {
+                        "times": [0.01, 0.02, 0.03, 0.04],
+                        "values": [15, 16, 17, 18]
+                    }
+                }
+            }]
+        }
+
+        pf = ProfileFormat.from_file(StringIO(json.dumps(valid)))
+
+        workload = pf.workload()
+
+        self.assertEquals(workload.tag, "A-tag")
+
+        jobs = workload.jobs
+        self.assertEquals(len(jobs), 1)
+        self.assertIsInstance(jobs[0], ModelJob)
+
+        self.assertEqual(jobs[0].time_start, 537700)
+        self.assertEqual(jobs[0].time_queued, 99)
+        self.assertEqual(jobs[0].duration, 147)
+        self.assertEqual(jobs[0].ncpus, 72)
+        self.assertEqual(jobs[0].nnodes, 2)
+
+        self.assertEquals(len(jobs[0].timesignals), len(time_signal.signal_types))
+        self.assertIn('kb_read', jobs[0].timesignals)
+        for name, signal in jobs[0].timesignals.iteritems():
+            if name == 'kb_read':
+                self.assertIsInstance(signal, time_signal.TimeSignal)
+                self.assertEquals(signal.xvalues, [0.01, 0.02, 0.03, 0.04])
+                self.assertEquals(signal.yvalues, [15, 16, 17, 18])
+            else:
+                self.assertIsNone(signal)
+
+    def test_default_workload_tag(self):
+
+        pf = ProfileFormat(model_jobs=[])
+        self.assertEquals(pf.workload_tag, "unknown")
+
+        pf = ProfileFormat(model_jobs=[], workload_tag="my-tag")
+        self.assertEquals(pf.workload_tag, "my-tag")
 
 
 if __name__ == "__main__":

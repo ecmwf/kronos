@@ -26,6 +26,11 @@
             "type": "integer",
             "description": "The UID of the user who created this file"
         },
+        "workload_tag": {
+            "required": true,
+            "type": "string",
+            "description": "A tag to identify the type or source of the data. Can be used to customise processing later."
+        },
         "profiled_jobs": {
             "required": false,
             "type": "array",

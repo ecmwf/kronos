@@ -44,7 +44,7 @@ class Kronos(object):
         # SDS: I'm not really sure what/how this 'workload' should be built? What does the workload do that is
         #      different from a dataset? Wy does the KPF handler return workloads (plural)?
         self.workloads = ...?
-        
+
         print "\nIngested workloads: [\n" + ",\n".join(["    {}".format(d.tag) for d in self.workloads]) + "\n]"
 
         print "\nGenerating model workload...\n----------------------------------"

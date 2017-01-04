@@ -1,4 +1,5 @@
 from schema_description import SchemaDescription
+from workload_data import WorkloadData
 import time_signal
 from jobs import ModelJob
 
@@ -17,7 +18,7 @@ class ProfileFormat(object):
     kpf_version = 1
     kpf_magic = "KRONOS-KPF-MAGIC"
 
-    def __init__(self, model_jobs=None, json_jobs=None, created=None, uid=None):
+    def __init__(self, model_jobs=None, json_jobs=None, created=None, uid=None, workload_tag="unknown"):
 
         # We either initialise from model jobs, or from processed json data
         assert (model_jobs is not None) != (json_jobs is not None)
@@ -28,6 +29,7 @@ class ProfileFormat(object):
 
         self.created = created
         self.uid = uid
+        self.workload_tag = workload_tag
 
     def __unicode__(self):
         return "KronosProfileFormat(njobs={})".format(len(self.profiled_jobs))
@@ -96,7 +98,8 @@ class ProfileFormat(object):
         return ProfileFormat(
             json_jobs=data['profiled_jobs'],
             created=datetime.fromtimestamp(strict_rfc3339.rfc3339_to_timestamp(data['created'])),
-            uid=data['uid']
+            uid=data['uid'],
+            workload_tag=data['workload_tag']
         )
 
     @staticmethod
@@ -114,7 +117,8 @@ class ProfileFormat(object):
             "tag": self.kpf_magic,
             "created": strict_rfc3339.now_to_rfc3339_utcoffset(),
             "uid": os.getuid(),
-            "profiled_jobs": self.profiled_jobs
+            "profiled_jobs": self.profiled_jobs,
+            "workload_tag": self.workload_tag
         }
 
         self.validate_json(output_dict)
@@ -140,6 +144,12 @@ class ProfileFormat(object):
                                                              'nnodes',
                                                              'label'] and v is not None}
             )
+
+    def workload(self):
+        """
+        Obtain a workload for further use in modelling (attach the appropriate tag)
+        """
+        return WorkloadData(jobs=self.model_jobs(), tag=self.workload_tag)
 
     @classmethod
     def schema(cls):
