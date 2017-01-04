@@ -1,4 +1,3 @@
-from schema_description import SchemaDescription
 from workload_data import WorkloadData
 import time_signal
 from jobs import ModelJob
@@ -7,16 +6,18 @@ import strict_rfc3339
 
 from datetime import datetime
 import json
-import jsonschema
 import os
 
+from kronos_io.json_io_format import JSONIoFormat
 
-class ProfileFormat(object):
+
+class ProfileFormat(JSONIoFormat):
     """
     A standardised format for profiling information.
     """
-    kpf_version = 1
-    kpf_magic = "KRONOS-KPF-MAGIC"
+    format_version = 1
+    format_magic = "KRONOS-KPF-MAGIC"
+    schema_json = os.path.join(os.path.dirname(__file__), "profile_schema.json")
 
     def __init__(self, model_jobs=None, json_jobs=None, created=None, uid=None, workload_tag="unknown"):
 
@@ -30,12 +31,6 @@ class ProfileFormat(object):
         self.created = created
         self.uid = uid
         self.workload_tag = workload_tag
-
-    def __unicode__(self):
-        return "KronosProfileFormat(njobs={})".format(len(self.profiled_jobs))
-
-    def __str__(self):
-        return unicode(self).encode('utf-8')
 
     def __eq__(self, other):
         """
@@ -151,29 +146,5 @@ class ProfileFormat(object):
         """
         return WorkloadData(jobs=self.model_jobs(), tag=self.workload_tag)
 
-    @classmethod
-    def schema(cls):
-        """
-        Obtain the json schema for the ProfileFormat
-        """
-        with open(os.path.join(os.path.dirname(__file__), "profile_schema.json"), 'r') as fschema:
-            str_schema = fschema.read() % {
-                "kronos-version": cls.kpf_version,
-                "kronos-magic": cls.kpf_magic
-            }
-            return json.loads(str_schema)
 
-    @classmethod
-    def validate_json(cls, js):
-        """
-        Do validation of a dictionary that has been loaded from (or will be written to) a JSON
-        """
-        jsonschema.validate(js, cls.schema(), format_checker=jsonschema.FormatChecker())
-
-    @classmethod
-    def describe(cls):
-        """
-        Output a description of the JSON in human-readable format
-        """
-        print SchemaDescription.from_schema(cls.schema())
 
