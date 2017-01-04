@@ -21,6 +21,8 @@ class ProfileFormat(JSONIoFormat):
 
     def __init__(self, model_jobs=None, json_jobs=None, created=None, uid=None, workload_tag="unknown"):
 
+        super(ProfileFormat, self).__init__(created=created, uid=uid)
+
         # We either initialise from model jobs, or from processed json data
         assert (model_jobs is not None) != (json_jobs is not None)
         if model_jobs:
@@ -28,8 +30,6 @@ class ProfileFormat(JSONIoFormat):
         else:
             self.profiled_jobs = json_jobs
 
-        self.created = created
-        self.uid = uid
         self.workload_tag = workload_tag
 
     def __eq__(self, other):
@@ -82,47 +82,29 @@ class ProfileFormat(JSONIoFormat):
             job['time_series'] = time_series
         return job
 
-    @staticmethod
-    def from_file(f):
+    @classmethod
+    def from_json_data(cls, data):
         """
-        Given a KPF file, load it and make the data appropriately available
+        Given loaded and validated JSON data, actually do something with it
         """
-        data = json.load(f)
-        ProfileFormat.validate_json(data)
-
-        return ProfileFormat(
+        return cls(
             json_jobs=data['profiled_jobs'],
             created=datetime.fromtimestamp(strict_rfc3339.rfc3339_to_timestamp(data['created'])),
             uid=data['uid'],
             workload_tag=data['workload_tag']
         )
 
-    @staticmethod
-    def from_filename(filename):
-        with open(filename, 'r') as f:
-            return ProfileFormat.from_file(f)
-
-    def write(self, f):
+    def output_dict(self):
         """
-        Exports the profile as a (standardised) kpf file.
-        TODO: Documentation of the format
+        Obtain the data to be written into the file. Extends the base class implementation
+        (which includes headers, etc.)
         """
-        output_dict = {
-            "version": self.kpf_version,
-            "tag": self.kpf_magic,
-            "created": strict_rfc3339.now_to_rfc3339_utcoffset(),
-            "uid": os.getuid(),
+        output_dict = super(ProfileFormat, self).output_dict()
+        output_dict.update({
             "profiled_jobs": self.profiled_jobs,
             "workload_tag": self.workload_tag
-        }
-
-        self.validate_json(output_dict)
-
-        json.dump(output_dict, f)
-
-    def write_filename(self, filename):
-        with open(filename, 'w') as f:
-            self.write(f)
+        })
+        return output_dict
 
     def model_jobs(self):
         """
@@ -145,6 +127,4 @@ class ProfileFormat(JSONIoFormat):
         Obtain a workload for further use in modelling (attach the appropriate tag)
         """
         return WorkloadData(jobs=self.model_jobs(), tag=self.workload_tag)
-
-
 
