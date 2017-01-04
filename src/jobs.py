@@ -73,6 +73,12 @@ class ModelJob(object):
         #      multiple sources, and be merged in. Or added in with regression processes. check_job() should be
         #      called immediately before the first time the ModelJob is to be USED where validity would be required.
 
+    def __unicode__(self):
+        return "ModelJob({})".format(self.label)
+
+    def __str__(self):
+        return unicode(self).encode('utf-8')
+
     def merge(self, other, force=False):
         """
         Merge together two ModelJobs that are (trying) to represent the same actual job. They likely come from

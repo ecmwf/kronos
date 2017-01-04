@@ -1,5 +1,6 @@
 from schema_description import SchemaDescription
 import time_signal
+from jobs import ModelJob
 
 import strict_rfc3339
 
@@ -123,6 +124,22 @@ class ProfileFormat(object):
     def write_filename(self, filename):
         with open(filename, 'w') as f:
             self.write(f)
+
+    def model_jobs(self):
+        """
+        Re-animate ModelJobs from the profiled data (in json form)
+        """
+        for job in self.profiled_jobs:
+            yield ModelJob(
+                timesignals={n: time_signal.TimeSignal(n, xvalues=t['times'], yvalues=t['values'])
+                             for n, t in job.get('time_series', {}).iteritems()},
+                **{k: v for k, v in job.iteritems() if k in ['time_queued',
+                                                             'time_start',
+                                                             'duration',
+                                                             'ncpus',
+                                                             'nnodes',
+                                                             'label'] and v is not None}
+            )
 
     @classmethod
     def schema(cls):

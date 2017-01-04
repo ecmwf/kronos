@@ -19,7 +19,7 @@ class WorkloadData(object):
     def __init__(self, jobs=None, tag=None):
 
         # a workload data contains a list of model jobs + some global properties
-        self.jobs = jobs if jobs else None
+        self.jobs = list(jobs) if jobs else None
         self.tag = tag if tag else str(WorkloadData.tag_default+1)
 
         # # workload-level properties
