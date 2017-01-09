@@ -72,8 +72,8 @@ class ProfileFormat(JSONIoFormat):
             assert name in time_signal.signal_types
             if values is not None:
                 time_series[name] = {
-                    'times': values.xvalues,
-                    'values': values.yvalues
+                    'times': list(values.xvalues),
+                    'values': list(values.yvalues)
                 }
 
         # The time series data is only included if it is present.

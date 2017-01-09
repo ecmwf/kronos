@@ -56,19 +56,19 @@
                         "description": "The user name or user id to whom the job belongs"
                     },
                     "time_start": {
-                        "type": "integer",
+                        "type": "number",
                         "minimum": 0,
                         "required": false,
                         "description": "Timestamp (epoch time) that the job started"
                     },
                     "duration": {
-                        "type": "integer",
+                        "type": "number",
                         "minimum": 0,
                         "required": false,
                         "description": "Job duration in seconds"
                     },
                     "time_queued": {
-                        "type": "integer",
+                        "type": "number",
                         "minimum": 0,
                         "required": false,
                         "description": "Timestamp (epoch time) that the job was submitted into the scheduler queue"
