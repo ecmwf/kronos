@@ -1,0 +1,81 @@
+{
+    "verbose": true,
+    "dir_input": "/var/tmp/maab/kronos-core/input",
+    "dir_output": "/var/tmp/maab/kronos-core/output",
+    "kpf_files": ["stdout.kpf", "ipm.kpf"],
+    "ksf_filename": "schedule_ecmwf.ksf",
+    "model": {
+              "functions":[
+                            {
+                              "type": "step",                              
+                              "name": "step-1",                              
+                              "x_step": 0.5
+                            },
+                            {
+                              "type": "custom",                              
+                              "name": "custom-1",                              
+                              "x_values": [0, 0.1, 0.2, 0.3, 0.5, 0.8, 0.9, 1.0],
+                              "y_values": [0, 0.1, 0.2, 0.3, 0.5, 0.8, 0.9, 1.0]
+                            }
+                          ],
+              "fill_in":[
+                          { 
+                          "type": "fill_missing_entries",
+                          "apply_to": ["ipm", "stdout"],
+                          "priority": 0,
+                          "metrics":{
+                                      "kb_collective": [100, 1000],
+                                      "n_collective": [10, 1000],
+                                      "kb_write": {"function": "step-1",
+                                                   "scaling": 1000.0
+                                                   },
+                                      "n_pairwise": {"function": "custom-1",
+                                                    "scaling": 1000.0
+                                                    },
+                                      "n_write": [10, 1000],
+                                      "n_read": [10, 1000], 
+                                      "kb_read": [100, 1000],
+                                      "flops": [1e6, 1e8], 
+                                      "kb_pairwise": [100, 1000]
+                                      }
+                          }
+                         ],
+              "classification": {
+                                "apply_to": ["ipm","stdout"],
+                                "clustering": {
+                                              "type": "Kmeans",
+                                              "ok_if_low_rank": true,
+                                              "user_does_not_check": true,
+                                              "rseed": 0,
+                                              "max_iter": 100,
+                                              "nc_max": 20,
+                                              "nc_delta": 1,
+                                              "n_ts_bins": 5, 
+                                              "metrics_only": false
+                                               }
+                                },
+              "generator": {
+                            "type": "match_job_pdf",
+                            "random_seed": 0,
+                            "tuning_factors": {
+                                              "kb_collective": 1e-0,
+                                              "n_collective": 1e-0,
+                                              "kb_write": 1e-3,
+                                              "n_pairwise": 10e-0,
+                                              "n_write": 1e-2,
+                                              "n_read": 10e-2,
+                                              "kb_read": 1e-2,
+                                              "flops": 500e-0,
+                                              "kb_pairwise": 10e-0
+                                              },
+                           "submit_rate_factor": 8.0,
+                           "sa_n_proc": 2,
+                           "sa_n_nodes": 1,
+                           "sa_n_frames": 10,
+                           "total_submit_interval": 60
+                           }
+             },
+    "run": {},
+    "analysis": {} 
+}
+
