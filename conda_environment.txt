@@ -41,4 +41,6 @@ dependencies:
 - tk=8.5.18=0
 - wheel=0.29.0=py27_0
 - zlib=1.2.8=3
+- pip:
+  - strict-rfc3339==0.7
 prefix: /home/ma/mass/.local/miniconda2/envs/kronos
