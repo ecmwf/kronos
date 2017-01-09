@@ -1,15 +1,11 @@
 #!/usr/bin/env python
 
 from kronos_io.schedule_format import ScheduleFormat
-import time_signal
 
 from StringIO import StringIO
-from datetime import datetime
 import jsonschema
 import unittest
 import json
-import copy
-
 
 class ScheduleFormatTest(unittest.TestCase):
 
