@@ -111,7 +111,8 @@ class ProfileFormat(JSONIoFormat):
         """
         for job in self.profiled_jobs:
             yield ModelJob(
-                timesignals={n: time_signal.TimeSignal(n, xvalues=t['times'], yvalues=t['values'])
+                timesignals={n: time_signal.TimeSignal.from_values(n, xvals=t['times'], yvals=t['values'],
+                                                                   base_signal_name=n)
                              for n, t in job.get('time_series', {}).iteritems()},
                 **{k: v for k, v in job.iteritems() if k in ['time_queued',
                                                              'time_start',
