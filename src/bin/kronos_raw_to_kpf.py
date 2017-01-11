@@ -18,11 +18,13 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("path_pickled", type=str, help="The path of the pickeld dataset to ingest")
     parser.add_argument("path_output", type=str, help="The path of the KPF file to write out")
+    parser.add_argument("-t", "--tag", type=str, help="worklaod tag")
     args = parser.parse_args()
 
     dataset = IngestedDataSet.from_pickled(args.path_pickled)
 
-    pf = ProfileFormat(model_jobs=dataset.model_jobs())
+    tag = args.tag if args.tag else "unknown"
+    pf = ProfileFormat(model_jobs=dataset.model_jobs(), workload_tag=tag)
 
     with open(args.path_output, 'w') as f:
         pf.write(f)
