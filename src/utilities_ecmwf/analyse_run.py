@@ -96,7 +96,7 @@ if __name__ == "__main__":
                      range(len(queuing_times_vec)) + [len(queuing_times_vec) - 1],
                      color=line_color,
                      label=label)
-            plt.ylabel('Cumulative queued jobs')
+            plt.ylabel('#queued jobs')
             plt.legend(loc='center left', bbox_to_anchor=(1, 0.5))
             plt.title('Time profiles, Number of apps: {}'.format(tot_n_apps))
 
@@ -107,7 +107,7 @@ if __name__ == "__main__":
                      n_running_vec,
                      color=line_color,
                      label=label)
-            plt.ylabel('running jobs')
+            plt.ylabel('#jobs')
 
             id_plot += 1
             plt.subplot(n_plots, 1, id_plot)
@@ -116,7 +116,7 @@ if __name__ == "__main__":
                      nproc_running_vec,
                      color=line_color,
                      label=label)
-            plt.ylabel('running processors')
+            plt.ylabel('#procs')
 
             # plot of the total time-signals
             total_metrics = kpf_workload.total_metrics_timesignals

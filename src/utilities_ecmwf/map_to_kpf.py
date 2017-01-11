@@ -29,13 +29,15 @@ if __name__ == "__main__":
     else:
         local_map2json_file = os.path.join(os.getcwd(), "map2json.py")
 
-    # create a temporary folder where to store all the converted map files..
+    # path of the output kpf file
     path_kpf = os.path.dirname(os.path.abspath(args.kpf_file))
     if not os.path.exists(path_kpf):
         os.mkdir(path_kpf)
 
+    # create a temporary folder where to store all the converted map files..
     tmp_dir_abs = os.path.join(path_kpf, 'tmp')
-    os.mkdir(tmp_dir_abs)
+    if not os.path.exists(tmp_dir_abs):
+        os.mkdir(tmp_dir_abs)
 
     # ---------- Process the run jsons ----------
     job_dirs = [x for x in os.listdir(args.path_run) if os.path.isdir(os.path.join(args.path_run, x))]
@@ -63,11 +65,17 @@ if __name__ == "__main__":
             label = json_data['metadata']['workload_name']
             job_ID = json_data['job_num']
 
-            # copy all the converted jsons into the tmp folder..
+            # copy all the maps and the converted jsons into the tmp folder..
             allinea_json = 'allinea_job-'+str(job_ID)+'.json'
+            allinea_map = 'allinea_job-'+str(job_ID)+'.map'
+
             subprocess.Popen(['cp',
                               os.path.join(sub_dir_path_abs, json_file_name),
                               os.path.join(tmp_dir_abs, allinea_json)]).wait()
+
+            subprocess.Popen(['cp',
+                              os.path.join(sub_dir_path_abs, map_file_name),
+                              os.path.join(tmp_dir_abs, allinea_map)]).wait()
 
             fname_list.append(allinea_json)
             dict_name_label[allinea_json] = label
@@ -85,5 +93,5 @@ if __name__ == "__main__":
         pf.write(f)
 
     # remove tmp folder
-    shutil.rmtree(tmp_dir_abs)
+    # shutil.rmtree(tmp_dir_abs)
 
