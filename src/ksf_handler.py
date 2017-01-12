@@ -1,6 +1,6 @@
 import json
 from kronos_tools.print_colour import print_colour
-from time_signal import signal_types
+import time_signal
 
 
 class KSFFileHandler(object):
@@ -104,9 +104,9 @@ class KSFFileHandler(object):
             print "Total number of synthetic apps = {}".format(self.n_synthetic_apps)
 
             print "\n---------- Sums of UNSCALED metrics: ------------------\n"
-            for ss in signal_types.keys():
+            for ss in time_signal.time_signal_names:
                 print "    {} = {}".format(ss, self.unscaled_sums[ss])
 
             print "\n---------- Sums of SCALED metrics: ------------------\n"
-            for ss in signal_types.keys():
+            for ss in time_signal.time_signal_names:
                 print "    {} = {}".format(ss, self.scaled_sums[ss])

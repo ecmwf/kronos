@@ -1,160 +1,177 @@
 {
-    "verbose": true,
-    "dir_input": "/var/tmp/maab/kronos-core/input",
-    "dir_output": "/var/tmp/maab/kronos-core/output",
-    "kpf_files": ["ecmwf_accounting_test.kpf", 
-                  "ecmwf_darshan.kpf", 
-                  "ecmwf_ipm.kpf", 
-                  "ecmwf_stdout.kpf"],
-    "ksf_filename": "schedule_ecmwf.ksf",
-    "model": {
-              "functions":[
-                            {
-                              "type": "step",                              
-                              "name": "step-1",                              
-                              "x_step": 0.5
-                            },
-                            {
-                              "type": "custom",                              
-                              "name": "custom-1",                              
-                              "x_values": [0, 0.1, 0.2, 0.3, 0.5, 0.8, 0.9, 1.0],
-                              "y_values": [0, 0.1, 0.2, 0.3, 0.5, 0.8, 0.9, 1.0]
-                            }
-                          ],
-              "fill_in":[
-                          { 
-                          "type": "fill_missing_entries",
-                          "apply_to": ["operational-ipm"],
-                          "priority": 0,
-                          "metrics":{
-                                      "kb_collective": [100, 1000],
-                                      "n_collective": [10, 1000],
-                                      "kb_write": {"function": "step-1",
-                                                   "scaling": 1000.0
-                                                   },
-                                      "n_pairwise": {"function": "custom-1",
-                                                    "scaling": 1000.0
-                                                    },
-                                      "n_write": [10, 1000],
-                                      "n_read": [10, 1000], 
-                                      "kb_read": [100, 1000],
-                                      "flops": [1e6, 1e8], 
-                                      "kb_pairwise": [100, 1000]
-                                      }
-                          },
-                          {
-                          "type": "match_by_keyword",
-                          "priority": 10,
-                          "keywords": ["label"],
-                          "similarity_threshold": 1.0,
-                          "source_workloads": ["operational-darshan"],
-                          "apply_to": ["operational-ipm"]
-                          }
-                         ],
-              "classification": {
-                                "split_workload": {
-                                                    "apply_to": "operational-ipm",
-                                                    "output_workloads": [
-                                                                          {
-                                                                            "workload_name": "HR_other",
-                                                                            "split_by": ["label", ["o/"], []]
-                                                                          },
-                                                                          {
-                                                                            "workload_name": "ENS_data_assimilation",
-                                                                            "split_by": ["label", ["eda/"], []]
-                                                                          },
-                                                                          {
-                                                                            "workload_name": "ENS_other",
-                                                                            "split_by": ["label", ["mc/"], []]
-                                                                          },
-                                                                          {
-                                                                            "workload_name": "law",
-                                                                            "split_by": ["label", ["law/"], []]
-                                                                          },
-                                                                          {
-                                                                            "workload_name": "Other",
-                                                                            "split_by": ["label", [], ["o/", "eda/", "mc/", "lag/"]]
-                                                                          },
-                                                                          {
-                                                                            "workload_name": "HR_model",
-                                                                            "split_by": ["label", ["o/"], []]
-                                                                          },
-                                                                          {
-                                                                            "workload_name": "ENS_model",
-                                                                            "split_by": ["label", ["o/"], []]
-                                                                          }                                                                          
-                                                                        ]
-                                                  },
+        "verbose": true,
+        "dir_input": "/var/tmp/maab/kronos-core/input",
+        "dir_output": "/var/tmp/maab/kronos-core/output",
+	    "kpf_files": ["ecmwf_accounting_test.kpf", 
+		              "ecmwf_darshan.kpf", 
+		              "ecmwf_ipm.kpf", 
+		              "ecmwf_stdout.kpf"],
+        "ksf_filename": "schedule_ecmwf.ksf",
+        "model": {
+                "fill_in": {
+                        "user_functions": [{
+                                "type": "step",
+                                "name": "step-1",
+                                "x_step": 0.5
+                        }, {
+                                "type": "custom",
+                                "name": "custom-1",
+                                "x_values": [0, 0.1, 0.2, 0.3, 0.5, 0.8, 0.9, 1.0],
+                                "y_values": [0, 0.1, 0.2, 0.3, 0.5, 0.8, 0.9, 1.0]
+                        }],
+                        "operations": [{
+                                "type": "fill_missing_entries",
+                                "apply_to": ["operational-ipm"],
+                                "priority": 0,
+                                "metrics": {
+                                        "kb_collective": [100, 1000],
+                                        "n_collective": [10, 1000],
+                                        "kb_write": {
+                                                "function": "step-1",
+                                                "scaling": 1000.0
+                                        },
+                                        "n_pairwise": {
+                                                "function": "custom-1",
+                                                "scaling": 1000.0
+                                        },
+                                        "n_write": [10, 1000],
+                                        "n_read": [10, 1000],
+                                        "kb_read": [100, 1000],
+                                        "flops": [1e6, 1e8],
+                                        "kb_pairwise": [100, 1000]
+                                }
+                        }, {
+                                "type": "match_by_keyword",
+                                "priority": 10,
+                                "keywords": ["label"],
+                                "similarity_threshold": 1.0,
+                                "source_workloads": ["operational-darshan"],
+                                "apply_to": ["operational-ipm"]
+                        }]
+                },
+                "classification": {
+                        "operations": [{
+                                "type": "split",
+                                "apply_to": "operational-ipm",
+                                "create_workload": "HR_other",
+                                "split_by": "label",
+                                "keywords_in": ["o/"],
+                                "keywords_out": []
+                        }, {
+                                "type": "split",
+                                "apply_to": "operational-ipm",
+                                "create_workload": "ENS_data_assimilation",
+                                "split_by": "label",
+                                "keywords_in": ["eda/"],
+                                "keywords_out": []
+                        }, {
+                                "type": "split",
+                                "apply_to": "operational-ipm",
+                                "create_workload": "ENS_other",
+                                "split_by": "label",
+                                "keywords_in": ["mc/"],
+                                "keywords_out": []
+                        }, {
+                                "type": "split",
+                                "apply_to": "operational-ipm",
+                                "create_workload": "law",
+                                "split_by": "label",
+                                "keywords_in": ["law/"],
+                                "keywords_out": []
+                        }, {
+                                "type": "split",
+                                "apply_to": "operational-ipm",
+                                "create_workload": "Other",
+                                "split_by": "label",
+                                "keywords_in": [],
+                                "keywords_out": ["o/", "eda/", "mc/", "lag/"]
+                        }, {
+                                "type": "split",
+                                "apply_to": "operational-ipm",
+                                "create_workload": "HR_model",
+                                "split_by": "label",
+                                "keywords_in": ["o/", "main", "fc", "model"],
+                                "keywords_out": []
+
+                        }, {
+                                "type": "split",
+                                "apply_to": "operational-ipm",
+                                "create_workload": "ENS_model",
+                                "split_by": "label",
+                                "keywords_in": ["mc/", "main", "fc", "model"],
+                                "keywords_out": []
+                        }],
+                        "clustering": {
                                 "apply_to": [
-                                              "HR_other",
-                                              "ENS_data_assimilation",
-                                              "ENS_other",
-                                              "law",
-                                              "Other",
-                                              "HR_model",
-                                              "ENS_model"
-                                            ],
-                                "clustering": {
-                                              "type": "Kmeans",
-                                              "ok_if_low_rank": true,
-                                              "user_does_not_check": true,
-                                              "rseed": 0,
-                                              "max_iter": 100,
-                                              "nc_max": 20,
-                                              "nc_delta": 1,
-                                              "n_ts_bins": 5, 
-                                              "metrics_only": false
-                                               }
-                                },
-              "generator": {
-                            "type": "match_job_pdf",
-                            "random_seed": 0,
-                            "tuning_factors": {
-                                              "kb_collective": 1e-0,
-                                              "n_collective": 1e-0,
-                                              "kb_write": 1e-3,
-                                              "n_pairwise": 10e-0,
-                                              "n_write": 1e-2,
-                                              "n_read": 10e-2,
-                                              "kb_read": 1e-2,
-                                              "flops": 500e-0,
-                                              "kb_pairwise": 10e-0
-                                              },
-                           "submit_rate_factor": 8.0,
-                           "sa_n_proc": 2,
-                           "sa_n_nodes": 1,
-                           "sa_n_frames": 10,
-                           "total_submit_interval": 60
-                           }
-             },
-    "run": {               
-            "type": "feedback",
-            "tag": "ecmwf_lxg",
-            "state": "enabled",
-            "n_iterations": 1,
-            "hpc_user": "maab",
-            "hpc_host": "lxg",
-            "hpc_dir_input": "/perm/ma/maab/lxg_builds/kronos_run/input",
-            "hpc_dir_output": "/perm/ma/maab/lxg_builds/kronos_run/output",
-            "hpc_job_sched": "slurm",
-            "hpc_shell_type": "bash",
-            "hpc_module_dir_init": "/usr/local/apps/module/init",
-            "hpc_module_env": ["python"],
-            "hpc_dir_exec": "/perm/ma/maab/lxg_builds/kronos/bin",
-            "hpc_exec_config": "/home/ma/maab/kronos_configuration_files/executor_config/exe_config_lxg.json",
-            "local_map2json_file": "/home/ma/maab/workspace/Allinea_examples_files/NEXTGenIO_buiilds/map2json/map2json.py",
-            "updatable_metrics": {
-                                  "flops": 0,
-                                  "n_collective": 0,
-                                  "n_pairwise": 0,
-                                  "kb_collective": 0,
-                                  "kb_pairwise": 0,
-                                  "n_write": 0,
-                                  "n_read": 0,
-                                  "kb_write": 0,
-                                  "kb_read": 0
-                                  }
-           },
-    "analysis": {} 
+                                        "HR_other",
+                                        "ENS_data_assimilation",
+                                        "ENS_other",
+                                        "law",
+                                        "Other",
+                                        "HR_model",
+                                        "ENS_model"
+                                ],
+                                "type": "Kmeans",
+                                "ok_if_low_rank": true,
+                                "user_does_not_check": true,
+                                "rseed": 0,
+                                "max_iter": 100,
+                                "max_num_clusters": 20,
+                                "delta_num_clusters": 1,
+                                "num_timesignal_bins": 5,
+                                "metrics_only": false
+                        }
+                },
+                "generator": {
+                        "type": "match_job_pdf",
+                        "n_bins_for_pdf": 20,
+                        "random_seed": 0,
+                        "tuning_factors": {
+                                "kb_collective": 1e-0,
+                                "n_collective": 1e-0,
+                                "kb_write": 1e-3,
+                                "n_pairwise": 10e-0,
+                                "n_write": 1e-2,
+                                "n_read": 10e-2,
+                                "kb_read": 1e-2,
+                                "flops": 500e-0,
+                                "kb_pairwise": 10e-0
+                        },
+                        "submit_rate_factor": 8.0,
+                        "synthapp_n_cpu": 2,
+                        "synthapp_n_nodes": 1,
+                        "synthapp_n_frames": 10,
+                        "total_submit_interval": 60
+                }
+        },
+        "run": {
+                "type": "feedback",
+                "tag": "ecmwf_lxg",
+                "state": "enabled",
+                "n_iterations": 1,
+                "hpc_user": "maab",
+                "hpc_host": "lxg",
+                "hpc_dir_input": "/perm/ma/maab/lxg_builds/kronos_run/input",
+                "hpc_dir_output": "/perm/ma/maab/lxg_builds/kronos_run/output",
+                "hpc_job_sched": "slurm",
+                "hpc_shell_type": "bash",
+                "hpc_module_dir_init": "/usr/local/apps/module/init",
+                "hpc_module_env": ["python"],
+                "hpc_dir_exec": "/perm/ma/maab/lxg_builds/kronos/bin",
+                "hpc_exec_config": "/home/ma/maab/kronos_configuration_files/executor_config/exe_config_lxg.json",
+                "local_map2json_file": "/home/ma/maab/workspace/Allinea_examples_files/NEXTGenIO_buiilds/map2json/map2json.py",
+                "updatable_metrics": {
+                        "flops": 0,
+                        "n_collective": 0,
+                        "n_pairwise": 0,
+                        "kb_collective": 0,
+                        "kb_pairwise": 0,
+                        "n_write": 0,
+                        "n_read": 0,
+                        "kb_write": 0,
+                        "kb_read": 0
+                }
+        },
+        "analysis": {}
 }
 

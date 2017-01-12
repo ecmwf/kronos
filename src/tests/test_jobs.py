@@ -151,7 +151,7 @@ class ModelJobTest(unittest.TestCase):
 
         # If all of the required arguments are supplied, this should result in a valid job
         ts_complete_set = {tsk: time_signal.TimeSignal.from_values(tsk, [0., 0.1], [1., 999.])
-                           for tsk in time_signal.signal_types.keys()}
+                           for tsk in time_signal.time_signal_names}
 
         valid_args = {
             'time_start': 0,

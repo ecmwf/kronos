@@ -6,7 +6,7 @@ from matplotlib.pyplot import cm
 
 from plot_handler import PlotHandler
 from postprocess.run_data import RunData
-from time_signal import signal_types
+import time_signal
 from kronos_tools.print_colour import print_colour
 from workload_data import WorkloadData
 
@@ -182,14 +182,14 @@ class RunPlotter(object):
             id_plot += 1
             plt.subplot(n_plots, 1, id_plot)
             plt.subplots_adjust(left=0.2, right=0.8, top=0.9, bottom=0.1)
-            xx = np.arange(len(signal_types.keys()))
+            xx = np.arange(len(time_signal.time_signal_names))
             plt.bar(xx,
-                    np.asarray([ksf_unscaled_sums_0[k] for k in signal_types.keys()]),
+                    np.asarray([ksf_unscaled_sums_0[k] for k in time_signal.time_signal_names]),
                     width / 2.0,
                     color='red',
                     label='Requested metrics')
             plt.bar(xx + width / 2.0,
-                    np.asarray([kpf_workload.total_metrics_sum_dict[k] for k in signal_types.keys()]),
+                    np.asarray([kpf_workload.total_metrics_sum_dict[k] for k in time_signal.time_signal_names]),
                     width / 2.0,
                     color='blue',
                     label='Run metrics')
@@ -199,7 +199,7 @@ class RunPlotter(object):
             plt.ylim(ymin=1)
             plt_hdl = plt.gca()
             plt_hdl.set_xticks([i + width / 2. for i in xx])
-            plt_hdl.set_xticklabels([k for k in signal_types.keys()])
+            plt_hdl.set_xticklabels([k for k in time_signal.time_signal_names])
             plt.legend(loc='center left', bbox_to_anchor=(1, 0.5))
             plt.title('Total metrics of iteration: {}'.format(i_iter))
 
@@ -207,11 +207,11 @@ class RunPlotter(object):
             id_plot += 1
             plt.subplot(n_plots, 1, id_plot)
             plt.subplots_adjust(left=0.2, right=0.8, top=0.9, bottom=0.1)
-            xx = np.arange(len(signal_types.keys()))
+            xx = np.arange(len(time_signal.time_signal_names))
             plt.bar(xx + width / 4.0,
-                    np.abs(np.asarray([ksf_unscaled_sums_0[k] for k in signal_types.keys()]) -
-                           np.asarray([kpf_workload.total_metrics_sum_dict[k] for k in signal_types.keys()])) /
-                    np.asarray([ksf_unscaled_sums_0[k] for k in signal_types.keys()]),
+                    np.abs(np.asarray([ksf_unscaled_sums_0[k] for k in time_signal.time_signal_names]) -
+                           np.asarray([kpf_workload.total_metrics_sum_dict[k] for k in time_signal.time_signal_names])) /
+                    np.asarray([ksf_unscaled_sums_0[k] for k in time_signal.time_signal_names]),
                     width / 2.0,
                     color='green',
                     label='|req-run|/req_max')
@@ -220,7 +220,7 @@ class RunPlotter(object):
             # plt.ylim(ymin=1)
             plt_hdl = plt.gca()
             plt_hdl.set_xticks([i + width / 2. for i in xx])
-            plt_hdl.set_xticklabels([k for k in signal_types.keys()])
+            plt_hdl.set_xticklabels([k for k in time_signal.time_signal_names])
             plt.legend(loc='center left', bbox_to_anchor=(1, 0.5))
             plt.savefig(os.path.join(self.run_dir, 'summary_metrics_iter-{}.png'.format(i_iter)))
             plt.close()

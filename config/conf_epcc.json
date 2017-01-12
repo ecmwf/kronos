@@ -1,7 +1,7 @@
 {
-    "verbose": true,
-    "dir_input": "/var/tmp/maab/kronos-core/input",
-    "dir_output": "/var/tmp/maab/kronos-core/output",
+        "verbose": true,
+        "dir_input": "/var/tmp/maab/kronos-core/input",
+        "dir_output": "/var/tmp/maab/kronos-core/output",
     "kpf_files": ["epcc_csv_test.kpf",
                   "epcc_castep.kpf",
                   "epcc_cp2k_h2o.kpf",
@@ -9,143 +9,142 @@
                   "epcc_gromacs16.kpf",
                   "epcc_gromacs32.kpf",
                   "epcc_vasp.kpf"],
-    "ksf_filename": "schedule_epcc.ksf",
-    "model": {
-              "functions":[
-                            {
-                              "type": "step",                              
-                              "name": "step-1",                              
-                              "x_step": 0.5
-                            },
-                            {
-                              "type": "custom",                              
-                              "name": "custom-1",                              
-                              "x_values": [0, 0.1, 0.2, 0.3, 0.5, 0.8, 0.9, 1.0],
-                              "y_values": [0, 0.1, 0.2, 0.3, 0.5, 0.8, 0.9, 1.0]
-                            }
-                          ],
-              "fill_in":[
-                          { 
-                          "type": "fill_missing_entries",
-                          "apply_to": ["background"],
-                          "priority": 0,
-                          "metrics":{
-                                      "kb_collective": [100, 1000],
-                                      "n_collective": [10, 1000],
-                                      "kb_write": {"function": "step-1",
-                                                   "scaling": 1000.0
-                                                   },
-                                      "n_pairwise": {"function": "custom-1",
-                                                    "scaling": 1000.0
-                                                    },
-                                      "n_write": [10, 1000],
-                                      "n_read": [10, 1000], 
-                                      "kb_read": [100, 1000],
-                                      "flops": [1e6, 1e8], 
-                                      "kb_pairwise": [100, 1000]
-                                      }
-                          },
-                          {
-                          "type": "fill_missing_entries",
-                          "apply_to": ["castep-768p",
-                                        "cp2k-h2o", 
-                                        "cp2k-lih", 
-                                        "gromacs16", 
-                                        "gromacs32", 
-                                        "vasp"],
-                          "priority": 0,                          
-                          "metrics":{
-                                      "kb_collective": [100, 1000],
-                                      "n_collective": [10, 1000],
-                                      "kb_write": [100, 1000],
-                                      "n_pairwise": [10, 1000],
-                                      "n_write": [10, 1000],
-                                      "n_read": [10, 1000], 
-                                      "kb_read": [100, 1000],
-                                      "flops": [1e6, 1e8], 
-                                      "kb_pairwise": [100, 1000]
-                                      }
-                          },
-                          { 
-                          "type": "match_by_keyword",
-                          "priority": 0,    
-                          "keywords": ["job_name"],
-                          "similarity_threshold": 0.3,
-                          "source_workloads": ["castep-768p",
-                                                "cp2k-h2o", 
-                                                "cp2k-lih", 
-                                                "gromacs16", 
-                                                "gromacs32", 
-                                                "vasp"],
-                          "apply_to": ["background"]
-                          }
-                         ],
-              "classification": {
+        "ksf_filename": "schedule_epcc.ksf",
+        "model": {
+                "fill_in": {
+                        "user_functions": [{
+                                "type": "step",
+                                "name": "step-1",
+                                "x_step": 0.5
+                        }, {
+                                "type": "custom",
+                                "name": "custom-1",
+                                "x_values": [0, 0.1, 0.2, 0.3, 0.5, 0.8, 0.9, 1.0],
+                                "y_values": [0, 0.1, 0.2, 0.3, 0.5, 0.8, 0.9, 1.0]
+                        }],
+                        "operations": [{
+                                "type": "fill_missing_entries",
                                 "apply_to": ["background"],
-                                "clustering": {
-                                              "type": "Kmeans",
-                                              "ok_if_low_rank": true,
-                                              "rseed": 0,
-                                              "max_iter": 100,
-                                              "nc_max": 20,
-                                              "nc_delta": 1,
-                                              "n_ts_bins": 1, 
-                                              "metrics_only": false
-                                               }
-                                },
-              "generator": {     
-                            "type": "match_job_pdf",
-                            "random_seed": 0,
-                            "tuning_factors": {
-                                              "kb_collective": 1e-3,
-                                              "n_collective": 1e-2,
-                                              "kb_write": 1e-2,
-                                              "n_pairwise": 1e-2,
-                                              "n_write": 1e+2,
-                                              "n_read": 1e+2,
-                                              "kb_read": 1e-2,
-                                              "flops": 1e-4,
-                                              "kb_pairwise": 1e-2
-                                              },
-                           "submit_rate_factor": 1e2,              
-                           "sa_n_proc": 2,
-                           "sa_n_nodes": 1,
-                           "sa_n_frames": 1,
-                           "total_submit_interval": 60
-                           }
-             },
-    "run": {               
-            "type": "feedback",
-            "state": "enabled",
-            "n_iterations": 1,
-            "hpc_user": "maab",
-            "hpc_host": "nebula",
-            "tag": "feedback_run_test",
-            "hpc_dir_input": "/perm/ma/maab/test_executor/input",
-            "hpc_dir_output": "/perm/ma/maab/test_executor/output",
-            "local_map2json_file": "/home/ma/maab/workspace/Allinea_examples_files/NEXTGenIO_buiilds/map2json/map2json.py",
-            "updatable_metrics": {
-                                  "flops": 0,
-                                  "n_collective": 0,
-                                  "n_pairwise": 0,
-                                  "kb_collective": 0,
-                                  "kb_pairwise": 0,
-                                  "n_write": 0,
-                                  "n_read": 0,
-                                  "kb_write": 0,
-                                  "kb_read": 0
-                                  },
-            "controls": {
+                                "priority": 0,
+                                "metrics": {
+                                        "kb_collective": [100, 1000],
+                                        "n_collective": [10, 1000],
+                                        "kb_write": {
+                                                "function": "step-1",
+                                                "scaling": 1000.0
+                                        },
+                                        "n_pairwise": {
+                                                "function": "custom-1",
+                                                "scaling": 1000.0
+                                        },
+                                        "n_write": [10, 1000],
+                                        "n_read": [10, 1000],
+                                        "kb_read": [100, 1000],
+                                        "flops": [1e6, 1e8],
+                                        "kb_pairwise": [100, 1000]
+                                }
+                        }, {
+                                "type": "fill_missing_entries",
+                                "apply_to": ["castep-768p",
+                                        "cp2k-h2o",
+                                        "cp2k-lih",
+                                        "gromacs16",
+                                        "gromacs32",
+                                        "vasp"
+                                ],
+                                "priority": 0,
+                                "metrics": {
+                                        "kb_collective": [100, 1000],
+                                        "n_collective": [10, 1000],
+                                        "kb_write": [100, 1000],
+                                        "n_pairwise": [10, 1000],
+                                        "n_write": [10, 1000],
+                                        "n_read": [10, 1000],
+                                        "kb_read": [100, 1000],
+                                        "flops": [1e6, 1e8],
+                                        "kb_pairwise": [100, 1000]
+                                }
+                        }, {
+                                "type": "match_by_keyword",
+                                "priority": 0,
+                                "keywords": ["job_name"],
+                                "similarity_threshold": 0.3,
+                                "source_workloads": ["castep-768p",
+                                        "cp2k-h2o",
+                                        "cp2k-lih",
+                                        "gromacs16",
+                                        "gromacs32",
+                                        "vasp"
+                                ],
+                                "apply_to": ["background"]
+                        }]
+                },
+                "classification": {
+                        "clustering": {
+                                "type": "Kmeans",
+                                "apply_to": ["background"],                                
+                                "ok_if_low_rank": true,
+                                "rseed": 0,
+                                "max_iter": 100,
+                                "max_num_clusters": 20,
+                                "delta_num_clusters": 1,
+                                "num_timesignal_bins": 1,
+                                "metrics_only": false
+                        }
+                },
+                "generator": {
+                        "type": "match_job_pdf",
+                        "random_seed": 0,
+                        "tuning_factors": {
+                                "kb_collective": 1e-3,
+                                "n_collective": 1e-2,
+                                "kb_write": 1e-2,
+                                "n_pairwise": 1e-2,
+                                "n_write": 1e+2,
+                                "n_read": 1e+2,
+                                "kb_read": 1e-2,
+                                "flops": 1e-4,
+                                "kb_pairwise": 1e-2
+                        },
+                        "submit_rate_factor": 1e2,
+                        "synthapp_n_cpu": 2,
+                        "synthapp_n_nodes": 1,
+                        "synthapp_n_frames": 1,
+                        "total_submit_interval": 60
+                }
+        },
+        "run": {
+                "type": "feedback",
+                "state": "enabled",
+                "n_iterations": 1,
+                "hpc_user": "maab",
+                "hpc_host": "nebula",
+                "tag": "feedback_run_test",
+                "hpc_dir_input": "/perm/ma/maab/test_executor/input",
+                "hpc_dir_output": "/perm/ma/maab/test_executor/output",
+                "local_map2json_file": "/home/ma/maab/workspace/Allinea_examples_files/NEXTGenIO_buiilds/map2json/map2json.py",
+                "updatable_metrics": {
+                        "flops": 0,
+                        "n_collective": 0,
+                        "n_pairwise": 0,
+                        "kb_collective": 0,
+                        "kb_pairwise": 0,
+                        "n_write": 0,
+                        "n_read": 0,
+                        "kb_write": 0,
+                        "kb_read": 0
+                },
+                "controls": {
                         "hpc_user": "maab",
                         "hpc_host": "nebula",
                         "hpc_job_sched": "local",
                         "hpc_shell_type": "bash",
                         "hpc_module_dir_init": "",
                         "hpc_module_env": [""],
-                        "hpc_dir_exec": "/perm/ma/maab/builds/kronos/bin",              
+                        "hpc_dir_exec": "/perm/ma/maab/builds/kronos/bin",
                         "hpc_exec_config": "/perm/ma/maab/test_executor/executor_config/exe_config.json"
-                        }
-           },
-    "analysis": {} 
+                }
+        },
+        "analysis": {}
 }
 

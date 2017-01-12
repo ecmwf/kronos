@@ -3,7 +3,10 @@ import os
 import numpy as np
 import matplotlib.pyplot as plt
 
+import generator
+import time_signal
 from config.config import Config
+from plot_handler import PlotHandler
 from workload_data import WorkloadData
 
 os.sys.path.append(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
@@ -23,6 +26,7 @@ def user_workload():
                   }
 
     cfg = Config(config_dict=config_dict)
+    plot_handler = PlotHandler()
 
     # factors to "scale up" each generated job..
     scale_up_factors = {
@@ -44,13 +48,14 @@ def user_workload():
     # n_procs = 2
     # n_nodes = 1
     # t_length = 20.0
-    N_apps = 100
+    N_apps = 1000
 
     # ---------- type of CPU signal (MPI and IO signals are being generated from theser information as well)
     # 0:low,low,low
     # 1:low,high,low
     # 2:high,low,high
-    time_xvalues = np.asarray([0, 1, 2])
+    jobs_duration = 3
+    time_xvalues = np.linspace(0.0, jobs_duration, 3)
     ops_types = {
         0: np.asarray([0.5, 0.5, 0.5]),
         1: np.asarray([0.1, 1, 0.1]),
@@ -72,13 +77,19 @@ def user_workload():
     cpu_type_vec = np.random.randint(len(ops_types), size=N_apps)
     overall_level_idx_vec = np.random.randint(len(ops_level), size=N_apps)
 
+    # random distribution of start times
+    apps_start_times = np.random.normal(loc=30.0, scale=10.0, size=N_apps)
+    print "max start time: {}".format(max(apps_start_times))
+
+    apps_start_times[apps_start_times<0.0] = 0.0
+
     # //////////////////////////////////// collect job models ///////////////////////////////////////////////
     model_job_list = []
     class_idx_vec = np.zeros(N_apps, dtype=int)
     for app in range(0, N_apps):
 
         #     app_time_start = np.random.random()*t_length
-        app_time_start = 0.0
+        app_time_start = apps_start_times[app]
 
         #     cpu_type = np.random.randint(len(ops_types))
         cpu_type = cpu_type_vec[app]
@@ -105,7 +116,6 @@ def user_workload():
                 time_yvalues = ops_types[mpi_io_type] * scale_up_factors[ts_name] * overall_level
 
             # create the timesignal
-            ts_prob = np.random.random()
             ts_prob = ts_prob_mat[app, tt]
 
             if ts_prob <= ts_probability:
@@ -116,7 +126,7 @@ def user_workload():
 
         job = ModelJob(
             time_start=app_time_start,
-            duration=3.0,
+            duration=jobs_duration,
             ncpus=n_procs,
             nnodes=n_nodes,
             timesignals=timesignals,
@@ -146,7 +156,7 @@ def user_workload():
                 mpi_io_type = 1
 
             timesignals = {}
-            for ts_name in signal_types.keys():
+            for ts_name in time_signal.time_signal_names:
                 if ts_name == 'flops':
                     time_yvalues = ops_types[cpu_type] * scale_up_factors['flops'] * overall_level
                 elif ts_name != 'flops':
@@ -158,7 +168,7 @@ def user_workload():
 
             job = ModelJob(
                 time_start=app_time_start,
-                duration=3.0,
+                duration=jobs_duration,
                 ncpus=n_procs,
                 nnodes=n_nodes,
                 timesignals=timesignals,
@@ -174,7 +184,7 @@ def user_workload():
 
     # ---------------------- plot jobs classes -----------------------
     fig_size = (24, 16)
-    plt.figure(211, figsize=fig_size, facecolor='w', edgecolor='k')
+    plt.figure(plot_handler.get_fig_handle_ID(), figsize=fig_size, facecolor='w', edgecolor='k')
     ss = 1
     for cc, app in enumerate(model_job_classes):
         for tt, ts_name in enumerate(app.timesignals.keys()):
@@ -209,65 +219,66 @@ def user_workload():
     print "recommendersystem applied!"
     # ----------------------------------------------------------------
 
-    # -------------- plot jobs classes+recomm systems ----------------
-    # Number of jobs to plot
-    n_jobs_to_plot = 10
-
-    fig_size = (20, 6)
-    for cc, app in enumerate(wl.jobs[:n_jobs_to_plot]):
-
-        print "processing app {}".format(cc)
-        plt.figure(cc, figsize=fig_size, facecolor='w', edgecolor='k')
-
-        # plot timesignals values from the actual job..
-        for tt, ts_name in enumerate(signal_types.keys()):
-            plt.subplot(2, len(app.timesignals.keys()), tt + 1)
-            if app.timesignals[ts_name]:
-                if app.timesignals[ts_name].priority == 10:
-                    plt.bar(app.timesignals[ts_name].xvalues, app.timesignals[ts_name].yvalues, 0.5, color='b')
-                elif app.timesignals[ts_name].priority == 2:
-                    plt.bar(app.timesignals[ts_name].xvalues, app.timesignals[ts_name].yvalues, 0.5, color='g')
-                else:
-                    raise ValueError(
-                        "priority not recognized.. {} for ts {}".format(app.timesignals[ts_name].priority, ts_name))
-            else:
-                plt.bar(time_xvalues, time_xvalues * 0.0, 0.5, color='k')
-
-            plt.xlabel(ts_name)
-            plt.ylabel('')
-            plt.gca().xaxis.set_major_locator(plt.NullLocator())
-
-        # plot timesignals values from the CLASS of that job..
-        class_idx = class_idx_vec[cc]
-        class_app = model_job_classes[class_idx]
-        for tt, ts_name in enumerate(signal_types.keys()):
-            plt.subplot(2, len(class_app.timesignals.keys()), tt + 1 + len(class_app.timesignals.keys()))
-            plt.bar(class_app.timesignals[ts_name].xvalues, class_app.timesignals[ts_name].yvalues, 0.5, color='k')
-            plt.xlabel(ts_name)
-            plt.ylabel('')
-
-        plt.tight_layout()
-        plt.savefig(os.path.join(cfg.dir_output, "classes_with_rs_{}_it2.png".format(cc)))
-        plt.close()
-    print "figures saved!"
-    # ----------------------------------------------------------------
+    # # -------------- plot jobs classes+recomm systems ----------------
+    # # Number of jobs to plot
+    # n_jobs_to_plot = 10
+    #
+    # fig_size = (20, 6)
+    # for cc, app in enumerate(wl.jobs[:n_jobs_to_plot]):
+    #
+    #     print "processing app {}".format(cc)
+    #     plt.figure(plot_handler.get_fig_handle_ID(), figsize=fig_size, facecolor='w', edgecolor='k')
+    #
+    #     # plot timesignals values from the actual job..
+    #     for tt, ts_name in enumerate(signal_types.keys()):
+    #         plt.subplot(2, len(app.timesignals.keys()), tt + 1)
+    #         if app.timesignals[ts_name]:
+    #             if app.timesignals[ts_name].priority == 10:
+    #                 plt.bar(app.timesignals[ts_name].xvalues, app.timesignals[ts_name].yvalues, 0.5, color='b')
+    #             elif app.timesignals[ts_name].priority == 2:
+    #                 plt.bar(app.timesignals[ts_name].xvalues, app.timesignals[ts_name].yvalues, 0.5, color='g')
+    #             else:
+    #                 raise ValueError(
+    #                     "priority not recognized.. {} for ts {}".format(app.timesignals[ts_name].priority, ts_name))
+    #         else:
+    #             plt.bar(time_xvalues, time_xvalues * 0.0, 0.5, color='k')
+    #
+    #         plt.xlabel(ts_name)
+    #         plt.ylabel('')
+    #         plt.gca().xaxis.set_major_locator(plt.NullLocator())
+    #
+    #     # plot timesignals values from the CLASS of that job..
+    #     class_idx = class_idx_vec[cc]
+    #     class_app = model_job_classes[class_idx]
+    #     for tt, ts_name in enumerate(signal_types.keys()):
+    #         plt.subplot(2, len(class_app.timesignals.keys()), tt + 1 + len(class_app.timesignals.keys()))
+    #         plt.bar(class_app.timesignals[ts_name].xvalues, class_app.timesignals[ts_name].yvalues, 0.5, color='k')
+    #         plt.xlabel(ts_name)
+    #         plt.ylabel('')
+    #
+    #     plt.tight_layout()
+    #     plt.savefig(os.path.join(cfg.dir_output, "classes_with_rs_{}_it2.png".format(cc)))
+    #     plt.close()
+    # print "figures saved!"
+    # # ----------------------------------------------------------------
 
     # ----------------------------------------------------------------
     clustering_config = {
                         "type": "Kmeans",
                         "ok_if_low_rank": True,
+                        "user_does_not_check": True,
                         "rseed": 0,
                         "max_iter": 100,
-                        "nc_max": 20,
-                        "nc_delta": 1,
-                        "n_ts_bins": 1,
+                        "max_num_clusters": 20,
+                        "delta_num_clusters": 1,
+                        "num_timesignal_bins": 3,
                         "metrics_only": False
                         }
     print "doing clustering"
 
     # Apply clustering
     cluster_handler = data_analysis.factory(clustering_config['type'], clustering_config)
-    cluster_handler.cluster_jobs(wl.jobs_to_matrix(clustering_config['n_ts_bins']))
+    cluster_handler.cluster_jobs(wl.jobs_to_matrix(clustering_config['num_timesignal_bins']))
     clusters_matrix = cluster_handler.clusters
     clusters_labels = cluster_handler.labels
     used_clusters = set(clusters_labels)
@@ -277,21 +288,18 @@ def user_workload():
 
     # --------------------- plot clusters.. --------------------------
     # plot jobs
-    n_bins = clustering_config['n_ts_bins']
+    n_bins = clustering_config['num_timesignal_bins']
     fig_size = (24, 16)
-    plt.figure(411, figsize=fig_size, facecolor='w', edgecolor='k')
+    plt.figure(plot_handler.get_fig_handle_ID(), figsize=fig_size, facecolor='w', edgecolor='k')
     ss = 1
 
     # take only clusters actually found in the labels..
     used_clusters = set(clusters_labels)
 
-    # timesignal_names:
-    ts_names_list = signal_types.keys()
-
     for rr in used_clusters:
 
-        ts_yvalues_all = np.split(clusters_matrix[rr, :], len(signal_types))
-        for tt, ts_name in enumerate(ts_names_list):
+        ts_yvalues_all = np.split(clusters_matrix[rr, :], len(time_signal.time_signal_names))
+        for tt, ts_name in enumerate(time_signal.time_signal_names):
             ts_values = ts_yvalues_all[tt]
             plt.subplot(len(used_clusters), len(ts_yvalues_all), ss)
             plt.bar(np.arange(0, n_bins), ts_values, 0.5, color='r')
@@ -306,6 +314,74 @@ def user_workload():
     plt.savefig(os.path.join(cfg.dir_output, "clusters_rs.png"))
     plt.close()
     # ----------------------------------------------------------------
+
+    # ----- generate the synthetic workload from the model jobs.. ----
+    config_generator = {
+                        "type": "match_job_pdf_exact",
+                        "random_seed": 0,
+                        "tuning_factors": {
+                                          "kb_collective": 1e-0,
+                                          "n_collective": 1e-0,
+                                          "kb_write": 1e-3,
+                                          "n_pairwise": 1e-0,
+                                          "n_write": 1e-2,
+                                          "n_read": 1e-2,
+                                          "kb_read": 1e-2,
+                                          "flops": 100e-0,
+                                          "kb_pairwise": 1e-0
+                                          },
+                       "submit_rate_factor": 1.0,
+                       "synthapp_n_cpu": 2,
+                       "synthapp_n_nodes": 1,
+                       "synthapp_n_frames": 10,
+                       "total_submit_interval": max(apps_start_times)
+                       }
+
+    clusters_dict = [{
+                    'source-workload': 'wl_user',
+                    'jobs_for_clustering': wl.jobs,
+                    'cluster_matrix': clusters_matrix,
+                    'labels': clusters_labels,
+                    }]
+
+    # sapps_generator = generator.SyntheticWorkloadGenerator(config_generator, clusters_dict)
+
+    global_t0 = min(j.time_start for cl in clusters_dict for j in cl['jobs_for_clustering'])
+    global_tend = max(j.time_start for cl in clusters_dict for j in cl['jobs_for_clustering'])
+    sapps_generator = generator.SyntheticWorkloadGenerator(config_generator, clusters_dict, global_t0, global_tend)
+
+
+    modelled_sa_jobs = sapps_generator.generate_synthetic_apps()
+
+    # ------------ plot real/synthetic job distribution ---------------
+    xedge_bins = np.linspace(0.0, max(apps_start_times), 15)
+    xx = 0.5*(xedge_bins[1:]+xedge_bins[:-1])
+    delta = xx[1]-xx[0]
+
+    # real start times
+    tt_hist = np.histogram(apps_start_times, bins=xedge_bins)
+
+    print "---------------"
+    print "xedge_bins", xedge_bins
+    print "tt_hist", tt_hist[0]
+
+    # synthetic start times
+    sa_hist = np.histogram(np.asarray([j.time_start for j in modelled_sa_jobs]), bins=xedge_bins)
+    print "sa_hist", sa_hist[0]
+
+    plt.figure(plot_handler.get_fig_handle_ID())
+    plt.bar(xx-0.25*delta, tt_hist[0], delta/2., color='b')
+    plt.bar(xx+0.25*delta, sa_hist[0], delta/2., color='r')
+    plt.xlabel('start time')
+    plt.ylabel('# jobs')
+    plt.savefig( os.path.join(cfg.dir_output, 'jobs_distribution.png'))
+    plt.close()
+    # -----------------------------------------------------------------
+
+
+
+
+    #-----------------------------------------------------------------
 
 if __name__ == '__main__':
 
