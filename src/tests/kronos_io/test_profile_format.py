@@ -362,8 +362,8 @@ class ProfileFormatTest(unittest.TestCase):
         for name, signal in jobs[0].timesignals.iteritems():
             if name == 'kb_read':
                 self.assertIsInstance(signal, time_signal.TimeSignal)
-                self.assertEquals(signal.xvalues, [0.01, 0.02, 0.03, 0.04])
-                self.assertEquals(signal.yvalues, [15, 16, 17, 18])
+                self.assertTrue(all(signal.xvalues==[0.01, 0.02, 0.03, 0.04]))
+                self.assertTrue(all(signal.yvalues==[15, 16, 17, 18]))
             else:
                 self.assertIsNone(signal)
 
@@ -413,8 +413,8 @@ class ProfileFormatTest(unittest.TestCase):
         for name, signal in jobs[0].timesignals.iteritems():
             if name == 'kb_read':
                 self.assertIsInstance(signal, time_signal.TimeSignal)
-                self.assertEquals(signal.xvalues, [0.01, 0.02, 0.03, 0.04])
-                self.assertEquals(signal.yvalues, [15, 16, 17, 18])
+                self.assertTrue(all(signal.xvalues==[0.01, 0.02, 0.03, 0.04]))
+                self.assertTrue(all(signal.yvalues==[15, 16, 17, 18]))
             else:
                 self.assertIsNone(signal)
 

@@ -3,7 +3,7 @@
 Utility to go through the kronos run folder, and generate a KPF file from the allinea jsons..
 """
 import os
-import shutil
+# import shutil
 import subprocess
 import json
 import argparse
