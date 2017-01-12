@@ -2,10 +2,10 @@
         "verbose": true,
         "dir_input": "/var/tmp/maab/kronos-core/input",
         "dir_output": "/var/tmp/maab/kronos-core/output",
-	    "kpf_files": ["ecmwf_accounting_test.kpf", 
-		              "ecmwf_darshan.kpf", 
-		              "ecmwf_ipm.kpf", 
-		              "ecmwf_stdout.kpf"],
+        "kpf_files": ["ecmwf_accounting_test.kpf", 
+                      "ecmwf_darshan.kpf", 
+                      "ecmwf_ipm.kpf", 
+                      "ecmwf_stdout.kpf"],
         "ksf_filename": "schedule_ecmwf.ksf",
         "model": {
                 "fill_in": {
