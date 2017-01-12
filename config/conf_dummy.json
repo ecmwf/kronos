@@ -3,7 +3,7 @@
     "dir_input": "/var/tmp/maab/kronos-core/input",
     "dir_output": "/var/tmp/maab/kronos-core/output",
     "kpf_files": ["stdout.kpf", "ipm.kpf"],
-    "ksf_filename": "schedule_ecmwf.ksf",
+    "ksf_filename": "schedule_dummy.ksf",
     "model": {
               "functions":[
                             {

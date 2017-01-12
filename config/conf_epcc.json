@@ -2,7 +2,13 @@
     "verbose": true,
     "dir_input": "/var/tmp/maab/kronos-core/input",
     "dir_output": "/var/tmp/maab/kronos-core/output",
-    "kpf_file": "epcc_x0.kpf",
+    "kpf_files": ["epcc_csv_test.kpf",
+                  "epcc_castep.kpf",
+                  "epcc_cp2k_h2o.kpf",
+                  "epcc_cp2k_lih.kpf",
+                  "epcc_gromacs16.kpf",
+                  "epcc_gromacs32.kpf",
+                  "epcc_vasp.kpf"],
     "ksf_filename": "schedule_epcc.ksf",
     "model": {
               "functions":[

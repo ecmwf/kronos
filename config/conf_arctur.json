@@ -2,7 +2,9 @@
     "verbose": true,
     "dir_input": "/var/tmp/maab/kronos-core/input",
     "dir_output": "/var/tmp/maab/kronos-core/output",
-    "kpf_file": "arctur_x0.kpf",
+    "kpf_files": ["arctur_pbs_test.kpf", 
+                  "arctur_cfd.kpf", 
+                  "arctur_blender.kpf"],
     "ksf_filename": "schedule_arctur.ksf",
     "model": {
               "fill_in":[
