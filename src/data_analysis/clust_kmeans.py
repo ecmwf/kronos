@@ -1,9 +1,12 @@
 import numpy as np
 from scipy.spatial.distance import cdist
 from sklearn.cluster import KMeans
+from sklearn.metrics import silhouette_score
 
 from clust_base import ClusteringBase
-from data_analysis.elbow_method import find_n_clusters
+# from data_analysis.elbow_method import find_n_clusters
+from data_analysis.silhouette import find_n_clusters_silhouette
+
 from kronos_tools.print_colour import print_colour
 from exceptions_iows import ConfigurationError
 
@@ -24,6 +27,9 @@ class ClusteringKmeans(ClusteringBase):
         self.max_num_clusters = None
         self.delta_num_clusters = None
 
+        # number of digits to keet for evaluating the max of silhouette plot
+        self.n_round_off = 1
+
         # Then set the general configuration into the parent class..
         super(ClusteringKmeans, self).__init__(config)
 
@@ -41,9 +47,10 @@ class ClusteringKmeans(ClusteringBase):
 
         print_colour("green", "calculating clusters by Kmeans..")
 
-        nc_vec = np.arange(1, self.max_num_clusters, self.delta_num_clusters)
+        nc_vec = np.arange(2, self.max_num_clusters, self.delta_num_clusters, dtype=int)
         avg_d_in_clust = np.zeros(nc_vec.shape[0])
         n_clusters_max = None
+        silhouette_score_vec = []
 
         for cc, n_clusters in enumerate(nc_vec):
             print_colour("white", "Doing K-means with {} clusters, matrix size={}".format(n_clusters, input_matrix.shape))
@@ -53,12 +60,16 @@ class ClusteringKmeans(ClusteringBase):
                 n_clusters_max = n_clusters-1
                 break
             else:
-                y_pred = KMeans(n_clusters=n_clusters,
+                y_pred = KMeans(n_clusters=int(n_clusters),
                                 max_iter=self.max_iter,
                                 random_state=self.rseed
                                 ).fit(input_matrix)
 
                 clusters = y_pred.cluster_centers_
+
+                silhouette_avg = silhouette_score(input_matrix, y_pred.labels_)
+                silhouette_score_vec.append(silhouette_avg)
+
                 # labels = y_pred.labels_
                 pt_to_all_clusters = cdist(input_matrix, clusters, 'euclidean')
                 dist_in_c = np.min(pt_to_all_clusters, axis=1)
@@ -66,7 +77,7 @@ class ClusteringKmeans(ClusteringBase):
 
         # Calculate best number of clusters by elbow_method
         if not n_clusters_max:
-            n_clusters_optimal = find_n_clusters(avg_d_in_clust, self.user_does_not_check)
+            n_clusters_optimal = nc_vec[find_n_clusters_silhouette(silhouette_score_vec, self.n_round_off)]
         else:
             n_clusters_optimal = n_clusters_max
 

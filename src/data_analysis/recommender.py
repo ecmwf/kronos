@@ -1,6 +1,5 @@
-
 import numpy as np
-from sklearn.metrics.pairwise import pairwise_distances
+from scipy.spatial.distance import pdist
 from exceptions_iows import ConfigurationError
 
 from kronos_tools.print_colour import print_colour
@@ -34,6 +33,12 @@ class Recommender(object):
         """
 
         print_colour("green", "Training recommender system..")
+        np.set_printoptions(edgeitems=1,
+                            infstr='inf',
+                            linewidth=275,
+                            precision=3,
+                            suppress=False,
+                            formatter=None)
 
         # once the matrix is filled, look for missing columns:
         col_size = self.input_matrix.shape[1]
@@ -48,10 +53,33 @@ class Recommender(object):
 
         # item-item similarity matrix (metrics only)
         item_max_train = np.max(working_matrix, axis=0)
-        mat_norm = working_matrix / (item_max_train[None, :] + 1.e-20)
-        item_simil_mat = -pairwise_distances(mat_norm.T, metric='cosine')+1
 
-        item_prediction_norm = mat_norm.dot(item_simil_mat) / (np.array([np.abs(item_simil_mat).sum(axis=1)])+1.e-20)
+        # normalize the matrics and remove non-values (<0)
+        mat_norm = working_matrix / (item_max_train[None, :] + 1.e-20)
+        mat_norm[mat_norm < 0] = 0
+
+        # item-item similarity matrix (metrics only)
+        item_max_train = np.abs(np.max(working_matrix, axis=0))
+        mat_norm = working_matrix / (item_max_train[None, :] + 1.e-20)
+
+        # calculate the similarity matrix considering only the pairs of non-missing elements
+        item_simil_mat = np.zeros((mat_norm.shape[1], mat_norm.shape[1]))
+        for c in range(mat_norm.shape[1]):
+            for cc in range(mat_norm.shape[1]):
+                valid_rows = np.logical_and(mat_norm[:, c] > 0, mat_norm[:, cc] > 0)
+                dist = -pdist(np.vstack((mat_norm[valid_rows==True, c], mat_norm[valid_rows == True, cc])), 'cosine')+1
+                item_simil_mat[c, cc] = dist.item(0)
+
+        # retain only max values in similarity matrix
+        n_stencil = int(round(item_simil_mat.shape[0] * 3./4.))
+        item_simil_mat_stencil = np.copy(item_simil_mat)
+        for row in item_simil_mat_stencil:
+            ind = np.argpartition(row, -n_stencil)[-n_stencil:]
+            not_max_mask = np.ones(row.shape, dtype=bool)
+            not_max_mask[ind] = False
+            row[not_max_mask] = 0.0
+
+        item_prediction_norm = mat_norm.dot(item_simil_mat_stencil) / (np.array([np.abs(item_simil_mat_stencil).sum(axis=1)])+1.e-20)
         filled_matrix = item_prediction_norm * item_max_train
 
         return filled_matrix, mapped_columns
