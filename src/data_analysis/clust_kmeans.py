@@ -55,7 +55,7 @@ class ClusteringKmeans(ClusteringBase):
         for cc, n_clusters in enumerate(nc_vec):
             print_colour("white", "Doing K-means with {} clusters, matrix size={}".format(n_clusters, input_matrix.shape))
 
-            if n_clusters > input_matrix.shape[0]:
+            if n_clusters >= input_matrix.shape[0]:
                 print_colour("orange", "N clusters > matrix row size! => max n clusters = {}".format(n_clusters-1))
                 n_clusters_max = n_clusters-1
                 break
