@@ -33,7 +33,7 @@ class Kronos(object):
         """
         Depending on the supplied config, ingest data of various types.
         """
-        print "\nBegining data ingestion...\n----------------------------------"
+        print "\nBeginning data ingestion...\n----------------------------------"
 
         self.workloads = []
         for filename in self.config.kpf_files:

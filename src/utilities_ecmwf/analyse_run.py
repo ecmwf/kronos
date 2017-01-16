@@ -37,14 +37,17 @@ if __name__ == "__main__":
                     labels_jobs_dict[lab] = [j]
 
     # global properties of the whole workload
-    total_exe_time = max(sa.time_start+sa.duration for sa in kpf_workload.jobs) - \
-                     min(sa.time_start for sa in kpf_workload.jobs)
+    total_t_min = min(sa.time_start for sa in kpf_workload.jobs)
+    total_t_max = max(sa.time_start+sa.duration for sa in kpf_workload.jobs)
+    total_exe_time = total_t_max - total_t_min
 
     global_t0 = kpf_workload.min_time_start
 
     # queuing times of jobs..
     queuing_times_vec = [j.time_queued for j in kpf_workload.jobs]
     queuing_times_vec.sort()
+    queuing_times_vec = np.asarray(queuing_times_vec)
+    queuing_times_vec = queuing_times_vec - queuing_times_vec[0]
 
     if args.plot:
 
@@ -74,6 +77,7 @@ if __name__ == "__main__":
             end_time_vec = end_time_vec.reshape(end_time_vec.shape[0], 1)
             minus_vec = np.hstack((end_time_vec, -1 * np.ones(end_time_vec.shape)))
 
+            # vector of time-stamps (and +-1 for start-end time stamps)
             all_vec = np.vstack((plus_vec, minus_vec))
             all_vec_sort = all_vec[all_vec[:, 0].argsort()]
             n_running_vec = np.cumsum(all_vec_sort[:, 1])
@@ -88,35 +92,39 @@ if __name__ == "__main__":
             all_vec_sort = all_vec[all_vec[:, 0].argsort()]
             nproc_running_vec = np.cumsum(all_vec_sort[:, 1])
 
+            time_stamps = all_vec_sort[:, 0] - all_vec_sort[0, 0]
+
             # initial plot with the running jobs/processes
             id_plot = 1
             plt.subplot(n_plots, 1, id_plot)
             plt.subplots_adjust(left=0.2, right=0.8, top=0.9, bottom=0.1)
-            plt.plot(queuing_times_vec + [total_exe_time],
-                     range(len(queuing_times_vec)) + [len(queuing_times_vec) - 1],
+            plt.plot(queuing_times_vec, np.arange(len(queuing_times_vec))+1,
                      color=line_color,
                      label=label)
             plt.ylabel('#queued jobs')
+            plt.xlim(xmin=0, xmax=total_exe_time)
             plt.legend(loc='center left', bbox_to_anchor=(1, 0.5))
             plt.title('Time profiles, Number of apps: {}'.format(tot_n_apps))
 
             id_plot += 1
             plt.subplot(n_plots, 1, id_plot)
             plt.subplots_adjust(left=0.2, right=0.8, top=0.9, bottom=0.1)
-            plt.plot(all_vec_sort[:, 0] - all_vec_sort[0, 0],
+            plt.plot(time_stamps,
                      n_running_vec,
                      color=line_color,
                      label=label)
             plt.ylabel('#jobs')
+            plt.xlim(xmin=0, xmax=total_exe_time)
 
             id_plot += 1
             plt.subplot(n_plots, 1, id_plot)
             plt.subplots_adjust(left=0.2, right=0.8, top=0.9, bottom=0.1)
-            plt.plot(all_vec_sort[:, 0] - all_vec_sort[0, 0],
+            plt.plot(time_stamps,
                      nproc_running_vec,
                      color=line_color,
                      label=label)
             plt.ylabel('#procs')
+            plt.xlim(xmin=0, xmax=total_exe_time)
 
             # plot of the total time-signals
             total_metrics = kpf_workload.total_metrics_timesignals
@@ -131,6 +139,7 @@ if __name__ == "__main__":
                          label=label)
 
                 plt.ylabel(ts_name)
+                plt.xlim(xmin=0, xmax=total_exe_time)
 
                 if tt == len(total_metrics)-1:
                     plt.xlabel('time')

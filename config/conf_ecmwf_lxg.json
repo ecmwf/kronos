@@ -17,7 +17,7 @@
                                 "type": "custom",
                                 "name": "custom-1",
                                 "x_values": [0, 0.1, 0.2, 0.3, 0.5, 0.8, 0.9, 1.0],
-                                "y_values": [0, 0.1, 0.2, 0.3, 0.5, 0.8, 0.9, 1.0]
+                                "y_values": [1.0, 0.5, 0.0, 0.0, 0.0, 0.0, 0.5, 1.0]
                         }],
                         "operations": [{
                                 "type": "fill_missing_entries",
@@ -37,7 +37,7 @@
                                         "n_write": [10, 1000],
                                         "n_read": [10, 1000],
                                         "kb_read": [100, 1000],
-                                        "flops": [1e6, 1e8],
+                                        "flops": [1e9, 1e10],
                                         "kb_pairwise": [100, 1000]
                                 }
                         }, {
@@ -123,25 +123,25 @@
                         }
                 },
                 "generator": {
-                        "type": "match_job_pdf",
+                        "type": "match_job_pdf_exact",
                         "n_bins_for_pdf": 20,
                         "random_seed": 0,
                         "tuning_factors": {
-                                "kb_collective": 1e-0,
-                                "n_collective": 1e-0,
-                                "kb_write": 1e-3,
-                                "n_pairwise": 10e-0,
-                                "n_write": 1e-2,
-                                "n_read": 10e-2,
-                                "kb_read": 1e-2,
-                                "flops": 500e-0,
+                                "kb_collective": 1e1,
+                                "n_collective": 1e-1,
+                                "kb_write": 1e-4,
+                                "n_pairwise": 1e-1,
+                                "n_write": 1e-4,
+                                "n_read": 1e-3,
+                                "kb_read": 1e-3,
+                                "flops": 1e1,
                                 "kb_pairwise": 10e-0
                         },
-                        "submit_rate_factor": 8.0,
+                        "submit_rate_factor": 4.0,
                         "synthapp_n_cpu": 2,
                         "synthapp_n_nodes": 1,
                         "synthapp_n_frames": 10,
-                        "total_submit_interval": 60
+                        "total_submit_interval": 300
                 }
         },
         "run": {

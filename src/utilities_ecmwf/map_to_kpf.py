@@ -39,6 +39,8 @@ if __name__ == "__main__":
     if not os.path.exists(tmp_dir_abs):
         os.mkdir(tmp_dir_abs)
 
+    print "writing output kpf file: {}".format(args.kpf_file)
+
     # ---------- Process the run jsons ----------
     job_dirs = [x for x in os.listdir(args.path_run) if os.path.isdir(os.path.join(args.path_run, x))]
 
@@ -55,6 +57,8 @@ if __name__ == "__main__":
             map_file_name = map_file[0]
             map_file_full = os.path.join(sub_dir_path_abs, map_file_name)
             map_base_abs = os.path.splitext(map_file_full)[0]
+            print "processing MAP file: {}".format(map_file_full)
+
             json_file_name = map_base_abs + '.json'
             input_file_path_abs = os.path.join(sub_dir_path_abs, 'input.json')
 
@@ -68,6 +72,9 @@ if __name__ == "__main__":
             # copy all the maps and the converted jsons into the tmp folder..
             allinea_json = 'allinea_job-'+str(job_ID)+'.json'
             allinea_map = 'allinea_job-'+str(job_ID)+'.map'
+
+            subprocess.Popen(["python", local_map2json_file,
+                              os.path.join(sub_dir_path_abs, map_file_name)]).wait()
 
             subprocess.Popen(['cp',
                               os.path.join(sub_dir_path_abs, json_file_name),

@@ -122,6 +122,9 @@ class SyntheticWorkloadGenerator(object):
         # generate a synthetic workload for each cluster of jobs
         for cluster in self.clusters:
 
+            print "Generating jobs from cluster: {}, that has {} jobs".format(cluster['source-workload'],
+                                                                              len(cluster['jobs_for_clustering']))
+
             start_times = [j.time_start for j in cluster['jobs_for_clustering']]
             start_times_vec_sa, _, _ = equiv_time_pdf_exact(start_times,
                                                             self.global_t0,
@@ -156,6 +159,8 @@ class SyntheticWorkloadGenerator(object):
                     label="job-{}".format(cc)
                 )
                 generated_model_jobs.append(job)
+
+            print "====> Generated {} jobs from cluster".format(len(generated_model_jobs))
 
             # --- then create the synthetic apps from the generated model jobs --
             modelled_sa_jobs = self.model_jobs_to_sa(generated_model_jobs, cluster['source-workload'])
