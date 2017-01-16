@@ -37,8 +37,9 @@ def equiv_time_pdf_exact(input_times, global_t0, global_tend, output_duration, o
         y_min = output_time_bins[bb]
         y_max = output_time_bins[bb + 1]
 
-        # number of sa in this bin will depend of out/input time ratio
-        # and also desired submit-ratio
+        # number of sa in this bin will depend of out/input time ratio and also desired submit-ratio
+        # print "int(round(output_time_pdf[bb]*output_ratio * output_duration/input_time_duration))",
+        # int(round(output_time_pdf[bb]*output_ratio * output_duration/input_time_duration))
         n_sa_bin = int(round(output_time_pdf[bb]*output_ratio * output_duration/input_time_duration))
 
         # this is the vector of actual random values of start times
@@ -47,6 +48,15 @@ def equiv_time_pdf_exact(input_times, global_t0, global_tend, output_duration, o
         # and now append them..
         output_times = np.append(output_times, random_y_values)
         output_times_pdf_actual[bb] = n_sa_bin
+
+    # check if the output synthetic workload contains at least one synth app, if not, add one in the most probable bin
+    total_n_sa = sum(output_times_pdf_actual)
+    if total_n_sa == 0:
+        idx_max_pdf = np.argmax(input_time_pdf)
+        y_min = output_time_bins[idx_max_pdf]
+        y_max = output_time_bins[idx_max_pdf + 1]
+        output_times = np.append(output_times, np.random.rand() * (y_max - y_min))
+        output_times_pdf_actual[np.argmax(input_time_pdf)] = 1
 
     return output_times, output_times_pdf_actual, output_time_bins
 
@@ -69,7 +79,7 @@ def equiv_time_pdf(input_times, global_t0, global_tend, output_duration, output_
     # calculate the submit rate from the selected workload
     real_submit_rate = float(len(input_times)) / (max(input_times) - min(input_times))
     requested_submit_rate = real_submit_rate * output_ratio
-    n_modelled_jobs = int(requested_submit_rate * output_duration)
+    n_modelled_jobs = max(1,int(requested_submit_rate * output_duration))
 
     # find the PDF of jobs start times
     input_time_min = min(input_times)
@@ -97,5 +107,14 @@ def equiv_time_pdf(input_times, global_t0, global_tend, output_duration, output_
 
     output_times = np.random.choice(output_time_bins_mid, p=output_time_pdf/float(sum(output_time_pdf)), size=n_modelled_jobs)
     output_times_pdf_actual, _ = np.histogram(output_times, output_time_bins, density=False)
+
+    # check if the output synthetic workload contains at least one synth app, if not, add one in the most probable bin
+    total_n_sa = sum(output_times_pdf_actual)
+    if total_n_sa == 0:
+        idx_max_pdf = np.argmax(input_time_pdf)
+        y_min = output_time_bins[idx_max_pdf]
+        y_max = output_time_bins[idx_max_pdf + 1]
+        output_times = np.append(output_times, np.random.rand() * (y_max - y_min))
+        output_times_pdf_actual[np.argmax(input_time_pdf)] = 1
 
     return output_times, output_times_pdf_actual, output_time_bins
