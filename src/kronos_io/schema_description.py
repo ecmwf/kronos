@@ -1,5 +1,3 @@
-
-
 class SchemaDescription(object):
     """
     Provide a description of a JSON schema for user consumption
@@ -10,6 +8,9 @@ class SchemaDescription(object):
 
         if 'enum' in schema:
             return EnumSchemaDescription(schema, depth)
+
+        if "oneOf" in schema:
+            return OneOfSchemaDescription(schema, depth)
 
         if isinstance(schema['type'], list):
             return MultiTypeSchemaDescription(schema, depth)
@@ -29,7 +30,9 @@ class SchemaDescription(object):
         s = ""
         if self.title:
             s += "{}\n{}\n".format(self.title, ("-" * len(self.title)))
-        s += "# {}\n".format(self.description)
+
+        if self.description:
+            s += "# {}\n".format(self.description)
         s += self.details_string()
         if self.title:
             s += "\n--------------------------------------------------"
@@ -41,7 +44,10 @@ class SchemaDescription(object):
 
     @property
     def description(self):
-        return "{}{}".format("(REQUIRED) " if self.required else "", self._description)
+        if self._description:
+            return "{}{}".format("(REQUIRED) " if self.required else "", self._description)
+        else:
+            return self.newline
 
     @staticmethod
     def type_lookup():
@@ -51,7 +57,8 @@ class SchemaDescription(object):
             "array": ArraySchemaDescription,
             "number": NumberSchemaDescription,
             "string": StringSchemaDescription,
-            "integer": IntegerSchemaDescription
+            "integer": IntegerSchemaDescription,
+            "boolean": BooleanSchemaDescription
         }
 
     def details_string(self):
@@ -117,6 +124,12 @@ class IntegerSchemaDescription(SchemaDescription):
         return "<integer>"
 
 
+class BooleanSchemaDescription(SchemaDescription):
+
+    def details_string(self):
+        return "<boolean>"
+
+
 class StringSchemaDescription(SchemaDescription):
 
     def __init__(self, schema, depth):
@@ -152,6 +165,43 @@ class EnumSchemaDescription(SchemaDescription):
             return self.value_string(self.values[0])
         else:
             return "{" + ', '.join(self.value_string(v) for v in self.values) + "}"
+
+
+class OneOfSchemaDescription(SchemaDescription):
+
+    def __init__(self, schema, depth):
+        super(OneOfSchemaDescription, self).__init__(schema, depth)
+        self.values = schema['oneOf']
+
+        # self.properties = {kk: k for kk, k in enumerate(self.values)}
+
+        self.properties = {
+            '<OPTION-{}>'.format(k): SchemaDescription.from_schema(v, depth+1)
+            for k, v in enumerate(self.values)
+        }
+
+    @staticmethod
+    def value_string(v):
+        if isinstance(v, str) or isinstance(v, unicode):
+            return '"{}"'.format(v)
+        else:
+            return "{}".format(v)
+
+    def details_string(self):
+        if len(self.properties) == 0:
+            properties = ""
+        else:
+            properties = self.newline
+
+            # slightly re-formatted for oneOf cases..
+            properties += ',{0}{0}'.format(self.newline).join(
+                '{}    {}: {}'.format(self.newline, prop, prop_schema.details_string())
+                for prop, prop_schema in self.properties.iteritems())
+
+            properties += self.newline
+            properties += self.newline
+
+        return "{}".format(properties)
 
 
 class MultiTypeSchemaDescription(SchemaDescription):

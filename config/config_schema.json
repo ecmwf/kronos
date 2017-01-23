@@ -1,0 +1,450 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "type": "object",
+  "title": "Kronos configuration file format",
+  "description": "The Kronos-core configuration file format controls the execution of the modelling algorithm",
+  "additionalProperties": false,
+  "properties": {
+    "verbose": {
+      "type": "boolean"
+    },
+    "dir_input": {
+      "type": "string",
+      "description": "Folder of KPF format file"
+    },
+    "dir_output": {
+      "type": "string",
+      "description": "Working output folder"
+    },
+    "kpf_files": {
+      "type": "array",
+      "description": "List of KPF input files",
+      "items": {
+        "type": "string"
+      }
+    },
+    "ksf_filename": {
+      "type": "string",
+      "description": "Name of KSF (schedule) output file"
+    },
+    "model": {
+      "type": "object",
+      "description": "Configuration of the modelling process",
+      "properties": {
+        "fill_in": {
+          "type": "object",
+          "description": "Methodologies for dealing with sparse data",
+          "properties": {
+            "user_functions": {
+              "type": "array",
+              "description": "User-defined functions that can be used to attach values to missing metrics",
+              "items": {
+                "type": "object",
+                "oneOf": [
+                  {
+                    "type": "object",
+                    "description": "Step function for job-metrics",
+                    "properties": {
+                      "type": {
+                        "type": "string",
+                        "description": "Step function identifier",
+                        "enum": ["step"]
+                      },
+                      "name": {
+                        "type": "string",
+                        "description": "Function name"
+                      },
+                      "x_step": {
+                        "type": "number",
+                        "description": "x of th step within the job duration, normalized in [0,1]"
+                      }
+                    },
+                    "required": [
+                      "type",
+                      "name",
+                      "x_step"
+                    ],
+                    "additionalProperties": false
+                  },
+                  {
+                    "type": "object",
+                    "description": "User-defined generic function for job-metrics (values normalized in [0,1]",
+                    "properties": {
+                      "type": {
+                        "type": "string",
+                        "description": "Custom function identifier",
+                        "enum": ["custom"]
+                      },
+                      "name": {
+                        "type": "string",
+                        "description": "Function name"
+                      },
+                      "x_values": {
+                        "type": "array",
+                        "description": "Time values in [0,1] (normalized against the job duration)",
+                        "items": {
+                          "type": "number"
+                        }
+                      },
+                      "y_values": {
+                        "type": "array",
+                        "description": "Function values in [0,1]",
+                        "items": {
+                          "type": "number"
+                        }
+                      }
+                    },
+                    "required": [
+                      "type",
+                      "name",
+                      "x_values",
+                      "y_values"
+                    ],
+                    "additionalProperties": false
+                  }
+                ]
+              }
+            },
+            "operations": {
+              "type": "array",
+              "description": "Operations to be applied to profiled workload jobs",
+              "items": {
+                "type": "object",
+                "oneOf": [
+                  {
+                    "type": "object",
+                    "properties": {
+                      "type": {
+                        "type": "string",
+                        "description": "Operation that manually replaces missing job metrics with user-defined values",
+                        "enum": ["fill_missing_entries"]
+                      },
+                      "apply_to": {
+                        "type": "array",
+                        "description": "Array of names of the workloads to which these metrics should be applied to",
+                        "items": {
+                          "type": "string"
+                        }
+                      },
+                      "priority": {
+                        "type": "integer",
+                        "description": "Level of priority (0 to 10) to be assigned to job-metrics \n- only metrics with lower priority, will be replaced"
+                      },
+					  "metrics": {
+                        "type": "object",
+                        "description": "Metrics attached to each job record",
+                        "additionalProperties": false,
+                        "patternProperties": {
+                          "(n_write|n_read|kb_write|kb_read|n_pairwise|kb_pairwise|n_collective|kb_collective|flops)": {
+                            "description": "",
+                            "oneOf": [
+                              {
+                                "type": "array",
+                                "description": "A random value is generated within the provided interval [val_min, val_max]",
+                                "items": {
+                                  "type": "number"
+                                }
+                              },
+                              {
+                                "type": "object",
+                                "properties": {
+                                  "function":{
+                                    "type": "string",
+                                    "description": "Name of user-defined function to be used for defining values"
+                                  },
+                                  "scaling":{
+                                    "type": "number",
+                                    "description": "Scaling factor that multiplies the user-defined function values"
+                                  }
+                                },
+                                "required": ["function",
+                                            "scaling"]
+                              }
+                            ]
+                          }
+                        }
+                      }
+                    }
+                  },
+                  {
+                    "type": "object",
+                    "description": "Function that maps job metrics of one job into similar jobs in a workload",
+                    "properties": {
+                      "type": {
+                        "type": "string",
+                        "description": "Function identification string",
+                        "enum": ["match_by_keyword"]
+                      },
+                      "priority": {
+                        "type": "integer",
+                        "description": "Level of priority (0 to 10) to be assigned to job-metrics \n- only metrics with lower priority, will be replaced"
+                      },
+                      "keywords": {
+                        "type": "array",
+                        "description": "only jobs that match according to these keywords are considered similar",
+                        "items": {
+                          "type": "string",
+                          "enum": ["label", "name"]
+                        }
+                      },
+                      "similarity_threshold": {
+                        "type": "number",
+                        "description": "similarity threshold above which two jobs are considered similar"
+                      },
+                      "source_workloads": {
+                        "type": "array",
+                        "description": "list of workloads from which job metrics are taken",
+                        "items": {
+                          "type": "string",
+                          "description": "Workload from which profiled job records are taken"
+                        }
+                      },
+                      "apply_to": {
+                        "type": "array",
+                        "description": "Workloads whose jobs receive the metrics",
+                        "items": {
+                          "type": "string"
+                        }
+                      }
+                    },
+                    "required": [
+                      "type",
+                      "priority",
+                      "keywords",
+                      "similarity_threshold",
+                      "source_workloads",
+                      "apply_to"
+                    ]
+                  }
+
+
+                ]
+              }
+            }
+          },
+          "required": [
+            "operations"
+          ]
+        },
+        "classification": {
+          "type": "object",
+          "properties": {
+            "operations": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "oneOf": [
+
+                  {
+                  "type": "object",
+                  "properties": {
+                    "type": {
+                      "type": "string",
+                      "description": "Function identification keyword (workload split function)",
+                      "enum": ["split"]
+                    },
+                    "apply_to": {
+                      "type": "string",
+                      "description": "Workloads to split"
+                    },
+                    "create_workload": {
+                      "type": "string",
+                      "description": "Name of the workload generated by the split function"
+                    },
+                    "split_by": {
+                      "type": "string",
+                      "description": "Job property to use splitting",
+                      "enum": ["label"]
+                    },
+                    "keywords_in": {
+                      "type": "array",
+                      "description": "Search keywords *included*",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "keywords_out": {
+                      "type": "array",
+                      "description": "Search keywords *excluded*",
+                      "items": {
+                      "type": "string"
+                      }
+                    }
+                  },
+                  "required": [
+                    "type",
+                    "apply_to",
+                    "create_workload",
+                    "split_by",
+                    "keywords_in",
+                    "keywords_out"
+                  ],
+                  "additionalProperties": false
+                 }
+              	]
+              }
+            },
+
+
+
+            "clustering": {
+              "type": "object",
+              "description": "Clustering algorithm",
+              "oneOf": [
+                {
+                "type": "object",
+                "description": "K-means Clustering algorithm",
+                "properties": {
+                  "apply_to": {
+                    "type": "array",
+                    "description": "list of workload to which apply clustering",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  "type": {
+                    "type": "string",
+                    "description": "type of clustering algorithm",
+                    "enum": ["Kmeans", "DBSCAN"]
+                  },
+                  "ok_if_low_rank": {
+                    "type": "boolean",
+                    "description": "keep going even if there are just few distinct elements in the input set"
+                  },
+                  "user_does_not_check": {
+                    "type": "boolean",
+                    "description": "if True, the algorithm does not stop"
+                  },
+                  "rseed": {
+                    "type": "integer",
+                    "description": "Seed for random number generator"
+                  },
+                  "max_iter": {
+                    "type": "integer",
+                    "description": "max iteration of the algorithm"
+                  },
+                  "max_num_clusters": {
+                    "type": "integer",
+                    "description": "max number of clusters to explore to find the optimum"
+                  },
+                  "delta_num_clusters": {
+                    "type": "integer",
+                    "description": "delta number of clusters to explore to find the optimum"
+                  },
+                  "num_timesignal_bins": {
+                    "type": "integer",
+                    "description": "number of bins to discretize the job metrics for applying the clustering"
+                  },
+                  "metrics_only": {
+                    "type": "boolean",
+                    "description": "only applies clustering to the job metrics (excluding ncpus and nnodes)"
+                  }
+                },
+                "required": [
+                  "apply_to",
+                  "type",
+                  "ok_if_low_rank",
+                  "user_does_not_check",
+                  "rseed",
+                  "max_iter",
+                  "max_num_clusters",
+                  "delta_num_clusters",
+                  "num_timesignal_bins",
+                  "metrics_only"
+                ]
+              }
+             ]
+            }
+          },
+          "required": [
+            "operations",
+            "clustering"
+          ]
+        },
+        "generator": {
+          "type": "object",
+          "description": "configuration for generating synthetic apps",
+          "properties": {
+            "type": {
+              "type": "string",
+              "enum": ["match_job_pdf","match_job_pdf_exact"],
+              "description": "PDF distribution of profiled jobs to generate the synth apps: \n\n- match_job_pdf_exact: synth apps are scheduled to result in a perfect \n  match with the profiled jobs PDF (intended as how probable a job is to be scheduled \n  in a certain interval of time relative to the duration of the  synthetic schedule)]\n\n- match_job_pdf: synthetic apps are randomly generated from a PDF that matches the profiled jobs PDF\n"
+            },
+            "n_bins_for_pdf": {
+              "type": "integer",
+              "description": "Number of bins for calculating the PDF of the schedule"
+            },
+            "random_seed": {
+              "type": "integer",
+              "description": "Seed for random number generation"
+            },
+            "tuning_factors": {
+              "type": "object",
+              "description": "user-defined scaling factors of the job metrics",
+              "patternProperties": {
+                "(n_write|n_read|kb_write|kb_read|n_pairwise|kb_pairwise|n_collective|kb_collective|flops)": {
+                  "type": "number"
+                }
+              },
+              "required": [
+                "kb_collective",
+                "n_collective",
+                "kb_write",
+                "n_pairwise",
+                "n_write",
+                "n_read",
+                "kb_read",
+                "flops",
+                "kb_pairwise"
+              ]
+            },
+            "submit_rate_factor": {
+              "type": "number",
+              "description": "Scaling factor of the job submission rate"
+            },
+            "synthapp_n_cpu": {
+              "type": "integer",
+              "description": "N cpus to be used to run each synthetic application"
+            },
+            "synthapp_n_nodes": {
+              "type": "integer",
+              "description": "N nodes to be used to run each synthetic application"
+            },
+            "synthapp_n_frames": {
+              "type": "integer",
+              "description": "N-frames used to discretise each synthetic application"
+            },
+            "total_submit_interval": {
+              "type": "integer",
+              "description": "Total time interval within which synthetic applications are submitted"
+            }
+          },
+          "required": [
+            "type",
+            "n_bins_for_pdf",
+            "random_seed",
+            "tuning_factors",
+            "submit_rate_factor",
+            "synthapp_n_cpu",
+            "synthapp_n_nodes",
+            "synthapp_n_frames",
+            "total_submit_interval"
+          ]
+        }
+      },
+      "required": [
+        "fill_in",
+        "classification",
+        "generator"
+      ]
+    }
+  },
+  "required": [
+    "verbose",
+    "dir_input",
+    "dir_output",
+    "kpf_files",
+    "ksf_filename",
+    "model"
+  ]
+}
