@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 import os
 import sys
 
@@ -80,10 +81,10 @@ if __name__ == "__main__":
     # read other arguments if present..
     parser = argparse.ArgumentParser(description='Kronos software')
     parser.add_argument('input_file', type=str)
-    parser.add_argument('-m', "--model", help="generate model", action='store_true')
-    parser.add_argument('-r', "--run", help="run the model on HPC", action='store_true')
-    parser.add_argument('-p', "--postprocess", help="postprocess run results", action='store_true')
-    parser.add_argument('-o', "--run_dir", help="Path with run results")
+    parser.add_argument('-m', "--model", help="Generate workload model", action='store_true')
+    parser.add_argument('-r', "--run", help="Run the model on HPC", action='store_true')
+    parser.add_argument('-p', "--postprocess", help="Postprocess Run results", action='store_true')
+    parser.add_argument('-o', "--run_dir", help="Path containing run results")
     args = parser.parse_args()
 
     # command line keys checks..
