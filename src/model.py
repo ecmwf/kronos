@@ -19,6 +19,11 @@ class KronosModel(object):
     3) returns a synthetic workload
     """
 
+    required_config_fields = [
+        'classification',
+        'generator',
+    ]
+
     def __init__(self, workloads, config):
 
         assert all(isinstance(wl, workload_data.WorkloadData) for wl in workloads)
@@ -35,7 +40,12 @@ class KronosModel(object):
         self.clusters = []
         self.modelled_sa_jobs = []
 
-        # check all the configurations
+        # check that all the required fields are set
+        for req_item in self.required_config_fields:
+            if req_item not in self.config.model.keys():
+                raise ConfigurationError("{} requires to specify {}".format(self.__class__.__name__, req_item))
+
+        # check that configuration keys are correct
         for k, v in self.config.model.iteritems():
             if not hasattr(self, 'config_'+k):
                 raise ConfigurationError("Unexpected configuration keyword provided - {}:{}".format(k, v))
@@ -51,7 +61,8 @@ class KronosModel(object):
         """
 
         # 1) apply fill-in strategies
-        self._apply_workload_fillin()
+        if self.config_fill_in:
+            self._apply_workload_fillin()
 
         # 2) apply classification
         self._apply_classification()
@@ -117,6 +128,21 @@ class KronosModel(object):
             for op_config in class_operations_config:
 
                 if op_config['type'] == "split":
+
+                    # check splitting function configuration
+                    required_fields = [
+                        'apply_to',
+                        'create_workload',
+                        'split_by',
+                        'keywords_in',
+                        'keywords_out'
+                    ]
+
+                    # check that all the required fields are set
+                    for req_item in required_fields:
+                        if req_item not in op_config.keys():
+                            raise ConfigurationError("'step_function' requires to specify {}".format(req_item))
+
                     print_colour("green", "Splitting workload {}".format(op_config['apply_to']))
                     wl = next(wl for wl in self.workloads if wl.tag == op_config['apply_to'])
                     sub_workloads = wl.split_by_keywords(op_config)
@@ -156,6 +182,24 @@ class KronosModel(object):
 
         global_t0 = min(j.time_start for cl in self.clusters for j in cl['jobs_for_clustering'])
         global_tend = max(j.time_start for cl in self.clusters for j in cl['jobs_for_clustering'])
+
+        # check generation configuration keys
+        required_fields = [
+            "type",
+            "n_bins_for_pdf",
+            "random_seed",
+            "tuning_factors",
+            "submit_rate_factor",
+            "synthapp_n_cpu",
+            "synthapp_n_nodes",
+            "synthapp_n_frames",
+            "total_submit_interval"
+        ]
+
+        # check that all the required fields are set
+        for req_item in required_fields:
+            if req_item not in self.config_generator.keys():
+                raise ConfigurationError("'generator' requires to specify {}".format(req_item))
 
         sapps_generator = generator.SyntheticWorkloadGenerator(self.config_generator,
                                                                self.clusters,

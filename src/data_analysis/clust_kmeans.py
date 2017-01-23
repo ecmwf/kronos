@@ -4,17 +4,26 @@ from sklearn.cluster import KMeans
 from sklearn.metrics import silhouette_score
 
 from clust_base import ClusteringBase
-# from data_analysis.elbow_method import find_n_clusters
 from data_analysis.silhouette import find_n_clusters_silhouette
 
 from kronos_tools.print_colour import print_colour
-from exceptions_iows import ConfigurationError
 
 
 class ClusteringKmeans(ClusteringBase):
     """
     Kmeans Class for data_analysis algorithms
     """
+
+    required_config_fields = [
+        'type',
+        'ok_if_low_rank',
+        'user_does_not_check',
+        'rseed',
+        'max_iter',
+        'apply_to',
+        'max_num_clusters',
+        'delta_num_clusters'
+    ]
 
     def __init__(self, config):
 
@@ -32,16 +41,6 @@ class ClusteringKmeans(ClusteringBase):
 
         # Then set the general configuration into the parent class..
         super(ClusteringKmeans, self).__init__(config)
-
-    def check_config(self):
-        """
-        Update the default values using the supplied configuration dict
-        :return:
-        """
-        for k, v in self.config.items():
-            if not hasattr(self, k):
-                raise ConfigurationError("Unexpected ClusteringKmeans keyword provided - {}:{}".format(k, v))
-            setattr(self, k, v)
 
     def apply_clustering(self, input_matrix):
 

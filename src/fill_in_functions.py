@@ -1,5 +1,7 @@
 import numpy as np
 
+from exceptions_iows import ConfigurationError
+
 """
 This module contains the list of functions usable to fill in an incomplete workload
 """
@@ -11,6 +13,15 @@ def step_function(function_config):
     :param function_config:
     :return:
     """
+
+    required_config_fields = [
+        'x_step',
+    ]
+
+    # check that all the required fields are set
+    for req_item in required_config_fields:
+        if req_item not in function_config.keys():
+            raise ConfigurationError("'step_function' requires to specify {}".format(req_item))
 
     # x of the step (between 0 and 1)
     x_step = function_config['x_step']
@@ -32,6 +43,16 @@ def custom_function(function_config):
     :param function_config:
     :return:
     """
+
+    required_config_fields = [
+        'x_values',
+        'y_values'
+    ]
+
+    # check that all the required fields are set
+    for req_item in required_config_fields:
+        if req_item not in function_config.keys():
+            raise ConfigurationError("'step_function' requires to specify {}".format(req_item))
 
     # x of the step (between 0 and 1)
     x_values = np.array(function_config['x_values'])

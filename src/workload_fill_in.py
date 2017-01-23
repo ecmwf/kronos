@@ -1,3 +1,4 @@
+from exceptions_iows import ConfigurationError
 from kronos_tools.print_colour import print_colour
 
 
@@ -6,10 +7,19 @@ class WorkloadFiller(object):
     A workload filler has the methods for filling up missing information of a workload
     """
 
+    required_config_fields = [
+        'operations',
+    ]
+
     def __init__(self, fillin_config, workloads):
 
         self.fillin_config = fillin_config
         self.workloads = workloads
+
+        # check that all the required fields are set
+        for req_item in self.required_config_fields:
+            if req_item not in self.fillin_config.keys():
+                raise ConfigurationError("{} requires to specify {}".format(self.__class__.__name__, req_item))
 
     def fill_missing_entries(self):
         """
@@ -17,9 +27,25 @@ class WorkloadFiller(object):
         :return:
         """
 
+        # fields required by this function
+        required_function_fields = [
+            'type',
+            'apply_to',
+            'priority',
+            'metrics'
+        ]
+
+        # pick up all the entries in the function list
         fill_missing_configs = [entry for entry in self.fillin_config['operations'] if entry['type'] == "fill_missing_entries"]
 
         for miss_config in fill_missing_configs:
+
+            # check config keys
+            for req_item in required_function_fields:
+                if req_item not in miss_config.keys():
+                    raise ConfigurationError("'fill_missing_entries' requires to specify {}".format(req_item))
+
+            # apply function to all the specified workloads
             for wl in self.workloads:
                 if wl.tag in miss_config['apply_to']:
                     wl.apply_default_metrics(miss_config, self.fillin_config.get('user_functions'))
@@ -30,6 +56,16 @@ class WorkloadFiller(object):
         :return:
         """
 
+        # fields required by this function
+        required_function_fields = [
+            'type',
+            'priority',
+            'keywords',
+            'similarity_threshold',
+            'source_workloads',
+            'apply_to'
+        ]
+
         match_list = [entry for entry in self.fillin_config['operations'] if entry['type'] == "match_by_keyword"]
 
         # Apply each source workload into each destination workload
@@ -38,6 +74,12 @@ class WorkloadFiller(object):
 
         # loop over all the match by keyword entries (there could be more than one..)
         for match_config in match_list:
+
+            # check config keys
+            for req_item in required_function_fields:
+                if req_item not in match_config.keys():
+                    raise ConfigurationError("'match_by_keyword' requires to specify {}".format(req_item))
+
             for wl_source_tag in match_config['source_workloads']:
 
                 wl_source = next(wl for wl in self.workloads if wl.tag == wl_source_tag)
@@ -61,10 +103,22 @@ class WorkloadFiller(object):
         :return:
         """
 
+        required_function_fields = [
+            'type',
+            'priority',
+            'n_bins',
+            'apply_to',
+        ]
+
         recomm_config_list = [entry for entry in self.fillin_config['operations'] if entry['type'] == "recommender_system"]
 
         # the recommender system technique is applied to each workload of the list individually..
         for rs_config in recomm_config_list:
+
+            # check config keys
+            for req_item in required_function_fields:
+                if req_item not in rs_config.keys():
+                    raise ConfigurationError("'recommender_system' requires to specify {}".format(req_item))
 
             for wl_name in rs_config['apply_to']:
                 print_colour("green", "Applying recommender system on workload: {}".format(wl_name))

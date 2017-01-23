@@ -83,7 +83,7 @@ class ObjectSchemaDescription(SchemaDescription):
         if len(self.properties) == 0:
             properties = ""
         else:
-            properties = self.newline
+            properties = self.newline*2
             properties += ',{0}{0}'.format(self.newline).join(
                 '    # {}{}    {}: {}'.format(
                     "{}    # ".format(self.newline).join(prop_schema.description.split('\n')),
@@ -191,17 +191,15 @@ class OneOfSchemaDescription(SchemaDescription):
         if len(self.properties) == 0:
             properties = ""
         else:
-            properties = self.newline
-
-            # slightly re-formatted for oneOf cases..
+            properties = self.newline*2
             properties += ',{0}{0}'.format(self.newline).join(
-                '{}    {}: {}'.format(self.newline, prop, prop_schema.details_string())
+                '    # {}{}    {}: {}'.format(
+                    "{}    # ".format(self.newline).join(prop_schema.description.split('\n')),
+                    self.newline, prop, prop_schema.details_string())
                 for prop, prop_schema in self.properties.iteritems())
-
-            properties += self.newline
             properties += self.newline
 
-        return "{}".format(properties)
+        return "{{{}}}".format(properties)
 
 
 class MultiTypeSchemaDescription(SchemaDescription):

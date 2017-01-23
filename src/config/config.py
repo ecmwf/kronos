@@ -1,7 +1,9 @@
 import os
+import sys
 import json
 
 from exceptions_iows import ConfigurationError
+from kronos_tools.print_colour import print_colour
 
 
 class Config(object):
@@ -60,12 +62,16 @@ class Config(object):
                 raise ConfigurationError("Unexpected configuration keyword provided - {}:{}".format(k, v))
             setattr(self, k, v)
 
-        # And any necessary actions
+        # ------------ check for all required fields --------------
         if not self.dir_input:
             raise ConfigurationError("input folder not set")
 
         if not self.dir_output:
             raise ConfigurationError("output folder not set")
+
+        if not self.model:
+            print_colour("orange", "Nothing to do, 'model' configuration is empty")
+            sys.exit(0)
 
         # if input or output folders do not exist, an error is raised
         if not os.path.exists(self.dir_input):
@@ -73,3 +79,4 @@ class Config(object):
 
         if not os.path.exists(self.dir_output):
             raise ConfigurationError("output folder {} - does not exist!".format(self.dir_output))
+

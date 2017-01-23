@@ -11,6 +11,8 @@ class EquivTimePDFTest(unittest.TestCase):
 
     def test_equiv_time_pdf_exact(self):
 
+        np.random.seed(0)
+
         n_bins = 10
         n_modelled_jobs = 50
 
@@ -54,6 +56,8 @@ class EquivTimePDFTest(unittest.TestCase):
         # # -----------------------------------------------------------------
 
     def test_equiv_time_pdf(self):
+
+        np.random.seed(0)
 
         n_bins = 10
         n_modelled_jobs = 50
