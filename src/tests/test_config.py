@@ -44,6 +44,7 @@ class ConfigTests(unittest.TestCase):
         config_dict = {
             'dir_input': existing_path,
             'dir_output': existing_path,
+            'model': {'non-empty_dict': 'dummy_val'}
         }
         cfg = Config(config_dict=config_dict)
         self.assertEqual(cfg.dir_input, existing_path)
@@ -81,7 +82,8 @@ class ConfigTests(unittest.TestCase):
             f.write("""{{
                 "dir_input": "{}",
                 #"unknown": "parameter",
-                "dir_output": "{}"
+                "dir_output": "{}",
+                "model": {{\"non-empty_dict\": \"dummy_val\"}}
             }}""".format(existing_path, existing_path))
             f.flush()
             cfg = Config(config_path=f.name)
