@@ -196,7 +196,7 @@ class OneOfSchemaDescription(SchemaDescription):
                 '    # {}{}    {}: {}'.format(
                     "{}    # ".format(self.newline).join(prop_schema.description.split('\n')),
                     self.newline, prop, prop_schema.details_string())
-                for prop, prop_schema in self.properties.iteritems())
+                for prop, prop_schema in sorted(self.properties.items()))
             properties += self.newline
 
         return "{{{}}}".format(properties)
