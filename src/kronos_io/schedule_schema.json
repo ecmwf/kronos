@@ -37,6 +37,7 @@
                 "properties": {
                     "metadata": {
                         "type": "object",
+                        "description": "job metadata",
                         "properties": {
                             "job_name":{
                                 "type": "string",
@@ -54,6 +55,7 @@
                     },
                     "frames": {
                         "type": "array",
+                        "description": "Frames at which the instructions of the synthetic apps are executed",
                         "items": {
                             "oneOf": [
                                 {
