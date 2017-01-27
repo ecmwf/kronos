@@ -1,29 +1,25 @@
 {
-  "$schema": "http://json-schema.org/draft-03/schema#",
+  "$schema": "http://json-schema.org/draft-04/schema#",
   "type": "object",
   "title": "Kronos configuration file format",
   "description": "The Kronos-core configuration file format controls the execution of the modelling algorithm",
   "additionalProperties": false,
   "properties": {
     "version" : {
-        "required": true,
         "type": "number",
         "enum": [%(kronos-version)s],
         "description": "Version number of the CONFIG format"
     },
     "tag": {
-        "required": true,
         "enum": ["%(kronos-magic)s"],
         "description": "Magic value to help test validity of CONFIG file"
     },
     "created": {
-        "required": true,
         "type": "string",
         "format": "date-time",
         "description": "A timestamp for creation of the CONFIG file"
     },
     "uid": {
-        "required": false,
         "type": "integer",
         "description": "The UID of the user who created this file"
     },
@@ -33,17 +29,14 @@
     },
     "dir_input": {
       "type": "string",
-      "required": true,
       "description": "Folder of KPF format file"
     },
     "dir_output": {
       "type": "string",
-      "required": true,
       "description": "Working output folder"
     },
     "kpf_files": {
       "type": "array",
-      "required": true,
       "description": "List of KPF input files",
       "items": {
         "type": "string"
@@ -51,22 +44,18 @@
     },
     "ksf_filename": {
       "type": "string",
-      "required": true,
       "description": "Name of KSF (schedule) output file"
     },
     "model": {
       "type": "object",
-      "required": true,
       "description": "Modelling process",
       "properties": {
         "fill_in": {
           "type": "object",
-          "required": false,
           "description": "Methodologies for dealing with sparse data",
           "properties": {
             "user_functions": {
               "type": "array",
-              "required": false,
               "description": "User-defined functions that can be used to attach values to missing metrics",
               "items": {
                 "type": "object",
@@ -77,22 +66,20 @@
                     "properties": {
                       "type": {
                         "type": "string",
-                        "required": false,
-                        "description": "(REQUIRED) Step function identifier",
+                        "description": "Step function identifier",
                         "enum": ["step"]
                       },
                       "name": {
                         "type": "string",
-                        "required": false,
-                        "description": "(REQUIRED) Function name"
+                        "description": "Function name"
                       },
                       "x_step": {
                         "type": "number",
-                        "required": true,
                         "description": "x of th step within the job duration, normalized in [0,1]"
                       }
                     },
-                    "additionalProperties": false
+                    "additionalProperties": false,
+                    "required": ["type", "name", "x_step"]
                   },
                   {
                     "type": "object",
@@ -100,41 +87,37 @@
                     "properties": {
                       "type": {
                         "type": "string",
-                        "required": false,
-                        "description": "(REQUIRED) Custom function identifier",
+                        "description": "Custom function identifier",
                         "enum": ["custom"]
                       },
                       "name": {
                         "type": "string",
-                        "required": false,
-                        "description": "(REQUIRED) Function name"
+                        "description": "Function name"
                       },
                       "x_values": {
                         "type": "array",
-                        "required": false,
-                        "description": "(REQUIRED) Time values in [0,1] (normalized against the job duration)",
+                        "description": "Time values in [0,1] (normalized against the job duration)",
                         "items": {
                           "type": "number"
                         }
                       },
                       "y_values": {
                         "type": "array",
-                        "required": false,
-                        "description": "(REQUIRED) Function values in [0,1]",
+                        "description": "Function values in [0,1]",
                         "items": {
                           "type": "number"
                         }
                       }
                     },
-                    "additionalProperties": false
+                    "additionalProperties": false,
+                    "required": ["type", "name", "x_values", "y_values"]
                   }
                 ]
               }
             },
             "operations": {
               "type": "array",
-              "required": false,
-              "description": "(REQUIRED) Operations to be applied to profiled workload jobs",
+              "description": "Operations to be applied to profiled workload jobs",
               "items": {
                 "type": "object",
                 "oneOf": [
@@ -144,27 +127,23 @@
                     "properties": {
                       "type": {
                         "type": "string",
-                        "required": false,
-                        "description": "(REQUIRED) Operation that manually replaces missing job metrics with user-defined values",
+                        "description": "Operation that manually replaces missing job metrics with user-defined values",
                         "enum": ["fill_missing_entries"]
                       },
                       "apply_to": {
                         "type": "array",
-                        "required": false,
-                        "description": "(REQUIRED) Array of names of the workloads to which these metrics should be applied to",
+                        "description": "Array of names of the workloads to which these metrics should be applied to",
                         "items": {
                           "type": "string"
                         }
                       },
                       "priority": {
                         "type": "integer",
-                        "required": false,
-                        "description": "(REQUIRED) Level of priority (0 to 10) to be assigned to job-metrics \n- only metrics with lower priority, will be replaced"
+                        "description": "Level of priority (0 to 10) to be assigned to job-metrics \n- only metrics with lower priority, will be replaced"
                       },
 					  "metrics": {
                         "type": "object",
-                        "required": false,
-                        "description": "(REQUIRED) Metrics attached to each job record",
+                        "description": "Metrics attached to each job record",
                         "additionalProperties": false,
                         "patternProperties": {
                           "(n_write|n_read|kb_write|kb_read|n_pairwise|kb_pairwise|n_collective|kb_collective|flops)": {
@@ -183,21 +162,21 @@
                                 "properties": {
                                   "function":{
                                     "type": "string",
-                                    "required": false,
-                                    "description": "(REQUIRED) Name of user-defined function to be used for defining values"
+                                    "description": "Name of user-defined function to be used for defining values"
                                   },
                                   "scaling":{
                                     "type": "number",
-                                    "required": false,
-                                    "description": "(REQUIRED) Scaling factor that multiplies the user-defined function values"
+                                    "description": "Scaling factor that multiplies the user-defined function values"
                                   }
-                                }
+                                },
+                                "required": ["function", "scaling"]
                               }
                             ]
                           }
                         }
                       }
-                    }
+                    },
+                    "required": ["type", "apply_to", "priority", "metrics"]
                   },
                   {
                     "type": "object",
@@ -205,19 +184,16 @@
                     "properties": {
                       "type": {
                         "type": "string",
-                        "required": false,
-                        "description": "(REQUIRED) Function identification string",
+                        "description": "Function identification string",
                         "enum": ["match_by_keyword"]
                       },
                       "priority": {
                         "type": "integer",
-                        "required": false,
-                        "description": "(REQUIRED) Level of priority (0 to 10) to be assigned to job-metrics \n- only metrics with lower priority, will be replaced"
+                        "description": "Level of priority (0 to 10) to be assigned to job-metrics \n- only metrics with lower priority, will be replaced"
                       },
                       "keywords": {
                         "type": "array",
-                        "required": false,
-                        "description": "(REQUIRED) only jobs that match according to these keywords are considered similar",
+                        "description": "only jobs that match according to these keywords are considered similar",
                         "items": {
                           "type": "string",
                           "enum": ["label", "name"]
@@ -225,13 +201,11 @@
                       },
                       "similarity_threshold": {
                         "type": "number",
-                        "required": false,
-                        "description": "(REQUIRED) similarity threshold above which two jobs are considered similar"
+                        "description": "similarity threshold above which two jobs are considered similar"
                       },
                       "source_workloads": {
                         "type": "array",
-                        "required": false,
-                        "description": "(REQUIRED) list of workloads from which job metrics are taken",
+                        "description": "list of workloads from which job metrics are taken",
                         "items": {
                           "type": "string",
                           "description": "Workload from which profiled job records are taken"
@@ -239,16 +213,14 @@
                       },
                       "apply_to": {
                         "type": "array",
-                        "required": false,
-                        "description": "(REQUIRED) Workloads whose jobs receive the metrics",
+                        "description": "Workloads whose jobs receive the metrics",
                         "items": {
                           "type": "string"
                         }
                       }
-                    }
+                    },
+                    "required": ["type", "priority", "keywords", "similarity_threshold", "source_workloads", "apply_to"]
                   }
-
-
                 ]
               }
             }
@@ -256,60 +228,61 @@
         },
         "classification": {
           "type": "object",
-          "required": false,
           "description": "Job-classification process",
           "properties": {
             "operations": {
               "type": "array",
+              "minItems": 1,
               "description": "Operations to perform on the workloads before clustering (e.g., workload splitting)",
               "items": {
                 "type": "object",
                 "oneOf": [
-
                   {
                   "type": "object",
                   "description": "Workload splitting function",
                   "properties": {
                     "type": {
                       "type": "string",
-                      "required": false,
-                      "description": "(REQUIRED) Function identification keyword (workload split function)",
+                      "description": "Function identification keyword (workload split function)",
                       "enum": ["split"]
                     },
                     "apply_to": {
                       "type": "string",
-                      "required": false,
-                      "description": "(REQUIRED) Workloads to split"
+                      "description": "Workloads to split"
                     },
                     "create_workload": {
                       "type": "string",
-                      "required": false,
-                      "description": "(REQUIRED) Name of the workload generated by the split function"
+                      "description": "Name of the workload generated by the split function"
                     },
                     "split_by": {
                       "type": "string",
-                      "required": false,
-                      "description": "(REQUIRED) Job property to use splitting",
+                      "description": "Job property to use splitting",
                       "enum": ["label", "job_name", "user_name", "cmd_str", "queue_name"]
                     },
                     "keywords_in": {
                       "type": "array",
-                      "required": false,
-                      "description": "(REQUIRED) Search keywords *included*",
+                      "description": "Search keywords *included*",
                       "items": {
                         "type": "string"
                       }
                     },
                     "keywords_out": {
                       "type": "array",
-                      "required": false,
-                      "description": "(REQUIRED) Search keywords *excluded*",
+                      "description": "Search keywords *excluded*",
                       "items": {
                       "type": "string"
                       }
                     }
                   },
-                  "additionalProperties": false
+                  "additionalProperties": false,
+                  "required": [
+                    "type",
+                    "apply_to",
+                    "create_workload",
+                    "split_by",
+                    "keywords_in",
+                    "keywords_out"
+                  ]
                  }
               	]
               }
@@ -325,54 +298,56 @@
                 "properties": {
                   "apply_to": {
                     "type": "array",
-                    "required": false,
-                    "description": "(REQUIRED) list of workload to which apply clustering",
+                    "description": "list of workload to which apply clustering",
                     "items": {
                       "type": "string"
                     }
                   },
                   "type": {
                     "type": "string",
-                    "required": false,
-                    "description": "(REQUIRED) type of clustering algorithm",
+                    "description": "type of clustering algorithm",
                     "enum": ["Kmeans"]
                   },
                   "ok_if_low_rank": {
                     "type": "boolean",
-                    "required": false,
-                    "description": "(REQUIRED) keep going even if there are just few distinct elements in the input set"
+                    "description": "keep going even if there are just few distinct elements in the input set"
                   },
                   "user_does_not_check": {
                     "type": "boolean",
-                    "required": false,
-                    "description": "(REQUIRED) if True, the algorithm does not stop"
+                    "description": "if True, the algorithm does not stop"
                   },
                   "rseed": {
                     "type": "integer",
-                    "required": false,
-                    "description": "(REQUIRED) Seed for random number generator"
+                    "description": "Seed for random number generator"
                   },
                   "max_iter": {
                     "type": "integer",
-                    "required": false,
-                    "description": "(REQUIRED) max iteration of the algorithm"
+                    "description": "max iteration of the algorithm"
                   },
                   "max_num_clusters": {
                     "type": "integer",
-                    "required": false,
-                    "description": "(REQUIRED) max number of clusters to explore to find the optimum"
+                    "description": "max number of clusters to explore to find the optimum"
                   },
                   "delta_num_clusters": {
                     "type": "integer",
-                    "required": false,
-                    "description": "(REQUIRED) delta number of clusters to explore to find the optimum"
+                    "description": "delta number of clusters to explore to find the optimum"
                   },
                   "num_timesignal_bins": {
                     "type": "integer",
-                    "required": false,
-                    "description": "(REQUIRED) number of bins to discretize the job metrics for applying the clustering"
+                    "description": "number of bins to discretize the job metrics for applying the clustering"
                   }
-                }
+                },
+                "additionalProperties": false,
+                "required": [
+                  "apply_to",
+                  "type",
+                  "ok_if_low_rank",
+                  "user_does_not_check",
+                  "rseed",
+                  "max_iter",
+                  "max_num_clusters",
+                  "delta_num_clusters",
+                  "num_timesignal_bins"]
               },
 
               {
@@ -381,66 +356,64 @@
                 "properties": {
                   "apply_to": {
                     "type": "array",
-                    "required": false,
-                    "description": "(REQUIRED) list of workload to which apply clustering",
+                    "description": "list of workload to which apply clustering",
                     "items": {
                       "type": "string"
                     }
                   },
                   "type": {
                     "type": "string",
-                    "required": false,
-                    "description": "(REQUIRED) type of clustering algorithm",
+                    "description": "type of clustering algorithm",
                     "enum": ["DBSCAN"]
                   },
                   "rseed": {
                     "type": "integer",
-                    "required": false,
-                    "description": "(REQUIRED) Seed for random number generator"
+                    "description": "Seed for random number generator"
                   },
                   "max_num_clusters": {
                     "type": "integer",
-                    "required": false,
-                    "description": "(REQUIRED) max number of clusters to explore to find the optimum"
+                    "description": "max number of clusters to explore to find the optimum"
                   },
                   "num_timesignal_bins": {
                     "type": "integer",
-                    "required": false,
-                    "description": "(REQUIRED) number of bins to discretize the job metrics for applying the clustering"
+                    "description": "number of bins to discretize the job metrics for applying the clustering"
                   }
-                }
+                },
+                "additionalProperties": false,
+                "required": [
+                  "apply_to",
+                  "type",
+                  "rseed",
+                  "max_num_clusters",
+                  "num_timesignal_bins"]
               }
 
 
              ]
             }
-          }
+          },
+          "required": ["clustering"]
         },
         "generator": {
           "type": "object",
-          "required": false,
-          "description": "(REQUIRED) configuration for generating synthetic apps",
+          "description": "configuration for generating synthetic apps",
           "properties": {
             "type": {
               "type": "string",
-              "required": false,
               "enum": ["match_job_pdf","match_job_pdf_exact"],
-              "description": "(REQUIRED) PDF distribution of profiled jobs to generate the synth apps: \n\n- match_job_pdf_exact: synth apps are scheduled to result in a perfect \n  match with the profiled jobs PDF (intended as how probable a job is to be scheduled \n  in a certain interval of time relative to the duration of the  synthetic schedule)]\n\n- match_job_pdf: synthetic apps are randomly generated from a PDF that matches the profiled jobs PDF\n"
+              "description": "PDF distribution of profiled jobs to generate the synth apps: \n\n- match_job_pdf_exact: synth apps are scheduled to result in a perfect \n  match with the profiled jobs PDF (intended as how probable a job is to be scheduled \n  in a certain interval of time relative to the duration of the  synthetic schedule)]\n\n- match_job_pdf: synthetic apps are randomly generated from a PDF that matches the profiled jobs PDF\n"
             },
             "n_bins_for_pdf": {
               "type": "integer",
-              "required": false,
-              "description": "(REQUIRED) Number of bins for calculating the PDF of the schedule"
+              "description": "Number of bins for calculating the PDF of the schedule"
             },
             "random_seed": {
               "type": "integer",
-              "required": false,
-              "description": "(REQUIRED) Seed for random number generation"
+              "description": "Seed for random number generation"
             },
             "tuning_factors": {
               "type": "object",
-              "required": false,
-              "description": "(REQUIRED) user-defined scaling factors of the job metrics",
+              "description": "user-defined scaling factors of the job metrics",
               "patternProperties": {
                 "(n_write|n_read|kb_write|kb_read|n_pairwise|kb_pairwise|n_collective|kb_collective|flops)": {
                   "type": "number"
@@ -449,32 +422,39 @@
             },
             "submit_rate_factor": {
               "type": "number",
-              "required": false,
-              "description": "(REQUIRED) Scaling factor of the job submission rate"
+              "description": "Scaling factor of the job submission rate"
             },
             "synthapp_n_cpu": {
               "type": "integer",
-              "required": false,
-              "description": "(REQUIRED) N cpus to be used to run each synthetic application"
+              "description": "N cpus to be used to run each synthetic application"
             },
             "synthapp_n_nodes": {
               "type": "integer",
-              "required": false,
-              "description": "(REQUIRED) N nodes to be used to run each synthetic application"
+              "description": "N nodes to be used to run each synthetic application"
             },
             "synthapp_n_frames": {
               "type": "integer",
-              "required": false,
-              "description": "(REQUIRED) N-frames used to discretise each synthetic application"
+              "description": "N-frames used to discretise each synthetic application"
             },
             "total_submit_interval": {
               "type": "integer",
-              "required": false,
-              "description": "(REQUIRED) Total time interval within which synthetic applications are submitted"
+              "description": "Total time interval within which synthetic applications are submitted"
             }
-          }
+          },
+          "required": [
+            "type",
+            "n_bins_for_pdf",
+            "random_seed",
+            "tuning_factors",
+            "submit_rate_factor",
+            "synthapp_n_cpu",
+            "synthapp_n_nodes" ,
+            "synthapp_n_frames",
+            "total_submit_interval"]
         }
-      }
+      },
+      "required": ["classification", "generator"]
     }
-  }
+  },
+  "required": ["version", "tag", "created", "dir_input", "dir_output", "kpf_files", "ksf_filename"]
 }

@@ -6,6 +6,7 @@
 # granted to it by virtue of its status as an intergovernmental organisation nor
 # does it submit to any jurisdiction.
 
+
 class SchemaDescription(object):
     """
     Provide a description of a JSON schema for user consumption
@@ -13,6 +14,13 @@ class SchemaDescription(object):
 
     @staticmethod
     def from_schema(schema, depth=0):
+
+        # check for required children needed (for draft v4)
+        children_req = schema.get("required", None)
+
+        if children_req is not None:
+            for k in children_req:
+                schema["properties"][k]["required_flag"] = True
 
         if 'enum' in schema:
             return EnumSchemaDescription(schema, depth)
@@ -26,9 +34,10 @@ class SchemaDescription(object):
         return SchemaDescription.type_lookup()[schema['type']](schema, depth)
 
     def __init__(self, schema, depth):
+
         self._description = schema.get("description", "(none)")
         self.title = schema.get("title", None)
-        self.required = schema.get("required", False)
+        self.required = schema.get("required_flag", False)
         self.depth = depth
 
     def __str__(self):

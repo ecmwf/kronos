@@ -1,35 +1,29 @@
 {
-    "$schema": "http://json-schema.org/draft-03/schema",
+    "$schema": "http://json-schema.org/draft-04/schema",
     "type": "object" ,
     "title": "Kronos Schedule Format",
     "description": "The Kronos Schedule Format (KSF) is a standardised interchange format for output scheduling and modelling data from Kronos",
     "additionalProperties": false,
     "properties": {
         "version" : {
-            "required": true,
             "type": "number",
             "enum": [%(kronos-version)s],
             "description": "Version number of the KSF format"
         },
         "tag": {
-            "required": true,
             "enum": ["%(kronos-magic)s"],
             "description": "Magic value to help test validity of KSF file"
         },
         "created": {
-            "required": true,
             "type": "string",
             "format": "date-time",
             "description": "A timestamp for creation of the KSF file"
         },
         "uid": {
-            "required": false,
             "type": "integer",
             "description": "The UID of the user who created this file"
         },
-
         "jobs": {
-            "required": false,
             "type": "array",
             "description": "Description of synthetic applications",
             "items": {
@@ -64,16 +58,15 @@
                                     "properties": {
                                         "name": {
                                             "type": "string",
-                                            "required": true,
                                             "description": "type of kernel",
                                             "enum": ["cpu"]
                                         },
                                         "flops": {
                                             "type": "number",
-                                            "required": true,
                                             "description": "Number of flops to execute"
                                         }
-                                    }
+                                    },
+                                    "required": ["name", "flops"]
                                 },
                                 {
                                     "type": "object",
@@ -81,31 +74,27 @@
                                     "properties": {
                                         "name": {
                                             "type": "string",
-                                            "required": true,
                                             "description": "type of kernel",
                                             "enum": ["mpi"]
                                         },
                                         "kb_collective": {
                                             "type": "number",
-                                            "required": true,
                                             "description": "Number of Kb for collective MPI operations"
                                         },
                                         "kb_pairwise": {
                                             "type": "number",
-                                            "required": true,
                                             "description": "Number of Kb for p2p MPI operations"
                                         },
                                         "n_collective": {
                                             "type": "integer",
-                                            "required": true,
                                             "description": "Number of collective MPI operations"
                                         },
                                         "n_pairwise": {
                                             "type": "integer",
-                                            "required": true,
                                             "description": "Number of p2p MPI operations"
                                         }
-                                    }
+                                    },
+                                    "required": ["name", "kb_collective", "kb_pairwise", "n_collective", "n_pairwise"]
                                 },
                                 {
                                     "type": "object",
@@ -113,26 +102,23 @@
                                     "properties": {
                                         "name": {
                                             "type": "string",
-                                            "required": true,
                                             "description": "type of kernel",
                                             "enum": ["file-read"]
                                         },
                                         "kb_read": {
                                             "type": "number",
-                                            "required": true,
                                             "description": "Number of Kb to read"
                                         },
                                         "mmap": {
                                             "type": "boolean",
-                                            "required": true,
                                             "description": "Whether or not read from mmap files"
                                         },
                                         "n_read": {
                                             "type": "integer",
-                                            "required": true,
                                             "description": "Number of read"
                                         }
-                                    }
+                                    },
+                                    "required": ["name", "kb_read", "mmap", "n_read"]
                                 },
                                 {
                                     "type": "object",
@@ -140,26 +126,23 @@
                                     "properties": {
                                         "name": {
                                             "type": "string",
-                                            "required": true,
                                             "description": "type of kernel",
                                             "enum": ["file-write"]
                                         },
                                         "kb_write": {
                                             "type": "number",
-                                            "required": true,
                                             "description": "Number of Kb to write"
                                         },
                                         "mmap": {
                                             "type": "boolean",
-                                            "required": true,
                                             "description": "Whether or not write to mmap files"
                                         },
                                         "n_write": {
                                             "type": "integer",
-                                            "required": true,
                                             "description": "Number of writes"
                                         }
-                                    }
+                                    },
+                                    "required": ["name", "kb_write", "mmap", "n_write"]
                                 }
                             ]
                         }
@@ -169,7 +152,6 @@
             }
         },
         "tuning_factors": {
-            "required": false,
             "type": "object",
             "description": "Description of synthetic applications",
             "patternProperties": {
@@ -180,7 +162,6 @@
             }
         },
         "unscaled_metrics_sums": {
-            "required": false,
             "type": "object",
             "description": "Description of synthetic applications",
             "patternProperties": {
@@ -190,6 +171,6 @@
                 }
             }
         }
-
-    }
+    },
+    "required": ["version", "tag", "created"]
 }
