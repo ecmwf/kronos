@@ -80,7 +80,7 @@ if __name__ == "__main__":
 
     # read other arguments if present..
     parser = argparse.ArgumentParser(description='Kronos software')
-    parser.add_argument('input_file', type=str)
+    parser.add_argument('configuration_file', type=str)
     parser.add_argument('-m', "--model", help="Generate workload model", action='store_true')
     parser.add_argument('-r', "--run", help="Run the model on HPC", action='store_true')
     parser.add_argument('-p', "--postprocess", help="Postprocess Run results", action='store_true')
@@ -96,7 +96,7 @@ if __name__ == "__main__":
     try:
         try:
 
-            config = Config(config_path=args.input_file)
+            config = Config(config_path=args.configuration_file)
 
         except (OSError, IOError) as e:
             print "Error opening input file: {}".format(e)

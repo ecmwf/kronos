@@ -13,6 +13,10 @@ class Config(object):
 
     # Debugging info
     verbose = False
+    version = None
+    uid = None
+    created = None
+    tag = None
 
     # Directory choices
     dir_input = None

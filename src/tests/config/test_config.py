@@ -1,9 +1,15 @@
 #!/usr/bin/env python
+
+import json
 import unittest
 import tempfile
 import os
+from StringIO import StringIO
+
+import jsonschema
 
 from config.config import Config
+from config.config_format import ConfigFormat
 from exceptions_iows import ConfigurationError
 
 
@@ -100,6 +106,28 @@ class ConfigTests(unittest.TestCase):
             }}""".format(existing_path, existing_path))
             f.flush()
             self.assertRaises(ConfigurationError, lambda: Config(config_path=f.name))
+
+    def test_config_model_structure_from_file(self):
+
+        valid = {
+            "verbose": True,
+            "version": 1,
+            "tag": "KRONOS-CONFIG-MAGIC",
+            "created": "2016-12-14T09:57:35Z",  # Timestamp in strict rfc3339 format.
+            "uid": 1234,
+            "dir_input": "input",  # Timestamp in strict rfc3339 format.
+            "dir_output": "output",
+            "kpf_files": ["file1", "file2"],
+            "ksf_filename": "ksf_output",
+            "model": {
+                "fill_in": {},
+                "classification": {},
+                "generator": {}
+            }
+        }
+
+        # check that no exceptions are raised
+        self.assert_(jsonschema.ValidationError, lambda: ConfigFormat.from_file(StringIO(json.dumps(valid))))
 
 
 if __name__ == "__main__":

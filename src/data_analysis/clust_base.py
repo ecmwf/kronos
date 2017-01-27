@@ -11,6 +11,7 @@ class ClusteringBase(object):
         self.clusters = None
         self.labels = None
         self.num_timesignal_bins = None
+        self.metrics_only = False
 
         self.check_config()
 
@@ -28,7 +29,7 @@ class ClusteringBase(object):
         # check that configuration keys are correct
         for k, v in self.config.items():
             if not hasattr(self, k):
-                raise ConfigurationError("Unexpected ClusteringDBSCAN keyword provided - {}:{}".format(k, v))
+                raise ConfigurationError("{}: Unexpected Clustering keyword provided - {}:{}".format(self.__class__.__name__, k, v))
             setattr(self, k, v)
 
     def cluster_jobs(self, timesignal_matrix):

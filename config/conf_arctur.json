@@ -1,5 +1,9 @@
 {
         "verbose": true,
+        "version": 1,
+        "uid": 4426,
+        "created": "2017-01-27T09:52:10Z",
+        "tag": "KRONOS-CONF-MAGIC",
         "dir_input": "/var/tmp/maab/kronos-core/input",
         "dir_output": "/var/tmp/maab/kronos-core/output",
     "kpf_files": ["arctur_pbs_test.kpf", 
@@ -59,6 +63,7 @@
                                 "type": "Kmeans",
                                 "apply_to": ["background"],
                                 "ok_if_low_rank": true,
+                                "user_does_not_check": true,
                                 "rseed": 0,
                                 "max_iter": 100,
                                 "max_num_clusters": 20,
@@ -88,39 +93,6 @@
                         "synthapp_n_frames": 1,
                         "total_submit_interval": 60
                 }
-        },
-        "run": {
-                "type": "feedback",
-                "state": "enabled",
-                "n_iterations": 1,
-                "hpc_user": "maab",
-                "hpc_host": "nebula",
-                "tag": "arctur_run",
-                "hpc_dir_input": "/perm/ma/maab/test_executor/input",
-                "hpc_dir_output": "/perm/ma/maab/test_executor/output",
-                "local_map2json_file": "/home/ma/maab/workspace/Allinea_examples_files/NEXTGenIO_buiilds/map2json/map2json.py",
-                "updatable_metrics": {
-                        "flops": 0,
-                        "n_collective": 0,
-                        "n_pairwise": 0,
-                        "kb_collective": 0,
-                        "kb_pairwise": 0,
-                        "n_write": 0,
-                        "n_read": 0,
-                        "kb_write": 0,
-                        "kb_read": 0
-                },
-                "controls": {
-                        "hpc_user": "maab",
-                        "hpc_host": "nebula",
-                        "hpc_job_sched": "local",
-                        "hpc_shell_type": "bash",
-                        "hpc_module_dir_init": "",
-                        "hpc_module_env": [""],
-                        "hpc_dir_exec": "/perm/ma/maab/builds/kronos/bin",
-                        "hpc_exec_config": "/perm/ma/maab/test_executor/executor_config/exe_config.json"
-                }
-        },
-        "analysis": {}
+        }
 }
 
