@@ -6,14 +6,12 @@
 # In applying this licence, ECMWF does not waive the privileges and immunities 
 # granted to it by virtue of its status as an intergovernmental organisation nor
 # does it submit to any jurisdiction.
-
-
+import copy
 import json
 import unittest
 import tempfile
 import os
 from StringIO import StringIO
-from pprint import pprint
 
 import jsonschema
 
@@ -167,7 +165,7 @@ class ConfigTests(unittest.TestCase):
 
         # ------------- invalid "model" config file (INV-3) ----------
         # NB: classification.operations cannot be empty - either is there or not there
-        config_invalid_3 = config_empty_model
+        config_invalid_3 = copy.deepcopy(config_empty_model)
         config_invalid_3["model"] = {
             "classification": {
                 "operations": [],
@@ -188,8 +186,7 @@ class ConfigTests(unittest.TestCase):
                     "max_iter": 100,
                     "max_num_clusters": 20,
                     "delta_num_clusters": 1,
-                    "num_timesignal_bins": 5,
-                    "metrics_only": False
+                    "num_timesignal_bins": 5
                 }
             },
             "generator": {
@@ -219,8 +216,8 @@ class ConfigTests(unittest.TestCase):
                           lambda: ConfigFormat.from_file(StringIO(json.dumps(config_invalid_3))))
 
         # ------------- invalid "model" config file (INV-4) ----------
-        # NB: classification.operations cannot be empty - either is there or not there
-        config_invalid_4 = config_empty_model
+        # invalid clustering entries
+        config_invalid_4 = copy.deepcopy(config_empty_model)
         config_invalid_4["model"] = {
             "classification": {
                 "clustering": {
@@ -253,11 +250,58 @@ class ConfigTests(unittest.TestCase):
             }
         }
         # check that exception is raised
-        # ConfigFormat.from_file(StringIO(json.dumps(config_invalid_4)))
-        print pprint(config_invalid_4["model"])
+        self.assertRaises(jsonschema.ValidationError,
+                          lambda: ConfigFormat.from_file(StringIO(json.dumps(config_invalid_4))))
 
-        # self.assertRaises(jsonschema.ValidationError,
-        #                   lambda: ConfigFormat.from_file(StringIO(json.dumps(config_invalid_4))))
+        # ------------- invalid "model" config file (INV-5) ----------
+        # NB: missing clustering keys
+        config_invalid_5 = copy.deepcopy(config_invalid_3)
+        config_invalid_5["model"]["classification"].pop("operations") # empty operations
+
+        config_invalid_5["model"]["classification"]["clustering"] = {
+                                                                    "apply_to": [
+                                                                        "HR_other",
+                                                                        "ENS_data_assimilation",
+                                                                        "ENS_other"
+                                                                    ],
+                                                                    "type": "Kmeans",
+                                                                    # "ok_if_low_rank": True,
+                                                                    # "user_does_not_check": True,
+                                                                    # "rseed": 0,
+                                                                    "max_iter": 100,
+                                                                    "max_num_clusters": 20,
+                                                                    "delta_num_clusters": 1,
+                                                                    "num_timesignal_bins": 5
+                                                                    }
+
+        # check that exception is raised
+        self.assertRaises(jsonschema.ValidationError,
+                          lambda: ConfigFormat.from_file(StringIO(json.dumps(config_invalid_5))))
+
+        # ------------- invalid "model" config file (INV-5) ----------
+        # NB: missing clustering keys
+        config_invalid_5 = copy.deepcopy(config_invalid_3)
+        config_invalid_5["model"]["classification"].pop("operations")  # empty operations
+
+        config_invalid_5["model"]["classification"]["clustering"] = {
+            "apply_to": [
+                "HR_other",
+                "ENS_data_assimilation",
+                "ENS_other"
+            ],
+            "type": "Kmeans",
+            # "ok_if_low_rank": True,
+            # "user_does_not_check": True,
+            # "rseed": 0,
+            "max_iter": 100,
+            "max_num_clusters": 20,
+            "delta_num_clusters": 1,
+            "num_timesignal_bins": 5
+        }
+
+        # check that exception is raised
+        self.assertRaises(jsonschema.ValidationError,
+                          lambda: ConfigFormat.from_file(StringIO(json.dumps(config_invalid_5))))
         # ==========================================================================================
 
         # ==========================================================================================
@@ -284,8 +328,7 @@ class ConfigTests(unittest.TestCase):
                     "max_iter": 100,
                     "max_num_clusters": 20,
                     "delta_num_clusters": 1,
-                    "num_timesignal_bins": 5,
-                    "metrics_only": False
+                    "num_timesignal_bins": 5
                 }
             },
             "generator": {

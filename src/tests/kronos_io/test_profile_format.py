@@ -29,7 +29,7 @@ class ProfileFormatTest(unittest.TestCase):
         s = ProfileFormat.schema()
 
         self.assertIsInstance(s, dict)
-        self.assertEqual(s['$schema'], 'http://json-schema.org/draft-03/schema')
+        self.assertEqual(s['$schema'], 'http://json-schema.org/draft-04/schema')
         self.assertIn("type", s)
         self.assertIn("properties", s)
         self.assertIn("version", s['properties'])
