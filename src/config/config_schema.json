@@ -1,5 +1,5 @@
 {
-  "$schema": "http://json-schema.org/draft-04/schema#",
+  "$schema": "http://json-schema.org/draft-04/schema",
   "type": "object",
   "title": "Kronos configuration file format",
   "description": "The Kronos-core configuration file format controls the execution of the modelling algorithm",
@@ -196,7 +196,7 @@
                         "description": "only jobs that match according to these keywords are considered similar",
                         "items": {
                           "type": "string",
-                          "enum": ["label", "name"]
+                          "enum": ["label", "job_name", "user_name", "cmd_str", "queue_name"]
                         }
                       },
                       "similarity_threshold": {

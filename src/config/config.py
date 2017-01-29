@@ -7,11 +7,10 @@
 # does it submit to any jurisdiction.
 
 import os
-import sys
 import json
 
+from config_format import ConfigFormat
 from exceptions_iows import ConfigurationError
-from kronos_tools.print_colour import print_colour
 
 
 class Config(object):
@@ -74,12 +73,8 @@ class Config(object):
                 raise ConfigurationError("Unexpected configuration keyword provided - {}:{}".format(k, v))
             setattr(self, k, v)
 
-        # ------------ check for all required fields --------------
-        if not self.dir_input:
-            raise ConfigurationError("input folder not set")
-
-        if not self.dir_output:
-            raise ConfigurationError("output folder not set")
+        # ------------ check against schema --------------
+        ConfigFormat().validate_json(config_dict)
 
         # if input or output folders do not exist, an error is raised
         if not os.path.exists(self.dir_input):
@@ -87,9 +82,4 @@ class Config(object):
 
         if not os.path.exists(self.dir_output):
             raise ConfigurationError("output folder {} - does not exist!".format(self.dir_output))
-
-        # check that model is set
-        if not self.model:
-            print_colour("orange", "Nothing to do, 'model' configuration is empty")
-            sys.exit(0)
 

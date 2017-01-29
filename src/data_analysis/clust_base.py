@@ -19,7 +19,6 @@ class ClusteringBase(object):
         self.clusters = None
         self.labels = None
         self.num_timesignal_bins = None
-        self.metrics_only = False
 
         self.check_config()
 

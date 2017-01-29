@@ -3,7 +3,7 @@
         "version": 1,
         "uid": 4426,
         "created": "2017-01-27T09:52:10Z",
-        "tag": "KRONOS-CONF-MAGIC",        
+        "tag": "KRONOS-CONFIG-MAGIC",        
         "dir_input": "/var/tmp/maab/kronos-core/input",
         "dir_output": "/var/tmp/maab/kronos-core/output",
         "kpf_files": ["ecmwf_accounting_test.kpf", 
@@ -122,8 +122,7 @@
                                 "max_iter": 100,
                                 "max_num_clusters": 20,
                                 "delta_num_clusters": 1,
-                                "num_timesignal_bins": 5,
-                                "metrics_only": false
+                                "num_timesignal_bins": 5
                         }
                 },
                 "generator": {
@@ -147,35 +146,6 @@
                         "synthapp_n_frames": 10,
                         "total_submit_interval": 300
                 }
-        },
-        "run": {
-                "type": "feedback",
-                "tag": "ecmwf_lxg",
-                "state": "enabled",
-                "n_iterations": 1,
-                "hpc_user": "maab",
-                "hpc_host": "lxg",
-                "hpc_dir_input": "/perm/ma/maab/lxg_builds/kronos_run/input",
-                "hpc_dir_output": "/perm/ma/maab/lxg_builds/kronos_run/output",
-                "hpc_job_sched": "slurm",
-                "hpc_shell_type": "bash",
-                "hpc_module_dir_init": "/usr/local/apps/module/init",
-                "hpc_module_env": ["python"],
-                "hpc_dir_exec": "/perm/ma/maab/lxg_builds/kronos/bin",
-                "hpc_exec_config": "/home/ma/maab/kronos_configuration_files/executor_config/exe_config_lxg.json",
-                "local_map2json_file": "/home/ma/maab/workspace/Allinea_examples_files/NEXTGenIO_buiilds/map2json/map2json.py",
-                "updatable_metrics": {
-                        "flops": 0,
-                        "n_collective": 0,
-                        "n_pairwise": 0,
-                        "kb_collective": 0,
-                        "kb_pairwise": 0,
-                        "n_write": 0,
-                        "n_read": 0,
-                        "kb_write": 0,
-                        "kb_read": 0
-                }
-        },
-        "analysis": {}
+        }
 }
 

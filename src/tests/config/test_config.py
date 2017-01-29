@@ -31,19 +31,28 @@ class ConfigTests(unittest.TestCase):
         obscure_path = '.__$obscure-nonexistent@'
         self.assertFalse(os.path.exists(os.path.join(os.getcwd(), obscure_path)))
 
-        # this should not throw a ConfigurationError as input dir is not set
-        self.assertRaises(ConfigurationError, lambda: Config(config_dict={'dir_output': existing_path}))
-
-        # this should not throw a ConfigurationError as output dir is not set
-        self.assertRaises(ConfigurationError, lambda: Config(config_dict={'dir_input': existing_path}))
+        config_dict = {
+            "version": 1,
+            "tag": "KRONOS-CONFIG-MAGIC",
+            "created": "2016-12-14T09:57:35Z",  # Timestamp in strict rfc3339 format.
+            'dir_input': existing_path,
+            'dir_output': existing_path,
+            "kpf_files": ["file1", "file2"],
+            "ksf_filename": "ksf_output"
+        }
 
         # this should not throw a ConfigurationError as input dir is not existent
-        self.assertRaises(ConfigurationError, lambda: Config(config_dict={'dir_input': obscure_path,
-                                                                          'dir_output': existing_path}))
+        config_dict_non_val = config_dict
+        config_dict_non_val['dir_input'] = obscure_path
+        config_dict_non_val['dir_output'] = existing_path
+        self.assertRaises(ConfigurationError, lambda: Config(config_dict=config_dict_non_val))
 
         # this should not throw a ConfigurationError as output dir is not existent
-        self.assertRaises(ConfigurationError, lambda: Config(config_dict={'dir_input': obscure_path,
-                                                                          'dir_output': existing_path}))
+        config_dict_non_val = config_dict
+        config_dict_non_val['dir_input'] = existing_path
+        config_dict_non_val['dir_output'] = obscure_path
+        self.assertRaises(ConfigurationError, lambda: Config(config_dict=config_dict_non_val))
+
 
     def test_dict_override(self):
         # existing and not existing paths
@@ -53,9 +62,13 @@ class ConfigTests(unittest.TestCase):
 
         # We can override each of the parameters
         config_dict = {
+            "version": 1,
+            "tag": "KRONOS-CONFIG-MAGIC",
+            "created": "2016-12-14T09:57:35Z",  # Timestamp in strict rfc3339 format.
             'dir_input': existing_path,
             'dir_output': existing_path,
-            'model': {'non-empty_dict': 'dummy_val'}
+            "kpf_files": ["file1", "file2"],
+            "ksf_filename": "ksf_output"
         }
         cfg = Config(config_dict=config_dict)
         self.assertEqual(cfg.dir_input, existing_path)
@@ -92,9 +105,13 @@ class ConfigTests(unittest.TestCase):
         with tempfile.NamedTemporaryFile() as f:
             f.write("""{{
                 "dir_input": "{}",
+                "version": 1,
+                "tag": "KRONOS-CONFIG-MAGIC",
+                "created": "2016-12-14T09:57:35Z",
+                "kpf_files": ["file1", "file2"],
+                "ksf_filename": "ksf_output",
                 #"unknown": "parameter",
-                "dir_output": "{}",
-                "model": {{\"non-empty_dict\": \"dummy_val\"}}
+                "dir_output": "{}"
             }}""".format(existing_path, existing_path))
             f.flush()
             cfg = Config(config_path=f.name)
@@ -105,8 +122,13 @@ class ConfigTests(unittest.TestCase):
         # Unexpected parameters throw exceptions
         with tempfile.NamedTemporaryFile() as f:
             f.write("""{{
+                "version": 1,
+                "tag": "KRONOS-CONFIG-MAGIC",
+                "created": "2016-12-14T09:57:35Z",  # Timestamp in strict rfc3339 format.
                 "dir_input": "abcdef",
                 "dir_output": "{}",
+                "kpf_files": ["file1", "file2"],
+                "ksf_filename": "ksf_output",
                 "unknown": "{}"
             }}""".format(existing_path, existing_path))
             f.flush()
