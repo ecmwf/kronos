@@ -1,11 +1,4 @@
-# (C) Copyright 1996-2017 ECMWF.
-#
-# This software is licensed under the terms of the Apache Licence Version 2.0
-# which can be obtained at http://www.apache.org/licenses/LICENSE-2.0.
-# In applying this licence, ECMWF does not waive the privileges and immunities
-# granted to it by virtue of its status as an intergovernmental organisation nor
-# does it submit to any jurisdiction.
-
+===========
 kronos-core
 ===========
 
@@ -15,7 +8,7 @@ This product is developed by the
 
   Development Section, European Centre for Medium-Range Weather Forecasts (ECMWF) - http://www.ecmwf.int
 
-Below the list of software packages which are used by kronos-core:
+Below the list of *python packages* used by kronos-core:
 
 - cairo=1.12.18=6
 - cycler=0.10.0=py27_0
@@ -60,4 +53,3 @@ Below the list of software packages which are used by kronos-core:
 - zlib=1.2.8=3
 - pip:
   - strict-rfc3339==0.7                                             
-
