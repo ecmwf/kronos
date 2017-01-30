@@ -8,7 +8,7 @@
 # does it submit to any jurisdiction.
 
 """
-Quick and dirty solution to export a ksp file from dataset
+Exports a KPF file from a dataset
 """
 import os
 import sys
