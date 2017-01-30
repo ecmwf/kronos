@@ -53,7 +53,6 @@ class ConfigTests(unittest.TestCase):
         config_dict_non_val['dir_output'] = obscure_path
         self.assertRaises(ConfigurationError, lambda: Config(config_dict=config_dict_non_val))
 
-
     def test_dict_override(self):
         # existing and not existing paths
         existing_path = os.getcwd()
@@ -300,12 +299,12 @@ class ConfigTests(unittest.TestCase):
         self.assertRaises(jsonschema.ValidationError,
                           lambda: ConfigFormat.from_file(StringIO(json.dumps(config_invalid_5))))
 
-        # ------------- invalid "model" config file (INV-5) ----------
+        # ------------- invalid "model" config file (INV-6) ----------
         # NB: missing clustering keys
-        config_invalid_5 = copy.deepcopy(config_invalid_3)
-        config_invalid_5["model"]["classification"].pop("operations")  # empty operations
+        config_invalid_6 = copy.deepcopy(config_invalid_3)
+        config_invalid_6["model"]["classification"].pop("operations")  # empty operations
 
-        config_invalid_5["model"]["classification"]["clustering"] = {
+        config_invalid_6["model"]["classification"]["clustering"] = {
             "apply_to": [
                 "HR_other",
                 "ENS_data_assimilation",
@@ -323,7 +322,27 @@ class ConfigTests(unittest.TestCase):
 
         # check that exception is raised
         self.assertRaises(jsonschema.ValidationError,
-                          lambda: ConfigFormat.from_file(StringIO(json.dumps(config_invalid_5))))
+                          lambda: ConfigFormat.from_file(StringIO(json.dumps(config_invalid_6))))
+        # ==========================================================================================
+
+        # ------------- invalid "model" config file (INV-7) ----------
+        # NB: mis-spelt operation key
+        config_invalid_7 = copy.deepcopy(config_invalid_3)
+        config_invalid_7["model"]["classification"]["operations"].append(
+            {
+                "type": "split_wrong_keys",
+                "apply_to": "operational-ipm",
+                "create_workload": "law",
+                "split_by": "label",
+                "keywords_in": ["law/"],
+                "keywords_out": []
+            })
+
+        # check that exception is raised
+        # pprint(config_invalid_7)
+        # ConfigFormat.from_file(StringIO(json.dumps(config_invalid_7)))
+        self.assertRaises(jsonschema.ValidationError,
+                          lambda: ConfigFormat.from_file(StringIO(json.dumps(config_invalid_7))))
         # ==========================================================================================
 
         # ==========================================================================================
@@ -378,7 +397,6 @@ class ConfigTests(unittest.TestCase):
 
         # check that no exceptions are raised - empty "model" is OK
         ConfigFormat.from_file(StringIO(json.dumps(config_valid_0)))
-
 
 
 if __name__ == "__main__":
