@@ -8,10 +8,14 @@
 # does it submit to any jurisdiction.
 
 import unittest
+from StringIO import StringIO
+import json
 
 from exceptions_iows import ModellingError
 from jobs import ModelJob, IngestedJob
 import time_signal
+
+from kronos_io.profile_format import ProfileFormat
 
 
 class ModelJobTest(unittest.TestCase):
@@ -176,6 +180,54 @@ class ModelJobTest(unittest.TestCase):
             invalid_args = valid_args.copy()
             del invalid_args[k]
             self.assertTrue(ModelJob(**valid_args).is_valid())
+
+    def test_reanimation_kpf(self):
+        """
+        The purpose of the KPF is to be able to (re-)animate ModelJobs from the input data.
+        """
+        valid = {
+            "version": 1,
+            "tag": "KRONOS-KPF-MAGIC",
+            "created": "2016-12-14T09:57:35Z",  # Timestamp in strict rfc3339 format.
+            "uid": 1234,
+            "workload_tag": "A-tag",
+            "profiled_jobs": [{
+                "time_start": 537700,
+                "time_queued": 99,
+                "duration": 147,
+                "ncpus": 72,
+                "nnodes": 2,
+                "time_series": {
+                    "kb_read": {
+                        "times": [0.01, 0.02, 0.03, 0.04],
+                        "values": [15, 16, 17, 18]
+                    }
+                }
+            }]
+        }
+
+        pf = ProfileFormat.from_file(StringIO(json.dumps(valid)))
+
+        jobs = [ModelJob.from_json(j) for j in pf.profiled_jobs]
+        self.assertEquals(len(jobs), 1)
+        self.assertIsInstance(jobs[0], ModelJob)
+
+        self.assertEqual(jobs[0].time_start, 537700)
+        self.assertEqual(jobs[0].time_queued, 99)
+        self.assertEqual(jobs[0].duration, 147)
+        self.assertEqual(jobs[0].ncpus, 72)
+        self.assertEqual(jobs[0].nnodes, 2)
+
+        self.assertEquals(len(jobs[0].timesignals), len(time_signal.signal_types))
+        self.assertIn('kb_read', jobs[0].timesignals)
+        for name, signal in jobs[0].timesignals.iteritems():
+            if name == 'kb_read':
+                self.assertIsInstance(signal, time_signal.TimeSignal)
+                self.assertTrue(all(x1 == x2 for x1, x2 in zip(signal.xvalues, [0.01, 0.02, 0.03, 0.04])))
+                self.assertTrue(all(y1 == y2 for y1, y2 in zip(signal.yvalues, [15, 16, 17, 18])))
+            else:
+                self.assertIsNone(signal)
+
 
 
 class IngestedJobTest(unittest.TestCase):
