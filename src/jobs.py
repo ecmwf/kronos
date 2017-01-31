@@ -92,7 +92,6 @@ class ModelJob(object):
         """
         (Re)animate a ModelJob from json extracted from a KPF (kronos_io.profile_format.ProfileFormat)
         """
-        print "JSON: ", js
         return ModelJob(
             timesignals={n: time_signal.TimeSignal.from_values(n, xvals=t['times'], yvals=t['values'],
                                                                base_signal_name=n)
