@@ -139,8 +139,8 @@ def read_allinea_log(filename, jobs_n_bins=None):
 
         ts = TimeSignal.from_values(ts_config['name'], sample_times, y_vals,
                                     priority=allinea_signal_priorities [ts_config['name']])
-        if jobs_n_bins is not None:
-            ts.digitize(jobs_n_bins)
+        # if jobs_n_bins is not None:
+        #     ts.digitized(nbins=jobs_n_bins)
         i_job.append_time_signal(ts)
 
     return i_job

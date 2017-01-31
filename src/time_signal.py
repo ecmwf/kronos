@@ -140,10 +140,13 @@ class TimeSignal(object):
             priority=priority
         )
 
-    def digitized(self, nbins):
+    def digitized(self, nbins=None):
         """
         On-the-fly return digitized time series (rather than using
         """
+        if nbins is None:
+            return self.xvalues, self.yvalues
+
         # Determine the bin boundaries
         xedge_bins = np.linspace(0.0, max(self.xvalues) + 1.0e-6, nbins + 1)
 
@@ -171,40 +174,6 @@ class TimeSignal(object):
                 yvalues[i] = val
 
         return xvalues, yvalues
-
-    # calculate bins
-    def digitize(self, n_bins, key=None):
-
-        if self.durations is not None:
-            return self.digitize_durations(n_bins, key)
-
-        # Use a sensible default
-        if key is None:
-            key = self.digitization_key
-
-        digitize_eps = 1.0e-6
-        # self.xedge_bins = np.linspace(min(self.xvalues)-digitize_eps,
-        #                               max(self.xvalues)+digitize_eps, n_bins + 1)
-        # bins can be started from t=0.0
-        self.xedge_bins = np.linspace(0.0, max(self.xvalues) + digitize_eps, n_bins + 1)
-        self.dx_bins = self.xedge_bins[1] - self.xedge_bins[0]
-
-        digitized_data = np.digitize(self.xvalues, self.xedge_bins)
-        self.xvalues_bins = 0.5 * (self.xedge_bins[1:] + self.xedge_bins[:-1])
-
-        self.yvalues_bins = np.zeros(len(self.xvalues_bins)) #+digitize_eps
-        for i_bin in range(1, len(self.xvalues_bins)+1):
-            if any(self.yvalues[digitized_data == i_bin]):
-                if key == 'mean':
-                    mean_val = self.yvalues[digitized_data == i_bin].mean()
-                elif key == 'sum':
-                    mean_val = self.yvalues[digitized_data == i_bin].sum()
-                else:
-                    raise ValueError('option not recognised!')
-                self.yvalues_bins[i_bin-1] = mean_val
-
-        self.yvalues_bins = np.asarray(self.yvalues_bins)
-        self.yvalues_bins = self.yvalues_bins.astype(self.ts_type)
 
     def digitize_durations(self, nbins, key=None):
 

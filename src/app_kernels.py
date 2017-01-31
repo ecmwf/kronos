@@ -33,7 +33,7 @@ class KernelBase(object):
             data.update(kwargs)
         return data
 
-    def synapp_config(self):
+    def synapp_config(self, n_bins=None):
         """
         Return a synthetic app configuration. This can be overridden for more complex behaviour if required
         """
@@ -46,11 +46,10 @@ class KernelBase(object):
 
         time_signal_names, key_names = zip(*self.signals)
 
-        # include a stretching factor is made available
-        if self.stretching_factor_dict:
-            time_signals = [self.timesignals[ts_name].yvalues_bins * self.stretching_factor_dict[ts_name] for ts_name in time_signal_names]
-        else:
-            time_signals = [self.timesignals[ts_name].yvalues_bins for ts_name in time_signal_names]
+        factors = {name: 1.0 for name in time_signal_names}
+        factors.update(self.stretching_factor_dict or {})
+
+        time_signals = [self.timesignals[ts_name].digitized(nbins=n_bins)[1] * factors[ts_name] for ts_name in time_signal_names]
 
         frames = [ { k: v for k, v in zip(key_names, ts_data) } for ts_data in zip(*time_signals) ]
 
@@ -73,11 +72,11 @@ class CPUKernel(KernelBase):
     name = 'cpu'
     signals = (("flops", "flops"),)
 
-    def synapp_config(self):
+    def synapp_config(self, n_bins=None):
         """
         Special case code: apply max value constrain.
         """
-        data = super(CPUKernel, self).synapp_config()
+        data = super(CPUKernel, self).synapp_config(n_bins=None)
 
         for d in data:
 
@@ -96,11 +95,11 @@ class MPIKernel(KernelBase):
         ("n_pairwise", "n_pairwise"),
         ("kb_pairwise", "kb_pairwise"))
 
-    def synapp_config(self):
+    def synapp_config(self,n_bins=None):
         """
         Special case code: We cannot have a zero number of actions for a non-zero amount of data.
         """
-        data = super(MPIKernel, self).synapp_config()
+        data = super(MPIKernel, self).synapp_config(n_bins=None)
 
         for d in data:
 
@@ -126,11 +125,11 @@ class FileReadKernel(KernelBase):
     def extra_data(self):
         return super(FileReadKernel, self).extra_data(mmap=False)
 
-    def synapp_config(self):
+    def synapp_config(self, n_bins=None):
         """
         Special case code: We cannot have a zero number of actions for a non-zero amount of data.
         """
-        data = super(FileReadKernel, self).synapp_config()
+        data = super(FileReadKernel, self).synapp_config(n_bins=None)
 
         for d in data:
             if d['kb_read'] > 0:
@@ -151,12 +150,12 @@ class FileWriteKernel(KernelBase):
     def extra_data(self):
         return super(FileWriteKernel, self).extra_data(mmap=False)
 
-    def synapp_config(self):
+    def synapp_config(self, n_bins=None):
         """
         Special case code: We cannot have a zero amount of data for a non-zero number of writes,
         nor a zero amount of data for a non-zero number of writes
         """
-        data = super(FileWriteKernel, self).synapp_config()
+        data = super(FileWriteKernel, self).synapp_config(n_bins=None)
 
         for d in data:
             if d['n_write'] > 0:

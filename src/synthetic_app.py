@@ -13,8 +13,8 @@ import os
 import pickle
 
 import app_kernels
+from kronos_io.schedule_format import ScheduleFormat
 from kronos_tools.print_colour import print_colour
-from ksf_handler import KSFFileHandler
 
 
 class SyntheticWorkload(object):
@@ -121,8 +121,9 @@ class SyntheticWorkload(object):
         this file can be given directly to the executor
         :return:
         """
-        ksf_file = KSFFileHandler().from_synthetic_workload(self)
-        ksf_file.export(filename, nbins)
+        # ksf_file = KSFFileHandler().from_synthetic_workload(self)
+        # ksf_file.export(filename=filename, nbins=nbins)
+        ScheduleFormat.from_synthetic_workload(self).write_filename(filename)
 
 
 class SyntheticApp(ModelJob):
@@ -146,17 +147,7 @@ class SyntheticApp(ModelJob):
         self.tuning_factor = None
         # self.set_ts_defaults()
 
-    # def set_ts_defaults(self):
-    #     """ Set default values for time-series that are not included
-    #     in the model job from which this synthetic app has been derived """
-    #     if self.timesignals:
-    #         for ts_name in signal_types:
-    #             if self.timesignals[ts_name] is None:
-    #                 ts = TimeSignal(ts_name)
-    #                 ts = ts.from_values(ts_name, np.zeros(10), np.zeros(10), base_signal_name=None, durations=np.zeros(10)+0.01)
-    #                 self.timesignals[ts_name] = ts
-
-    def export(self, filename, n_bins, job_entry_only=False):
+    def export(self, filename=None, n_bins=None, job_entry_only=False):
         """
         Produce a json file suitable to control a synthetic application (coordinator)
         """
@@ -173,30 +164,27 @@ class SyntheticApp(ModelJob):
             }
         }
 
+        # if job_entry_only, export dictionary data only
         if job_entry_only:
             return job_entry
         else:
-            with open(filename, 'wa') as f:
-                json.dump(job_entry, f, ensure_ascii=True, sort_keys=True, indent=4, separators=(',', ': '))
+            if filename is None:
+                raise ConfigurationError("trying to export synthetic apps to {} file".format(filename))
+            else:
+                with open(filename, 'wa') as f:
+                    json.dump(job_entry, f, ensure_ascii=True, sort_keys=True, indent=4, separators=(',', ': '))
 
-    def frame_data(self, n_bins):
+    def frame_data(self, n_bins=None):
+        """
+        Write data in each frame of the synthetic apps
+        :param n_bins:
+        :return:
+        """
 
-        # # generate kernes from non-null timesignals only..
-        # self.set_ts_defaults()
-
-        # nonnull_timesignals = {k: v for k, v in self.timesignals.items() if (v.xvalues is not None) and (v.yvalues is not None)}
-        # print nonnull_timesignals
-
-        # (re-)digitize all the time series
-        # np.set_printoptions(edgeitems=3,
-        #                     linewidth=200,
-        #                     precision=1,
-        #                     formatter=None)
-        # print '-------------------------------------------'
-        for ts_name, ts in self.timesignals.iteritems():
-            # print 'ts yvalues before {}'.format(ts_name), self.timesignals[ts_name].yvalues
-            ts.digitize(n_bins)
-            # print 'ts yvalues AFTER {}'.format(ts_name), self.timesignals[ts_name].yvalues_bins
+        # # Discretise time signals (only if needed..)
+        # if n_bins:
+        #     for ts_name, ts in self.timesignals.iteritems():
+        #         ts.digitize(n_bins)
 
         kernels = []
         for kernel_type in app_kernels.available_kernels:
@@ -207,7 +195,7 @@ class SyntheticApp(ModelJob):
                 kernel = kernel_type(self.timesignals)
 
             if not kernel.empty:
-                kernels.append(kernel.synapp_config())
+                kernels.append(kernel.synapp_config(n_bins=n_bins))
 
         # Instead of a list of kernels, each of which contains a time series, we want a time series each of
         # which contains a list of kernels. Do the inversion!

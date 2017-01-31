@@ -92,11 +92,6 @@ class ScheduleFormatTest(unittest.TestCase):
         invalid['created'] = "1234567"
         self.assertRaises(jsonschema.ValidationError, lambda: ScheduleFormat.from_file(StringIO(json.dumps(invalid))))
 
-        # Check that the original one is still valid (i.e. we haven't been getting the validation errors by
-        # just damaging the original...
-
-        self.assertRaises(NotImplementedError, lambda: ScheduleFormat.from_file(StringIO(json.dumps(valid))))
-
 
 if __name__ == "__main__":
     unittest.main()

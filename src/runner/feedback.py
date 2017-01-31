@@ -17,8 +17,8 @@ import datetime
 import run_control
 import time_signal
 from exceptions_iows import ConfigurationError
-from kpf_handler import KPFFileHandler
-from ksf_handler import KSFFileHandler
+
+from kronos_io.schedule_format import ScheduleFormat
 from time_signal import signal_types
 from workload_data import WorkloadData
 
@@ -105,7 +105,7 @@ class FeedbackLoopRunner(BaseRunner):
             job_runner = run_control.factory(self.config.run['hpc_job_sched'], self.config)
 
             # handles the ksf file
-            ksf_data = KSFFileHandler().from_ksf_file(os.path.join(self.config.dir_output, self.ksf_filename))
+            ksf_data = ScheduleFormat.from_filename(os.path.join(self.config.dir_output, self.ksf_filename))
 
             # create run dir
             if not os.path.exists(dir_run_results):
@@ -233,7 +233,7 @@ class FeedbackLoopRunner(BaseRunner):
                                             tag='allinea_map_files')
 
                 # export the workload to a kpf file
-                KPFFileHandler().save_kpf(map_workload, os.path.join(dir_run_iter_map, 'kpf_output.kpf'))
+                ScheduleFormat.from_synthetic_workload(map_workload).write_filename(os.path.join(dir_run_iter_map, 'kpf_output.kpf'))
                 # ///////////////////////////////////////////////////////////////////////////////////////
 
                 # append dictionaries to history structures..
@@ -268,8 +268,8 @@ class FeedbackLoopRunner(BaseRunner):
                 ksf_data.set_tuning_factors(tuning_factors)
 
                 print os.path.join(self.config.dir_output, self.ksf_filename)
-                ksf_data.export(os.path.join(self.config.dir_output, self.ksf_filename),
-                                self.config.model['generator']['synthapp_n_frames'])
+                ksf_data.export(filename=os.path.join(self.config.dir_output, self.ksf_filename),
+                                nbins=self.config.model['generator']['synthapp_n_frames'])
 
                 # write log file
                 write_log_file(log_file, metrics_sum_dict, tuning_factors)
