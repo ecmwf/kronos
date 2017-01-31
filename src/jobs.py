@@ -77,8 +77,6 @@ class ModelJob(object):
                         raise ModellingError("Time signal {} mislabelled as {}".format(values.name, series))
                     self.timesignals[series] = values
 
-        print "KWA: ", kwargs
-
         # n.b. We do NOT call check_job here. It is perfectly reasonably for the required data to come from
         #      multiple sources, and be merged in. Or added in with regression processes. check_job() should be
         #      called immediately before the first time the ModelJob is to be USED where validity would be required.
