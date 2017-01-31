@@ -77,6 +77,8 @@ class ModelJob(object):
                         raise ModellingError("Time signal {} mislabelled as {}".format(values.name, series))
                     self.timesignals[series] = values
 
+        print "KWA: ", kwargs
+
         # n.b. We do NOT call check_job here. It is perfectly reasonably for the required data to come from
         #      multiple sources, and be merged in. Or added in with regression processes. check_job() should be
         #      called immediately before the first time the ModelJob is to be USED where validity would be required.
@@ -86,6 +88,19 @@ class ModelJob(object):
 
     def __str__(self):
         return unicode(self).encode('utf-8')
+
+    @staticmethod
+    def from_json(js):
+        """
+        (Re)animate a ModelJob from json extracted from a KPF (kronos_io.profile_format.ProfileFormat)
+        """
+        print "JSON: ", js
+        return ModelJob(
+            timesignals={n: time_signal.TimeSignal.from_values(n, xvals=t['times'], yvals=t['values'],
+                                                               base_signal_name=n)
+                         for n, t in js.get('time_series', {}).iteritems()},
+            **{k: v for k, v in js.iteritems() if hasattr(ModelJob, k) and v is not None}
+        )
 
     def merge(self, other, force=False):
         """

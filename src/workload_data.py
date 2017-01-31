@@ -15,6 +15,7 @@ from exceptions_iows import ConfigurationError
 from kronos_tools.print_colour import print_colour
 import time_signal
 import fill_in_functions as fillf
+from jobs import ModelJob
 
 
 class WorkloadData(object):
@@ -40,6 +41,16 @@ class WorkloadData(object):
 
     def __str__(self):
         return unicode(self).encode('utf-8')
+
+    @staticmethod
+    def from_kpf(kpf):
+        """
+        Obtain a workload from read-in and checked json data in a KPF
+        """
+        return WorkloadData(
+            jobs=(ModelJob.from_json(j) for j in kpf.profiled_jobs),
+            tag=kpf.workload_tag
+        )
 
     def append_jobs(self, model_jobs=None):
         """
