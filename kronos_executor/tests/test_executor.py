@@ -11,10 +11,10 @@ import shutil
 sys.path.append(os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), 'kronos_py'))
 sys.path.append(os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))), 'bin'))
 
-import executor
-from global_config import global_config
+from kronos_executor import executor
+from kronos_executor.global_config import global_config
 from testutils import scratch_tmpdir
-import job_classes.base_job
+from kronos_executor.job_classes import base_job
 
 
 class ExecutorTests(unittest.TestCase):
@@ -219,7 +219,7 @@ class ExecutorTests(unittest.TestCase):
             self.assertEqual(e.job_class_module_file[-len(expected_mod):], expected_mod)
 
             self.assertIsInstance(e.job_class_module, types.ModuleType)
-            self.assertTrue(issubclass(e.job_class, job_classes.base_job.BaseJob))
+            self.assertTrue(issubclass(e.job_class, base_job.BaseJob))
 
             expected_job_path = os.path.join(tmpdir, "run")
             self.assertEqual(e.job_dir, expected_job_path)
