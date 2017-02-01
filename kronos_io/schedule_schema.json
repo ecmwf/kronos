@@ -36,7 +36,7 @@
                             "job_name":{
                                 "type": "string",
                                 "description": "job name"
-                            }
+                            },
                             "workload_name":{
                                 "type": "string",
                                 "description": "workload name"
@@ -46,7 +46,7 @@
                     "repeat": {
                         "type": "number",
                         "description": "Number of times this job should be duplicated"
-                    }
+                    },
                     "start_delay":{
                         "type": "number",
                         "description": "job start delay (in sec) relative to the first job"
