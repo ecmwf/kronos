@@ -18,7 +18,7 @@ test_requirements = [
 ]
 
 setup(
-    name='kronos_io',
+    name='kronos_core',
     version='0.1.0',
     description="Workload extraction, modelling and duplication for HPC systems",
     long_description=readme + '\n\n' + history,
@@ -36,7 +36,7 @@ setup(
     },
     scripts=[
         'bin/kronos-conf',
-        'bin/kronos-config-enquiries',
+        'bin/kronos-config-enquire',
         'bin/kronos-executor',
         'bin/kronos-generate-read-files',
         'bin/kronos-ingest',

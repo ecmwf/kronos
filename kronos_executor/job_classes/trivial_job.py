@@ -3,7 +3,7 @@ import os
 import stat
 import subprocess
 
-from job_classes.base_job import BaseJob
+from kronos_executor.job_classes.base_job import BaseJob
 
 job_template = """
 #!/bin/sh

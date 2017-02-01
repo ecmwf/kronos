@@ -44,7 +44,7 @@ class ExecutorTests(unittest.TestCase):
         """
         now = datetime.datetime.now()
 
-        e = executor.Executor(self.base_config, global_config)
+        e = executor.Executor(self.base_config)
 
         e.wait_until(-5)
         self.assertEqual((datetime.datetime.now() - now).seconds, 0)
@@ -60,7 +60,7 @@ class ExecutorTests(unittest.TestCase):
         config = self.base_config
         config['jobs'] = [ {'name': 'a'}, {'name': 'b'}, {'name': 'c'} ]
 
-        e = executor.Executor(config, global_config)
+        e = executor.Executor(config)
 
         jobs = e.job_iterator()
         self.assertIsInstance(jobs, types.GeneratorType)
@@ -76,7 +76,7 @@ class ExecutorTests(unittest.TestCase):
         config = self.base_config
         config['jobs'] = { "test": "oops" }
 
-        e = executor.Executor(config, global_config)
+        e = executor.Executor(config)
 
         jobs = e.job_iterator()
         self.assertIsInstance(jobs, types.GeneratorType)
@@ -87,7 +87,7 @@ class ExecutorTests(unittest.TestCase):
         config['jobs'] = [1, 2, 3]
 
         shutil.rmtree(self.base_config['job_dir'])
-        e = executor.Executor(config, global_config)
+        e = executor.Executor(config)
 
         jobs = e.job_iterator()
         self.assertIsInstance(jobs, types.GeneratorType)

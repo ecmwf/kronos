@@ -2,7 +2,7 @@ import math
 import os
 import stat
 
-from job_classes.base_job import BaseJob
+from kronos_executor.job_classes.base_job import BaseJob
 
 
 class HPCJob(BaseJob):

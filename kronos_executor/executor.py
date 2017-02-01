@@ -2,11 +2,9 @@
 
 import datetime
 import imp
-import json
 import os
 import sys
 import time
-import errno
 
 sys.path.append(os.path.dirname(os.path.dirname(__file__)))
 
@@ -40,6 +38,7 @@ class Executor(object):
 
         print "Config: {}".format(config)
         self.config = global_config.copy()
+        self.config.update(config)
 
         self.schedule = schedule
 

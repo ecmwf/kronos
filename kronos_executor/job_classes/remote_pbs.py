@@ -1,5 +1,5 @@
-from job_classes.pbs import PBSMixin
-from job_classes.remote_hpc import RemoteHPCJob
+from kronos_executor.job_classes.pbs import PBSMixin
+from kronos_executor.job_classes.remote_hpc import RemoteHPCJob
 
 
 class Job(PBSMixin, RemoteHPCJob):

@@ -1,7 +1,7 @@
 import os
 import stat
 
-from job_classes.hpc import HPCJob
+from kronos_executor.job_classes.hpc import HPCJob
 
 run_script_template = """#!/bin/sh
 
