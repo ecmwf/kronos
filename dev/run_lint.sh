@@ -13,4 +13,9 @@
 export PATH=${bamboo_working_directory}/miniconda/bin:${PATH}
 source activate test_env
 
-find ${bamboo_working_directory}/src -type f -name "*.py" -print0 | xargs -0 -n1 pyflakes;
+cd ${bamboo_working_directory}
+
+find . -path ./.git -prune -o \
+       -path ./miniconda -prune -o \
+       -path ./depends -prune -o \
+       -type f -name "*.py" -print 0 | xargs -0 -n1 pyflakes;

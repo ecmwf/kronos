@@ -7,7 +7,6 @@
 # granted to it by virtue of its status as an intergovernmental organisation nor
 # does it submit to any jurisdiction.
 
-
 cd ${bamboo_working_directory}
 
 # Ensure that our python environment is clean
@@ -20,14 +19,15 @@ wget https://repo.continuum.io/miniconda/Miniconda2-latest-Linux-x86_64.sh
 sh Miniconda2-latest-Linux-x86_64.sh -b -p ${bamboo_working_directory}/miniconda
 export PATH=${bamboo_working_directory}/miniconda/bin:${PATH}
 
-
 # Install the testing environment!
 
 conda install -y pyyaml
-conda env create -n test_env -f conda_environment.txt
 
-# download and install kronos_io
+if [[ -f conda_environment.txt ]]; then
+    conda env create -n test_env -f conda_environment.txt
+fi
+
+# Make python packages cloned into the depends directory available to pip
 
 source activate test_env
-pip install -e ${bamboo_working_directory}/depends/kronos-io
-
+find ./depends -maxdepth 1 -mindepth 1 -type d -exec pip install -e {} \;

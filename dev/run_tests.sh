@@ -14,5 +14,11 @@ export PATH=${bamboo_working_directory}/miniconda/bin:${PATH}
 
 source activate test_env
 
-cd ${bamboo_working_directory}/src
-PYTHONPATH=${bamboo_working_directory}/src python ${bamboo_working_directory}/miniconda/envs/test_env/lib/python2.7/site-packages/pytest.py --junitxml="${bamboo_working_directory}/test_output.xml" tests
+cd ${bamboo_working_directory}
+if [[ -d src ]]; then
+    cd src
+fi
+
+if [[ -d tests ]]; then
+    PYTHONPATH=`pwd` python ${bamboo_working_directory}/miniconda/envs/test_env/lib/python2.7/site-packages/pytest.py --junitxml="${bamboo_working_directory}/test_output.xml" tests
+fi
