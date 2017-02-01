@@ -10,8 +10,10 @@ import errno
 
 sys.path.append(os.path.dirname(os.path.dirname(__file__)))
 
+from kronos_executor.global_config import global_config
 from kronos_executor import generate_read_files
 from kronos_executor.subprocess_callback import SubprocessManager
+
 
 class Executor(object):
     """
@@ -27,7 +29,7 @@ class Executor(object):
         'procs_per_node', 'read_cache', 'allinea_path', 'allinea_ld_library_path', 'allinea_licence_file',
         'local_tmpdir', 'submission_workers']
 
-    def __init__(self, config, global_config, schedule):
+    def __init__(self, config, schedule):
         """
         Initialisation. Passed a dictionary of configurations
         """
@@ -37,15 +39,9 @@ class Executor(object):
                 raise self.InvalidParameter("Unknown parameter ({}) supplied".format(k))
 
         print "Config: {}".format(config)
-        self.global_config = global_config
+        self.config = global_config.copy()
 
-        self.job_format = config.get('job_format', 'job-{}.json')
-        self.njobs = config.get('n_jobs', None)
-        self.jobs = config.get('jobs', None)
-        self.ksf_file = config.get('ksf_file', None)
-
-        if self.njobs is not None:
-            print "Num jobs: {}".format(self.njobs)
+        self.schedule = schedule
 
         self.job_class_module_file = os.path.join(
             os.path.dirname(__file__),
@@ -63,7 +59,10 @@ class Executor(object):
         os.makedirs(self.job_dir)
 
         # The binary to use can be overridden in the config file
-        self.coordinator_binary = config.get('coordinator_binary', self.global_config['coordinator_binary'])
+        try:
+            self.coordinator_binary = config['coordinator_binary']
+        except KeyError:
+            raise KeyError("Coordinator binary not provided in executor configuration")
 
         self.procs_per_node = config['procs_per_node']
 
@@ -127,46 +126,13 @@ class Executor(object):
                  from the parsed JSONs).
         """
 
-        if self.jobs is not None:
-            assert isinstance(self.jobs, list)
-            for job in self.jobs:
-                assert isinstance(job, dict)
-                job_repeats = job.get("repeat", 1)
-                for i in range(job_repeats):
-                    yield job
+        jobs = self.schedule['jobs']
+        assert isinstance(jobs, list)
 
-        elif self.ksf_file is not None:
-            print "Reading jobs from ksf file {}".format(self.ksf_file)
-            with open(self.ksf_file, 'r') as f:
-                ksf_file_fields = json.load(f)
-
-            ksf_jobs = ksf_file_fields['jobs']
-            for job in ksf_jobs:
-                assert isinstance(job, dict)
-                job_repeats = job.get("repeat", 1)
-                for i in range(job_repeats):
-                    yield job
-
-        else:
-            print "Using job specification JSONs, with the format {}".format(self.job_format)
-
-            job_num = 0
-            while self.njobs is None or job_num < self.njobs:
-
-                job_filename = self.job_format.format(job_num)
-
-                try:
-                    with open(job_filename, 'r') as f:
-                        job_config = json.load(f)
-                        assert isinstance(job_config, dict)
-                        job_repeats = job_config.get("repeat", 1)
-                        for i in range(job_repeats):
-                            yield job_config
-
-                except IOError as e:
-                    assert e.errno == errno.ENOENT
-                    assert self.njobs is None
-                    return
-
-                job_num += 1
+        for job in jobs:
+            assert isinstance(job, dict)
+            metadata = job.get("metadata", {})
+            job_repeats = metadata.get("repeat", 1)
+            for i in range(job_repeats):
+                yield job
 

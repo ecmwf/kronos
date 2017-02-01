@@ -8,7 +8,6 @@ sys.path.append(os.path.dirname(os.path.dirname(__file__)))
 
 from kronos_executor.executor import Executor
 from kronos_io.schedule_format import ScheduleFormat
-from kronos_executor.global_config import global_config
 
 def usage():
     print "Usage:"
@@ -35,4 +34,4 @@ if __name__ == "__main__":
     with open(ksf_file, 'r') as f:
         schedule = ScheduleFormat.from_file(f)
 
-    Executor(config, global_config, schedule).run()
+    Executor(config, schedule).run()
