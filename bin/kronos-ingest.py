@@ -17,7 +17,7 @@ import os
 import sys
 sys.path.append(os.path.dirname(os.path.dirname(__file__)))
 
-from logreader.base import LogReader
+from kronos_core.logreader.base import LogReader
 
 try:
     import cPickle as pickle
@@ -25,7 +25,7 @@ except:
     import pickle
 import argparse
 
-import logreader
+from kronos_core import logreader
 
 if __name__ == "__main__":
 
