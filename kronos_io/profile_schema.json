@@ -1,0 +1,111 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema",
+    "type": "object" ,
+    "title": "Kronos Profile Format",
+    "description": "The Kronos Profile Format (KPF) is a standardised interchange format for input profiling data for Kronos",
+    "additionalProperties": false,
+    "properties": {
+        "version" : {
+            "type": "number",
+            "enum": [%(kronos-version)s],
+            "description": "Version number of the KPF format"
+        },
+        "tag": {
+            "enum": ["%(kronos-magic)s"],
+            "description": "Magic value to help test validity of KPF file"
+        },
+        "created": {
+            "type": "string",
+            "format": "date-time",
+            "description": "A timestamp for creation of the KPF file"
+        },
+        "uid": {
+            "type": "integer",
+            "description": "The UID of the user who created this file"
+        },
+        "workload_tag": {
+            "type": "string",
+            "description": "A tag to identify the type or source of the data. Can be used to customise processing later."
+        },
+        "profiled_jobs": {
+            "type": "array",
+            "description": "Profiled data for ingestion. Most data is optional to support many data sources.",
+            "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                    "name": {
+                        "type": "string",
+                        "description": "The job name (from the scheduler or other systems)"
+                    },
+                    "label": {
+                        "type": "string",
+                        "description": "A label that can be used to strictly, and uniquely, identify the job"
+                    },
+                    "user": {
+                        "type": ["string", "integer"],
+                        "description": "The user name or user id to whom the job belongs"
+                    },
+                    "time_start": {
+                        "type": "number",
+                        "minimum": 0,
+                        "description": "Timestamp (epoch time) that the job started"
+                    },
+                    "duration": {
+                        "type": "number",
+                        "minimum": 0,
+                        "description": "Job duration in seconds"
+                    },
+                    "time_queued": {
+                        "type": "number",
+                        "minimum": 0,
+                        "description": "Timestamp (epoch time) that the job was submitted into the scheduler queue"
+                    },
+                    "ncpus": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "description": "The number of CPUs that the job ran across"
+                    },
+                    "nnodes": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "description": "The number of nodes the job ran on"
+                    },
+                    "extra": {
+                        "type": "object",
+                        "description": "Context or site specific additional information. No further schema is imposed."
+                    },
+                    "time_series": {
+                        "type": "object",
+                        "description": "Time dependent profiling data for the specified job and metrics",
+                        "additionalProperties": false,
+                        "patternProperties": {
+                            "(n_write|n_read|kb_write|kb_read|n_pairwise|kb_pairwise|n_collective|kb_collective|flops)": {
+                                "type": "object",
+                                "description": "Time series data for a specific metric:\n\nflops - Number of floating point operations\n\nIO:\nn_read/write: Number of reads/writes\nkb_read/write: Kilobytes read/written\n\nMPI:\nn_pairwise/collective - Number of pairwise or collective MPI operations\nkb_pairwise/collective - Kilobytes communicated in pairwise or collective operations\n\nn.b. Lengths of times and values arrays must match.",
+                                "properties": {
+                                    "times": {
+                                        "type": "array",
+                                        "description": "Timestamps associated with measurement values",
+                                        "items": {
+                                            "type": "number"
+                                        }
+                                    },
+                                    "values": {
+                                        "type": "array",
+                                        "description": "Values corresponding to timestamps. See documentation for precise interpretation.",
+                                        "items": {
+                                            "type": "number"
+                                        }
+                                    }
+                                },
+                                "required": ["times", "values"]
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "required": ["version", "tag", "created", "workload_tag"]
+}
