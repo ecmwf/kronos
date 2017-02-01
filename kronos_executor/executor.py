@@ -131,8 +131,7 @@ class Executor(object):
 
         for job in jobs:
             assert isinstance(job, dict)
-            metadata = job.get("metadata", {})
-            job_repeats = metadata.get("repeat", 1)
+            job_repeats = job.get("repeat", 1)
             for i in range(job_repeats):
                 yield job
 

@@ -36,20 +36,24 @@
                             "job_name":{
                                 "type": "string",
                                 "description": "job name"
-                            },
-                            "num_procs":{
-                                "type": "number",
-                                "description": "number of processes that the job will run on"
-                            },
-                            "start_delay":{
-                                "type": "number",
-                                "description": "job start delay (in sec) relative to the first job"
-                            },
-                            "repeat": {
-                                "type": "number",
-                                "description": "Number of times this job should be duplicated"
+                            }
+                            "workload_name":{
+                                "type": "string",
+                                "description": "workload name"
                             }
                         }
+                    },
+                    "repeat": {
+                        "type": "number",
+                        "description": "Number of times this job should be duplicated"
+                    }
+                    "start_delay":{
+                        "type": "number",
+                        "description": "job start delay (in sec) relative to the first job"
+                    },
+                    "num_procs":{
+                        "type": "number",
+                        "description": "number of processes that the job will run on"
                     },
                     "frames": {
                         "type": "array",
