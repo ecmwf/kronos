@@ -1,0 +1,34 @@
+/*
+ * (C) Copyright 1996-2015 ECMWF.
+ *
+ * This software is licensed under the terms of the Apache Licence Version 2.0
+ * which can be obtained at http://www.apache.org/licenses/LICENSE-2.0.
+ * In applying this licence, ECMWF does not waive the privileges and immunities
+ * granted to it by virtue of its status as an intergovernmental organisation nor
+ * does it submit to any jurisdiction.
+ */
+
+/**
+ * @date May 2016
+ * @author Simon Smart
+ */
+
+
+#ifndef kronos_configure_read_files_H
+#define kronos_configure_read_files_H
+
+#include <math.h>
+
+/* ------------------------------------------------------------------------------------------------------------------ */
+
+static const int file_read_multiplicity = @KRONOS_READ_FILE_MULTIPLICITY@;
+
+static const int file_read_size_min_pow = @KRONOS_READ_SIZE_MIN@;
+static const int file_read_size_max_pow = @KRONOS_READ_SIZE_MAX@;
+
+static const long file_read_size_min = 1 << @KRONOS_READ_SIZE_MIN@;
+static const long file_read_size_max = 1 << @KRONOS_READ_SIZE_MAX@;
+
+/* ------------------------------------------------------------------------------------------------------------------ */
+
+#endif /* kronos_configure_read_files_H */

@@ -1,0 +1,12 @@
+#!/usr/bin/env python
+
+import os
+
+from kronos_synapps.generate_read_files import generate_read_cache
+
+
+if __name__ == "__main__":
+
+    print "Using current working directory as read cache: {}".format(os.getcwd())
+    generate_read_cache(os.getcwd())
+
