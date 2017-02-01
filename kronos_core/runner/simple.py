@@ -11,10 +11,10 @@ import subprocess
 import time
 import datetime
 
-import run_control
-from base_runner import BaseRunner
-from kronos_tools import print_colour
-from exceptions_iows import ConfigurationError
+from kronos_core import run_control
+from kronos_core.runner.base_runner import BaseRunner
+from kronos_core.kronos_tools import print_colour
+from kronos_core.exceptions_iows import ConfigurationError
 
 
 class SimpleRunner(BaseRunner):

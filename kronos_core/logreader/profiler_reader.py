@@ -13,12 +13,12 @@ import json
 import glob
 import numpy as np
 
-from jobs import IngestedJob, ModelJob
-from time_signal import TimeSignal
-from exceptions_iows import ConfigurationError
-from logreader.dataset import IngestedDataSet
-import time_signal
-from config import config
+from kronos_core.jobs import IngestedJob, ModelJob
+from kronos_core.time_signal import TimeSignal
+from kronos_core.exceptions_iows import ConfigurationError
+from kronos_core.logreader.dataset import IngestedDataSet
+from kronos_core import time_signal
+from kronos_core.config import config
 
 allinea_signal_priorities = {
     'flops': 10,

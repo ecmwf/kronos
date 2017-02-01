@@ -10,7 +10,7 @@ import os
 import json
 
 from config_format import ConfigFormat
-from exceptions_iows import ConfigurationError
+from kronos_core.exceptions_iows import ConfigurationError
 
 
 class Config(object):

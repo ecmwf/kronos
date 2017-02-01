@@ -6,7 +6,7 @@
 # granted to it by virtue of its status as an intergovernmental organisation nor
 # does it submit to any jurisdiction.
 
-from exceptions_iows import ConfigurationError
+from kronos_core.exceptions_iows import ConfigurationError
 
 
 class ClusteringBase(object):

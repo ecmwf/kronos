@@ -12,9 +12,9 @@ from sklearn.cluster import KMeans
 from sklearn.metrics import silhouette_score
 
 from clust_base import ClusteringBase
-from data_analysis.silhouette import find_n_clusters_silhouette
+from kronos_core.data_analysis.silhouette import find_n_clusters_silhouette
 
-from kronos_tools.print_colour import print_colour
+from kronos_core.kronos_tools.print_colour import print_colour
 
 
 class ClusteringKmeans(ClusteringBase):

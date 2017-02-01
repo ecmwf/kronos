@@ -10,9 +10,9 @@ import fnmatch
 import os
 import sys
 
-from exceptions_iows import ConfigurationError
-from jobs import IngestedJob
-from kronos_tools.process_pool import ProcessingPool
+from kronos_core.exceptions_iows import ConfigurationError
+from kronos_core.jobs import IngestedJob
+from kronos_core.kronos_tools.process_pool import ProcessingPool
 
 
 class LogReader(object):

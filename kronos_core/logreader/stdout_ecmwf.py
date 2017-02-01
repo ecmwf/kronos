@@ -10,10 +10,10 @@ import re
 import datetime
 import calendar
 
-from jobs import IngestedJob, ModelJob
-from logreader.base import LogReader
-from logreader.dataset import IngestedDataSet
-from kronos_tools.print_colour import print_colour
+from kronos_core.jobs import IngestedJob, ModelJob
+from kronos_core.logreader.base import LogReader
+from kronos_core.logreader.dataset import IngestedDataSet
+from kronos_core.kronos_tools.print_colour import print_colour
 
 
 class StdoutECMWFIngestedJob(IngestedJob):

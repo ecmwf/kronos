@@ -6,7 +6,7 @@
 # granted to it by virtue of its status as an intergovernmental organisation nor
 # does it submit to any jurisdiction.
 
-from logreader.stdout_ecmwf import StdoutECMWFDataSet
+from kronos_core.logreader.stdout_ecmwf import StdoutECMWFDataSet
 from profiler_reader import ingest_allinea_profiles
 from scheduler_reader import ingest_accounting_logs, ingest_pbs_logs, ingest_epcc_csv_logs
 from darshan import DarshanDataSet

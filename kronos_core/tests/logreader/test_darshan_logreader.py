@@ -12,9 +12,9 @@ import types
 import os
 import mock
 
-from jobs import IngestedJob
-from logreader.base import LogReader
-from logreader.darshan import (DarshanIngestedJobFile, DarshanIngestedJob, DarshanLogReaderError, DarshanLogReader,
+from kronos_core.jobs import IngestedJob
+from kronos_core.logreader.base import LogReader
+from kronos_core.logreader.darshan import (DarshanIngestedJobFile, DarshanIngestedJob, DarshanLogReaderError, DarshanLogReader,
                                DarshanDataSet)
 
 

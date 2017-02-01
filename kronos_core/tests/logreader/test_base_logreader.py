@@ -13,9 +13,9 @@ import tempfile
 import shutil
 import os
 
-from exceptions_iows import ConfigurationError
-from jobs import IngestedJob
-from logreader.base import LogReader
+from kronos_core.exceptions_iows import ConfigurationError
+from kronos_core.jobs import IngestedJob
+from kronos_core.logreader.base import LogReader
 
 
 class BaseLogReaderTest(unittest.TestCase):

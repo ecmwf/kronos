@@ -11,9 +11,9 @@ import os
 import csv
 from datetime import datetime
 
-from exceptions_iows import ConfigurationError
-from logreader.dataset import IngestedDataSet
-from jobs import IngestedJob, ModelJob
+from kronos_core.exceptions_iows import ConfigurationError
+from kronos_core.logreader.dataset import IngestedDataSet
+from kronos_core.jobs import IngestedJob, ModelJob
 
 
 def read_pbs_log(filename_in):

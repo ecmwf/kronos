@@ -15,9 +15,9 @@ from StringIO import StringIO
 
 import jsonschema
 
-from config.config import Config
-from config.config_format import ConfigFormat
-from exceptions_iows import ConfigurationError
+from kronos_core.config.config import Config
+from kronos_core.config.config_format import ConfigFormat
+from kronos_core.exceptions_iows import ConfigurationError
 
 
 class ConfigTests(unittest.TestCase):

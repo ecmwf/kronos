@@ -9,7 +9,7 @@
 import numpy as np
 from scipy.optimize import curve_fit
 import matplotlib.pyplot as plt
-from plot_handler import PlotHandler
+from kronos_core.plot_handler import PlotHandler
 
 
 def find_n_clusters(avg_d_in_clust, user_does_not_check):

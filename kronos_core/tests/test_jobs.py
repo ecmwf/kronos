@@ -11,9 +11,9 @@ import unittest
 from StringIO import StringIO
 import json
 
-from exceptions_iows import ModellingError
-from jobs import ModelJob, IngestedJob
-import time_signal
+from kronos_core.exceptions_iows import ModellingError
+from kronos_core.jobs import ModelJob, IngestedJob
+from kronos_core import time_signal
 
 from kronos_io.profile_format import ProfileFormat
 

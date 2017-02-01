@@ -9,8 +9,8 @@
 import csv
 import os
 
-import time_signal
-from exceptions_iows import ConfigurationError
+from kronos_core import time_signal
+from kronos_core.exceptions_iows import ConfigurationError
 from kronos_io.schedule_format import ScheduleFormat
 from kronos_io.profile_format import ProfileFormat
 

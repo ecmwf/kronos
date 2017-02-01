@@ -12,9 +12,9 @@ import subprocess
 import time
 import os
 
-from exceptions_iows import ConfigurationError
-from config.config import Config
-from kronos_tools import print_colour
+from kronos_core.exceptions_iows import ConfigurationError
+from kronos_core.config.config import Config
+from kronos_core.kronos_tools import print_colour
 
 
 class BASEControls(object):

@@ -12,13 +12,10 @@ import unittest
 # import os
 import numpy as np
 
-import time_signal
-# from config.config import Config
-# from exceptions_iows import ConfigurationError
-import generator
-from jobs import ModelJob
-# from model import KronosModel
-from workload_data import WorkloadData
+from kronos_core import time_signal
+from kronos_core import generator
+from kronos_core.jobs import ModelJob
+from kronos_core.workload_data import WorkloadData
 
 
 class GeneratorTests(unittest.TestCase):

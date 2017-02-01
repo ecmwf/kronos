@@ -19,9 +19,9 @@ from workload_data import WorkloadData
 
 os.sys.path.append(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
 
-from time_signal import TimeSignal, signal_types
-from jobs import ModelJob
-import data_analysis
+from kronos_core.time_signal import TimeSignal, signal_types
+from kronos_core.jobs import ModelJob
+from kronos_core import data_analysis
 
 # from jobs import model_jobs_from_clusters
 

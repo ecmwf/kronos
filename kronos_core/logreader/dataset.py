@@ -24,8 +24,8 @@ import errno
 import os
 import datetime
 
-from exceptions_iows import ConfigurationError
-from kronos_tools.print_colour import print_colour
+from kronos_core.exceptions_iows import ConfigurationError
+from kronos_core.kronos_tools.print_colour import print_colour
 
 
 class IngestedDataSet(object):

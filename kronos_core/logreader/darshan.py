@@ -8,12 +8,12 @@
 
 import subprocess
 
-from jobs import IngestedJob, ModelJob
-from logreader.base import LogReader
-from logreader.dataset import IngestedDataSet
-from time_signal import TimeSignal
-from kronos_tools.merge import min_not_none, max_not_none
-from kronos_tools.print_colour import print_colour
+from kronos_core.jobs import IngestedJob, ModelJob
+from kronos_core.logreader.base import LogReader
+from kronos_core.logreader.dataset import IngestedDataSet
+from kronos_core.time_signal import TimeSignal
+from kronos_core.kronos_tools.merge import min_not_none, max_not_none
+from kronos_core.kronos_tools.print_colour import print_colour
 
 darshan_signal_priorities = {
     'kb_read': 8,

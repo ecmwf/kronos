@@ -6,7 +6,7 @@
 # granted to it by virtue of its status as an intergovernmental organisation nor
 # does it submit to any jurisdiction.
 
-from config.config import Config
+from kronos_core.config.config import Config
 
 
 class BaseRunner(object):

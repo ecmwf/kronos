@@ -12,11 +12,11 @@ import matplotlib.pyplot as plt
 from matplotlib.pyplot import cm
 # from collections import defaultdict
 
-from plot_handler import PlotHandler
-from postprocess.run_data import RunData
-import time_signal
-from kronos_tools.print_colour import print_colour
-from workload_data import WorkloadData
+from kronos_core.plot_handler import PlotHandler
+from kronos_core.postprocess.run_data import RunData
+from kronos_core.kronos_tools.print_colour import print_colour
+from kronos_core.workload_data import WorkloadData
+from kronos_core import time_signal
 
 
 class RunPlotter(object):

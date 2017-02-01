@@ -8,11 +8,11 @@
 
 import xml.etree.ElementTree as ET
 
-from exceptions_iows import IngestionError
-from jobs import IngestedJob, ModelJob
-from logreader.base import LogReader
-from logreader.dataset import IngestedDataSet
-from time_signal import TimeSignal
+from kronos_core.exceptions_iows import IngestionError
+from kronos_core.jobs import IngestedJob, ModelJob
+from kronos_core.logreader.base import LogReader
+from kronos_core.logreader.dataset import IngestedDataSet
+from kronos_core.time_signal import TimeSignal
 
 ipm_signal_priorities = {
     'n_collective': 7,

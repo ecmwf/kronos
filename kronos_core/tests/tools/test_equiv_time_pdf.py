@@ -12,7 +12,7 @@ import unittest
 import numpy as np
 # import matplotlib.pyplot as plt
 # from plot_handler import PlotHandler
-from kronos_tools.time_pdf import equiv_time_pdf_exact, equiv_time_pdf
+from kronos_core.kronos_tools.time_pdf import equiv_time_pdf_exact, equiv_time_pdf
 
 
 class EquivTimePDFTest(unittest.TestCase):

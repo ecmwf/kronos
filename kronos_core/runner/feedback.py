@@ -24,10 +24,10 @@ from workload_data import WorkloadData
 
 os.sys.path.append(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
 
-from base_runner import BaseRunner
-from kronos_tools import utils
-from logreader import profiler_reader
-from kronos_tools import print_colour
+from kronos_core.base_runner import BaseRunner
+from kronos_core.kronos_tools import utils
+from kronos_core.logreader import profiler_reader
+from kronos_core.kronos_tools import print_colour
 
 
 class FeedbackLoopRunner(BaseRunner):

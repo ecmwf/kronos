@@ -12,9 +12,9 @@ import numpy as np
 from StringIO import StringIO
 import json
 
-import time_signal
-from jobs import ModelJob
-from workload_data import WorkloadData
+from kronos_core import time_signal
+from kronos_core.jobs import ModelJob
+from kronos_core.workload_data import WorkloadData
 from kronos_io.profile_format import ProfileFormat
 
 
