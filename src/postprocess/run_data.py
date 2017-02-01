@@ -9,9 +9,10 @@
 import csv
 import os
 
+import time_signal
 from exceptions_iows import ConfigurationError
-from kpf_handler import KPFFileHandler
-from ksf_handler import KSFFileHandler
+from kronos_io.schedule_format import ScheduleFormat
+from kronos_io.profile_format import ProfileFormat
 
 
 class RunData(object):
@@ -43,7 +44,7 @@ class RunData(object):
             raise ConfigurationError("found more than one ksf file in run folder!")
         ksf_filename = os.path.join(ksf_iteration_dir, ksf_files_in_dir[0])
 
-        return KSFFileHandler().from_ksf_file(ksf_filename)
+        return ScheduleFormat.from_filename(ksf_filename)
 
     def get_kpf_data(self, iteration=None):
         """
@@ -63,7 +64,7 @@ class RunData(object):
 
         print "getting kpf data for iteration {}".format(iter_id)
 
-        return KPFFileHandler().load_kpf(kpf_filename)
+        return ProfileFormat.from_filename(kpf_filename)
 
     def get_n_iterations(self):
         """
@@ -116,4 +117,19 @@ class RunData(object):
 
         print "getting ksf data for iteration {}".format(iter_id)
 
-        KSFFileHandler().from_ksf_file(ksf_filename).print_statistics()
+        # KSFFileHandler().from_ksf_file(ksf_filename).print_statistics()
+        schedule = ScheduleFormat.from_filename(ksf_filename)
+
+        if not schedule.sa_data_json:
+            raise ValueError("Synthetic apps jsons not processed.. ")
+        else:
+            print "---------------------------------------------------------"
+            print "Total number of synthetic apps = {}".format(len(schedule.sa_data_json))
+
+            print "\n---------- Sums of UNSCALED metrics: ------------------\n"
+            for ss in time_signal.time_signal_names:
+                print "    {} = {}".format(ss, schedule.unscaled_sums[ss])
+
+            print "\n---------- Sums of SCALED metrics: ------------------\n"
+            for ss in time_signal.time_signal_names:
+                print "    {} = {}".format(ss, schedule.scaled_sums[ss])

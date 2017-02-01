@@ -10,6 +10,8 @@
 import os
 import sys
 
+from workload_data import WorkloadData
+
 sys.path.append(os.path.dirname(os.path.dirname(__file__)))
 
 import argparse
@@ -47,7 +49,7 @@ class Kronos(object):
         self.workloads = []
         for filename in self.config.kpf_files:
             with open(os.path.join(self.config.dir_input, filename), 'r') as f:
-                self.workloads.append(ProfileFormat.from_file(f).workload())
+                self.workloads.append(WorkloadData.from_kpf(ProfileFormat.from_file(f)))
 
         print "\nIngested workloads: [\n" + ",\n".join(["    {}".format(d.tag) for d in self.workloads]) + "\n]"
 
