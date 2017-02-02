@@ -128,7 +128,7 @@ class ExecutorTests(unittest.TestCase):
             # And check that the minimal config works!
             if os.path.exists(rundir):
                 shutil.rmtree(rundir)
-            e = executor.Executor(config_minimal, ScheduleFormat(sa_data_json=[]))
+            executor.Executor(config_minimal, ScheduleFormat(sa_data_json=[]))
 
         finally:
             # Just in case, clear everything up
