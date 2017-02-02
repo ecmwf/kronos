@@ -38,9 +38,9 @@ class BaseJob(object):
 
         This has a flexible meaning, depending on the setup. There can be many strategies here.
 
-          i) Add to list to run
-         ii) Run it immediately
-        iii) Set an async timer to run it in the future?
+            i) Add to list to run
+            ii) Run it immediately
+            iii) Set an async timer to run it in the future?
         """
         raise NotImplementedError
 

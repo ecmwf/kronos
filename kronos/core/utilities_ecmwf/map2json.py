@@ -26,11 +26,11 @@ def convertValsToFloat(d):
     """ Sets the values in the dictionary as a float, if possible, otherwise
     leaves them as the type they are
     
-    Args:
-        d (dict): Dictionary for which to convert the values to floats
-        
-    Returns:
-        No return value, as the dictionary is altred in place
+        Args:
+            d (dict): Dictionary for which to convert the values to floats
+
+        Returns:
+            No return value, as the dictionary is altred in place
     """
     assert isinstance(d, dict)
     
@@ -43,12 +43,12 @@ def convertValsToFloat(d):
 def map2XMLTree(filename):
     """Reads a compressed XML file and parses the data as XML
 
-    Args:
-        filename (str): The name of the MAP file to read in
+        Args:
+            filename (str): The name of the MAP file to read in
 
-    Returns:
-        An element tree of the parsed XML on success. Raises an exception
-        on error
+        Returns:
+            An element tree of the parsed XML on success. Raises an exception
+            on error
     """
     assert isinstance(filename, str)
     
@@ -79,15 +79,15 @@ def findAndReadTagAttributes(dataRoot, tagName, attributeList, numExpected=0):
     tag 'tagName' and stores this in a list of dictionaries to return. If an 
     attribute is not found in the tag a warning message is printed to stdout
 
-    Args:
-        dataRoot (ET.Element): Element to read from
-        tagName (str): Name of the tag to read attributes from
-        attributeList (list): List of strings of name of attributes to read values of
-        numExpected (int): Non-negative integer for the number of tags expected to be read.
-                           The default value is zero, in which case this value is ignored.
-    
-    Returns:
-        A list of dictionaries containing the values of the attributes that were found
+        Args:
+            dataRoot (ET.Element): Element to read from
+            tagName (str): Name of the tag to read attributes from
+            attributeList (list): List of strings of name of attributes to read values of
+            numExpected (int): Non-negative integer for the number of tags expected to be read.
+                               The default value is zero, in which case this value is ignored.
+
+        Returns:
+            A list of dictionaries containing the values of the attributes that were found
     """
     assert isinstance(dataRoot, __EtreeElType__), \
         "The dataRoot parameter must be of type xml.etree.Element but is of type %s" % type(dataRoot)
@@ -132,12 +132,12 @@ def readGlobalMetricData(rootEl, metricNames):
     """ Reads the metric data from directly beneath the root node (i.e. the metrics that are first
     children of the <profile> tag
     
-    Args:
-        rootEl (xml.etree.ElementTree.Element): The root element. The tag name of this should be "profile"
-        metricNames (list): List of strings of names of metrics
-        
-    Returns:
-        A dictionary of elements containing the global metrics reported in a MAP file
+        Args:
+            rootEl (xml.etree.ElementTree.Element): The root element. The tag name of this should be "profile"
+            metricNames (list): List of strings of names of metrics
+
+        Returns:
+            A dictionary of elements containing the global metrics reported in a MAP file
     """
     # Make sure that the root element is of the correct type
     assert isinstance(rootEl, __EtreeElType__)
@@ -167,11 +167,11 @@ def getJsonFName(mapFName):
     """ Returns a string containing the filename of the JSON file to write out to
     given the MAP file from which reading was performed
     
-    Args:
-        mapFName (str): The filename of the MAP file read in
-    
-    Returns:
-        The name of the json filename to use
+        Args:
+            mapFName (str): The filename of the MAP file read in
+
+        Returns:
+            The name of the json filename to use
     """
     # Replace the file extension given (assumed to be .map, but isn't necessarily) with
     # .json.
@@ -204,14 +204,14 @@ def addSampleTimesToDict(d, numSamples, duration):
     """ Adds the sample times to the dictionary passed in.
     It is assumed that the start time of the samples is zero
     
-    Args:
-        d (dict): The dictionary object to update
-        numSamples (int): The number of samples taken
-        duration (float): The duration that the samples span
-    
-    Returns:
-        No return value. The value of the dictionary is altered in this
-        method
+        Args:
+            d (dict): The dictionary object to update
+            numSamples (int): The number of samples taken
+            duration (float): The duration that the samples span
+
+        Returns:
+            No return value. The value of the dictionary is altered in this
+            method
     """
     assert isinstance(d, dict)
     assert isinstance(numSamples, int)
@@ -230,13 +230,13 @@ def addSampleTimesToDict(d, numSamples, duration):
 def collectSampleInfo(xmlroot, d, numExpected):
     """ collects sample info from the samples in the xmlroot passed in
     
-    args:
-        xmlroot (xml.etree.elementtree.element): the root of the profiling data
-        d (dict): a dictionary to populate with sample values
-        numExpected (int): the number of expected samples
-        
-    returns:
-        nothing. updates the dictionary d in this method
+        args:
+            xmlroot (xml.etree.elementtree.element): the root of the profiling data
+            d (dict): a dictionary to populate with sample values
+            numExpected (int): the number of expected samples
+
+        returns:
+            nothing. updates the dictionary d in this method
     """
     assert isinstance(xmlroot, __EtreeElType__), "xmlroot is of type " + str(type(xmlroot))
     assert isinstance(d, dict)
