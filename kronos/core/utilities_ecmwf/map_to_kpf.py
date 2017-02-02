@@ -16,9 +16,9 @@ import subprocess
 import json
 import argparse
 
-from exceptions_iows import ConfigurationError
-from kronos.io import ProfileFormat
-from logreader import profiler_reader
+from kronos.core.exceptions_iows import ConfigurationError
+from kronos.io.profile_format import ProfileFormat
+from kronos.core.logreader import profiler_reader
 
 if __name__ == "__main__":
 

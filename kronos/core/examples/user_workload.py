@@ -11,11 +11,11 @@ import os
 import numpy as np
 import matplotlib.pyplot as plt
 
-from kronos_core import generator
-from kronos_core import time_signal
-from kronos_core.config.config import Config
-from kronos_core.plot_handler import PlotHandler
-from kronos_core.workload_data import WorkloadData
+from kronos.core import generator
+from kronos.core import time_signal
+from kronos.core.config.config import Config
+from kronos.core.plot_handler import PlotHandler
+from kronos.core.workload_data import WorkloadData
 
 os.sys.path.append(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
 

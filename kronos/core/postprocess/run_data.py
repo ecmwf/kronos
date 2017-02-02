@@ -12,8 +12,8 @@ import os
 from kronos.core import time_signal
 from kronos.core.exceptions_iows import ConfigurationError
 
-from kronos.io import ProfileFormat
-from kronos.io import ScheduleFormat
+from kronos.io.profile_format import ProfileFormat
+from kronos.io.schedule_format import ScheduleFormat
 
 
 class RunData(object):

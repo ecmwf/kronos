@@ -19,7 +19,7 @@ from kronos.core.exceptions_iows import ConfigurationError
 from kronos.core.time_signal import signal_types
 from kronos.core.workload_data import WorkloadData
 
-from kronos.io import ScheduleFormat
+from kronos.io.schedule_format import ScheduleFormat
 
 os.sys.path.append(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
 

@@ -16,10 +16,9 @@ import argparse
 import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.pyplot import cm
-from plot_handler import PlotHandler
-from workload_data import WorkloadData
-
-from kronos.io import ProfileFormat
+from kronos.core.plot_handler import PlotHandler
+from kronos.core.workload_data import WorkloadData
+from kronos.io.profile_format import ProfileFormat
 
 if __name__ == "__main__":
 

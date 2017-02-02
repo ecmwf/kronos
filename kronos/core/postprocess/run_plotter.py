@@ -10,7 +10,6 @@ import os
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.pyplot import cm
-# from collections import defaultdict
 
 from kronos.core.plot_handler import PlotHandler
 from kronos.core.postprocess.run_data import RunData

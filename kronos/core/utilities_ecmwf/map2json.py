@@ -73,10 +73,9 @@ def map2XMLTree(filename):
 ### End of function map2XMLTree
 
 def findAndReadTagAttributes(dataRoot, tagName, attributeList, numExpected=0):
-    """Reads attributes from the given tag in an XML element tree
-
+    """ Reads attributes from the given tag in an XML element tree
     Reads the values of the attributes that are given in 'attributeList' in the
-    tag 'tagName' and stores this in a list of dictionaries to return. If an 
+    tag 'tagName' and stores this in a list of dictionaries to return. If an
     attribute is not found in the tag a warning message is printed to stdout
 
         Args:
@@ -84,7 +83,7 @@ def findAndReadTagAttributes(dataRoot, tagName, attributeList, numExpected=0):
             tagName (str): Name of the tag to read attributes from
             attributeList (list): List of strings of name of attributes to read values of
             numExpected (int): Non-negative integer for the number of tags expected to be read.
-                               The default value is zero, in which case this value is ignored.
+            The default value is zero, in which case this value is ignored.
 
         Returns:
             A list of dictionaries containing the values of the attributes that were found
