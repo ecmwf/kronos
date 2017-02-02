@@ -424,9 +424,11 @@ class IngestedJob(object):
 def concatenate_modeljobs(cat_job_label, job_list):
     """ Interlaces (or concatenates) a list of jobs into one single job
     the job time series will be interlaced according to their respective timestamps
-        :param   cat_job_label: name of concatenated job
-            job_list: list of jobs to concatenate
-        :return: A ModelJob
+
+    :param   cat_job_label: name of concatenated job
+        job_list: list of jobs to concatenate
+
+    :return: A ModelJob
 
     """
 
