@@ -14,8 +14,8 @@ import time
 
 import datetime
 
-import kronos_core.run_control
-import kronos_core.time_signal
+from kronos_core import run_control
+from kronos_core import time_signal
 from kronos_core.exceptions_iows import ConfigurationError
 
 from kronos_io.schedule_format import ScheduleFormat
@@ -102,7 +102,7 @@ class FeedbackLoopRunner(BaseRunner):
                                            self.tag+'_run_{}'.format(time_now_str))
             log_file = os.path.join(dir_run_results, 'log_file.txt')
 
-            job_runner = kronos_core.run_control.factory(self.config.run['hpc_job_sched'], self.config)
+            job_runner = run_control.factory(self.config.run['hpc_job_sched'], self.config)
 
             # handles the ksf file
             ksf_data = ScheduleFormat.from_filename(os.path.join(self.config.dir_output, self.ksf_filename))
@@ -126,7 +126,7 @@ class FeedbackLoopRunner(BaseRunner):
 
             pp = pprint.PrettyPrinter(depth=4)
             print "ts names: "
-            print kronos_core.time_signal.time_signal_names
+            print time_signal.time_signal_names
 
             print "reference metrics: "
             print pp.pprint(metrics_sum_dict_ref)
@@ -248,12 +248,12 @@ class FeedbackLoopRunner(BaseRunner):
                                                              self.updatable_metrics)
 
                 print "----------------------- summary: ---------------------------"
-                print "ts names                  : ", kronos_core.time_signal.time_signal_names
-                print "scaling factors           : ", utils.sort_dict_list(tuning_factors, kronos_core.time_signal.time_signal_names)
-                print "reference metrics         : ", utils.sort_dict_list(metrics_sum_dict_ref, kronos_core.time_signal.time_signal_names)
-                print "metrics sums              : ", utils.sort_dict_list(metrics_sum_dict, kronos_core.time_signal.time_signal_names)
-                print "scaling factors new       : ", utils.sort_dict_list(sc_factor_dict_new, kronos_core.time_signal.time_signal_names)
-                print "scaling factors new (REL) : ", [sc_factor_dict_new[k]/tuning_factors[k] for k in kronos_core.time_signal.time_signal_names]
+                print "ts names                  : ", time_signal.time_signal_names
+                print "scaling factors           : ", utils.sort_dict_list(tuning_factors, time_signal.time_signal_names)
+                print "reference metrics         : ", utils.sort_dict_list(metrics_sum_dict_ref, time_signal.time_signal_names)
+                print "metrics sums              : ", utils.sort_dict_list(metrics_sum_dict, time_signal.time_signal_names)
+                print "scaling factors new       : ", utils.sort_dict_list(sc_factor_dict_new, time_signal.time_signal_names)
+                print "scaling factors new (REL) : ", [sc_factor_dict_new[k]/tuning_factors[k] for k in time_signal.time_signal_names]
                 print "------------------------------------------------------------"
 
                 continue_flag = raw_input("Accept these scaling factors? ")
@@ -301,7 +301,7 @@ def get_new_scaling_factors(metrics_ref, metrics_sums, sc_factors, updatable_met
 def write_log_file(logfile, metrics_sum_dict, scaling_factor_dict):
     """ append metrics sums and scaling factors to log file.. """
     with open(logfile, "a") as myfile:
-        metrics_str = ''.join(str(e) + ' ' for e in utils.sort_dict_list(metrics_sum_dict, kronos_core.time_signal.time_signal_names))
-        scaling_str = ''.join(str(e) + ' ' for e in utils.sort_dict_list(scaling_factor_dict, kronos_core.time_signal.time_signal_names))
+        metrics_str = ''.join(str(e) + ' ' for e in utils.sort_dict_list(metrics_sum_dict, time_signal.time_signal_names))
+        scaling_str = ''.join(str(e) + ' ' for e in utils.sort_dict_list(scaling_factor_dict, time_signal.time_signal_names))
         myfile.write(metrics_str + scaling_str + '\n')
 

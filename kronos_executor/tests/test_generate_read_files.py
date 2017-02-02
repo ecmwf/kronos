@@ -9,8 +9,9 @@ import shutil
 sys.path.append(os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), 'kronos_py'))
 sys.path.append(os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))), 'bin'))
 
-import kronos_executor.generate_read_files as generate_read_files
+from kronos_executor import generate_read_files
 from kronos_executor.global_config import global_config
+
 from testutils import scratch_tmpdir
 
 
