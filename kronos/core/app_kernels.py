@@ -11,6 +11,7 @@ We need a way to convert a time series into the input for the synthetic app kern
 """
 from time_signal import signal_types
 
+
 class KernelBase(object):
 
     name = None
@@ -80,7 +81,10 @@ class CPUKernel(KernelBase):
 
         for d in data:
 
-            if d['flops'] > 0:
+            if d['flops'] < 0.:
+                raise ValueError('flops is < 0!')
+
+            if d['flops'] >= 0:
                 d['flops'] = min(d['flops'], signal_types['flops']['max_value'])
 
         return data
@@ -103,11 +107,23 @@ class MPIKernel(KernelBase):
 
         for d in data:
 
-            if d['kb_collective'] > 0:
+            if d['kb_collective'] < 0.:
+                raise ValueError('kb_collective is < 0!')
+
+            if d['n_collective'] < 0.:
+                raise ValueError('n_collective is < 0!')
+
+            if d['kb_pairwise'] < 0.:
+                raise ValueError('kb_pairwise is < 0!')
+
+            if d['n_pairwise'] < 0.:
+                raise ValueError('n_pairwise is < 0!')
+
+            if d['kb_collective'] >= 0:
                 d['n_collective'] = min(max(1, int(d['n_collective'])), int(signal_types['n_collective']['max_value']))
                 d['kb_collective'] = min(d['kb_collective'], signal_types['kb_collective']['max_value'])
 
-            if d['kb_pairwise'] > 0:
+            if d['kb_pairwise'] >= 0:
                 d['n_pairwise'] = min(max(1, int(d['n_pairwise'])), int(signal_types['n_pairwise']['max_value']))
                 d['kb_pairwise'] = min(d['kb_pairwise'], signal_types['kb_pairwise']['max_value'])
 
@@ -132,7 +148,14 @@ class FileReadKernel(KernelBase):
         data = super(FileReadKernel, self).synapp_config(n_bins=None)
 
         for d in data:
-            if d['kb_read'] > 0:
+
+            if d['kb_read'] < 0.:
+                raise ValueError('kb_read is < 0!')
+
+            if d['n_read'] < 0.:
+                raise ValueError('n_read is < 0!')
+
+            if d['kb_read'] >= 0:
                 d['n_read'] = min(max(1, int(d['n_read'])), int(signal_types['n_read']['max_value']))
                 d['kb_read'] = min(d['kb_read'], signal_types['kb_read']['max_value'])
 
@@ -158,12 +181,17 @@ class FileWriteKernel(KernelBase):
         data = super(FileWriteKernel, self).synapp_config(n_bins=None)
 
         for d in data:
+
+            if d['n_write'] < 0.:
+                raise ValueError('n_write is < 0!')
+            if d['kb_write'] < 0.:
+                raise ValueError('kb_write is < 0!')
+
             if d['n_write'] > 0:
-                # d['kb_write'] = max(1, d['kb_write'])
                 d['kb_write'] = min(max(1, d['kb_write']), signal_types['kb_write']['max_value'])
                 d['n_write'] = min(int(d['n_write']), int(signal_types['n_write']['max_value']))
+
             if d['kb_write'] > 0:
-                # d['n_write'] = max(1, d['n_write'])
                 d['n_write'] = min(max(1, int(d['n_write'])), int(signal_types['n_write']['max_value']))
                 d['kb_write'] = min(d['kb_write'], signal_types['kb_write']['max_value'])
 

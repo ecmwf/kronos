@@ -1,6 +1,6 @@
-===========
-kronos-core
-===========
+======
+NOTICE
+======
 
 Copyright 1996-2017 ECMWF
 
