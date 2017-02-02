@@ -20,7 +20,7 @@ if [[ -d src ]]; then
 fi
 
 if [[ -d tests ]]; then
-    for p in `find -maxdepth 2 -mindepth 1 -type d -name tests`; do
+    for p in `find -maxdepth 3 -mindepth 1 -type d -name tests`; do
         PYTHONPATH=`pwd` python ${bamboo_working_directory}/miniconda/envs/test_env/lib/python2.7/site-packages/pytest.py --junitxml="${bamboo_working_directory}/test_output.xml" ${p}
     done
 fi
