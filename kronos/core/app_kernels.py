@@ -51,6 +51,9 @@ class KernelBase(object):
 
         time_signals = [self.timesignals[ts_name].digitized(nbins=n_bins)[1] * factors[ts_name] for ts_name in time_signal_names]
 
+        # print time_signals
+        # raw_input()
+
         frames = [ { k: v for k, v in zip(key_names, ts_data) } for ts_data in zip(*time_signals) ]
 
         # Add any extra data, which is constant for all the elements.
@@ -103,11 +106,11 @@ class MPIKernel(KernelBase):
 
         for d in data:
 
-            if d['kb_collective'] > 0:
+            if d['kb_collective'] >= 0:
                 d['n_collective'] = min(max(1, int(d['n_collective'])), int(signal_types['n_collective']['max_value']))
                 d['kb_collective'] = min(d['kb_collective'], signal_types['kb_collective']['max_value'])
 
-            if d['kb_pairwise'] > 0:
+            if d['kb_pairwise'] >= 0:
                 d['n_pairwise'] = min(max(1, int(d['n_pairwise'])), int(signal_types['n_pairwise']['max_value']))
                 d['kb_pairwise'] = min(d['kb_pairwise'], signal_types['kb_pairwise']['max_value'])
 

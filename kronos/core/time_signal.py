@@ -54,11 +54,11 @@ class TimeSignal(object):
         self.ampls = kwargs.get('ampls', None)
         self.phases = kwargs.get('phases', None)
 
-        # digitized vals
-        self.xvalues_bins = None
-        self.yvalues_bins = None
-        self.xedge_bins = None
-        self.dx_bins = None
+        # # digitized vals
+        # self.xvalues_bins = None
+        # self.yvalues_bins = None
+        # self.xedge_bins = None
+        # self.dx_bins = None
 
         # this index is used for ranking time-series priorities when merging jobs..
         # priority = None  -> signal not given
@@ -147,6 +147,12 @@ class TimeSignal(object):
         if nbins is None:
             return self.xvalues, self.yvalues
 
+        # Digitization key
+        key = self.digitization_key
+
+        if self.durations is not None:
+            return self.digitize_durations(nbins, key)
+
         # Determine the bin boundaries
         xedge_bins = np.linspace(0.0, max(self.xvalues) + 1.0e-6, nbins + 1)
 
@@ -157,9 +163,6 @@ class TimeSignal(object):
         # Split the data up amongst the bins
         # n.b. Returned indices will be >= 1, as 0 means to the left of the left-most edge.
         bin_indices = np.digitize(self.xvalues, xedge_bins)
-
-        # Digitization key
-        key = self.digitization_key
 
         yvalues = np.zeros(nbins)
         for i in range(nbins):
@@ -184,15 +187,15 @@ class TimeSignal(object):
             key = self.digitization_key
 
         # Find out what the maximum time is
-        self.xedge_bins = np.linspace(0.0, max(self.xvalues + self.durations) + 1.0e-6, nbins + 1)
-        self.dx_bins = self.xedge_bins[1] - self.xedge_bins[0]
-        self.xvalues_bins = 0.5 * (self.xedge_bins[1:] + self.xedge_bins[:-1])
-        self.yvalues_bins = np.zeros(len(self.xvalues_bins))
+        xedge_bins = np.linspace(0.0, max(self.xvalues + self.durations) + 1.0e-6, nbins + 1)
+        dx_bins = xedge_bins[1] - xedge_bins[0]
+        xvalues_bins = 0.5 * (xedge_bins[1:] + xedge_bins[:-1])
+        yvalues_bins = np.zeros(len(xvalues_bins))
 
         # Now we need to loop through to attribute the data to bins (as considering the durations, it may not be
         # one-to-one
-        start_bins = np.digitize(self.xvalues, self.xedge_bins) - 1
-        end_bins = np.digitize(self.xvalues + self.durations, self.xedge_bins) - 1
+        start_bins = np.digitize(self.xvalues, xedge_bins) - 1
+        end_bins = np.digitize(self.xvalues + self.durations, xedge_bins) - 1
         for start, stop, x, y, dur in zip(start_bins, end_bins, self.xvalues, self.yvalues, self.durations):
 
             # An index of -1 would imply the data is to the left of the first bin. This would be unacceptable.
@@ -201,14 +204,16 @@ class TimeSignal(object):
 
             # If everything fits into one bin, then it should all be placed there.
             if start == stop:
-                self.yvalues_bins[start] += y
+                yvalues_bins[start] += y
             else:
-                self.yvalues_bins[start] = y * (self.dx_bins - math.fmod(x, self.dx_bins)) / dur
-                self.yvalues_bins[start+1:stop--1] = y * self.dx_bins / dur
-                self.yvalues_bins[stop] = y * math.fmod(x + dur, self.dx_bins) / dur
+                yvalues_bins[start] = y * (dx_bins - math.fmod(x, dx_bins)) / dur
+                yvalues_bins[start+1:stop--1] = y * dx_bins / dur
+                yvalues_bins[stop] = y * math.fmod(x + dur, dx_bins) / dur
 
-        self.yvalues_bins = np.asarray(self.yvalues_bins)
-        self.yvalues_bins = self.yvalues_bins.astype(self.ts_type)
+        yvalues_bins = np.asarray(yvalues_bins)
+        yvalues_bins = yvalues_bins.astype(self.ts_type)
+
+        return xvalues_bins, yvalues_bins
 
     # calculate the integral value
     @property
