@@ -36,7 +36,7 @@ class ScheduleFormat(JSONIoFormat):
             sa_data_json = [app.export('', job_entry_only=True) for i, app in enumerate(sorted_apps)]
 
         # initialize internals
-        self.sa_data_json = sa_data_json
+        self.synapp_data = sa_data_json
         self.tuning_factors = tuning_factors
         self.unscaled_sums = unscaled_sums
 
@@ -48,10 +48,10 @@ class ScheduleFormat(JSONIoFormat):
         """
         # We don't test the UID/created timestamp. Not interesting. Only care about the data.
 
-        if len(self.sa_data_json) != len(other.sa_data):
+        if len(self.synapp_data) != len(other.sa_data):
             return False
 
-        for j1, j2 in zip(self.sa_data_json, other.sa_data):
+        for j1, j2 in zip(self.synapp_data, other.sa_data):
             if j1 != j2:
                 return False
 
@@ -96,7 +96,7 @@ class ScheduleFormat(JSONIoFormat):
         """
         output_dict = super(ScheduleFormat, self).output_dict()
         output_dict.update({
-            "jobs": self.sa_data_json,
+            "jobs": self.synapp_data,
             "tuning_factors": self.tuning_factors,
             "unscaled_metrics_sums": self.unscaled_sums
         })

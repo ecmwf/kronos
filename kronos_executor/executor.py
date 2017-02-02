@@ -125,10 +125,11 @@ class Executor(object):
                  from the parsed JSONs).
         """
 
-        jobs = self.schedule['jobs']
+        jobs = self.schedule.synapp_data
         assert isinstance(jobs, list)
 
         for job in jobs:
+            print "JOB: ", job
             assert isinstance(job, dict)
             job_repeats = job.get("repeat", 1)
             for i in range(job_repeats):
