@@ -21,7 +21,7 @@ from kronos.core.config.config import Config
 from kronos.core.model import KronosModel
 from kronos.core.postprocess.run_plotter import RunPlotter
 
-from kronos.io import ProfileFormat
+from kronos.io.profile_format import ProfileFormat
 
 class Kronos(object):
     """
