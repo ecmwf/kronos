@@ -18,21 +18,17 @@ test_requirements = [
 ]
 
 setup(
-    name='kronos_core',
+    name='kronos',
     version='0.1.0',
     description="Workload extraction, modelling and duplication for HPC systems",
     long_description=readme + '\n\n' + history,
     author="Simon Smart",
     author_email='simon.smart@ecmwf.int',
     packages=[
-        'kronos_core',
-        'kronos_io',
-        'kronos_executor'
+        'kronos'
     ],
     package_dir={
-        'kronos_core': 'kronos_core',
-        'kronos_executor': 'kronos_executor',
-        'kronos_io': 'kronos_io'
+        'kronos': 'kronos'
     },
     scripts=[
         'bin/kronos-conf',
@@ -49,7 +45,7 @@ setup(
     install_requires=requirements,
     license="Apache Software License 2.0",
     zip_safe=False,
-    keywords='kronos_core',
+    keywords='kronos',
     test_suite='tests',
     tests_require=test_requirements
 )

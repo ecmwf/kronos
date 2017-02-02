@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 # (C) Copyright 1996-2017 ECMWF.
 # 
 # This software is licensed under the terms of the Apache Licence Version 2.0
@@ -7,15 +6,15 @@
 # granted to it by virtue of its status as an intergovernmental organisation nor
 # does it submit to any jurisdiction.
 
+from kronos.core.runner import simple
+from kronos.core.runner import feedback
 
-import os
-import sys
-
-sys.path.append(os.path.dirname(os.path.dirname(__file__)))
-
-from kronos.io import ProfileFormat
+runner_list = {
+    "simple": simple.SimpleRunner,
+    "feedback": feedback.FeedbackLoopRunner,
+}
 
 
-if __name__ == '__main__':
+def factory(key, config):
 
-    print ProfileFormat.describe()
+    return runner_list[key](config)

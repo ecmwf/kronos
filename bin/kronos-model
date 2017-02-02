@@ -14,14 +14,14 @@ sys.path.append(os.path.dirname(os.path.dirname(__file__)))
 
 import argparse
 
-from kronos_core import runner
-from kronos_core.exceptions_iows import ConfigurationError
-from kronos_core.workload_data import WorkloadData
-from kronos_core.config.config import Config
-from kronos_core.model import KronosModel
-from kronos_core.postprocess.run_plotter import RunPlotter
+from kronos.core import runner
+from kronos.core.exceptions_iows import ConfigurationError
+from kronos.core.workload_data import WorkloadData
+from kronos.core.config.config import Config
+from kronos.core.model import KronosModel
+from kronos.core.postprocess.run_plotter import RunPlotter
 
-from kronos_io.profile_format import ProfileFormat
+from kronos.io import ProfileFormat
 
 class Kronos(object):
     """

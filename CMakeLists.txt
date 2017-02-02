@@ -54,7 +54,7 @@ get_directory_property( KRONOS_DEFINITIONS COMPILE_DEFINITIONS )
 
 include_directories( ${KRONOS_INCLUDE_DIRS} )
 
-add_subdirectory( kronos_synapps )
+add_subdirectory( kronos-synapps )
 
 ### finalize project
 

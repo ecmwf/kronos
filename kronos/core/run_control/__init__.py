@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 # (C) Copyright 1996-2017 ECMWF.
 # 
 # This software is licensed under the terms of the Apache Licence Version 2.0
@@ -7,15 +6,15 @@
 # granted to it by virtue of its status as an intergovernmental organisation nor
 # does it submit to any jurisdiction.
 
+from kronos.core.run_control import controls
 
-import os
-import sys
+runner_list = {
+    "pbs": controls.PBSControls,
+    "slurm": controls.SLURMControls,
+    "local": controls.LocalControls
+}
 
-sys.path.append(os.path.dirname(os.path.dirname(__file__)))
 
-from kronos.io import ProfileFormat
+def factory(key, config):
 
-
-if __name__ == '__main__':
-
-    print ProfileFormat.describe()
+    return runner_list[key](config)
