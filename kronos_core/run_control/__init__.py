@@ -6,7 +6,7 @@
 # granted to it by virtue of its status as an intergovernmental organisation nor
 # does it submit to any jurisdiction.
 
-from run_control import controls
+from kronos_core.run_control import controls
 
 runner_list = {
     "pbs": controls.PBSControls,
