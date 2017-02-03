@@ -45,7 +45,7 @@ ecbuild_declare_project()
 
 ### export package to other ecbuild packages
 
-set( KRONOS_INCLUDE_DIRS   ${CMAKE_CURRENT_SOURCE_DIR}/kronos_synapps ${CMAKE_CURRENT_BINARY_DIR}/kronos_synapps )
+set( KRONOS_INCLUDE_DIRS   ${CMAKE_CURRENT_SOURCE_DIR}/kronos-synapps ${CMAKE_CURRENT_BINARY_DIR}/kronos-synapps )
 set( KRONOS_LIBRARIES      "" )
 
 get_directory_property( KRONOS_DEFINITIONS COMPILE_DEFINITIONS )
