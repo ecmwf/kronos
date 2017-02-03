@@ -194,9 +194,6 @@ class ExecutorTests(unittest.TestCase):
             config_minimal = {
                 'procs_per_node': 666,
                 'read_cache': self.base_config['read_cache'],
-                'job_format': 'testing-{}',
-                'n_jobs': 9999,
-                'jobs': ["job1", "job2"],
                 'job_class': 'remote_pbs',
                 'job_dir': tmpdir2,
                 'coordinator_binary': 'a-binary',
