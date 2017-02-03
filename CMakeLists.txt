@@ -10,6 +10,13 @@ include( ecbuild_system NO_POLICY_SCOPE )
 
 ecbuild_requires_macro_version( 2.0 )
 
+# Dependencies and option
+
+ecbuild_add_option(
+    FEATURE MPI
+    DESCRIPTION "Use system MPI libraries"
+    REQUIRED_PACKAGES "MPI COMPONENTS CXX" )
+
 # Add C flags to ensure standards compliance
 
 if( CMAKE_C_COMPILER_ID STREQUAL "GNU" OR CMAKE_C_COMPILER_ID STREQUAL "Clang" )
