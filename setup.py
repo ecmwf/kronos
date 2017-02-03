@@ -39,7 +39,9 @@ setup(
         'bin/kronos-kpf',
         'bin/kronos-ksf',
         'bin/kronos-model',
-        'bin/kronos-raw-to-kpf'
+        'bin/kronos-raw-to-kpf',
+        'bin/kronos-plot-run',
+        'bin/kronos-map-2-kpf'
     ],
     include_package_data=True,
     install_requires=requirements,

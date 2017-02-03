@@ -7,7 +7,6 @@
 # does it submit to any jurisdiction.
 
 
-
 def max_not_none(*args):
     """
     If all of the elements are None, return None, otherwise return the largest non-None element
