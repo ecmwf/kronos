@@ -23,7 +23,7 @@ class Executor(object):
         pass
 
     available_parameters = [
-        'coordinator_binary', 'enable_ipm', 'job_class', 'job_dir', 'job_format', 'jobs', 'n_jobs', 'ksf_file',
+        'coordinator_binary', 'enable_ipm', 'job_class', 'job_dir',
         'procs_per_node', 'read_cache', 'allinea_path', 'allinea_ld_library_path', 'allinea_licence_file',
         'local_tmpdir', 'submission_workers']
 
