@@ -12,10 +12,14 @@ Kronos tool to analise the results of a run
 """
 
 import argparse
-
+import sys
+import os
 import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.pyplot import cm
+
+sys.path.append(os.path.dirname(os.path.dirname(__file__)))
+
 from kronos.core.plot_handler import PlotHandler
 from kronos.core.workload_data import WorkloadData
 from kronos.io.profile_format import ProfileFormat
@@ -29,9 +33,11 @@ if __name__ == "__main__":
     parser.add_argument("-s", "--summary", action="store_true", help="make a summary of the run")
     args = parser.parse_args()
 
-    # ------- retrieve kpf data from iteration ----------
+    # ------- retrieve kpf data from iteration ---------- from_kpf
     with open(args.path_kpf, 'r') as f:
-        kpf_workload = ProfileFormat.from_file(f).workload()
+        # kpf_workload = ProfileFormat.from_file(f).workload()
+        kpf_format = ProfileFormat.from_file(f)
+        kpf_workload = WorkloadData.from_kpf(kpf_format)
 
     tot_n_apps = len(kpf_workload.jobs)
     labels_list = set(j.label for j in kpf_workload.jobs)

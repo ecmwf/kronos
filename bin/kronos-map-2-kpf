@@ -8,13 +8,17 @@
 # does it submit to any jurisdiction.
 
 """
-Utility to go through the kronos run folder, and generate a KPF file from the allinea jsons..
+Utility to go through the kronos run folder that has been profiled with Allinea,
+and generates a KPF file from the Allinea jsons (requires the map2json tool from Allinea to convert MAP to JSON format)
 """
+
 import os
-# import shutil
 import subprocess
 import json
 import argparse
+import sys
+
+sys.path.append(os.path.dirname(os.path.dirname(__file__)))
 
 from kronos.core.exceptions_iows import ConfigurationError
 from kronos.io.profile_format import ProfileFormat
@@ -106,7 +110,3 @@ if __name__ == "__main__":
     # write output kpf file..
     with open(args.kpf_file, 'w') as f:
         pf.write(f)
-
-    # remove tmp folder
-    # shutil.rmtree(tmp_dir_abs)
-
