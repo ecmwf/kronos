@@ -18,17 +18,27 @@ Please read LICENCE file
 Kronos reads profiled workload data (Kronos Profile Format .KPF) and generates a workload model (Kronos Schedule Format
 KSF). The main steps to run Kronos are listed here below.
 
-- kronos_ingest.py
-- kronos_raw_to_kpf.py
-- kronos_model.py
+*kronos_ingest.py*:
+  Ingests workload profile data and stores them into pickle files
+*kronos_raw_to_kpf.py*:
+  Converts pickled data into KPF format (Kronos input format)
+*kronos_model.py*:
+  Executes Kronos model
+
+*kronos-executor*:
+  Executes a KSF file on a HPC system
+*kronos-map-to-kpf*:
+  Utility tool for collecting MAP files of an executor run and convert it to KPF format
+*kronos-plot-run*:
+  Utility tool for plotting the results of a run (reads a KPF file of the run)
 
 3. File formats
 ---------------
 Kronos files formats are listed below:
 
-- Kronos configuration file format
-- Kronos Profile Format
-- Kronos Schedule Format
+- Kronos configuration file format (for info: > *kronos-conf*)
+- Kronos Profile Format (for info: > *kronos-kpf*)
+- Kronos Schedule Format (for info: > *kronos-ksf*)
 
 4. Executor
 -----------

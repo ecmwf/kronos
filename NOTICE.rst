@@ -3,12 +3,13 @@ NOTICE
 ======
 
 Copyright 1996-2017 ECMWF
+-------------------------
 
 This product is developed by the
 
   Development Section, European Centre for Medium-Range Weather Forecasts (ECMWF) - http://www.ecmwf.int
 
-Below the list of *python packages* used by kronos-core:
+Below the list of *python packages* used by kronos:
 
 - cairo=1.12.18=6
 - cycler=0.10.0=py27_0
