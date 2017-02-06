@@ -9,7 +9,6 @@
 
 import os
 import numpy as np
-import copy
 
 
 def mb(bytes):
