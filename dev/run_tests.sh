@@ -15,12 +15,7 @@ export PATH=${bamboo_working_directory}/miniconda/bin:${PATH}
 source activate test_env
 
 cd ${bamboo_working_directory}
-if [[ -d src ]]; then
-    cd src
-fi
 
-if [[ -d tests ]]; then
-    for p in `find -maxdepth 3 -mindepth 1 -type d -name tests`; do
-        PYTHONPATH=`pwd` python ${bamboo_working_directory}/miniconda/envs/test_env/lib/python2.7/site-packages/pytest.py --junitxml="${bamboo_working_directory}/test_output.xml" ${p}
-    done
-fi
+for p in `find -maxdepth 3 -mindepth 1 -type d -name tests`; do
+    PYTHONPATH=`pwd` python ${bamboo_working_directory}/miniconda/envs/test_env/lib/python2.7/site-packages/pytest.py --junitxml="${bamboo_working_directory}/test_output.xml" ${p}
+done
