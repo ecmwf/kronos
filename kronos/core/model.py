@@ -28,8 +28,8 @@ class KronosModel(object):
     """
 
     required_config_fields = [
-        'classification',
-        'generator',
+        # 'classification',
+        # 'generator',
     ]
 
     def __init__(self, workloads, config):
@@ -47,6 +47,10 @@ class KronosModel(object):
         self.jobs_for_clustering = []
         self.clusters = []
         self.modelled_sa_jobs = []
+
+        # check that there is the "model" entry in the config file..
+        if not self.config.model:
+            raise ConfigurationError("'model' entry not set in config file, but required!")
 
         # check that all the required fields are set
         for req_item in self.required_config_fields:
@@ -73,10 +77,12 @@ class KronosModel(object):
             self._apply_workload_fillin()
 
         # 2) apply classification
-        self._apply_classification()
+        if self.config_classification:
+            self._apply_classification()
 
         # 3) apply generation
-        self._apply_generation()
+        if self.config_generator:
+            self._apply_generation()
 
     def _apply_workload_fillin(self):
         """
