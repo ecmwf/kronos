@@ -154,10 +154,6 @@ class ConfigTests(unittest.TestCase):
         config_invalid_0 = config_empty_model
         config_invalid_0["model"] = {}
 
-        # check that exception is raised
-        self.assertRaises(jsonschema.ValidationError,
-                          lambda: ConfigFormat.from_file(StringIO(json.dumps(config_invalid_0))))
-
         # ------------- invalid "model" config file (INV-1) ----------
         config_invalid_1 = config_empty_model
         config_invalid_1["model"] = {
