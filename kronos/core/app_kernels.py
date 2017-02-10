@@ -85,7 +85,7 @@ class CPUKernel(KernelBase):
                 raise ValueError('flops is < 0!')
 
             if d['flops'] >= 0:
-                d['flops'] = min(d['flops'], signal_types['flops']['max_value'])
+                d['flops'] = int(min(d['flops'], signal_types['flops']['max_value']))
 
         return data
 
