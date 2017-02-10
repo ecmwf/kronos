@@ -37,7 +37,7 @@
     },
     "kpf_files": {
       "type": "array",
-      "description": "List of KPF input files",
+      "description": "List of KPF files that Kronos reads as input",
       "items": {
         "type": "string"
       }
@@ -56,7 +56,7 @@
           "properties": {
             "user_functions": {
               "type": "array",
-              "description": "User-defined functions that can be used to attach values to missing metrics",
+              "description": "User-defined functions used to estimate missing job-metrics",
               "items": {
                 "type": "object",
                 "oneOf": [
@@ -66,12 +66,12 @@
                     "properties": {
                       "type": {
                         "type": "string",
-                        "description": "Step function identifier",
+                        "description": "Function identification string",
                         "enum": ["step"]
                       },
                       "name": {
                         "type": "string",
-                        "description": "Function name"
+                        "description": "Function name (name callable by 'operations')"
                       },
                       "x_step": {
                         "type": "number",
@@ -87,12 +87,12 @@
                     "properties": {
                       "type": {
                         "type": "string",
-                        "description": "Custom function identifier",
+                        "description": "Function identification string",
                         "enum": ["custom"]
                       },
                       "name": {
                         "type": "string",
-                        "description": "Function name"
+                        "description": "Function name (name callable by 'operations')"
                       },
                       "x_values": {
                         "type": "array",
@@ -117,22 +117,48 @@
             },
             "operations": {
               "type": "array",
-              "description": "Operations to be applied to profiled workload jobs",
+              "description": "List of data filling operations",
               "items": {
                 "type": "object",
                 "oneOf": [
                   {
                     "type": "object",
-                    "description": "Filling job metrics operation",
+                    "description": "Recommender system",
+                    "properties":{
+                      "type":{
+                        "type":"string",
+                        "description": "Function identification string",
+                        "enum": ["recommender_system"]
+                      },
+                      "priority":{
+                        "type": "integer",
+                        "description": "Level of priority (0 to 10) to be assigned to job-metrics \n- only metrics with lower priority, will be replaced"
+                      },
+                      "n_bins":{
+                        "type": "integer",
+                        "description": "Number of bins used to discretize job-metrics in order to apply the recommender system"
+                      },
+                      "apply_to":{
+                          "type": "array",
+                          "description": "Target workloads",
+                          "items": {
+                            "type": "string"
+                          }
+                      }
+                    }
+                  },
+                  {
+                    "type": "object",
+                    "description": "User-defined job metrics",
                     "properties": {
                       "type": {
                         "type": "string",
-                        "description": "Operation that manually replaces missing job metrics with user-defined values",
+                        "description": "Function identification string",
                         "enum": ["fill_missing_entries"]
                       },
                       "apply_to": {
                         "type": "array",
-                        "description": "Array of names of the workloads to which these metrics should be applied to",
+                        "description": "Target workloads",
                         "items": {
                           "type": "string"
                         }
@@ -143,7 +169,7 @@
                       },
 					  "metrics": {
                         "type": "object",
-                        "description": "Metrics attached to each job record",
+                        "description": "Values of job-metrics",
                         "additionalProperties": false,
                         "patternProperties": {
                           "(n_write|n_read|kb_write|kb_read|n_pairwise|kb_pairwise|n_collective|kb_collective|flops)": {
@@ -162,11 +188,11 @@
                                 "properties": {
                                   "function":{
                                     "type": "string",
-                                    "description": "Name of user-defined function to be used for defining values"
+                                    "description": "Name of user-defined function (see entry 'user_functions')"
                                   },
                                   "scaling":{
                                     "type": "number",
-                                    "description": "Scaling factor that multiplies the user-defined function values"
+                                    "description": "Scaling factor that multiplies the user-defined function"
                                   }
                                 },
                                 "required": ["function", "scaling"]
@@ -180,7 +206,7 @@
                   },
                   {
                     "type": "object",
-                    "description": "Function that maps job metrics of one job into similar jobs in a workload",
+                    "description": "job-to-job metrics transfer",
                     "properties": {
                       "type": {
                         "type": "string",
@@ -213,7 +239,7 @@
                       },
                       "apply_to": {
                         "type": "array",
-                        "description": "Workloads whose jobs receive the metrics",
+                        "description": "Target workloads",
                         "items": {
                           "type": "string"
                         }
@@ -233,7 +259,7 @@
             "operations": {
               "type": "array",
               "minItems": 1,
-              "description": "Operations to perform on the workloads before clustering (e.g., workload splitting)",
+              "description": "Operations to perform on the workloads before clustering (e.g., workload splitting, etc..)",
               "items": {
                 "type": "object",
                 "oneOf": [
@@ -243,12 +269,12 @@
                   "properties": {
                     "type": {
                       "type": "string",
-                      "description": "Function identification keyword (workload split function)",
+                      "description": "Function identification string",
                       "enum": ["split"]
                     },
                     "apply_to": {
                       "type": "string",
-                      "description": "Workloads to split"
+                      "description": "Target workloads"
                     },
                     "create_workload": {
                       "type": "string",
@@ -256,7 +282,7 @@
                     },
                     "split_by": {
                       "type": "string",
-                      "description": "Job property to use splitting",
+                      "description": "Job property to use for splitting",
                       "enum": ["label", "job_name", "user_name", "cmd_str", "queue_name"]
                     },
                     "keywords_in": {
@@ -298,23 +324,23 @@
                 "properties": {
                   "apply_to": {
                     "type": "array",
-                    "description": "list of workload to which apply clustering",
+                    "description": "Target workloads",
                     "items": {
                       "type": "string"
                     }
                   },
                   "type": {
                     "type": "string",
-                    "description": "type of clustering algorithm",
+                    "description": "Function identification string",
                     "enum": ["Kmeans"]
                   },
                   "ok_if_low_rank": {
                     "type": "boolean",
-                    "description": "keep going even if there are just few distinct elements in the input set"
+                    "description": "Keep going even if there are just few distinct elements in the input set"
                   },
                   "user_does_not_check": {
                     "type": "boolean",
-                    "description": "if True, the algorithm does not stop"
+                    "description": "If True, the algorithm does not stop"
                   },
                   "rseed": {
                     "type": "integer",
@@ -322,19 +348,19 @@
                   },
                   "max_iter": {
                     "type": "integer",
-                    "description": "max iteration of the algorithm"
+                    "description": "Max iteration of the algorithm"
                   },
                   "max_num_clusters": {
                     "type": "integer",
-                    "description": "max number of clusters to explore to find the optimum"
+                    "description": "Max number of clusters to explore to find the optimum"
                   },
                   "delta_num_clusters": {
                     "type": "integer",
-                    "description": "delta number of clusters to explore to find the optimum"
+                    "description": "Delta number of clusters to explore to find the optimum"
                   },
                   "num_timesignal_bins": {
                     "type": "integer",
-                    "description": "number of bins to discretize the job metrics for applying the clustering"
+                    "description": "Number of bins to discretise the job metrics for applying the clustering"
                   }
                 },
                 "additionalProperties": false,
@@ -356,14 +382,14 @@
                 "properties": {
                   "apply_to": {
                     "type": "array",
-                    "description": "list of workload to which apply clustering",
+                    "description": "Target workloads",
                     "items": {
                       "type": "string"
                     }
                   },
                   "type": {
                     "type": "string",
-                    "description": "type of clustering algorithm",
+                    "description": "Function identification string",
                     "enum": ["DBSCAN"]
                   },
                   "rseed": {
@@ -372,11 +398,11 @@
                   },
                   "max_num_clusters": {
                     "type": "integer",
-                    "description": "max number of clusters to explore to find the optimum"
+                    "description": "Max number of clusters to explore to find the optimum"
                   },
                   "num_timesignal_bins": {
                     "type": "integer",
-                    "description": "number of bins to discretize the job metrics for applying the clustering"
+                    "description": "Number of bins to discretize the job metrics for applying the clustering"
                   }
                 },
                 "additionalProperties": false,
@@ -396,7 +422,7 @@
         },
         "generator": {
           "type": "object",
-          "description": "configuration for generating synthetic apps",
+          "description": "Configuration for generating synthetic apps",
           "properties": {
             "type": {
               "type": "string",
@@ -413,7 +439,7 @@
             },
             "tuning_factors": {
               "type": "object",
-              "description": "user-defined scaling factors of the job metrics",
+              "description": "User-defined scaling factors of the job metrics",
               "patternProperties": {
                 "(n_write|n_read|kb_write|kb_read|n_pairwise|kb_pairwise|n_collective|kb_collective|flops)": {
                   "type": "number"
