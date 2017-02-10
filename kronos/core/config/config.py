@@ -43,9 +43,6 @@ class Config(object):
     model_clustering_algorithm = None
     model_scaling_factor = 1.0
 
-    # hardware
-    CPU_FREQUENCY = 2.3e9  # Hz
-
     def __init__(self, config_dict=None, config_path=None):
 
         assert config_dict is None or config_path is None

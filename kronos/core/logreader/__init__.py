@@ -27,6 +27,7 @@ class_ingest_mapping = {
 
 ingest_types = sorted(simple_ingest_mapping.keys() + class_ingest_mapping.keys())
 
+
 def ingest_data(ingest_type, ingest_path, ingest_config=None, global_config=None):
     """
     A factory for the types of data ingestion we are going to get!
@@ -35,7 +36,7 @@ def ingest_data(ingest_type, ingest_path, ingest_config=None, global_config=None
 
     try:
 
-        return simple_ingest_mapping[ingest_type](ingest_path)
+        return simple_ingest_mapping[ingest_type](ingest_path, cfg=ingest_config if ingest_config else None)
 
     except KeyError:
 

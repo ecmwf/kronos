@@ -14,11 +14,11 @@ import glob
 import numpy as np
 
 from kronos.core.jobs import IngestedJob, ModelJob
+from kronos.core.kronos_tools.print_colour import print_colour
 from kronos.core.time_signal import TimeSignal
 from kronos.core.exceptions_iows import ConfigurationError
 from kronos.core.logreader.dataset import IngestedDataSet
 from kronos.core import time_signal
-from kronos.core.config import config
 
 allinea_signal_priorities = {
     'flops': 10,
@@ -33,7 +33,7 @@ allinea_signal_priorities = {
 }
 
 
-def read_allinea_log(filename, jobs_n_bins=None):
+def read_allinea_log(filename, jobs_n_bins=None, cfg=None):
     """ Collect info from Allinea logs """
 
     # The time signal map has a number of options for each element in the profile:
@@ -44,8 +44,24 @@ def read_allinea_log(filename, jobs_n_bins=None):
     # 'per_task': Is the value presented per-task, or global. If per-task it needs to be multiplied up.
     #             (default False)
 
+    print_colour("white",
+                 "NOTE: FLOPS not available for allinea Dataset: it will be estimated from %CPU and clock rate")
+
+    # check of the clock_rate is passed in the config
+    if not cfg:
+        print_colour("orange",
+                     "WARNING: clock rate not provided! arbitrarily set to 2.5GHz")
+        clock_rate = 2.5e9
+    else:
+        if cfg.get("clock_rate", None):
+            clock_rate = cfg["clock_rate"]
+        else:
+            print_colour("orange",
+                         "WARNING: clock rate not provided! arbitrarily set to 2.5GHz")
+            clock_rate = 2.5e9
+
     allinea_time_signal_map = {
-        'instr_fp':             {'name': 'flops',                          'scale_factor': config.Config.CPU_FREQUENCY, 'is_time_percent': True},
+        'instr_fp':             {'name': 'flops',                          'scale_factor': clock_rate, 'is_time_percent': True},
         'lustre_bytes_read':    {'name': 'kb_read',       'is_rate': True, 'scale_factor': 1./1024.},
         'lustre_bytes_written': {'name': 'kb_write',      'is_rate': True, 'scale_factor': 1./1024.},
         'mpi_p2p':              {'name': 'n_pairwise',    'is_rate': True},
@@ -146,7 +162,7 @@ def read_allinea_log(filename, jobs_n_bins=None):
     return i_job
 
 
-def read_allinea_logs(log_dir, jobs_n_bins=None, list_json_files=None):
+def read_allinea_logs(log_dir, cfg=None, jobs_n_bins=None, list_json_files=None):
 
     """
     Collect info from Allinea logs
@@ -159,7 +175,7 @@ def read_allinea_logs(log_dir, jobs_n_bins=None, list_json_files=None):
         json_files = [log_dir+'/'+ff for ff in list_json_files]
         json_files.sort()
 
-    return [ read_allinea_log(filename, jobs_n_bins) for filename in json_files ]
+    return [ read_allinea_log(filename, jobs_n_bins, cfg=cfg) for filename in json_files ]
 
 
 class AllineaDataSet(IngestedDataSet):
@@ -192,7 +208,7 @@ class AllineaDataSet(IngestedDataSet):
             )
 
 
-def ingest_allinea_profiles(path, jobs_n_bins=None, list_json_files=None, json_label_map=None):
+def ingest_allinea_profiles(path, cfg=None, jobs_n_bins=None, list_json_files=None, json_label_map=None):
     """
     Does what it says on the tin.
     """
@@ -202,12 +218,15 @@ def ingest_allinea_profiles(path, jobs_n_bins=None, list_json_files=None, json_l
     if not list_json_files:
         if os.path.isdir(path):
             jobs = read_allinea_logs(path,
+                                     cfg=cfg,
                                      jobs_n_bins=jobs_n_bins)
         else:
             jobs = [read_allinea_log(path,
+                                     cfg=cfg,
                                      jobs_n_bins=jobs_n_bins)]
     else:
         jobs = read_allinea_logs(path,
+                                 cfg=cfg,
                                  jobs_n_bins=jobs_n_bins,
                                  list_json_files=list_json_files)
 

@@ -44,6 +44,9 @@ if __name__ == "__main__":
     parser.add_argument("--parser", help="The darshan-parser executable to use if using darshan")
     parser.add_argument("--labeller", choices=LogReader.available_label_methods,
                         help="Select how ingested jobs are labelled by the LogReaders")
+    parser.add_argument("--clock_rate", "-c",
+                        type=float,
+                        help="Clock-rate of the hardware where the data have been profiled")
 
     args = parser.parse_args()
 
@@ -62,11 +65,14 @@ if __name__ == "__main__":
         "cache": False,  # Ensure that we always actively parse if using the parsing-specific tool
         "reparse": True,
         "pool_readers": args.workers,
+        "clock_rate": args.clock_rate
     }
     if args.parser:
         ingest_config['parser'] = args.parser
     if args.labeller:
         ingest_config['label_method'] = args.labeller
+    if args.clock_rate:
+        ingest_config['clock_rate'] = args.clock_rate
 
     print "Ingest config: {}".format(ingest_config)
     # if

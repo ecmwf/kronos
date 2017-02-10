@@ -454,7 +454,7 @@ class PBSDataSet(IngestedDataSet):
             )
 
 
-def ingest_pbs_logs(path):
+def ingest_pbs_logs(path, cfg=None):
     """
     Read PBS logs into a dataset
     """
@@ -469,7 +469,7 @@ def ingest_pbs_logs(path):
     return PBSDataSet(jobs)
 
 
-def ingest_epcc_csv_logs(path):
+def ingest_epcc_csv_logs(path, cfg=None):
     """
     Read PBS logs into a dataset
     """
@@ -523,7 +523,7 @@ class AccountingDataSet(IngestedDataSet):
             )
 
 
-def ingest_accounting_logs(path):
+def ingest_accounting_logs(path, cfg=None):
     """
     Read PBS logs into a dataset
     """
