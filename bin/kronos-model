@@ -91,8 +91,8 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Kronos software')
     parser.add_argument('configuration_file', type=str)
     parser.add_argument('-m', "--model", help="Generate workload model", action='store_true')
-    parser.add_argument('-r', "--run", help="Run the model on HPC", action='store_true')
-    parser.add_argument('-p', "--postprocess", help="Postprocess Run results", action='store_true')
+    # parser.add_argument('-r', "--run", help="Run the model on HPC", action='store_true')
+    # parser.add_argument('-p', "--postprocess", help="Postprocess Run results", action='store_true')
     parser.add_argument('-o', "--run_dir", help="Path containing run results")
     args = parser.parse_args()
 
@@ -121,10 +121,10 @@ if __name__ == "__main__":
 
         if args.model:
             app.model()
-        elif args.run:
-            app.run()
-        elif args.postprocess:
-            app.postprocess(args.run_dir)
+        # elif args.run:
+        #     app.run()
+        # elif args.postprocess:
+        #     app.postprocess(args.run_dir)
         else:
             print "command line parsing error.."
             sys.exit(-1)
