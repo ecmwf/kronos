@@ -94,6 +94,7 @@ class ModelJob(object):
         """
         return ModelJob(
             timesignals={n: time_signal.TimeSignal.from_values(n, xvals=t['times'], yvals=t['values'],
+                                                               priority=t['priority'],
                                                                base_signal_name=n)
                          for n, t in js.get('time_series', {}).iteritems()},
             **{k: v for k, v in js.iteritems() if hasattr(ModelJob, k) and v is not None}
