@@ -25,6 +25,7 @@ ipm_signal_priorities = {
     'n_write': 5,
 }
 
+
 class IPMTaskInfo(object):
     """
     Store the information aggregated in an IPM task.

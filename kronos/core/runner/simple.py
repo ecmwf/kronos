@@ -65,7 +65,6 @@ class SimpleRunner(BaseRunner):
             # rewrite user+host for convenience
             user_at_host = self.hpc_user + '@' + self.hpc_host
 
-            user_at_host = self.hpc_user + '@' + self.hpc_host
             time_now_str = datetime.datetime.strftime(datetime.datetime.now(), '%Y-%m-%d_%H-%M-%S')
             dir_run_results = os.path.join(self.config.dir_output, 'fl_run_{}'.format(time_now_str))
 

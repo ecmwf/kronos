@@ -8,6 +8,7 @@
 
 import sys
 
+
 def print_colour(col, text, end="\n", flush=False):
     """
     Print to the terminal in the specified colour
