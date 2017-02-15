@@ -84,6 +84,11 @@
                                 "type": "object",
                                 "description": "Time series data for a specific metric:\n\nflops - Number of floating point operations\n\nIO:\nn_read/write: Number of reads/writes\nkb_read/write: Kilobytes read/written\n\nMPI:\nn_pairwise/collective - Number of pairwise or collective MPI operations\nkb_pairwise/collective - Kilobytes communicated in pairwise or collective operations\n\nn.b. Lengths of times and values arrays must match.",
                                 "properties": {
+                                    "priority":{
+                                        "type": "integer",
+                                        "description": "number describing how reliable a metric is 0:unreliable, 10: totally accurate",
+                                        "enum":[1,2,3,4,5,6,7,8,9,10]
+                                    },
                                     "times": {
                                         "type": "array",
                                         "description": "Timestamps associated with measurement values",

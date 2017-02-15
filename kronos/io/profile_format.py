@@ -81,7 +81,8 @@ class ProfileFormat(JSONIoFormat):
             if values is not None:
                 time_series[name] = {
                     'times': list(values.xvalues),
-                    'values': list(values.yvalues)
+                    'values': list(values.yvalues),
+                    'priority': values.priority
                 }
 
         # The time series data is only included if it is present.
@@ -112,10 +113,3 @@ class ProfileFormat(JSONIoFormat):
             "workload_tag": self.workload_tag
         })
         return output_dict
-
-    #>>>#def workload(self):
-    #>>>#    """
-    #>>>#    Obtain a workload for further use in modelling (attach the appropriate tag)
-    #>>>#    """
-    #>>>#    return WorkloadData(jobs=self.model_jobs(), tag=self.workload_tag)
-
