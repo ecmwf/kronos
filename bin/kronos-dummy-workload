@@ -6,7 +6,13 @@
 # In applying this licence, ECMWF does not waive the privileges and immunities 
 # granted to it by virtue of its status as an intergovernmental organisation nor
 # does it submit to any jurisdiction.
+import os
 import argparse
+
+try:
+    import cPickle as pickle
+except:
+    import pickle
 
 import numpy as np
 from datetime import date
@@ -184,9 +190,19 @@ def kronos_dummy_workload():
 
 if __name__ == "__main__":
 
-    parser = argparse.ArgumentParser(description='Simple script to create a simplified workload')
+    parser = argparse.ArgumentParser(description='Script to create a simplified workload made of '
+                                                 'of jobs derived from few prototypical classes. It can be used for '
+                                                 'simple tests and examples')
     parser.add_argument("kpf_output", help="Path of KPF output file")
     args = parser.parse_args()
 
-    kpf_handle, _, _ = kronos_dummy_workload()
+    kpf_handle, class_idx_vec, model_job_classes = kronos_dummy_workload()
     kpf_handle.write_filename(args.kpf_output)
+
+    # In addition to the KPF also writes other two files with the indices and prototypical classes
+    # from which the jobs have been generated
+    with open(os.path.splitext(args.kpf_output)[0]+"_class_idx_vec", "w") as f:
+        pickle.dump(class_idx_vec, f)
+
+    with open(os.path.splitext(args.kpf_output)[0] + "_model_job_classes", "w") as f:
+        pickle.dump(model_job_classes, f)
