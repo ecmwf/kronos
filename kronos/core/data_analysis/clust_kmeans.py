@@ -8,6 +8,8 @@
 
 import numpy as np
 from scipy.spatial.distance import cdist
+import matplotlib.pyplot as plt
+
 from sklearn.cluster import KMeans
 from sklearn.metrics import silhouette_score
 
@@ -15,6 +17,7 @@ from clust_base import ClusteringBase
 from kronos.core.data_analysis.silhouette import find_n_clusters_silhouette
 
 from kronos.core.kronos_tools.print_colour import print_colour
+from kronos.core.plot_handler import PlotHandler
 
 
 class ClusteringKmeans(ClusteringBase):
@@ -44,8 +47,9 @@ class ClusteringKmeans(ClusteringBase):
         self.max_num_clusters = None
         self.delta_num_clusters = None
 
-        # number of digits to keet for evaluating the max of silhouette plot
-        self.n_round_off = 1
+        # number of digits to keep for evaluating the max of silhouette plot
+        # TODO: to find a better solution for this..
+        self.n_round_off = 3
 
         # Then set the general configuration into the parent class..
         super(ClusteringKmeans, self).__init__(config)
@@ -54,39 +58,36 @@ class ClusteringKmeans(ClusteringBase):
 
         print_colour("green", "calculating clusters by Kmeans..")
 
+        # check that the max number of clusters is not higher than the n samples in the input matrix
+        if self.max_num_clusters >= input_matrix.shape[0]:
+            self.max_num_clusters = input_matrix.shape[0]
+            print_colour("orange", "N clusters > matrix row size! => max n clusters = {}".format(input_matrix.shape[0]))
+
         nc_vec = np.arange(2, self.max_num_clusters, self.delta_num_clusters, dtype=int)
         avg_d_in_clust = np.zeros(nc_vec.shape[0])
-        n_clusters_max = None
         silhouette_score_vec = []
 
         for cc, n_clusters in enumerate(nc_vec):
             print_colour("white", "Doing K-means with {} clusters, matrix size={}".format(n_clusters, input_matrix.shape))
 
-            if n_clusters >= input_matrix.shape[0]:
-                print_colour("orange", "N clusters > matrix row size! => max n clusters = {}".format(n_clusters-1))
-                n_clusters_max = n_clusters-1
-                break
-            else:
-                y_pred = KMeans(n_clusters=int(n_clusters),
-                                max_iter=self.max_iter,
-                                random_state=self.rseed
-                                ).fit(input_matrix)
+            y_pred = KMeans(n_clusters=int(n_clusters),
+                            max_iter=self.max_iter,
+                            random_state=self.rseed
+                            ).fit(input_matrix)
 
-                clusters = y_pred.cluster_centers_
+            clusters = y_pred.cluster_centers_
 
-                silhouette_avg = silhouette_score(input_matrix, y_pred.labels_)
-                silhouette_score_vec.append(silhouette_avg)
+            silhouette_avg = silhouette_score(input_matrix, y_pred.labels_)
+            silhouette_score_vec.append(silhouette_avg)
 
-                # labels = y_pred.labels_
-                pt_to_all_clusters = cdist(input_matrix, clusters, 'euclidean')
-                dist_in_c = np.min(pt_to_all_clusters, axis=1)
-                avg_d_in_clust[cc] = np.mean(dist_in_c)
+            # labels = y_pred.labels_
+            pt_to_all_clusters = cdist(input_matrix, clusters, 'euclidean')
+            dist_in_c = np.min(pt_to_all_clusters, axis=1)
+            avg_d_in_clust[cc] = np.mean(dist_in_c)
 
-        # Calculate best number of clusters by elbow_method
-        if not n_clusters_max:
-            n_clusters_optimal = nc_vec[find_n_clusters_silhouette(silhouette_score_vec, self.n_round_off)]
-        else:
-            n_clusters_optimal = n_clusters_max
+        # Calculate best number of clusters by silhouette method
+        max_s_idx = find_n_clusters_silhouette(silhouette_score_vec, self.n_round_off)
+        n_clusters_optimal = nc_vec[max_s_idx]
 
         y_pred = KMeans(n_clusters=n_clusters_optimal,
                         max_iter=self.max_iter,
@@ -94,5 +95,16 @@ class ClusteringKmeans(ClusteringBase):
                         ).fit(input_matrix)
 
         print_colour("white", "Optimal number of clusters: {}".format(n_clusters_optimal))
+
+        # stop and plot cluster silhouette values unless specifically requested not to
+        if not self.user_does_not_check:
+            plot_handler = PlotHandler()
+            plt.figure(plot_handler.get_fig_handle_ID(), facecolor='w', edgecolor='k')
+            plt.plot(nc_vec, silhouette_score_vec, 'b')
+            plt.scatter(n_clusters_optimal, silhouette_score_vec[max_s_idx], color='r', s=1e2)
+            plt.xlabel("# clusters")
+            plt.ylabel("Silhouette score")
+            plt.show()
+
         return y_pred.cluster_centers_, y_pred.labels_
 
