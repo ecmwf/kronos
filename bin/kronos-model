@@ -93,7 +93,7 @@ if __name__ == "__main__":
     parser.add_argument('-m', "--model", help="Generate workload model", action='store_true')
     # parser.add_argument('-r', "--run", help="Run the model on HPC", action='store_true')
     # parser.add_argument('-p', "--postprocess", help="Postprocess Run results", action='store_true')
-    parser.add_argument('-o', "--run_dir", help="Path containing run results")
+    # parser.add_argument('-o', "--run_dir", help="Path containing run results")
     args = parser.parse_args()
 
     # # command line keys checks..
