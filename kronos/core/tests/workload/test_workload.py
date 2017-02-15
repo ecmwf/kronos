@@ -260,7 +260,8 @@ class WorkloadTests(unittest.TestCase):
                 "time_series": {
                     "kb_read": {
                         "times": [0.01, 0.02, 0.03, 0.04],
-                        "values": [15, 16, 17, 18]
+                        "values": [15, 16, 17, 18],
+                        "priority": 10
                     }
                 }
             }]
