@@ -82,7 +82,7 @@ class CPUKernel(KernelBase):
         for d in data:
 
             if d['flops'] < 0.:
-                raise ValueError('flops is < 0!')
+                raise ValueError('flops={} is < 0!'.format(d['flops']))
 
             if d['flops'] >= 0:
                 d['flops'] = int(min(d['flops'], signal_types['flops']['max_value']))
@@ -108,16 +108,16 @@ class MPIKernel(KernelBase):
         for d in data:
 
             if d['kb_collective'] < 0.:
-                raise ValueError('kb_collective is < 0!')
+                raise ValueError('kb_collective={} is < 0!'.format(d['kb_collective']))
 
             if d['n_collective'] < 0.:
-                raise ValueError('n_collective is < 0!')
+                raise ValueError('n_collective={} is < 0!'.format(d['n_collective']))
 
             if d['kb_pairwise'] < 0.:
-                raise ValueError('kb_pairwise is < 0!')
+                raise ValueError('kb_pairwise={} is < 0!'.format(d['kb_pairwise']))
 
             if d['n_pairwise'] < 0.:
-                raise ValueError('n_pairwise is < 0!')
+                raise ValueError('n_pairwise={} is < 0!'.format(d['n_pairwise']))
 
             if d['kb_collective'] >= 0:
                 d['n_collective'] = min(max(1, int(d['n_collective'])), int(signal_types['n_collective']['max_value']))
@@ -150,10 +150,10 @@ class FileReadKernel(KernelBase):
         for d in data:
 
             if d['kb_read'] < 0.:
-                raise ValueError('kb_read is < 0!')
+                raise ValueError('kb_read is < 0!'.format(d['kb_read']))
 
             if d['n_read'] < 0.:
-                raise ValueError('n_read is < 0!')
+                raise ValueError('n_read is < 0!'.format(d['n_read']))
 
             if d['kb_read'] >= 0:
                 d['n_read'] = min(max(1, int(d['n_read'])), int(signal_types['n_read']['max_value']))
@@ -183,9 +183,9 @@ class FileWriteKernel(KernelBase):
         for d in data:
 
             if d['n_write'] < 0.:
-                raise ValueError('n_write is < 0!')
+                raise ValueError('n_write={} is < 0!'.format(d['n_write']))
             if d['kb_write'] < 0.:
-                raise ValueError('kb_write is < 0!')
+                raise ValueError('kb_write={} is < 0!'.format(d['kb_write']))
 
             if d['n_write'] > 0:
                 d['kb_write'] = min(max(1, d['kb_write']), signal_types['kb_write']['max_value'])

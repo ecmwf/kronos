@@ -41,7 +41,7 @@ ecbuild_add_library (
 
 ecbuild_add_executable(
 
-    TARGET coordinator
+    TARGET kronos-coordinator
 
     SOURCES coordinator.c
 

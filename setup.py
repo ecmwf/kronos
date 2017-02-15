@@ -33,6 +33,7 @@ setup(
     scripts=[
         'bin/kronos-conf',
         'bin/kronos-config-enquire',
+        'bin/kronos-dummy-workload',
         'bin/kronos-executor',
         'bin/kronos-generate-read-files',
         'bin/kronos-ingest',

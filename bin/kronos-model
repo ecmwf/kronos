@@ -96,11 +96,11 @@ if __name__ == "__main__":
     parser.add_argument('-o', "--run_dir", help="Path containing run results")
     args = parser.parse_args()
 
-    # command line keys checks..
-    if args.postprocess and not args.run_dir:
-        raise ConfigurationError("Specify path of results to post-process: --run_dir=<path-to-results>")
-    elif args.postprocess and not os.path.exists(args.run_dir):
-        raise ConfigurationError("Path of results {} does not exist".format(args.run_dir))
+    # # command line keys checks..
+    # if args.postprocess and not args.run_dir:
+    #     raise ConfigurationError("Specify path of results to post-process: --run_dir=<path-to-results>")
+    # elif args.postprocess and not os.path.exists(args.run_dir):
+    #     raise ConfigurationError("Path of results {} does not exist".format(args.run_dir))
 
     try:
         try:

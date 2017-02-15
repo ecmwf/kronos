@@ -431,7 +431,7 @@ class PBSDataSet(IngestedDataSet):
 
     def model_jobs(self):
         for job in self.joblist:
-            assert isinstance(job, IngestedJob)
+            # assert isinstance(job, IngestedJob)
             assert not job.timesignals
 
             # if job.time_created >= 0:
