@@ -9,7 +9,6 @@
 import json
 import os
 import pickle
-import pprint
 
 import app_kernels
 from exceptions_iows import ConfigurationError

@@ -223,8 +223,6 @@ class ConfigTests(unittest.TestCase):
                 },
                 "submit_rate_factor": 4.0,
                 "synthapp_n_cpu": 2,
-                "synthapp_n_nodes": 1,
-                "synthapp_n_frames": 10,
                 "total_submit_interval": 300
             }
         }
@@ -261,8 +259,6 @@ class ConfigTests(unittest.TestCase):
                 },
                 "submit_rate_factor": 4.0,
                 "synthapp_n_cpu": 2,
-                "synthapp_n_nodes": 1,
-                "synthapp_n_frames": 10,
                 "total_submit_interval": 300
             }
         }
@@ -385,8 +381,6 @@ class ConfigTests(unittest.TestCase):
                 },
                 "submit_rate_factor": 4.0,
                 "synthapp_n_cpu": 2,
-                "synthapp_n_nodes": 1,
-                "synthapp_n_frames": 10,
                 "total_submit_interval": 300
             }
         }

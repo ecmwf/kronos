@@ -70,7 +70,6 @@ class GeneratorTests(unittest.TestCase):
                             "submit_rate_factor": 8.0,
                             "synthapp_n_cpu": 2,
                             "synthapp_n_nodes": 1,
-                            "synthapp_n_frames": 10,
                             "total_submit_interval": 60
                             }
 
@@ -153,7 +152,6 @@ class GeneratorTests(unittest.TestCase):
             "submit_rate_factor": 1.0,
             "synthapp_n_cpu": 2,
             "synthapp_n_nodes": 1,
-            "synthapp_n_frames": 10,
             "total_submit_interval": max([j.time_start for j in input_jobs])
         }
 
