@@ -34,7 +34,7 @@
                 "type": "object",
                 "additionalProperties": false,
                 "properties": {
-                    "name": {
+                    "job_name": {
                         "type": "string",
                         "description": "The job name (from the scheduler or other systems)"
                     },

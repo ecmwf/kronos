@@ -29,6 +29,7 @@ class ProfileFormat(JSONIoFormat):
 
         # We either initialise from model jobs, or from processed json data
         assert (model_jobs is not None) != (json_jobs is not None)
+
         if model_jobs:
             self.profiled_jobs = [self.parse_model_job(m) for m in model_jobs]
         else:
@@ -71,6 +72,10 @@ class ProfileFormat(JSONIoFormat):
         if model_job.label is not None:
             job['label'] = model_job.label
 
+        # TODO: think about a better place for the job name..
+        if model_job.job_name is not None:
+            job['job_name'] = model_job.job_name
+
         # Append any time series data that is present
         time_series = {}
         for name, values in model_job.timesignals.iteritems():
@@ -88,6 +93,7 @@ class ProfileFormat(JSONIoFormat):
         # The time series data is only included if it is present.
         if time_series:
             job['time_series'] = time_series
+
         return job
 
     @classmethod
