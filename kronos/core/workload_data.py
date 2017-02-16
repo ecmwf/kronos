@@ -123,16 +123,13 @@ class WorkloadData(object):
         metrics_dict = defaults_dict['metrics']
         np.random.seed(0)
         for job in self.jobs:
-            for ts_name in time_signal.time_signal_names:
+            for ts_name in metrics_dict.keys():
 
                 # go-ahead only if the time-series is missing or priority is less that user key
-                substitute = False
-                if not job.timesignals[ts_name]:
-                    substitute = True
-                elif job.timesignals[ts_name].priority <= defaults_dict['priority']:
+                if not job.timesignals[ts_name] or job.timesignals[ts_name].priority <= defaults_dict['priority']:
                     substitute = True
                 else:
-                    pass
+                    substitute = False
 
                 if substitute:
 
