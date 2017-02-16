@@ -111,7 +111,7 @@ class KronosModel(object):
 
         # export the synthetic workload
         ksf_path = os.path.join(self.config.dir_output, self.config.ksf_filename)
-        sa_workload.export_ksf(ksf_path, self.config_generator['synthapp_n_frames'])
+        sa_workload.export_ksf(ksf_path)
 
     def _check_jobs(self):
         """
@@ -205,8 +205,6 @@ class KronosModel(object):
             "tuning_factors",
             "submit_rate_factor",
             "synthapp_n_cpu",
-            "synthapp_n_nodes",
-            "synthapp_n_frames",
             "total_submit_interval"
         ]
 

@@ -454,14 +454,6 @@
               "type": "integer",
               "description": "N cpus to be used to run each synthetic application"
             },
-            "synthapp_n_nodes": {
-              "type": "integer",
-              "description": "N nodes to be used to run each synthetic application"
-            },
-            "synthapp_n_frames": {
-              "type": "integer",
-              "description": "N-frames used to discretise each synthetic application"
-            },
             "total_submit_interval": {
               "type": "integer",
               "description": "Total time interval within which synthetic applications are submitted"
@@ -474,8 +466,6 @@
             "tuning_factors",
             "submit_rate_factor",
             "synthapp_n_cpu",
-            "synthapp_n_nodes" ,
-            "synthapp_n_frames",
             "total_submit_interval"]
         }
       }

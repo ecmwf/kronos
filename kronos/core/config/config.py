@@ -73,6 +73,11 @@ class Config(object):
         # ------------ check against schema --------------
         ConfigFormat().validate_json(config_dict)
 
+        # ---------------------------------------------
+        # TODO: #nodes does not pass through the model (set by executor config for now..)
+        self.model['generator']['synthapp_n_nodes'] = 1
+        # ---------------------------------------------
+
         # if input or output folders do not exist, an error is raised
         if not os.path.exists(self.dir_input):
             raise ConfigurationError("input folder {} - does not exist!".format(self.dir_input))

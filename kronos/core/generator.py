@@ -29,8 +29,6 @@ class SyntheticWorkloadGenerator(object):
                              "tuning_factors",
                              "submit_rate_factor",
                              "synthapp_n_proc",
-                             "synthapp_n_nodes",
-                             "synthapp_n_frames",
                              "total_submit_interval",
                              ]
 
