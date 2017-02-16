@@ -114,25 +114,6 @@ class SyntheticWorkload(object):
         """
         return self.tuning_factor
 
-    def export_synth_apps(self, nbins, dir_output=None):
-        """
-        Export the synthetic apps to json files
-        :param nbins:
-        :param dir_output:
-        :return:
-        """
-
-        # A default dir, that can be overridden
-        dir_output = dir_output or self.config.dir_output
-
-        # Ensure that the synthetic applications are sorted by start time
-        sorted_apps = sorted(self.app_list, key=lambda a: a.time_start)
-
-        print "Exporting {} synthetic applications to: {}".format(len(sorted_apps), dir_output)
-
-        for i, app in enumerate(sorted_apps):
-            app.export(os.path.join(dir_output, "job-{}.json".format(i)), nbins)
-
     def export_pickle(self):
         """
         Export the synthetic workload to pickle file..
@@ -142,7 +123,7 @@ class SyntheticWorkload(object):
             pickle.dump(self, f)
             print_colour("green", "synthetic workload pickle file saved to {}".format(self.config.dir_output))
 
-    def export_ksf(self, filename, nbins):
+    def export_ksf(self, filename):
         """
         Write a KSF file that describes the synthetic schedule,
         this file can be given directly to the executor
@@ -151,18 +132,23 @@ class SyntheticWorkload(object):
 
         print_colour("green", "Exporting {} synth-apps to KSF schedule: {}".format(len(self.app_list), filename))
 
-        pp = pprint.PrettyPrinter(depth=6)
+        print "----- Metrics sums over workload: ------"
+        for k, v in self.total_metrics_dict().iteritems():
+            str_format = "%s: "+signal_types[k]['format']
+            print str_format % (k, v)
+        print "----------------------------------------"
 
-        print "Metrics sums over the model workload:\n"
-        pp.pprint(self.total_metrics_dict())
-        print "-----------------------------------------------"
+        print " --------- Scaling factors: ------------"
+        for k, v in self.tuning_factor.iteritems():
+            str_format = "%s: %f"
+            print str_format % (k, v)
+        print "----------------------------------------"
 
-        print "Scaling factors:\n"
-        pp.pprint(self.tuning_factor)
-        print "-----------------------------------------------"
-
-        print "Exported Metrics sums:\n"
-        pp.pprint(self.total_metrics_apps)
+        print "-------- Exported Metrics sums: --------"
+        for k, v in self.total_metrics_apps.iteritems():
+            str_format = "%s: "+signal_types[k]['format']
+            print str_format % (k, v)
+        print "----------------------------------------"
 
         ScheduleFormat.from_synthetic_workload(self).write_filename(filename)
 
