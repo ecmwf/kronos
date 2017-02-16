@@ -16,7 +16,7 @@ from kronos_tools import utils
 signal_types = OrderedDict([
 
     # # CPU
-    ('flops',         {'type': float, 'category': 'cpu',        'behaviour': 'sum', 'max_value': 1.0e20}),
+    ('flops',         {'type': int, 'category': 'cpu',        'behaviour': 'sum', 'max_value': 1.0e20}),
 
     # (file) I/O
     ('kb_read',       {'type': float, 'category': 'file-read',  'behaviour': 'sum', 'max_value': 1.0e20}),
@@ -25,9 +25,9 @@ signal_types = OrderedDict([
     ('n_write',       {'type': int, 'category': 'file-write',   'behaviour': 'sum', 'max_value': 1.0e20}),
 
     # MPI activity
-    ('n_pairwise',    {'type': float, 'category': 'mpi',        'behaviour': 'sum', 'max_value': 1.0e20}),
+    ('n_pairwise',    {'type': int, 'category': 'mpi',        'behaviour': 'sum', 'max_value': 1.0e20}),
     ('kb_pairwise',   {'type': float, 'category': 'mpi',        'behaviour': 'sum', 'max_value': 1.0e20}),
-    ('n_collective',  {'type': float, 'category': 'mpi',        'behaviour': 'sum', 'max_value': 1.0e20}),
+    ('n_collective',  {'type': int, 'category': 'mpi',        'behaviour': 'sum', 'max_value': 1.0e20}),
     ('kb_collective', {'type': float, 'category': 'mpi',        'behaviour': 'sum', 'max_value': 1.0e20})
 ])
 

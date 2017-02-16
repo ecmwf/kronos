@@ -9,10 +9,12 @@
 import json
 import os
 import pickle
+import pprint
 
 import app_kernels
 from exceptions_iows import ConfigurationError
 from jobs import ModelJob
+from kronos.core.time_signal import time_signal_names, signal_types
 from kronos.io.schedule_format import ScheduleFormat
 from kronos_tools.print_colour import print_colour
 
@@ -71,6 +73,31 @@ class SyntheticWorkload(object):
                             tot[ts.name] = ts.sum * fact
         return tot
 
+    @property
+    def total_metrics_apps(self):
+        """
+        Calculates the metrics of the whole workload (as sums of the kernels metrics) on the fly
+        :return:
+        """
+
+        # initialize the sums
+        metrics_sums = {k: 0. for k in time_signal_names}
+
+        # Query kernel metrics
+        for s_app in self.app_list:
+            frames_list = s_app.export(job_entry_only=True)['frames']
+            for frame in frames_list:
+                for ker in frame:
+                    for k in ker.keys():
+                        if k in time_signal_names:
+                            metrics_sums[k] += ker[k]
+
+        # cast types appropriately
+        for k in metrics_sums.keys():
+            metrics_sums[k] = signal_types[k]['type'](metrics_sums[k])
+
+        return metrics_sums
+
     def set_tuning_factors(self, tuning_factor):
         """
         Set the tuning factor for all the applications
@@ -121,9 +148,22 @@ class SyntheticWorkload(object):
         this file can be given directly to the executor
         :return:
         """
-        # ksf_file = KSFFileHandler().from_synthetic_workload(self)
-        # ksf_file.export(filename=filename, nbins=nbins)
+
         print_colour("green", "Exporting {} synth-apps to KSF schedule: {}".format(len(self.app_list), filename))
+
+        pp = pprint.PrettyPrinter(depth=6)
+
+        print "Metrics sums over the model workload:\n"
+        pp.pprint(self.total_metrics_dict())
+        print "-----------------------------------------------"
+
+        print "Scaling factors:\n"
+        pp.pprint(self.tuning_factor)
+        print "-----------------------------------------------"
+
+        print "Exported Metrics sums:\n"
+        pp.pprint(self.total_metrics_apps)
+
         ScheduleFormat.from_synthetic_workload(self).write_filename(filename)
 
 
