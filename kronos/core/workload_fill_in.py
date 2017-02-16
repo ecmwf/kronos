@@ -90,11 +90,18 @@ class WorkloadFiller(object):
 
             for wl_source_tag in match_config['source_workloads']:
 
-                wl_source = next(wl for wl in self.workloads if wl.tag == wl_source_tag)
+                try:
+                    wl_source = next(wl for wl in self.workloads if wl.tag == wl_source_tag)
+                except StopIteration:
+                    raise ConfigurationError("Source Workload {} not found".format(wl_source_tag))
 
                 for wl_dest_tag in match_config['apply_to']:
 
-                    wl_dest = next(wl for wl in self.workloads if wl.tag == wl_dest_tag)
+                    try:
+                        wl_dest = next(wl for wl in self.workloads if wl.tag == wl_dest_tag)
+                    except StopIteration:
+                        raise ConfigurationError("Destination Workload {} not found".format(wl_dest_tag))
+
                     n_destination_jobs += len(wl_dest.jobs)
 
                     n_job_matched += wl_dest.apply_lookup_table(wl_source,

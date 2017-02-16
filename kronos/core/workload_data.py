@@ -138,6 +138,12 @@ class WorkloadData(object):
 
                     # if the entry is a list, generate the random number in [min, max]
                     if isinstance(metrics_dict[ts_name], list):
+
+                        # check on the length of the list (should be 2)
+                        if len(metrics_dict[ts_name]) != 2:
+                            raise ConfigurationError("For metrics {} 2 values are expected for filling operation, "
+                                                     "but got {} instead!".format(ts_name, len(metrics_dict[ts_name])))
+
                         # generate a random number between provided min and max values
                         y_min = metrics_dict[ts_name][0]
                         y_max = metrics_dict[ts_name][1]

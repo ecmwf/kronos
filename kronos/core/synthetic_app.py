@@ -123,6 +123,7 @@ class SyntheticWorkload(object):
         """
         # ksf_file = KSFFileHandler().from_synthetic_workload(self)
         # ksf_file.export(filename=filename, nbins=nbins)
+        print_colour("green", "Exporting {} synth-apps to KSF schedule: {}".format(len(self.app_list), filename))
         ScheduleFormat.from_synthetic_workload(self).write_filename(filename)
 
 
