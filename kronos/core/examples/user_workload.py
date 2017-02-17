@@ -27,8 +27,6 @@ from kronos.io.profile_format import ProfileFormat
 
 os.sys.path.append(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
 
-
-
 user_config = {
     "verbose": True,
     "version": 1,
@@ -59,7 +57,7 @@ user_config = {
                 "max_num_clusters": 20,
                 "delta_num_clusters": 1,
                 "num_timesignal_bins": 3,
-                "user_does_not_check": True
+                "user_does_not_check": False
             }
         }
     }
@@ -135,6 +133,7 @@ def user_workload():
                                reference_metrics=class_app.timesignals)
 
     # --------------------- plot clusters.. --------------------------
+    print "----> Plotting.."
     model_cluster = workload_model.clusters[0]
     clusters_labels = model_cluster['labels']
     cluster_matrix = model_cluster['cluster_matrix']
@@ -167,6 +166,8 @@ def user_workload():
     plt.savefig(os.path.join(dir_output, "clusters_rs.png"))
     plt.close()
     # ----------------------------------------------------------------
+
+    print "done!"
 
 
 if __name__ == '__main__':

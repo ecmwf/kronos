@@ -49,7 +49,7 @@ class ClusteringKmeans(ClusteringBase):
 
         # number of digits to keep for evaluating the max of silhouette plot
         # TODO: to find a better solution for this..
-        self.n_round_off = 3
+        self.n_round_off = 1
 
         # Then set the general configuration into the parent class..
         super(ClusteringKmeans, self).__init__(config)

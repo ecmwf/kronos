@@ -76,7 +76,8 @@ class Config(object):
         # ---------------------------------------------
         # TODO: #nodes does not pass through the model (set by executor config for now..)
         if self.model:
-            self.model['generator']['synthapp_n_nodes'] = 1
+            if self.model.get('generator'):
+                self.model['generator']['synthapp_n_nodes'] = 1
         # ---------------------------------------------
 
         # if input or output folders do not exist, an error is raised

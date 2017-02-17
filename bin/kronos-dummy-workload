@@ -46,7 +46,7 @@ def kronos_dummy_workload():
     }
 
     # probability of missing signal = 0.8 # 0 ->no ts available, 1 -> all ts available
-    ts_probability = 0.7
+    ts_probability = 0.9
 
     # define number of classes
     # n_procs = 2
