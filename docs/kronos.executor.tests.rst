@@ -4,12 +4,38 @@ kronos.executor.tests package
 Submodules
 ----------
 
-.. toctree::
+kronos.executor.tests.test_executor module
+------------------------------------------
 
-   kronos.executor.tests.test_executor
-   kronos.executor.tests.test_generate_read_files
-   kronos.executor.tests.test_jobs
-   kronos.executor.tests.testutils
+.. automodule:: kronos.executor.tests.test_executor
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+kronos.executor.tests.test_generate_read_files module
+-----------------------------------------------------
+
+.. automodule:: kronos.executor.tests.test_generate_read_files
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+kronos.executor.tests.test_jobs module
+--------------------------------------
+
+.. automodule:: kronos.executor.tests.test_jobs
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+kronos.executor.tests.testutils module
+--------------------------------------
+
+.. automodule:: kronos.executor.tests.testutils
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 
 Module contents
 ---------------

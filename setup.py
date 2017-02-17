@@ -18,12 +18,12 @@ test_requirements = [
 ]
 
 setup(
-    name='kronos',
+    name='Kronos',
     version='0.1.0',
     description="Workload extraction, modelling and duplication for HPC systems",
     long_description=readme + '\n\n' + history,
-    author="Simon Smart",
-    author_email='simon.smart@ecmwf.int',
+    author="Tiago Quintino, Antonino Bonanni, Simon Smart",
+    author_email='',
     packages=[
         'kronos'
     ],

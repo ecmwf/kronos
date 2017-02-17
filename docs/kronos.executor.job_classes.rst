@@ -4,15 +4,62 @@ kronos.executor.job_classes package
 Submodules
 ----------
 
-.. toctree::
+kronos.executor.job_classes.base_job module
+-------------------------------------------
 
-   kronos.executor.job_classes.base_job
-   kronos.executor.job_classes.hpc
-   kronos.executor.job_classes.pbs
-   kronos.executor.job_classes.remote_hpc
-   kronos.executor.job_classes.remote_pbs
-   kronos.executor.job_classes.slurm
-   kronos.executor.job_classes.trivial_job
+.. automodule:: kronos.executor.job_classes.base_job
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+kronos.executor.job_classes.hpc module
+--------------------------------------
+
+.. automodule:: kronos.executor.job_classes.hpc
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+kronos.executor.job_classes.pbs module
+--------------------------------------
+
+.. automodule:: kronos.executor.job_classes.pbs
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+kronos.executor.job_classes.remote_hpc module
+---------------------------------------------
+
+.. automodule:: kronos.executor.job_classes.remote_hpc
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+kronos.executor.job_classes.remote_pbs module
+---------------------------------------------
+
+.. automodule:: kronos.executor.job_classes.remote_pbs
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+kronos.executor.job_classes.slurm module
+----------------------------------------
+
+.. automodule:: kronos.executor.job_classes.slurm
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+kronos.executor.job_classes.trivial_job module
+----------------------------------------------
+
+.. automodule:: kronos.executor.job_classes.trivial_job
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 
 Module contents
 ---------------

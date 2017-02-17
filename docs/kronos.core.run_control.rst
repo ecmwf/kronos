@@ -4,9 +4,14 @@ kronos.core.run_control package
 Submodules
 ----------
 
-.. toctree::
+kronos.core.run_control.controls module
+---------------------------------------
 
-   kronos.core.run_control.controls
+.. automodule:: kronos.core.run_control.controls
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 
 Module contents
 ---------------

@@ -4,10 +4,22 @@ kronos.core.config package
 Submodules
 ----------
 
-.. toctree::
+kronos.core.config.config module
+--------------------------------
 
-   kronos.core.config.config
-   kronos.core.config.config_format
+.. automodule:: kronos.core.config.config
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+kronos.core.config.config_format module
+---------------------------------------
+
+.. automodule:: kronos.core.config.config_format
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 
 Module contents
 ---------------

@@ -4,10 +4,22 @@ kronos.core.tests.workload package
 Submodules
 ----------
 
-.. toctree::
+kronos.core.tests.workload.test_generator module
+------------------------------------------------
 
-   kronos.core.tests.workload.test_generator
-   kronos.core.tests.workload.test_workload
+.. automodule:: kronos.core.tests.workload.test_generator
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+kronos.core.tests.workload.test_workload module
+-----------------------------------------------
+
+.. automodule:: kronos.core.tests.workload.test_workload
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 
 Module contents
 ---------------

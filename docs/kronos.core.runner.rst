@@ -4,11 +4,30 @@ kronos.core.runner package
 Submodules
 ----------
 
-.. toctree::
+kronos.core.runner.base_runner module
+-------------------------------------
 
-   kronos.core.runner.base_runner
-   kronos.core.runner.feedback
-   kronos.core.runner.simple
+.. automodule:: kronos.core.runner.base_runner
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+kronos.core.runner.feedback module
+----------------------------------
+
+.. automodule:: kronos.core.runner.feedback
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+kronos.core.runner.simple module
+--------------------------------
+
+.. automodule:: kronos.core.runner.simple
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 
 Module contents
 ---------------

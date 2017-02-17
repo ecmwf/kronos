@@ -14,9 +14,14 @@ Subpackages
 Submodules
 ----------
 
-.. toctree::
+kronos.core.tests.test_jobs module
+----------------------------------
 
-   kronos.core.tests.test_jobs
+.. automodule:: kronos.core.tests.test_jobs
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 
 Module contents
 ---------------

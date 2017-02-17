@@ -19,19 +19,94 @@ Subpackages
 Submodules
 ----------
 
-.. toctree::
+kronos.core.app_kernels module
+------------------------------
 
-   kronos.core.app_kernels
-   kronos.core.exceptions_iows
-   kronos.core.fill_in_functions
-   kronos.core.generator
-   kronos.core.jobs
-   kronos.core.model
-   kronos.core.plot_handler
-   kronos.core.synthetic_app
-   kronos.core.time_signal
-   kronos.core.workload_data
-   kronos.core.workload_fill_in
+.. automodule:: kronos.core.app_kernels
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+kronos.core.exceptions_iows module
+----------------------------------
+
+.. automodule:: kronos.core.exceptions_iows
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+kronos.core.fill_in_functions module
+------------------------------------
+
+.. automodule:: kronos.core.fill_in_functions
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+kronos.core.generator module
+----------------------------
+
+.. automodule:: kronos.core.generator
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+kronos.core.jobs module
+-----------------------
+
+.. automodule:: kronos.core.jobs
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+kronos.core.model module
+------------------------
+
+.. automodule:: kronos.core.model
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+kronos.core.plot_handler module
+-------------------------------
+
+.. automodule:: kronos.core.plot_handler
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+kronos.core.synthetic_app module
+--------------------------------
+
+.. automodule:: kronos.core.synthetic_app
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+kronos.core.time_signal module
+------------------------------
+
+.. automodule:: kronos.core.time_signal
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+kronos.core.workload_data module
+--------------------------------
+
+.. automodule:: kronos.core.workload_data
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+kronos.core.workload_fill_in module
+-----------------------------------
+
+.. automodule:: kronos.core.workload_fill_in
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 
 Module contents
 ---------------

@@ -12,12 +12,38 @@ Subpackages
 Submodules
 ----------
 
-.. toctree::
+kronos.executor.executor module
+-------------------------------
 
-   kronos.executor.executor
-   kronos.executor.generate_read_files
-   kronos.executor.global_config
-   kronos.executor.subprocess_callback
+.. automodule:: kronos.executor.executor
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+kronos.executor.generate_read_files module
+------------------------------------------
+
+.. automodule:: kronos.executor.generate_read_files
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+kronos.executor.global_config module
+------------------------------------
+
+.. automodule:: kronos.executor.global_config
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+kronos.executor.subprocess_callback module
+------------------------------------------
+
+.. automodule:: kronos.executor.subprocess_callback
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 
 Module contents
 ---------------

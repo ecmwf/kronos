@@ -4,9 +4,14 @@ kronos.core.examples package
 Submodules
 ----------
 
-.. toctree::
+kronos.core.examples.user_workload module
+-----------------------------------------
 
-   kronos.core.examples.user_workload
+.. automodule:: kronos.core.examples.user_workload
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 
 Module contents
 ---------------

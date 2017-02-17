@@ -4,10 +4,30 @@ kronos.core.postprocess package
 Submodules
 ----------
 
-.. toctree::
+kronos.core.postprocess.plot_model_job module
+---------------------------------------------
 
-   kronos.core.postprocess.run_data
-   kronos.core.postprocess.run_plotter
+.. automodule:: kronos.core.postprocess.plot_model_job
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+kronos.core.postprocess.run_data module
+---------------------------------------
+
+.. automodule:: kronos.core.postprocess.run_data
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+kronos.core.postprocess.run_plotter module
+------------------------------------------
+
+.. automodule:: kronos.core.postprocess.run_plotter
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 
 Module contents
 ---------------

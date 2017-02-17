@@ -4,10 +4,22 @@ kronos.core.tests.tools package
 Submodules
 ----------
 
-.. toctree::
+kronos.core.tests.tools.test_equiv_time_pdf module
+--------------------------------------------------
 
-   kronos.core.tests.tools.test_equiv_time_pdf
-   kronos.core.tests.tools.test_merge_tools
+.. automodule:: kronos.core.tests.tools.test_equiv_time_pdf
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+kronos.core.tests.tools.test_merge_tools module
+-----------------------------------------------
+
+.. automodule:: kronos.core.tests.tools.test_merge_tools
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 
 Module contents
 ---------------
