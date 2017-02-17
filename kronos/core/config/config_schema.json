@@ -437,7 +437,7 @@
               "type": "integer",
               "description": "Seed for random number generation"
             },
-            "tuning_factors": {
+            "scaling_factors": {
               "type": "object",
               "description": "User-defined scaling factors of the job metrics",
               "patternProperties": {
@@ -463,7 +463,7 @@
             "type",
             "n_bins_for_pdf",
             "random_seed",
-            "tuning_factors",
+            "scaling_factors",
             "submit_rate_factor",
             "synthapp_n_cpu",
             "total_submit_interval"]

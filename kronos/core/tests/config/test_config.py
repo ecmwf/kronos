@@ -210,7 +210,7 @@ class ConfigTests(unittest.TestCase):
                 "type": "match_job_pdf_exact",
                 "n_bins_for_pdf": 20,
                 "random_seed": 0,
-                "tuning_factors": {
+                "scaling_factors": {
                     "kb_collective": 1e1,
                     "n_collective": 1e-1,
                     "kb_write": 1e-4,
@@ -246,7 +246,7 @@ class ConfigTests(unittest.TestCase):
                 "type": "match_job_pdf_exact",
                 "n_bins_for_pdf": 20,
                 "random_seed": 0,
-                "tuning_factors": {
+                "scaling_factors": {
                     "kb_collective": 1e1,
                     "n_collective": 1e-1,
                     "kb_write": 1e-4,
@@ -368,7 +368,7 @@ class ConfigTests(unittest.TestCase):
                 "type": "match_job_pdf_exact",
                 "n_bins_for_pdf": 20,
                 "random_seed": 0,
-                "tuning_factors": {
+                "scaling_factors": {
                     "kb_collective": 1e1,
                     "n_collective": 1e-1,
                     "kb_write": 1e-4,

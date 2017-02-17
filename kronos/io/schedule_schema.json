@@ -191,7 +191,7 @@
 
             }
         },
-        "tuning_factors": {
+        "scaling_factors": {
             "type": "object",
             "description": "Description of synthetic applications",
             "patternProperties": {

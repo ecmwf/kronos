@@ -118,10 +118,10 @@ class FeedbackLoopRunner(BaseRunner):
                 ts_names_str = ''.join(e + ' ' for e in signal_types.keys())
                 myfile.write(ts_names_str + '\n')
 
-            # initialize the vectors: metric_sums, tuning factors
+            # initialize the vectors: metric_sums, scaling factors
             metrics_sum_dict_ref = ksf_data.scaled_sums
             sa_metric_dict = ksf_data.scaled_sums
-            tuning_factors = ksf_data.tuning_factors
+            scaling_factors = ksf_data.scaling_factors
 
             pp = pprint.PrettyPrinter(depth=4)
             print "ts names: "
@@ -134,7 +134,7 @@ class FeedbackLoopRunner(BaseRunner):
             print pp.pprint(sa_metric_dict)
 
             # write log file
-            write_log_file(log_file, metrics_sum_dict_ref, tuning_factors)
+            write_log_file(log_file, metrics_sum_dict_ref, scaling_factors)
 
             # /////////////////////////////////////// main loop.. ////////////////////////////////////////////
             for i_count in range(0, self.n_iterations):
@@ -238,40 +238,40 @@ class FeedbackLoopRunner(BaseRunner):
                 # append dictionaries to history structures..
                 metrics_sum_dict = map_workload.total_metrics_sum_dict
                 metrics_sums_history.append(metrics_sum_dict)
-                scaling_factors_history.append(tuning_factors)
+                scaling_factors_history.append(scaling_factors)
 
                 # calculate current scaling factor..
                 sc_factor_dict_new = get_new_scaling_factors(metrics_sum_dict_ref,
                                                              metrics_sum_dict,
-                                                             tuning_factors,
+                                                             scaling_factors,
                                                              self.updatable_metrics)
 
                 print "----------------------- summary: ---------------------------"
                 print "ts names                  : ", time_signal.time_signal_names
-                print "scaling factors           : ", utils.sort_dict_list(tuning_factors, time_signal.time_signal_names)
+                print "scaling factors           : ", utils.sort_dict_list(scaling_factors, time_signal.time_signal_names)
                 print "reference metrics         : ", utils.sort_dict_list(metrics_sum_dict_ref, time_signal.time_signal_names)
                 print "metrics sums              : ", utils.sort_dict_list(metrics_sum_dict, time_signal.time_signal_names)
                 print "scaling factors new       : ", utils.sort_dict_list(sc_factor_dict_new, time_signal.time_signal_names)
-                print "scaling factors new (REL) : ", [sc_factor_dict_new[k]/tuning_factors[k] for k in time_signal.time_signal_names]
+                print "scaling factors new (REL) : ", [sc_factor_dict_new[k]/scaling_factors[k] for k in time_signal.time_signal_names]
                 print "------------------------------------------------------------"
 
                 continue_flag = raw_input("Accept these scaling factors? ")
                 if (continue_flag == 'y') or (continue_flag == 'yes'):
-                    tuning_factors = sc_factor_dict_new
+                    scaling_factors = sc_factor_dict_new
                     pass
                 else:
                     break
 
                 # update workload through stretching and re-export the synthetic apps..
                 # TODO: Note that this writes back into the output folder!! perhaps not a good choice..
-                ksf_data.set_tuning_factors(tuning_factors)
+                ksf_data.set_scaling_factors(scaling_factors)
 
                 print os.path.join(self.config.dir_output, self.ksf_filename)
                 ksf_data.export(filename=os.path.join(self.config.dir_output, self.ksf_filename),
                                 nbins=self.config.model['generator']['synthapp_n_frames'])
 
                 # write log file
-                write_log_file(log_file, metrics_sum_dict, tuning_factors)
+                write_log_file(log_file, metrics_sum_dict, scaling_factors)
                 # -----------------------------------------
             # ///////////////////////////////////// end main loop.. /////////////////////////////////////////////
 

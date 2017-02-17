@@ -56,7 +56,7 @@ class GeneratorTests(unittest.TestCase):
         config_generator = {
                             "type": "match_job_pdf",
                             "random_seed": 0,
-                            "tuning_factors": {
+                            "scaling_factors": {
                                 "kb_collective": 1e-0,
                                 "n_collective": 1e-0,
                                 "kb_write": 1e-3,
@@ -138,7 +138,7 @@ class GeneratorTests(unittest.TestCase):
         config_generator = {
             "type": "match_job_pdf_exact",
             "random_seed": 0,
-            "tuning_factors": {
+            "scaling_factors": {
                 "kb_collective": 1e-0,
                 "n_collective": 1e-0,
                 "kb_write": 1e-3,

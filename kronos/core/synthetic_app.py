@@ -26,7 +26,7 @@ class SyntheticWorkload(object):
     def __init__(self, config, apps=None):
         self.config = config
         self.app_list = apps
-        self.tuning_factor = None
+        self.scaling_factors = None
 
     def __unicode__(self):
         return "SyntheticWorkload - {} jobs".format(len(self.app_list))
@@ -48,9 +48,9 @@ class SyntheticWorkload(object):
         output += "=============================================\n"
         return output
 
-    def total_metrics_dict(self, include_tuning_factors=False):
+    def total_metrics_dict(self, include_scaling_factors=False):
 
-        if not self.tuning_factor:
+        if not self.scaling_factors:
             raise ConfigurationError("tuning factors not set!")
 
         tot = {}
@@ -60,8 +60,8 @@ class SyntheticWorkload(object):
 
             for ts in app.timesignals.values():
 
-                if include_tuning_factors and app.tuning_factor is not None:
-                    fact = app.tuning_factor[ts.name]
+                if include_scaling_factors and app.scaling_factors is not None:
+                    fact = app.scaling_factors[ts.name]
 
                 if ts.name in tot:
                     if ts is not None:
@@ -89,21 +89,21 @@ class SyntheticWorkload(object):
 
         return metrics_sums
 
-    def set_tuning_factors(self, tuning_factor):
+    def set_scaling_factors(self, scaling_factors):
         """
         Set the tuning factor for all the applications
         """
-        # NB each app receives a *copy* of the tuning_factor dictionary..
-        self.tuning_factor = tuning_factor
+        # NB each app receives a *copy* of the scaling_factors dictionary..
+        self.scaling_factors = scaling_factors
         for app in self.app_list:
-            app.tuning_factor = dict(tuning_factor)
+            app.scaling_factors = dict(scaling_factors)
 
-    def get_tuning_factors(self):
+    def get_scaling_factors(self):
         """
         Get the tuning factors
         :return:
         """
-        return self.tuning_factor
+        return self.scaling_factors
 
     def export_pickle(self):
         """
@@ -132,7 +132,7 @@ class SyntheticWorkload(object):
         print " --------- Scaling factors: ------------"
         for k in time_signal_names:
             str_format = "%s: %f"
-            print str_format % (k, self.tuning_factor[k])
+            print str_format % (k, self.scaling_factors[k])
         print "----------------------------------------"
 
         print "-------- Exported Metrics sums: --------"
@@ -162,7 +162,7 @@ class SyntheticApp(ModelJob):
 
         # this additional "scaling factor" is generated during the workload "tuning" phase
         # and acts on the time series when the synthetic apps are exported
-        self.tuning_factor = None
+        self.scaling_factors = None
         # self.set_ts_defaults()
 
     def export(self, filename=None, n_bins=None, job_entry_only=False):
@@ -199,16 +199,11 @@ class SyntheticApp(ModelJob):
         :return:
         """
 
-        # # Discretise time signals (only if needed..)
-        # if n_bins:
-        #     for ts_name, ts in self.timesignals.iteritems():
-        #         ts.digitize(n_bins)
-
         kernels = []
         for kernel_type in app_kernels.available_kernels:
 
-            if self.tuning_factor:
-                kernel = kernel_type(self.timesignals, self.tuning_factor)
+            if self.scaling_factors:
+                kernel = kernel_type(self.timesignals, self.scaling_factors)
             else:
                 kernel = kernel_type(self.timesignals)
 
