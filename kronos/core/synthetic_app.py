@@ -9,6 +9,7 @@
 import json
 import os
 import pickle
+from collections import Counter
 
 import app_kernels
 from exceptions_iows import ConfigurationError
@@ -73,27 +74,18 @@ class SyntheticWorkload(object):
         return tot
 
     @property
-    def total_metrics_apps(self):
+    def total_metrics_apps(self, n_bins=None):
         """
         Calculates the metrics of the whole workload (as sums of the kernels metrics) on the fly
         :return:
         """
 
         # initialize the sums
-        metrics_sums = {k: 0. for k in time_signal_names}
+        metrics_sums = Counter({k: 0. for k in time_signal_names})
 
         # Query kernel metrics
         for s_app in self.app_list:
-            frames_list = s_app.export(job_entry_only=True)['frames']
-            for frame in frames_list:
-                for ker in frame:
-                    for k in ker.keys():
-                        if k in time_signal_names:
-                            metrics_sums[k] += ker[k]
-
-        # cast types appropriately
-        for k in metrics_sums.keys():
-            metrics_sums[k] = signal_types[k]['type'](metrics_sums[k])
+            metrics_sums += Counter(s_app.total_export_metrics(n_bins=n_bins))
 
         return metrics_sums
 
@@ -132,21 +124,21 @@ class SyntheticWorkload(object):
         print_colour("green", "Exporting {} synth-apps to KSF schedule: {}".format(len(self.app_list), filename))
 
         print "----- Metrics sums over workload: ------"
-        for k, v in self.total_metrics_dict().iteritems():
-            str_format = "%s: "+signal_types[k]['format']
-            print str_format % (k, v)
+        for k in time_signal_names:
+            str_format = "%s: %.3f"
+            print str_format % (k, self.total_metrics_dict()[k])
         print "----------------------------------------"
 
         print " --------- Scaling factors: ------------"
-        for k, v in self.tuning_factor.iteritems():
+        for k in time_signal_names:
             str_format = "%s: %f"
-            print str_format % (k, v)
+            print str_format % (k, self.tuning_factor[k])
         print "----------------------------------------"
 
         print "-------- Exported Metrics sums: --------"
-        for k, v in self.total_metrics_apps.iteritems():
+        for k in time_signal_names:
             str_format = "%s: "+signal_types[k]['format']
-            print str_format % (k, v)
+            print str_format % (k, self.total_metrics_apps[k])
         print "----------------------------------------"
 
         ScheduleFormat.from_synthetic_workload(self).write_filename(filename)
@@ -238,10 +230,23 @@ class SyntheticApp(ModelJob):
 
         return frames
 
-    # def stretch_time_series(self, st_dict):
-    #
-    #     """ rescale all the time series.. """
-    #
-    #     for ts_name, ts in self.timesignals.iteritems():
-    #         ts.stretch_values(st_dict[ts_name])
+    def total_export_metrics(self, n_bins=None):
+        """
+        Calculates the sums of the exported metrics (so, including corrections from kernel discretization)
+        :param n_bins:
+        :return:
+        """
+
+        # initialize the sums
+        metrics_sums = {k: 0. for k in time_signal_names}
+
+        # Query kernel metrics
+        frames_list = self.export(n_bins=n_bins, job_entry_only=True)['frames']
+        for frame in frames_list:
+            for ker in frame:
+                for k in ker.keys():
+                    if k in time_signal_names:
+                        metrics_sums[k] += ker[k]
+
+        return metrics_sums
 
