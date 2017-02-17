@@ -87,7 +87,7 @@ class ScheduleFormat(JSONIoFormat):
         return cls(
             sa_data=synth_workload.app_list,
             unscaled_sums=synth_workload.total_metrics_dict(),
-            scaling_factors=synth_workload.get_scaling_factors()
+            scaling_factors=synth_workload.scaling_factors
         )
 
     def output_dict(self):

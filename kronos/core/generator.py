@@ -26,7 +26,7 @@ class SyntheticWorkloadGenerator(object):
     required_config_fields = [
                              "type"
                              "random_seed",
-                             "scaling_factors",
+                             "_scaling_factors",
                              "submit_rate_factor",
                              "synthapp_n_proc",
                              "total_submit_interval",

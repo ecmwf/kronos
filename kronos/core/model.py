@@ -107,7 +107,7 @@ class KronosModel(object):
 
         # set up the synthetic workload
         sa_workload = SyntheticWorkload(self.config, self.modelled_sa_jobs)
-        sa_workload.set_scaling_factors(self.config_generator['scaling_factors'])
+        sa_workload.scaling_factors = self.config_generator['scaling_factors']
 
         # export the synthetic workload
         ksf_path = os.path.join(self.config.dir_output, self.config.ksf_filename)
