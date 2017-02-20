@@ -506,27 +506,27 @@ class DarshanLogReaderTest(unittest.TestCase):
         # We should have parsed the file details correctly
         self.assertEqual(len(ingested.file_details), 3)
 
-        self.assertIn(".../lus/snx11062/TMP/JTMP/41/emos.3083647.ccbpp1.20160721T204925/<stderr>", ingested.file_details)
-        f = ingested.file_details[".../lus/snx11062/TMP/JTMP/41/emos.3083647.ccbpp1.20160721T204925/<stderr>"]
-        self.assertEqual(f.name, ".../lus/snx11062/TMP/JTMP/41/emos.3083647.ccbpp1.20160721T204925/<stderr>")
+        self.assertIn("dummy-path", ingested.file_details)
+        f = ingested.file_details["dummy-path"]
+        self.assertEqual(f.name, "dummy-path")
         self.assertEqual(f.open_count, 1)
         self.assertEqual(f.bytes_read, 0)
         self.assertEqual(f.bytes_written, 0)
         self.assertEqual(f.read_count, 0)
         self.assertEqual(f.write_count, 0)
 
-        self.assertIn(".../lus/snx11062/TMP/JTMP/41/emos.3083647.ccbpp1.20160721T204925/<stdout>", ingested.file_details)
-        f = ingested.file_details[".../lus/snx11062/TMP/JTMP/41/emos.3083647.ccbpp1.20160721T204925/<stdout>"]
-        self.assertEqual(f.name, ".../lus/snx11062/TMP/JTMP/41/emos.3083647.ccbpp1.20160721T204925/<stdout>")
+        self.assertIn("dummy-path-1", ingested.file_details)
+        f = ingested.file_details["dummy-path-1"]
+        self.assertEqual(f.name, "dummy-path-1")
         self.assertEqual(f.open_count, 1)
         self.assertEqual(f.bytes_read, 0)
         self.assertEqual(f.bytes_written, 35)
         self.assertEqual(f.read_count, 0)
         self.assertEqual(f.write_count, 2)
 
-        self.assertIn(".../lus/snx11062/TMP/JTMP/41/emos.3083647.ccbpp1.20160721T204925/<stdin>", ingested.file_details)
-        f = ingested.file_details[".../lus/snx11062/TMP/JTMP/41/emos.3083647.ccbpp1.20160721T204925/<stdin>"]
-        self.assertEqual(f.name, ".../lus/snx11062/TMP/JTMP/41/emos.3083647.ccbpp1.20160721T204925/<stdin>")
+        self.assertIn("dummy-path-2", ingested.file_details)
+        f = ingested.file_details["dummy-path-2"]
+        self.assertEqual(f.name, "dummy-path-2")
         self.assertEqual(f.open_count, 1)
         self.assertEqual(f.bytes_read, 0)
         self.assertEqual(f.bytes_written, 0)
