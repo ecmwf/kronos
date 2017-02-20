@@ -14,7 +14,6 @@ sys.path.append(os.path.dirname(os.path.dirname(__file__)))
 
 import argparse
 
-from kronos.core import runner
 from kronos.core.exceptions_iows import ConfigurationError
 from kronos.core.workload_data import WorkloadData
 from kronos.core.config.config import Config
@@ -60,14 +59,6 @@ class Kronos(object):
     def export(self):
         print "\nOutputting synthetic app input...\n----------------------------------"
         self.workload_model.export_synthetic_workload()
-
-    def run(self):
-        """
-        Main execution routine (default if no specific plugin is requested)
-        """
-        print "\nRun model...\n----------------------------------"
-        kronos_runner = runner.factory(self.config.run['type'], self.config)
-        kronos_runner.run()
 
     def postprocess(self, run_dir):
         """
