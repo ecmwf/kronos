@@ -12,8 +12,6 @@ Subpackages
     kronos.core.kronos_tools
     kronos.core.logreader
     kronos.core.postprocess
-    kronos.core.run_control
-    kronos.core.runner
     kronos.core.tests
 
 Submodules

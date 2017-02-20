@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 #
 # Kronos documentation build configuration file, created by
-# sphinx-quickstart on Fri Feb 17 15:56:50 2017.
+# sphinx-quickstart on Mon Feb 20 15:18:22 2017.
 #
 # This file is execfile()d with the current directory set to its
 # containing dir.
