@@ -158,8 +158,6 @@ if __name__ == "__main__":
                 if tt == len(total_metrics)-1:
                     plt.xlabel('time')
 
-        # plt.savefig(os.path.join(self.run_dir, 'time_profiles_iter-{}.png'.format(i_iter)))
-        # plt.close()
         plt.show()
 
     elif args.summary:

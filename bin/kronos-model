@@ -57,12 +57,6 @@ class Kronos(object):
         self.workload_model.generate_model()
         self.workload_model.export_synthetic_workload()
 
-        # run_data = RunData(self.config.post_process['dir_sa_run_output'])
-        # run_data.print_schedule_summary()
-
-        # if self.config.verbose:
-        #     print self.synthetic_apps.verbose_description()
-
     def export(self):
         print "\nOutputting synthetic app input...\n----------------------------------"
         self.workload_model.export_synthetic_workload()
@@ -91,16 +85,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Kronos software')
     parser.add_argument('configuration_file', type=str)
     parser.add_argument('-m', "--model", help="Generate workload model", action='store_true')
-    # parser.add_argument('-r', "--run", help="Run the model on HPC", action='store_true')
-    # parser.add_argument('-p', "--postprocess", help="Postprocess Run results", action='store_true')
-    # parser.add_argument('-o', "--run_dir", help="Path containing run results")
     args = parser.parse_args()
-
-    # # command line keys checks..
-    # if args.postprocess and not args.run_dir:
-    #     raise ConfigurationError("Specify path of results to post-process: --run_dir=<path-to-results>")
-    # elif args.postprocess and not os.path.exists(args.run_dir):
-    #     raise ConfigurationError("Path of results {} does not exist".format(args.run_dir))
 
     try:
         try:
@@ -121,10 +106,6 @@ if __name__ == "__main__":
 
         if args.model:
             app.model()
-        # elif args.run:
-        #     app.run()
-        # elif args.postprocess:
-        #     app.postprocess(args.run_dir)
         else:
             print "command line parsing error.."
             sys.exit(-1)
