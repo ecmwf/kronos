@@ -27,11 +27,11 @@ Given conda, the Kronos package can now be made available:
 
   > cd {working_directory}
 
-  > cp kronos_V0.1.0.tar.gz .
+  > cp kronos-0.1.0r1.tar.gz .
 
-  > tar xzvf kronos_V0.1.0.tar.gz
+  > tar xzvf kronos-0.1.0r1.tar.gz
 
-3. Create "kronos" environment from kronos-core/conda_environment.txt file as follows:
+3. Create "kronos" environment from kronos-0.1.0r1/conda_environment.txt file as follows:
 
   > conda env create -n kronos -f conda_environment.txt
 
@@ -45,7 +45,7 @@ Given conda, the Kronos package can now be made available:
 
 6. Install Kronos
 
-  > cd {working_directory}/kronos-core
+  > cd {working_directory}/kronos-0.1.0r1
 
   > pip install .
 
@@ -57,7 +57,7 @@ It is possible to verify the correct installation of Kronos by running:
 
   > conda env export
 
-The name of kronos=0.0.1 should now appear in the list of packages available in the kronos environment.
+The name of kronos=0.1.0 should now appear within the list of packages available in the kronos environment.
 
 
 ~~~~~~~~~~~~~~~
