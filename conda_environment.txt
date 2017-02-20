@@ -43,4 +43,3 @@ dependencies:
 - zlib=1.2.8=3
 - pip:
   - strict-rfc3339==0.7
-prefix: /home/ma/mass/.local/miniconda2/envs/kronos
