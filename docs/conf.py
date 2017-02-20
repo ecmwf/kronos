@@ -18,7 +18,6 @@
 #
 # import os
 # import sys
-# sys.path.insert(0, u'/var/tmp/maab/kronos-core')
 
 
 # -- General configuration ------------------------------------------------
