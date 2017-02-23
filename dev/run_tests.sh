@@ -20,3 +20,5 @@ cd ${bamboo_working_directory}
 for p in `find -maxdepth 3 -mindepth 1 -type d -name tests -not -path "./kronos-synapps/*"`; do
     PYTHONPATH=`pwd` python ${bamboo_working_directory}/miniconda/envs/test_env/lib/python2.7/site-packages/pytest.py --junitxml="${bamboo_working_directory}/test_output.xml" ${p}
 done
+
+source deactivate
