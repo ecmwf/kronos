@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 # (C) Copyright 1996-2017 ECMWF.
 # 
 # This software is licensed under the terms of the Apache Licence Version 2.0
@@ -7,6 +7,12 @@
 # granted to it by virtue of its status as an intergovernmental organisation nor
 # does it submit to any jurisdiction.
 
+set -uex
+
+# Work around conda test against nonexistent variable tripping set -e
+
+export CONDA_PATH_BACKUP=""
+export PS1=""
 
 # Get access to the installed python environment
 
@@ -19,3 +25,5 @@ cd ${bamboo_working_directory}
 for p in `find -maxdepth 3 -mindepth 1 -type d -name tests -not -path "./kronos-synapps/*"`; do
     PYTHONPATH=`pwd` python ${bamboo_working_directory}/miniconda/envs/test_env/lib/python2.7/site-packages/pytest.py --junitxml="${bamboo_working_directory}/test_output.xml" ${p}
 done
+
+source deactivate

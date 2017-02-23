@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from setuptools import setup
+from setuptools import setup, find_packages
 
 with open('README.rst') as readme_file:
     readme = readme_file.read()
@@ -18,15 +18,13 @@ test_requirements = [
 ]
 
 setup(
-    name='Kronos',
+    name='kronos',
     version='0.1.0',
     description="Workload extraction, modelling and duplication for HPC systems",
     long_description=readme + '\n\n' + history,
     author="Tiago Quintino, Antonino Bonanni, Simon Smart",
     author_email='',
-    packages=[
-        'kronos'
-    ],
+    packages=find_packages(),
     package_dir={
         'kronos': 'kronos'
     },

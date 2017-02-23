@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 # (C) Copyright 1996-2017 ECMWF.
 # 
 # This software is licensed under the terms of the Apache Licence Version 2.0
@@ -7,5 +7,6 @@
 # granted to it by virtue of its status as an intergovernmental organisation nor
 # does it submit to any jurisdiction.
 
+set -uex
 
 rm -rf ${bamboo_working_directory}/miniconda || true

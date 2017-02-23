@@ -65,8 +65,12 @@ if __name__ == "__main__":
         "cache": False,  # Ensure that we always actively parse if using the parsing-specific tool
         "reparse": True,
         "pool_readers": args.workers,
-        "clock_rate": args.clock_rate
     }
+
+    # add clock_rate information only when relevant (allinea logs)
+    if args.type == "allinea":
+        ingest_config["clock_rate"] = args.clock_rate
+
     if args.parser:
         ingest_config['parser'] = args.parser
     if args.labeller:
