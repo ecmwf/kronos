@@ -9,6 +9,11 @@
 
 set -uex
 
+# Work around conda test against nonexistent variable tripping set -e
+
+export CONDA_PATH_BACKUP=""
+export PS1=""
+
 # Get access to the installed python environment
 
 export PATH=${bamboo_working_directory}/miniconda/bin:${PATH}
