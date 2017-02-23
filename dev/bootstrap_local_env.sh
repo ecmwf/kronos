@@ -23,10 +23,10 @@ export PATH=${bamboo_working_directory}/miniconda/bin:${PATH}
 
 # Install the testing environment!
 
-conda install -y pyyaml
+HOME="${bamboo_working_directory}" conda install -y pyyaml
 
 if [[ -f conda_environment.txt ]]; then
-    conda env create -n test_env -f conda_environment.txt
+    HOME="${bamboo_working_directory}" conda env create -n test_env -f conda_environment.txt
 fi
 
 # Make python packages cloned into the depends directory available to pip
