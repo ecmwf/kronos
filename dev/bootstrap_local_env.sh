@@ -1,3 +1,5 @@
+
+
 #!/bin/bash
 # (C) Copyright 1996-2017 ECMWF.
 # 
@@ -22,7 +24,13 @@ sh Miniconda2-latest-Linux-x86_64.sh -b -p ${bamboo_working_directory}/miniconda
 export PATH=${bamboo_working_directory}/miniconda/bin:${PATH}
 
 # Work around ~/.conda being incorrectly (hard)-used in cond a create.
+
 export HOME="${bamboo_working_directory}"
+
+# Work around conda test against nonexistent variable tripping set -e
+
+export CONDA_PATH_BACKUP=""
+export PS1=""
 
 # Install the testing environment!
 
