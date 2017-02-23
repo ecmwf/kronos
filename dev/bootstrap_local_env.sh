@@ -21,12 +21,15 @@ wget https://repo.continuum.io/miniconda/Miniconda2-latest-Linux-x86_64.sh
 sh Miniconda2-latest-Linux-x86_64.sh -b -p ${bamboo_working_directory}/miniconda
 export PATH=${bamboo_working_directory}/miniconda/bin:${PATH}
 
+# Work around ~/.conda being incorrectly (hard)-used in cond a create.
+export HOME="${bamboo_working_directory}"
+
 # Install the testing environment!
 
-HOME="${bamboo_working_directory}" conda install -y pyyaml
+conda install -y pyyaml
 
 if [[ -f conda_environment.txt ]]; then
-    HOME="${bamboo_working_directory}" conda env create -n test_env -f conda_environment.txt
+    conda env create -n test_env -f conda_environment.txt
 fi
 
 # Make python packages cloned into the depends directory available to pip
