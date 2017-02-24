@@ -32,6 +32,7 @@ setup(
         'bin/kronos-conf',
         'bin/kronos-config-enquire',
         'bin/kronos-dummy-workload',
+        'bin/kronos-dummy-example',
         'bin/kronos-executor',
         'bin/kronos-generate-read-files',
         'bin/kronos-ingest',

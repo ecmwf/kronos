@@ -7,8 +7,6 @@ README
 Kronos is a HPC workload simulator that generates a model workload starting from workload data collected on a real HPC
 system. The generated model can be translated into a set of applications+schedule usable to benchmark HPC prototypes.
 
-**Documentation can be found here:** https://software.ecmwf.int/wiki/display/NEX/kronos-core+documentation
-
 2. Licence
 ----------
 Please read LICENCE file
@@ -16,7 +14,7 @@ Please read LICENCE file
 2. Usage
 --------
 Kronos reads profiled workload data (Kronos Profile Format .KPF) and generates a workload model (Kronos Schedule Format
-KSF). The main steps to run Kronos are listed here below.
+KSF). The main executables are listed here below
 
 *kronos_model.py*:
   Executes Kronos model
