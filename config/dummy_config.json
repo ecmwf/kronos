@@ -1,0 +1,55 @@
+{
+    "verbose": true,
+    "version": 1,
+    "uid": 4426,
+    "created": "2017-01-27T09:52:10Z",
+    "tag": "KRONOS-CONFIG-MAGIC",
+    "dir_input": "path-containing-kpf",
+    "dir_output": "output-path",
+    "kpf_files": ["dummy.kpf"],
+    "ksf_filename": "dummy.ksf",
+    "model": {
+        "fill_in": {
+            "operations": [{
+                "type": "recommender_system",
+                "apply_to": ["user_wl"],
+                "priority": 2,
+                "n_bins": 3
+            }]
+        },
+        "classification": {
+            "clustering": {
+                "type": "Kmeans",
+                "apply_to": ["user_wl"],
+                "ok_if_low_rank": true,
+                "rseed": 0,
+                "max_iter": 100,
+                "max_num_clusters": 20,
+                "delta_num_clusters": 1,
+                "num_timesignal_bins": 3,
+                "user_does_not_check": true
+            }
+        },
+      "generator":{
+        "type": "match_job_pdf",
+        "n_bins_for_pdf": 30,
+        "random_seed": 0,
+        "scaling_factors": {
+            "kb_collective": 1,
+            "n_collective": 1,
+            "kb_write": 1,
+            "n_pairwise": 1,
+            "n_write": 1,
+            "n_read": 1,
+            "kb_read": 1,
+            "flops": 1,
+            "kb_pairwise": 1
+        },
+        "submit_rate_factor": 0.5,
+        "synthapp_n_cpu": 2,
+        "synthapp_n_nodes": 1,
+        "total_submit_interval": 60
+      }
+    }
+
+}
