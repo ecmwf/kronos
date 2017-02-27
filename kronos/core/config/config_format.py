@@ -5,12 +5,8 @@
 # In applying this licence, ECMWF does not waive the privileges and immunities 
 # granted to it by virtue of its status as an intergovernmental organisation nor
 # does it submit to any jurisdiction.
-
-
+import json
 import os
-from datetime import datetime
-
-import strict_rfc3339
 
 from kronos.io.json_io_format import JSONIoFormat
 
@@ -19,29 +15,32 @@ class ConfigFormat(JSONIoFormat):
     """
     A standardised format for profiling information.
     """
-    format_version = 1
-    format_magic = "KRONOS-CONFIG-MAGIC"
     schema_json = os.path.join(os.path.dirname(__file__), "config_schema.json")
 
-    def __init__(self, created=None, uid=None):
+    def __init__(self, data=None):
+        super(ConfigFormat, self).__init__()
+        self.data = data
 
-        super(ConfigFormat, self).__init__(created=created, uid=uid)
+    @classmethod
+    def schema(cls):
+        """
+        Obtain the json schema for the given format
+        """
+        with open(cls.schema_json, 'r') as fschema:
+            return json.load(fschema)
 
     @classmethod
     def from_json_data(cls, data):
         """
         Given loaded and validated JSON data, actually do something with it
         """
-        return cls(
-            created=datetime.fromtimestamp(strict_rfc3339.rfc3339_to_timestamp(data['created'])),
-            uid=data['uid']
-        )
+        return cls(data)
 
     def output_dict(self):
         """
         Obtain the data to be written into the file. Extends the base class implementation
         (which includes headers, etc.)
         """
-        output_dict = super(ConfigFormat, self).output_dict()
+        output_dict = {"config_data": self.data}
 
         return output_dict

@@ -1,9 +1,6 @@
 {
     "verbose": true,
-    "version": 1,
-    "uid": 4426,
     "created": "2017-01-27T09:52:10Z",
-    "tag": "KRONOS-CONFIG-MAGIC",
     "dir_input": "path-containing-kpf",
     "dir_output": "output-path",
     "kpf_files": ["dummy.kpf"],

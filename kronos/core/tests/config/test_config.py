@@ -32,8 +32,6 @@ class ConfigTests(unittest.TestCase):
         self.assertFalse(os.path.exists(os.path.join(os.getcwd(), obscure_path)))
 
         config_dict = {
-            "version": 1,
-            "tag": "KRONOS-CONFIG-MAGIC",
             "created": "2016-12-14T09:57:35Z",  # Timestamp in strict rfc3339 format.
             'dir_input': existing_path,
             'dir_output': existing_path,
@@ -61,8 +59,6 @@ class ConfigTests(unittest.TestCase):
 
         # We can override each of the parameters
         config_dict = {
-            "version": 1,
-            "tag": "KRONOS-CONFIG-MAGIC",
             "created": "2016-12-14T09:57:35Z",  # Timestamp in strict rfc3339 format.
             'dir_input': existing_path,
             'dir_output': existing_path,
@@ -104,8 +100,6 @@ class ConfigTests(unittest.TestCase):
         with tempfile.NamedTemporaryFile() as f:
             f.write("""{{
                 "dir_input": "{}",
-                "version": 1,
-                "tag": "KRONOS-CONFIG-MAGIC",
                 "created": "2016-12-14T09:57:35Z",
                 "kpf_files": ["file1", "file2"],
                 "ksf_filename": "ksf_output",
@@ -121,8 +115,6 @@ class ConfigTests(unittest.TestCase):
         # Unexpected parameters throw exceptions
         with tempfile.NamedTemporaryFile() as f:
             f.write("""{{
-                "version": 1,
-                "tag": "KRONOS-CONFIG-MAGIC",
                 "created": "2016-12-14T09:57:35Z",  # Timestamp in strict rfc3339 format.
                 "dir_input": "abcdef",
                 "dir_output": "{}",
@@ -137,10 +129,7 @@ class ConfigTests(unittest.TestCase):
         # ------------- generic/valid config file ---------------
         config_empty_model = {
             "verbose": True,
-            "version": 1,
-            "tag": "KRONOS-CONFIG-MAGIC",
             "created": "2016-12-14T09:57:35Z",  # Timestamp in strict rfc3339 format.
-            "uid": 1234,
             "dir_input": "input",  # Timestamp in strict rfc3339 format.
             "dir_output": "output",
             "kpf_files": ["file1", "file2"],
