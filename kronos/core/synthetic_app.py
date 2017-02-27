@@ -125,12 +125,6 @@ class SyntheticWorkload(object):
 
         print_colour("green", "Exporting {} synth-apps to KSF schedule: {}".format(len(self.app_list), filename))
 
-        print "----- Metrics sums over workload: ------"
-        for k in time_signal_names:
-            str_format = "%s: %.3f"
-            print str_format % (k, self.total_metrics_dict()[k])
-        print "----------------------------------------"
-
         print " --------- Scaling factors: ------------"
         for k in time_signal_names:
             str_format = "%s: %f"
