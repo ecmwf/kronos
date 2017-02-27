@@ -37,10 +37,7 @@ def user_workload(kpf_path, root_name):
     # Simplistic example of user config
     user_config = {
         "verbose": True,
-        "version": 1,
-        "uid": 4426,
         "created": "2017-01-27T09:52:10Z",
-        "tag": "KRONOS-CONFIG-MAGIC",
         "dir_input": kpf_path,
         "dir_output": kpf_path,
         "kpf_files": [root_name+".kpf"],
@@ -65,7 +62,7 @@ def user_workload(kpf_path, root_name):
                     "max_num_clusters": 20,
                     "delta_num_clusters": 1,
                     "num_timesignal_bins": 3,
-                    "user_does_not_check": False
+                    "user_does_not_check": True
                 }
             }
         }
