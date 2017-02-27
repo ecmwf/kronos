@@ -5,27 +5,14 @@
   "description": "The Kronos-core configuration file format controls the execution of the modelling algorithm",
   "additionalProperties": false,
   "properties": {
-    "version" : {
-        "type": "number",
-        "enum": [%(kronos-version)s],
-        "description": "Version number of the CONFIG format"
-    },
-    "tag": {
-        "enum": ["%(kronos-magic)s"],
-        "description": "Magic value to help test validity of CONFIG file"
+    "verbose": {
+      "type": "boolean",
+      "description": "verbose flag"
     },
     "created": {
         "type": "string",
         "format": "date-time",
         "description": "A timestamp for creation of the CONFIG file"
-    },
-    "uid": {
-        "type": "integer",
-        "description": "The UID of the user who created this file"
-    },
-    "verbose": {
-      "type": "boolean",
-      "description": "verbose flag"
     },
     "dir_input": {
       "type": "string",
@@ -471,5 +458,5 @@
       }
     }
   },
-  "required": ["version", "tag", "created", "dir_input", "dir_output", "kpf_files", "ksf_filename"]
+  "required": ["dir_input", "dir_output", "kpf_files", "ksf_filename"]
 }
