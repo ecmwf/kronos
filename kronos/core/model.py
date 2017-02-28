@@ -8,6 +8,7 @@
 
 import os
 
+import numpy as np
 import data_analysis
 import workload_data
 import generator
@@ -180,6 +181,15 @@ class KronosModel(object):
             cluster_handler.cluster_jobs(wl.jobs_to_matrix(clustering_config['num_timesignal_bins']))
             clusters_matrix = cluster_handler.clusters
             clusters_labels = cluster_handler.labels
+
+            # check values in the matrix
+            for row in clusters_matrix:
+                if (row < 0.).any():
+                    print "value < 0 encountered after clustering! corrected to 0."
+                    row[row < 0.] = 0.
+
+
+
 
             self.clusters.append({
                                   'source-workload': wl_entry,
