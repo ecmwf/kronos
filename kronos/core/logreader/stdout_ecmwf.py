@@ -30,7 +30,7 @@ class StdoutECMWFIngestedJob(IngestedJob):
     max_node_threads = None
     hyperthreads = None
 
-    def model_job(self, global_start_time):
+    def model_job(self):
         """
         Return a ModelJob from the supplied information
         """
@@ -54,7 +54,7 @@ class StdoutECMWFIngestedJob(IngestedJob):
         return ModelJob(
             scheduler_timing=True,
             label=self.label,
-            time_start=time_queued - global_start_time,
+            time_start=time_queued,
             duration=self.duration,
             ncpus=min(threads, max_cpus),
             nnodes=self.nnodes
@@ -175,7 +175,7 @@ class StdoutECMWFDataSet(IngestedDataSet):
         """
         # The created times are all in seconds since an arbitrary reference, so we want to get
         # them relative to a zero-time
-        global_start_time = min((calendar.timegm(j.time_created.timetuple()) for j in self.joblist))
+        # global_start_time = min((calendar.timegm(j.time_created.timetuple()) for j in self.joblist))
 
         for job in self.joblist:
-            yield job.model_job(global_start_time)
+            yield job.model_job()
