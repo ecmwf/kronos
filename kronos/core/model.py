@@ -8,7 +8,6 @@
 
 import os
 
-import numpy as np
 import data_analysis
 import workload_data
 import generator
