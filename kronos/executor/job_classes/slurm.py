@@ -46,7 +46,7 @@ export ALLINEA_LICENCE_FILE={allinea_licence_file}
 
 
 
-cancel_file_head = "#!/bin/sh\nqdel "
+cancel_file_head = "#!/bin/sh\nscancel "
 cancel_file_line = "{sequence_id} "
 
 class SLURMMixin(object):

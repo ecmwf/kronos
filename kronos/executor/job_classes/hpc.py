@@ -77,7 +77,8 @@ class HPCJob(BaseJob):
             HPCJob.cancel_file.write(self.cancel_file_head)
             os.chmod(cancel_file_path, stat.S_IRWXU | stat.S_IROTH | stat.S_IXOTH | stat.S_IRGRP | stat.S_IXGRP)
 
-        HPCJob.cancel_file.write(self.cancel_file_line.format(sequence_id=output.strip()))
+        sequence_id_job = filter(str.isdigit, output)
+        HPCJob.cancel_file.write(self.cancel_file_line.format(sequence_id=sequence_id_job))
         HPCJob.cancel_file.flush()
 
     def run(self):
