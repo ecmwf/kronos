@@ -27,15 +27,15 @@ def equiv_time_pdf_exact(input_times, global_t0, global_tend, output_duration, o
     # find the PDF of jobs start times
     input_time_min = min(input_times)
     input_time_max = max(input_times)
-    input_time_duration = (input_time_max - input_time_min)
-    input_time_duration_rel = input_time_duration/(global_tend-global_t0)
-    input_time_after_t0_rel = (input_time_min - global_t0)/(global_tend-global_t0)
+    input_time_duration = float(input_time_max - input_time_min)
+    input_time_duration_rel = input_time_duration/float(global_tend-global_t0)
+    input_time_after_t0_rel = (input_time_min - global_t0)/float(global_tend-global_t0)
     input_time_bins = np.linspace(input_time_min, input_time_max, n_bins+1)
     input_time_pdf, _ = np.histogram(input_times, input_time_bins, density=False)
 
     # then calculate an "exact" distribution of time start from the provided PDF
     output_time_pdf = input_time_pdf
-    output_time_bins_01 = (input_time_bins-min(input_time_bins))/(max(input_time_bins)-min(input_time_bins))
+    output_time_bins_01 = (input_time_bins-min(input_time_bins))/float(max(input_time_bins)-min(input_time_bins))
     output_time_bins = (output_time_bins_01*input_time_duration_rel + input_time_after_t0_rel) * output_duration
 
     output_times = np.asarray([])
