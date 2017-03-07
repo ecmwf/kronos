@@ -62,8 +62,13 @@ def read_allinea_log(filename, jobs_n_bins=None, cfg=None):
 
     allinea_time_signal_map = {
         'instr_fp':             {'name': 'flops',                          'scale_factor': clock_rate, 'is_time_percent': True},
-        'lustre_bytes_read':    {'name': 'kb_read',       'is_rate': True, 'scale_factor': 1./1024.},
-        'lustre_bytes_written': {'name': 'kb_write',      'is_rate': True, 'scale_factor': 1./1024.},
+
+        # 'lustre_bytes_read':    {'name': 'kb_read',       'is_rate': True, 'scale_factor': 1./1024.},
+        # 'lustre_bytes_written': {'name': 'kb_write',      'is_rate': True, 'scale_factor': 1./1024.},
+
+        'bytes_read': {'name': 'kb_read', 'is_rate': True, 'scale_factor': 1. / 1024.},
+        'bytes_written': {'name': 'kb_write', 'is_rate': True, 'scale_factor': 1. / 1024.},
+
         'mpi_p2p':              {'name': 'n_pairwise',    'is_rate': True},
         'mpi_p2p_bytes':        {'name': 'kb_pairwise',   'is_rate': True, 'scale_factor': 1./1024.},
         'mpi_collect':          {'name': 'n_collective',  'is_rate': True},

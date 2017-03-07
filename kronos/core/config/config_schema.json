@@ -300,6 +300,10 @@
               	]
               }
             },
+            "save_wl_before_clustering": {
+              "type": "boolean",
+              "description": "flag to save workloads into corresponding kpf's before clustering"
+            },
             "clustering": {
               "type": "object",
               "description": "Clustering algorithm",

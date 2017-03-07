@@ -12,6 +12,8 @@ from difflib import SequenceMatcher
 # from kpf_handler import KPFFileHandler
 from data_analysis import recommender
 from exceptions_iows import ConfigurationError
+from kronos.core.framework.pickable import PickableObject
+from kronos.core.kronos_tools.utils import running_sum
 from kronos_tools.print_colour import print_colour
 import time_signal
 import fill_in_functions as fillf
@@ -102,6 +104,25 @@ class WorkloadData(object):
                 print_colour("orange", "No jobs found with time series for {}".format(signal_name))
 
         return total_metrics
+
+    @property
+    def running_jobs(self):
+        start_time_vec = np.asarray([sa.time_start for sa in self.jobs])
+        end_time_vec = np.asarray([sa.time_start + sa.duration for sa in self.jobs])
+        time_stamps, n_running_vec = running_sum(start_time_vec, end_time_vec, np.ones(end_time_vec.shape))
+
+        return time_stamps, n_running_vec
+
+    @property
+    def running_cpus(self):
+        start_time_vec = np.asarray([sa.time_start for sa in self.jobs])
+        end_time_vec = np.asarray([sa.time_start + sa.duration for sa in self.jobs])
+        proc_time_vec = np.asarray([sa.ncpus for sa in self.jobs])
+        time_stamps, nproc_running_vec = running_sum(start_time_vec, end_time_vec, proc_time_vec)
+
+        return time_stamps, nproc_running_vec
+
+
 
     @property
     def min_time_start(self):
@@ -328,3 +349,75 @@ class WorkloadData(object):
             raise ConfigurationError("either included or excluded keywords are needed for splitting a workload")
 
         return WorkloadData(jobs=sub_wl_jobs, tag=new_wl_name)
+
+    @property
+    def group_by_job_labels(self):
+        """
+        Return a group of workloads split according to workload tag
+        :return:
+        """
+
+        workloads_dict = {}
+
+        for job in self.jobs:
+            if workloads_dict.get(job.label, None):
+                workloads_dict[job.label].append(job)
+            else:
+                workloads_dict[job.label] = [job]
+
+        return WorkloadDataGroup.from_labelled_jobs(workloads_dict)
+
+
+class WorkloadDataGroup(PickableObject):
+    """
+    Class that defines a group of workloads, it contains a list of workloads and
+    implements common operations that span across multiple sets of workloads
+    """
+
+    def __init__(self, workloads):
+        super(WorkloadDataGroup, self).__init__()
+        self.workloads = workloads
+
+    @classmethod
+    def from_labelled_jobs(cls, wl_dict):
+        return cls([WorkloadData(jobs=v, tag=k) for k,v in wl_dict.iteritems()])
+
+    @property
+    def max_timeseries(self):
+        """
+        Returns a dictionary with the max values of all the timesignals for all the workloads of the group
+        (it might be useful for scaled plots..)
+        :return:
+        """
+
+        group_timeseries = {}
+
+        # loop over signals and retrieves workload statistics
+        for ts_name in time_signal.signal_types:
+            values = max(np.asarray([vv for wl in self.workloads for job in wl.jobs if job.timesignals[ts_name] for vv in job.timesignals[ts_name].yvalues]))
+            group_timeseries[ts_name] = values
+
+        return group_timeseries
+
+    @property
+    def max_running_jobs(self):
+        return max(max(wl.running_jobs[1]) for wl in self.workloads)
+
+    @property
+    def max_running_cpus(self):
+        return max(max(wl.running_cpus[1]) for wl in self.workloads)
+
+    def get_workload_by_name(self, wl_name):
+        """
+        Retrieve a workload by name
+        :param wl_name:
+        :return:
+        """
+
+        return next(wl for wl in self.workloads if wl.tag == wl_name)
+
+    @property
+    def tags(self):
+        return [wl.tag for wl in self.workloads]
+
+

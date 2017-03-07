@@ -163,6 +163,15 @@ class KronosModel(object):
                     print_colour("cyan", "splitting has created workload {} with {} jobs".format(sub_workloads.tag, len(sub_workloads.jobs)))
                     self.workloads.append(sub_workloads)
 
+        # save the KPF's of the sub-workloads before attempting the clustering
+        save_wl_before_clustering = self.config_classification.get('save_wl_before_clustering', False)
+        if save_wl_before_clustering:
+            # for wl in self.workloads:
+            #     kpf_hdl = ProfileFormat(model_jobs=wl.jobs, workload_tag=wl.tag)
+            #     kpf_hdl.write_filename(os.path.join(self.config.dir_output, wl.tag+"_workload.kpf"))
+            wl_group = workload_data.WorkloadDataGroup(self.workloads)
+            wl_group.export_pickle(os.path.join(self.config.dir_output, "_workload.kpf"))
+
         # check validity of jobs before doing the actual modelling..
         # NB: the preliminary phase of workload manipulation (defaults, lookup tables and recommender sys
         # should have produced a set of "complete" and therefore valid jobs)

@@ -26,3 +26,31 @@ def freq_to_time(time, freqs, ampls, phases):
 
 def sort_dict_list(d, sorted_keys_list):
     return [d[i] for i in sorted_keys_list]
+
+
+def running_sum(t0_vec, t1_vec, vals):
+    """
+    Calculate running cumulative sums of vectors (e.g. type y(t))
+    :param t0_vec:
+    :param t1_vec:
+    :param vals:
+    :return:
+    """
+
+    # calculate running jobs in time..
+    start_times = t0_vec.reshape(t0_vec.shape[0], 1)
+    end_times = t1_vec.reshape(t1_vec.shape[0], 1)
+    vals_vec = vals.reshape(vals.shape[0], 1)
+
+    plus_vec = np.hstack((start_times, vals_vec))
+    minus_vec = np.hstack((end_times, -1 * vals_vec))
+
+    # vector of time-stamps (and +-1 for start-end time stamps)
+    all_vec = np.vstack((plus_vec, minus_vec))
+    all_vec_sort = all_vec[all_vec[:, 0].argsort()]
+    time_stamps_calc = all_vec_sort[:, 0]
+
+    running_sum_vec = np.cumsum(all_vec_sort[:, 1])
+
+    return time_stamps_calc, running_sum_vec
+
