@@ -382,8 +382,7 @@ class WorkloadDataGroup(PickableObject):
     def from_labelled_jobs(cls, wl_dict):
         return cls([WorkloadData(jobs=v, tag=k) for k,v in wl_dict.iteritems()])
 
-    @property
-    def max_timeseries(self):
+    def max_timeseries(self, n_bins=None):
         """
         Returns a dictionary with the max values of all the timesignals for all the workloads of the group
         (it might be useful for scaled plots..)
@@ -394,8 +393,16 @@ class WorkloadDataGroup(PickableObject):
 
         # loop over signals and retrieves workload statistics
         for ts_name in time_signal.signal_types:
-            values = max(np.asarray([vv for wl in self.workloads for job in wl.jobs if job.timesignals[ts_name] for vv in job.timesignals[ts_name].yvalues]))
-            group_timeseries[ts_name] = values
+            values_max = 0.0
+            for wl in self.workloads:
+                totals = wl.total_metrics_timesignals
+                if totals.get(ts_name):
+                    if n_bins:
+                        values_max = max(values_max, max(totals[ts_name].digitized(n_bins)[1]))
+                    else:
+                        values_max = max(values_max, max(totals[ts_name].yvalues))
+
+            group_timeseries[ts_name] = values_max
 
         return group_timeseries
 
