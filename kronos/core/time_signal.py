@@ -154,7 +154,7 @@ class TimeSignal(object):
             return self.digitize_durations(nbins, key)
 
         # Determine the bin boundaries
-        xedge_bins = np.linspace(0.0, max(self.xvalues) + 1.0e-6, nbins + 1)
+        xedge_bins = np.linspace(min(self.xvalues), max(self.xvalues) + 1.0e-6, nbins + 1)
 
         # Return xvalues as the midpoints of the bins
         bins_delta = xedge_bins[1] - xedge_bins[0]
