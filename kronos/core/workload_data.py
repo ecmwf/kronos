@@ -101,7 +101,8 @@ class WorkloadData(object):
                 total_metrics[signal_name] = ts
 
             except ValueError:
-                print_colour("orange", "No jobs found with time series for {}".format(signal_name))
+                # print_colour("orange", "======= No jobs found with time series for {}".format(signal_name))
+                pass
 
         return total_metrics
 
@@ -407,6 +408,28 @@ class WorkloadDataGroup(PickableObject):
         return group_timeseries
 
     @property
+    def sum_timeseries(self):
+        """
+        Returns a dictionary with the max values of all the timesignals for all the workloads of the group
+        (it might be useful for scaled plots..)
+        :return:
+        """
+
+        group_timeseries = {}
+
+        # loop over signals and retrieves workload statistics
+        for ts_name in time_signal.signal_types:
+            values_sum = 0.0
+            for wl in self.workloads:
+                totals = wl.total_metrics_timesignals
+                if totals.get(ts_name):
+                    values_sum += sum(totals[ts_name].yvalues)
+
+            group_timeseries[ts_name] = values_sum
+
+        return group_timeseries
+
+    @property
     def max_running_jobs(self):
         return max(max(wl.running_jobs[1]) for wl in self.workloads)
 
@@ -421,10 +444,21 @@ class WorkloadDataGroup(PickableObject):
         :return:
         """
 
-        return next(wl for wl in self.workloads if wl.tag == wl_name)
+        try:
+            return next(wl for wl in self.workloads if wl.tag == wl_name)
+        except StopIteration:
+            print "workload {} not found in the group!".format(wl_name)
+            return None
 
     @property
     def tags(self):
-        return [wl.tag for wl in self.workloads]
+        tags = [wl.tag for wl in self.workloads]
+        tags.sort()
+        return tags
+
+    @property
+    def total_duration(self):
+        return max(job.time_start+job.duration for wl in self.workloads for job in wl.jobs) - \
+                min(job.time_start for wl in self.workloads for job in wl.jobs)
 
 
