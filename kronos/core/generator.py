@@ -166,7 +166,9 @@ class SyntheticWorkloadGenerator(object):
                 )
                 generated_model_jobs.append(job)
 
-            print "====> Generated {} jobs from cluster".format(len(generated_model_jobs))
+            n_sa = len(generated_model_jobs)
+            n_job_ratio = n_sa/float(len(cluster['jobs_for_clustering']))*100.
+            print "====> Generated {} jobs from cluster (#job ratio = {:.2f}%)".format(n_sa,n_job_ratio)
 
             # --- then create the synthetic apps from the generated model jobs --
             modelled_sa_jobs = self.model_jobs_to_sa(generated_model_jobs, cluster['source-workload'])

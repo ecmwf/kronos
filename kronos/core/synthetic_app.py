@@ -131,10 +131,10 @@ class SyntheticWorkload(object):
             print str_format % (k, self.total_metrics_dict()[k])
         print "----------------------------------------"
 
-        print " --------- Scaling factors: ------------"
+        print " ----- Actual Scaling factors: ---------"
         for k in time_signal_names:
             str_format = "%s: %f"
-            print str_format % (k, self._scaling_factors[k])
+            print str_format % (k, self.total_metrics_apps[k]/float(self.total_metrics_dict()[k]))
         print "----------------------------------------"
 
         print "-------- Exported Metrics sums: --------"
