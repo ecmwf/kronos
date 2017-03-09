@@ -48,7 +48,7 @@ def equiv_time_pdf_exact(input_times, global_t0, global_tend, output_duration, o
         # number of sa in this bin will depend of out/input time ratio and also desired submit-ratio
         # print "int(round(output_time_pdf[bb]*output_ratio * output_duration/input_time_duration))",
         # int(round(output_time_pdf[bb]*output_ratio * output_duration/input_time_duration))
-        n_sa_bin = int(round(output_time_pdf[bb]*output_ratio * output_duration/input_time_duration))
+        n_sa_bin = int(round(output_time_pdf[bb]*output_ratio * output_duration/float(global_tend-global_t0)))
 
         # this is the vector of actual random values of start times
         random_y_values = y_min + np.random.rand(n_sa_bin) * (y_max - y_min)
