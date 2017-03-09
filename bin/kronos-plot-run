@@ -34,7 +34,7 @@ if __name__ == "__main__":
     parser.add_argument("-p", "--plot", action="store_true", help="plot the output of the run")
     args = parser.parse_args()
 
-    n_bins = 20
+    n_bins = 30
 
     # retrieve kpf data from model run
     kpf_workload = WorkloadData.from_kpf(ProfileFormat.from_filename(args.path_model_kpf))
@@ -43,41 +43,44 @@ if __name__ == "__main__":
     max_running_jobs_model = wl_model_group.max_running_jobs
     max_running_cpus_model = wl_model_group.max_running_cpus
     vals_max_model = wl_model_group.max_timeseries(n_bins=n_bins)
+    vals_sum_model = wl_model_group.sum_timeseries
 
     # retrieve information from KPF of original workloads
     wl_orig_group = WorkloadDataGroup.from_pickled(args.path_unmodelled_kpf)
     max_running_jobs_orig = wl_orig_group.max_running_jobs
     max_running_cpus_orig = wl_orig_group.max_running_cpus
     vals_max_orig = wl_orig_group.max_timeseries(n_bins=n_bins)
+    vals_sum_orig = wl_orig_group.sum_timeseries
 
     if args.plot:
 
         plt_hdl = PlotHandler()
         color = iter(cm.rainbow(np.linspace(0, 1, len(wl_model_group.tags))))
-        n_plots = len(kpf_workload.total_metrics_timesignals.keys()) + 2
+        n_plots = len(kpf_workload.total_metrics_timesignals.keys()) + 1
         fig_size = (18, 2 * n_plots)
         plt.figure(plt_hdl.get_fig_handle_ID(), figsize=fig_size)
         id_plot = 0
 
-        # collect plotting info for bar overplotting
+        # plot_info collects plotting info during the iterations, to allow bar over-plotting..
         plot_info = []
+
         cum_model_vals = {}
         for ll, label in enumerate(wl_model_group.tags):
 
             print "label: {}".format(label)
 
-            # ------- retrieve kpf data from iteration ----------
+            # --------- retrieve kpf data from iteration -------------
             kpf_workload = wl_model_group.get_workload_by_name(label)
-            _, n_running_vec = kpf_workload.running_jobs
-            time_stamps, nproc_running_vec = kpf_workload.running_cpus
+            time_stamps, n_running_vec = kpf_workload.running_jobs
+            # --------------------------------------------------------
 
-            # ----- retrieve jobs fro the original workload.. -----
+            # ------- retrieve jobs fro the original workload.. ------
             kpf_workload_orig = wl_orig_group.get_workload_by_name(label)
-            _, n_running_vec_orig = kpf_workload_orig.running_jobs
-            time_stamps_orig, nproc_running_vec_orig = kpf_workload_orig.running_cpus
+            time_stamps_orig, n_running_vec_orig = kpf_workload_orig.running_jobs
+            # --------------------------------------------------------
+
             # ------------------ plots ----------------------------
             line_color = next(color)
-
             id_plot = 1
             plt.subplot(n_plots, 1, id_plot)
             plt.subplots_adjust(left=0.2, right=0.8, top=0.9, bottom=0.1)
@@ -94,21 +97,6 @@ if __name__ == "__main__":
             plt.xlim(xmin=0, xmax=1)
             plt.legend(loc='center left', bbox_to_anchor=(1, 0.5))
             plt.title('#Synthetic Apps: {}'.format(n_apps))
-
-            id_plot += 1
-            plt.subplot(n_plots, 1, id_plot)
-            plt.subplots_adjust(left=0.2, right=0.8, top=0.9, bottom=0.1)
-
-            plt.plot((time_stamps-min(time_stamps))/float(max(time_stamps)-min(time_stamps)),
-                     nproc_running_vec/float(max_running_cpus_model),
-                     color=line_color, linestyle='-', label=label)
-
-            plt.plot((time_stamps_orig-min(time_stamps_orig))/float(max(time_stamps_orig)-min(time_stamps_orig)),
-                     nproc_running_vec_orig/float(max_running_cpus_orig),
-                     color=line_color, linestyle='--', label=label)
-
-            plt.ylabel('#procs')
-            plt.xlim(xmin=0, xmax=1)
 
             # plot of the total time-signals
             total_metrics_model = kpf_workload.total_metrics_timesignals
@@ -127,8 +115,10 @@ if __name__ == "__main__":
                 time_stamps_orig, vals_orig = ts.digitized(n_bins)
                 times_norm_orig = (time_stamps_orig - min(time_stamps_orig)) / float(max(time_stamps_orig) - min(time_stamps_orig))
 
-                vals_model = vals/vals_max_model[ts_name]
-                vals_orig = vals_orig/vals_max_orig[ts_name]
+                # values to plot are in the profiled workload scale, so the model values need to be rescaled
+                # according to the metrics sums..
+                vals_model = vals/vals_sum_model[ts_name] * vals_sum_orig[ts_name]
+                vals_orig = vals_orig
 
                 plot_dict[ts_name] = {"times": times_norm,
                                       "model_vals": vals_model,
@@ -166,8 +156,11 @@ if __name__ == "__main__":
                 plt.ylabel(ts_name)
                 plt.xlim(xmin=0, xmax=1)
 
+                # set x-axes labels and ticks as appropriate
                 if tt == len(total_metrics_model)-1:
                     plt.xlabel('time')
+                else:
+                    plt.tick_params(axis='x', which='both', bottom='off', top='off', labelbottom='off')
 
         plt.show()
 
