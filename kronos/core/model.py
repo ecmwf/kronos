@@ -139,6 +139,7 @@ class KronosModel(object):
         class_operations_config = self.config_classification.get('operations', None)
 
         if class_operations_config is not None:
+            cutout_workloads = []
             for op_config in class_operations_config:
 
                 if op_config['type'] == "split":
@@ -161,7 +162,11 @@ class KronosModel(object):
                     wl = next(wl for wl in self.workloads if wl.tag == op_config['apply_to'])
                     sub_workloads = wl.split_by_keywords(op_config)
                     print_colour("cyan", "splitting has created workload {} with {} jobs".format(sub_workloads.tag, len(sub_workloads.jobs)))
-                    self.workloads.append(sub_workloads)
+
+                    # accumulate cutout worklaods
+                    cutout_workloads.append(sub_workloads)
+
+            self.workloads.extend(cutout_workloads)
 
         # save the KPF's of the sub-workloads before attempting the clustering
         save_wl_before_clustering = self.config_classification.get('save_wl_before_clustering', False)
@@ -169,8 +174,8 @@ class KronosModel(object):
             # for wl in self.workloads:
             #     kpf_hdl = ProfileFormat(model_jobs=wl.jobs, workload_tag=wl.tag)
             #     kpf_hdl.write_filename(os.path.join(self.config.dir_output, wl.tag+"_workload.kpf"))
-            wl_group = workload_data.WorkloadDataGroup(self.workloads)
-            wl_group.export_pickle(os.path.join(self.config.dir_output, "_workload.kpf"))
+            wl_group = workload_data.WorkloadDataGroup(cutout_workloads)
+            wl_group.export_pickle(os.path.join(self.config.dir_output, "_workload"))
 
         # check validity of jobs before doing the actual modelling..
         # NB: the preliminary phase of workload manipulation (defaults, lookup tables and recommender sys
@@ -195,9 +200,6 @@ class KronosModel(object):
                 if (row < 0.).any():
                     print "value < 0 encountered after clustering! corrected to 0."
                     row[row < 0.] = 0.
-
-
-
 
             self.clusters.append({
                                   'source-workload': wl_entry,
