@@ -35,8 +35,8 @@ class EquivTimePDFTest(unittest.TestCase):
         input_hist, input_bins = np.histogram(start_times_vec, bins=n_bins)
 
         # output (rescaled) times
-        output_duration = 0.5
-        output_ratio = (input_times_max-input_times_min)/output_duration
+        output_duration = 98.0
+        output_ratio = 1.0
         output_times, output_time_pdf, output_time_bins = equiv_time_pdf_exact(start_times_vec,
                                                                                global_t0,
                                                                                global_tend,
