@@ -1,0 +1,32 @@
+#!/usr/bin/env python
+
+# (C) Copyright 1996-2017 ECMWF.
+# 
+# This software is licensed under the terms of the Apache Licence Version 2.0
+# which can be obtained at http://www.apache.org/licenses/LICENSE-2.0. 
+# In applying this licence, ECMWF does not waive the privileges and immunities 
+# granted to it by virtue of its status as an intergovernmental organisation nor
+# does it submit to any jurisdiction.
+
+"""
+plot a summary of a run by comparing KPF of the original workload, schedule KSF and KPF of the Kronos run
+"""
+
+import argparse
+
+from kronos.core.postprocess.run_summary import Summary
+
+if __name__ == "__main__":
+
+    # Parser for the required arguments
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("kpf_file_name_original", type=str, help="File Name of KPF of the original workload")
+    parser.add_argument("kpf_file_name_model", type=str, help="File name of KPF of the corresponding kronos run")
+    parser.add_argument("--ksf_file_name", "-s", type=str, help="File name of KSF of the corresponding kronos run")
+    args = parser.parse_args()
+
+    summary = Summary(args.kpf_file_name_original,
+                      args.kpf_file_name_model,
+                      ksf_file_name=args.ksf_file_name)
+
+    summary.print_summary()
