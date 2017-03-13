@@ -29,4 +29,4 @@ if __name__ == "__main__":
                       args.kpf_file_name_model,
                       ksf_file_name=args.ksf_file_name)
 
-    summary.print_summary()
+    print summary
