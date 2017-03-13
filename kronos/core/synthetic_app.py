@@ -127,21 +127,25 @@ class SyntheticWorkload(object):
 
         print "----- Metrics sums over workload: ------"
         for k in time_signal_names:
-            str_format = "%s: %.3f"
-            print str_format % (k, self.total_metrics_dict()[k])
-        print "----------------------------------------"
+            unit = signal_types[k]["print_info"]["unit"]
+            form = signal_types[k]["print_info"]["format"]
+            conv = signal_types[k]["print_info"]["conv"]
+            str_format = "%-14s: " + form + " [" + unit + "]"
+            print str_format % (k, self.total_metrics_dict()[k] * conv)
 
-        print " ----- Actual Scaling factors: ---------"
+        print "------ Actual Scaling factors: ---------"
         for k in time_signal_names:
-            str_format = "%s: %f"
+            form = "%14f"
+            str_format = "%-14s: " + form + " [n/a]"
             print str_format % (k, self.total_metrics_apps[k]/float(self.total_metrics_dict()[k]))
-        print "----------------------------------------"
 
         print "-------- Exported Metrics sums: --------"
         for k in time_signal_names:
-            str_format = "%s: "+signal_types[k]['format']
-            print str_format % (k, self.total_metrics_apps[k])
-        print "----------------------------------------"
+            unit = signal_types[k]["print_info"]["unit"]
+            form = signal_types[k]["print_info"]["format"]
+            conv = signal_types[k]["print_info"]["conv"]
+            str_format = "%-14s: " + form + " [" + unit + "]"
+            print str_format % (k, self.total_metrics_apps[k] * conv)
 
         ScheduleFormat.from_synthetic_workload(self).write_filename(filename)
 
