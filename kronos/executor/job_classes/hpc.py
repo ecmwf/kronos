@@ -32,6 +32,7 @@ class HPCJob(BaseJob):
             'write_dir': self.path,
             'read_dir': self.executor.read_cache_path,
             'coordinator_binary': self.executor.coordinator_binary,
+            'coordinator_library_path': os.path.join( os.path.dirname(self.executor.coordinator_binary),"../lib"),     
             'queue': 'np',
             'num_procs': nprocs,
             'num_nodes': nnodes,

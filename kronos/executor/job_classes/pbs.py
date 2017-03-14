@@ -14,6 +14,7 @@ job_template = """#!/bin/sh
 # Configure the locations for the synthetic app to dump/load files in the i/o kernels
 export KRONOS_WRITE_DIR="{write_dir}"
 export KRONOS_READ_DIR="{read_dir}"
+export LD_LIBRARY_PATH={coordinator_library_path}:${{LD_LIBRARY_PATH}}
 
 # Change to the original directory for submission
 cd {job_dir}
@@ -41,6 +42,10 @@ export PATH={allinea_path}:${{PATH}}
 export LD_LIBRARY_PATH={allinea_ld_library_path}:${{LD_LIBRARY_PATH}}
 """
 
+allinea_lic_file_template = """
+export ALLINEA_LICENCE_FILE={allinea_licence_file}
+"""
+
 
 cancel_file_head = "#!/bin/sh\nqdel "
 cancel_file_line = "{sequence_id} "
@@ -56,7 +61,7 @@ class PBSMixin(object):
     submit_command = "qsub"
     launcher_command = 'aprun'
     allinea_launcher_command = "map --profile aprun"
-
+    allinea_lic_file_template = allinea_lic_file_template
     cancel_file_head = cancel_file_head
     cancel_file_line = cancel_file_line
 
