@@ -182,7 +182,36 @@
                                             "mmap",
                                             "n_write"
                                         ]
+                                    },
+
+                                    {
+                                        "type": "object",
+                                        "description": "kernel to execute file system metadata instructions",
+                                        "properties": {
+                                            "name": {
+                                                "type": "string",
+                                                "description": "type of kernel",
+                                                "enum": [
+                                                    "fs_metadata"
+                                                ]
+                                            },
+                                            "n_mkdir": {
+                                                "type": "number",
+                                                "description": "Number of dir to create"
+                                            },
+                                            "n_rmdir": {
+                                                "type": "number",
+                                                "description": "Number of dir to remove"
+                                            }
+                                        },
+                                        "required": [
+                                            "name",
+                                            "n_mkdir",
+                                            "n_rmdir"
+                                        ]
                                     }
+
+
                                 ]
                             }
                         }

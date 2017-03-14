@@ -28,7 +28,7 @@ class ScheduleFormat(JSONIoFormat):
                  created=None,
                  uid=None,
                  scaling_factors=None,
-                 unscaled_sums=None):
+                 unscaled_metrics_sums=None):
 
         # We either initialise from synthetic apps objects, or from synthetic apps json data
         assert (sa_data is not None) != (sa_data_json is not None)
@@ -39,7 +39,7 @@ class ScheduleFormat(JSONIoFormat):
         # initialize internals
         self.synapp_data = sa_data_json
         self.scaling_factors = scaling_factors
-        self.unscaled_sums = unscaled_sums
+        self.unscaled_metrics_sums = unscaled_metrics_sums
 
         super(ScheduleFormat, self).__init__(created=created, uid=uid)
 
@@ -70,7 +70,7 @@ class ScheduleFormat(JSONIoFormat):
             sa_data_json=data.get('jobs'),
             created=datetime.fromtimestamp(strict_rfc3339.rfc3339_to_timestamp(data['created'])),
             uid=data.get('uid'),
-            unscaled_sums=data.get('unscaled_sums'),
+            unscaled_metrics_sums=data.get('unscaled_metrics_sums'),
             scaling_factors=data.get('scaling_factors')
         )
 
@@ -86,7 +86,7 @@ class ScheduleFormat(JSONIoFormat):
 
         return cls(
             sa_data=synth_workload.app_list,
-            unscaled_sums=synth_workload.total_metrics_dict(),
+            unscaled_metrics_sums=synth_workload.total_metrics_dict(),
             scaling_factors=synth_workload.scaling_factors
         )
 
@@ -99,7 +99,7 @@ class ScheduleFormat(JSONIoFormat):
         output_dict.update({
             "jobs": self.synapp_data,
             "scaling_factors": self.scaling_factors,
-            "unscaled_metrics_sums": self.unscaled_sums
+            "unscaled_metrics_sums": self.unscaled_metrics_sums
         })
         return output_dict
 
@@ -110,8 +110,8 @@ class ScheduleFormat(JSONIoFormat):
         :return:
         """
         scaled_sums = {}
-        for k in self.unscaled_sums.keys():
-            scaled_sums[k] = self.unscaled_sums[k] * self.scaling_factors[k]
+        for k in self.unscaled_metrics_sums.keys():
+            scaled_sums[k] = self.unscaled_metrics_sums[k] * self.scaling_factors[k]
         return scaled_sums
 
     def set_scaling_factors(self, scaling_factors):

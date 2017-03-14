@@ -16,20 +16,38 @@ from kronos_tools import utils
 signal_types = OrderedDict([
 
     # # CPU
-    ('flops',    {'type': int,   'category': 'cpu',        'behaviour': 'sum', 'max_value': 1.0e20, 'format': '%i'}),
+    ('flops',    {'type': int,   'category': 'cpu',        'behaviour': 'sum', 'max_value': 1.0e20}),
 
     # (file) I/O
-    ('kb_read',  {'type': float, 'category': 'file-read',  'behaviour': 'sum', 'max_value': 1.0e20, 'format': '%.3f'}),
-    ('kb_write', {'type': float, 'category': 'file-write', 'behaviour': 'sum', 'max_value': 1.0e20, 'format': '%.3f'}),
-    ('n_read',   {'type': int,   'category': 'file-read',  'behaviour': 'sum', 'max_value': 1.0e20, 'format': '%i'}),
-    ('n_write',  {'type': int,   'category': 'file-write', 'behaviour': 'sum', 'max_value': 1.0e20, 'format': '%i'}),
+    ('kb_read',  {'type': float, 'category': 'file-read',  'behaviour': 'sum', 'max_value': 1.0e20}),
+    ('kb_write', {'type': float, 'category': 'file-write', 'behaviour': 'sum', 'max_value': 1.0e20}),
+    ('n_read',   {'type': int,   'category': 'file-read',  'behaviour': 'sum', 'max_value': 1000.0}),
+    ('n_write',  {'type': int,   'category': 'file-write', 'behaviour': 'sum', 'max_value': 100.00}),
 
     # MPI activity
-    ('n_pairwise',    {'type': int,   'category': 'mpi',  'behaviour': 'sum', 'max_value': 1.0e20, 'format': '%i'}),
-    ('kb_pairwise',   {'type': float, 'category': 'mpi',  'behaviour': 'sum', 'max_value': 1.0e20, 'format': '%.3f'}),
-    ('n_collective',  {'type': int,   'category': 'mpi',  'behaviour': 'sum', 'max_value': 1.0e20, 'format': '%i'}),
-    ('kb_collective', {'type': float, 'category': 'mpi',  'behaviour': 'sum', 'max_value': 1.0e20, 'format': '%.3f'})
+    ('n_pairwise',    {'type': int,   'category': 'mpi',  'behaviour': 'sum', 'max_value': 1.0e20}),
+    ('kb_pairwise',   {'type': float, 'category': 'mpi',  'behaviour': 'sum', 'max_value': 1.0e20}),
+    ('n_collective',  {'type': int,   'category': 'mpi',  'behaviour': 'sum', 'max_value': 1.0e20}),
+    ('kb_collective', {'type': float, 'category': 'mpi',  'behaviour': 'sum', 'max_value': 1.0e20})
 ])
+
+
+# add print info
+float_format_print = '14.1f'
+int_format_print = '14.0f'
+
+signal_types['flops']["print_info"] = {"unit": "Gflops", "format": int_format_print, "conv": 1.0e-9}
+
+signal_types['kb_read']["print_info"] = {"unit": "Gbytes", "format": float_format_print, "conv": 1.0e-6}
+signal_types['kb_write']["print_info"] = {"unit": "Gbytes", "format": float_format_print, "conv": 1.0e-6}
+signal_types['n_read']["print_info"] = {"unit": "times ", "format": int_format_print, "conv": 1.0}
+signal_types['n_write']["print_info"] = {"unit": "times ", "format": int_format_print, "conv": 1.0}
+
+signal_types['n_pairwise']["print_info"] = {"unit": "times ", "format": int_format_print, "conv": 1.0}
+signal_types['kb_pairwise']["print_info"] = {"unit": "Gbytes", "format": float_format_print, "conv": 1.0e-6}
+signal_types['n_collective']["print_info"] = {"unit": "times ", "format": int_format_print, "conv": 1.0}
+signal_types['kb_collective']["print_info"] = {"unit": "Gbytes", "format": float_format_print, "conv": 1.0e-6}
+
 
 time_signal_names = signal_types.keys()
 

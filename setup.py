@@ -41,7 +41,8 @@ setup(
         'bin/kronos-raw-to-kpf',
         'bin/kronos-plot-run',
         'bin/kronos-run-summary',
-        'bin/kronos-map-2-kpf'
+        'bin/kronos-map-2-kpf',
+        'bin/kronos-view-json'
     ],
     include_package_data=True,
     install_requires=requirements,
