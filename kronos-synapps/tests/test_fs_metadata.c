@@ -74,9 +74,12 @@ int main() {
     assert(global_config_instance()->nprocs == 1);
     assert(global_config_instance()->mpi_rank == 0);
 
+    printf("# MPI threads: %i\n", global_config_instance()->nprocs);
+
     test_dir_params();
 
 
     clean_global_config();
+
     return 0;
 }

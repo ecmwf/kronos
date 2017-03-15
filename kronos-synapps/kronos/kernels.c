@@ -78,6 +78,8 @@ KernelFunctor* kernel_factory(const JSON* config) {
         return init_file_read(config);
     } else if (name_length == 10 && strncmp(str_name, "file-write", name_length) == 0) {
         return init_file_write(config);
+    } else if (name_length == 11 && strncmp(str_name, "fs_metadata", name_length) == 0) {
+        return init_fsmetadata(config);
     } else if (name_length == 3 && strncmp(str_name, "cpu", name_length) == 0) {
         return init_cpu(config);
     } else if (name_length == 3 && strncmp(str_name, "mpi", name_length) == 0) {

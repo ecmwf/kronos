@@ -13,13 +13,23 @@
  * @author Simon Smart
  */
 
-#include <stdlib.h>
 #include <assert.h>
+#include <stdlib.h>
+#include <string.h>
+#include <fcntl.h>
+#include <errno.h>
+#include <unistd.h>
+
+#include <sys/types.h>
+#include <sys/stat.h>
 
 #include "kronos/fs_metadata.h"
 #include "kronos/global_config.h"
+#include "kronos/json.h"
 #include "kronos/trace.h"
-#include "kronos/utility.h"
+
+
+
 
 /* ------------------------------------------------------------------------------------------------------------------ */ 
 
@@ -28,11 +38,20 @@ FSMETAParamsInternal get_fsmetadata_params(const FSMETAConfig* config) {
     FSMETAParamsInternal params;
 
     assert(config->n_mk_dirs > 0);
-    assert(config->n_rm_dirs > 0);
+    /*assert(config->n_rm_dirs > 0);*/
 
     /* The mkdir/rmdir are shared out as uniformly as possible across the processors */
-    params.node_n_mk_dirs = global_distribute_work(config->n_mk_dirs);
-    params.node_n_rm_dirs = global_distribute_work(config->n_rm_dirs);
+    if (config->n_mk_dirs) {
+        params.node_n_mk_dirs = global_distribute_work(config->n_mk_dirs);
+    }else{
+        params.node_n_mk_dirs = 0;
+    }
+
+    if (config->n_rm_dirs) {
+        params.node_n_rm_dirs = global_distribute_work(config->n_rm_dirs);
+    }else{
+        params.node_n_rm_dirs = 0;
+    }
 
     return params;
 }
@@ -56,8 +75,24 @@ int get_dir_name(char* path_out, size_t max_len) {
     return (dir > 0 && dir < PATH_MAX) ? 0 : -1;
 }
 
+/**
+ * @brief this function creates a directory with the specified path
+ */
+static bool kronos_make_dir(const char* dir_path) {
 
+    FILE* file;
+    char* buffer;
+    long error;
+    long chunk_size, remaining, result;
 
+    error = mkdir(dir_path, S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP);
+
+    if (error){
+        fprintf(stderr, "Failed to create directory %s \n", dir_path);
+    }
+
+    return error;
+}
 
 static int execute_fsmetadata(const void* data) {
 
@@ -67,19 +102,52 @@ static int execute_fsmetadata(const void* data) {
     int error;
     long count;
     bool success;
-    char file_path[PATH_MAX];
+    char dir_path[PATH_MAX];
 
     params = get_fsmetadata_params(config);
 
     TRACE3("Creating %li directories and removing %li directories", params.node_n_mk_dirs, params.node_n_rm_dirs);
 
-    /* ----- TODO add instructions here.. -------*/
-    TRACE1("... doing nothing for now..");
-
+    /* --------- create directories ----------- */
     error = 0;
+    for (count = 0; count < params.node_n_mk_dirs; count++) {
+
+        if (get_dir_name(dir_path, PATH_MAX) == 0) {
+
+            TRACE2("Writing directory %s ...", dir_path);
+            error = kronos_make_dir(dir_path);
+        }
+
+        if (error) {
+            fprintf(stderr, "A write error occurred on directory %s\n", dir_path);
+        }
+    }
+
+    /* --------- remove directories -----------
+    error = 0;
+    for (count = 0; count < params.node_n_rm_dirs; count++) {
+
+        success = false;
+
+        if (get_dir_name(dir_path, PATH_MAX) == 0) {
+
+            TRACE2("Writing directory %s ...", dir_path);
+            success = kronos_make_dir(dir_path);
+        }
+
+        if (!success) {
+            fprintf(stderr, "A write error occurred on directory %s\n", dir_path);
+            error = -1;
+        }
+    } */
 
     return error;
 }
+
+
+
+
+
 
 
 KernelFunctor* init_fsmetadata(const JSON* config_json) {
@@ -95,7 +163,7 @@ KernelFunctor* init_fsmetadata(const JSON* config_json) {
     if (json_object_get_integer(config_json, "n_mkdir", &config->n_mk_dirs) != 0 ||
         json_object_get_integer(config_json, "n_rmdir", &config->n_rm_dirs) != 0 ||
         config->n_mk_dirs < 0 ||
-        config->n_rm_dirs <= 0) {
+        config->n_rm_dirs < 0) {
 
         fprintf(stderr, "Invalid parameters specified in fs-metadata config\n");
         free(config);
