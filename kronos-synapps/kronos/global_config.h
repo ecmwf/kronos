@@ -34,6 +34,7 @@ typedef struct GlobalConfig {
 
     char file_read_path[PATH_MAX];
     char file_write_path[PATH_MAX];
+    char file_shared_path[PATH_MAX];
 
     char hostname[HOST_NAME_MAX];
 

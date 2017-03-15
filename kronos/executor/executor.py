@@ -23,7 +23,7 @@ class Executor(object):
         pass
 
     available_parameters = [
-        'coordinator_binary', 'enable_ipm', 'job_class', 'job_dir',
+        'coordinator_binary', 'enable_ipm', 'job_class', 'job_dir', 'job_dir_shared',
         'procs_per_node', 'read_cache', 'allinea_path', 'allinea_ld_library_path', 'allinea_licence_file',
         'local_tmpdir', 'submission_workers']
 
@@ -50,12 +50,21 @@ class Executor(object):
         self.job_class_module = imp.load_source('job', self.job_class_module_file)
         self.job_class = self.job_class_module.Job
 
+	# job dir
         self.local_tmpdir = config.get("local_tmpdir", None)
         self.job_dir = config.get("job_dir", os.path.join(os.getcwd(), "run"))
         print "Job executing dir: {}".format(self.job_dir)
         if os.path.exists(self.job_dir):
             raise IOError("Path {} already exists".format(self.job_dir))
         os.makedirs(self.job_dir)
+
+	# shared dir 
+        self.job_dir_shared = config.get("job_dir_shared", os.path.join(os.getcwd(), "run/shared"))
+        print "Shared output directory: {}".format(self.job_dir_shared)
+        if os.path.exists(self.job_dir_shared):
+            raise IOError("Path {} already exists".format(self.job_dir_shared))
+        os.makedirs(self.job_dir_shared)
+
 
         # The binary to use can be overridden in the config file
         try:

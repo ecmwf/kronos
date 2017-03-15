@@ -17,6 +17,8 @@ ecbuild_add_library (
         file_read.h
         file_write.c
         file_write.h
+        fs_metadata.h
+        fs_metadata.c
         frames.c
         frames.h
         global_config.c

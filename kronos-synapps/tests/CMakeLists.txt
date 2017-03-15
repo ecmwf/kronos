@@ -20,6 +20,11 @@ ecbuild_add_test(
     LIBS kronos )
 
 ecbuild_add_test(
+    TARGET kronos_test_fs_metadata
+    SOURCES test_fs_metadata.c
+    LIBS kronos )
+
+ecbuild_add_test(
     TARGET kronos_test_cpu
     SOURCES test_cpu.c
     LIBS kronos )

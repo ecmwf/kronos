@@ -73,6 +73,19 @@ int init_global_config(const JSON* json, int argc, char** argv) {
         strcat(global_config.file_write_path, "/write_cache");
     }
 
+    if ((tmp_json = json_object_get(json, "file_shared_path")) != NULL) {
+        if (json_as_string(tmp_json, global_config.file_shared_path, PATH_MAX) != 0) {
+            error = -1;
+            fprintf(stderr, "Error reading file_shared_path as string from global configuration\nGot:");
+            print_json(stderr, tmp_json);
+            fprintf(stderr, "\n");
+        }
+    } else {
+        getcwd(global_config.file_shared_path, PATH_MAX);
+        strcat(global_config.file_shared_path, "/shared");
+    }
+
+
     /* The above paths can be overridden from environment variables */
 
     env_ptr = getenv("KRONOS_WRITE_DIR");
@@ -82,6 +95,10 @@ int init_global_config(const JSON* json, int argc, char** argv) {
     env_ptr = getenv("KRONOS_READ_DIR");
     if (env_ptr != NULL)
         strncpy(global_config.file_read_path, env_ptr, PATH_MAX);
+
+    env_ptr = getenv("KRONOS_SHARED_DIR");
+    if (env_ptr != NULL)
+        strncpy(global_config.file_shared_path, env_ptr, PATH_MAX);
 
     /*
      * Input conditions
@@ -164,6 +181,7 @@ int init_global_config(const JSON* json, int argc, char** argv) {
         printf("--------------------\n");
         printf("File read cache: %s\n", global_config.file_read_path);
         printf("File write cache: %s\n", global_config.file_write_path);
+        printf("File shared path: %s\n", global_config.file_shared_path);
         printf("Hostname: %s\n", global_config.hostname);
         printf("Trace output: %s\n", (global_config.enable_trace ? "true":"false"));
         printf("Initial timestamp: %f, %s\n",
