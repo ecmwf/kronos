@@ -14,6 +14,8 @@ job_template = """#!/bin/sh
 # Configure the locations for the synthetic app to dump/load files in the i/o kernels
 export KRONOS_WRITE_DIR="{write_dir}"
 export KRONOS_READ_DIR="{read_dir}"
+export KRONOS_SHARED_DIR="{shared_dir}"
+
 export LD_LIBRARY_PATH={coordinator_library_path}:${{LD_LIBRARY_PATH}}
 
 # Change to the original directory for submission

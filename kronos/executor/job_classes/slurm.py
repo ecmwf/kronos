@@ -13,6 +13,7 @@ job_template = """#!/bin/sh
 # Configure the locations for the synthetic app to dump/load files in the i/o kernels
 export KRONOS_WRITE_DIR="{write_dir}"
 export KRONOS_READ_DIR="{read_dir}"
+export KRONOS_SHARED_DIR="{shared_dir}"
 
 module load openmpi
 

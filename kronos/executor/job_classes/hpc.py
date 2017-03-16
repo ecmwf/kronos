@@ -31,6 +31,7 @@ class HPCJob(BaseJob):
         script_format = {
             'write_dir': self.path,
             'read_dir': self.executor.read_cache_path,
+            'shared_dir': self.executor.job_dir_shared,
             'coordinator_binary': self.executor.coordinator_binary,
             'coordinator_library_path': os.path.join( os.path.dirname(self.executor.coordinator_binary),"../lib"),     
             'queue': 'np',

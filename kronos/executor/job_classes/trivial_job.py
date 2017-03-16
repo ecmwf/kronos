@@ -10,6 +10,7 @@ job_template = """
 
 export KRONOS_WRITE_DIR="{write_dir}"
 export KRONOS_READ_DIR="{read_dir}"
+export KRONOS_SHARED_DIR="{shared_dir}"
 
 {profiling_code}
 

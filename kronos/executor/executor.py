@@ -50,7 +50,7 @@ class Executor(object):
         self.job_class_module = imp.load_source('job', self.job_class_module_file)
         self.job_class = self.job_class_module.Job
 
-	# job dir
+        # job dir
         self.local_tmpdir = config.get("local_tmpdir", None)
         self.job_dir = config.get("job_dir", os.path.join(os.getcwd(), "run"))
         print "Job executing dir: {}".format(self.job_dir)
@@ -58,7 +58,7 @@ class Executor(object):
             raise IOError("Path {} already exists".format(self.job_dir))
         os.makedirs(self.job_dir)
 
-	# shared dir 
+        # shared dir
         self.job_dir_shared = config.get("job_dir_shared", os.path.join(os.getcwd(), "run/shared"))
         print "Shared output directory: {}".format(self.job_dir_shared)
         if os.path.exists(self.job_dir_shared):
