@@ -25,7 +25,6 @@
 typedef struct FSMETAConfig {
 
     long n_mk_dirs;
-    long n_rm_dirs;
 
 } FSMETAConfig;
 
@@ -38,7 +37,6 @@ KernelFunctor* init_fsmetadata(const JSON* config_json);
 typedef struct FSMETAParamsInternal {
 
     long node_n_mk_dirs;
-    long node_n_rm_dirs;
 
 } FSMETAParamsInternal;
 

@@ -40,7 +40,6 @@ static void test_dir_params() {
     FSMETAParamsInternal params;
 
     config.n_mk_dirs = 50;
-    config.n_rm_dirs = 40;
 
     reset_global_distribute();
     params = get_fsmetadata_params(&config);
@@ -48,7 +47,6 @@ static void test_dir_params() {
     /* n.b. kilobytes is converted to bytes */
 
     assert(params.node_n_mk_dirs == 50);
-    assert(params.node_n_rm_dirs == 40);
 
     /* If we change the number of processes, the work should be appropriately distributed. */
 
@@ -58,7 +56,6 @@ static void test_dir_params() {
     params = get_fsmetadata_params(&config);
 
     assert(params.node_n_mk_dirs == 10);
-    assert(params.node_n_rm_dirs == 8);
 
     /* Restore the global config */
     gconfig->nprocs = 1;
