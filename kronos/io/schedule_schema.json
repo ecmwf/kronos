@@ -198,10 +198,6 @@
                                             "n_mkdir": {
                                                 "type": "number",
                                                 "description": "Number of dir to create"
-                                            },
-                                            "n_rmdir": {
-                                                "type": "number",
-                                                "description": "Number of dir to remove"
                                             }
                                         },
                                         "required": [
