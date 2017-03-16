@@ -196,14 +196,13 @@
                                                 ]
                                             },
                                             "n_mkdir": {
-                                                "type": "number",
+                                                "type": "integer",
                                                 "description": "Number of dir to create"
                                             }
                                         },
                                         "required": [
                                             "name",
-                                            "n_mkdir",
-                                            "n_rmdir"
+                                            "n_mkdir"
                                         ]
                                     }
 
