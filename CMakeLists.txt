@@ -4,7 +4,7 @@ cmake_minimum_required( VERSION 2.8.11 FATAL_ERROR )
 
 project( kronos C CXX )
 
-set( CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake" ${CMAKE_MODULE_PATH} "/home/ma/maab/git/ecbuild/cmake")
+set( CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake" ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/../ecbuild/cmake")
 
 include( ecbuild_system NO_POLICY_SCOPE )
 
