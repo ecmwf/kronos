@@ -111,7 +111,6 @@ static int execute_fsmetadata(const void* data) {
     long count;
     bool success;
     char dir_path[PATH_MAX];
-    const char *dir_names[params.node_n_mk_dirs];
 
     params = get_fsmetadata_params(config);
 
