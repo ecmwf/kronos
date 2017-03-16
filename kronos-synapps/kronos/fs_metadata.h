@@ -22,11 +22,11 @@
 #include "kronos/kernels.h"
 #include "kronos/json.h"
 
-typedef struct FSMETAConfig {
+typedef struct FsMetadataConfig {
 
-    long n_mk_dirs;
+    long n_mkdirs;
 
-} FSMETAConfig;
+} FsMetadataConfig;
 
 KernelFunctor* init_fsmetadata(const JSON* config_json);
 
@@ -34,14 +34,14 @@ KernelFunctor* init_fsmetadata(const JSON* config_json);
 
 /* Internal functionality. Exposed for testing purposes */
 
-typedef struct FSMETAParamsInternal {
+typedef struct FsMetadataParamsInternal {
 
-    long node_n_mk_dirs;
+    long node_n_mkdirs;
 
-} FSMETAParamsInternal;
+} FsMetadataParamsInternal;
 
 
-FSMETAParamsInternal get_fsmetadata_params(const FSMETAConfig* config);
+FsMetadataParamsInternal get_fsmetadata_params(const FsMetadataConfig* config);
 
 /* ------------------------------------------------------------------------------------------------------------------ */
 

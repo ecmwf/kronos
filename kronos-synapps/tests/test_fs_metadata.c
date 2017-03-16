@@ -36,17 +36,17 @@ static void test_dir_params() {
     /* Const cast, so we can manipulate the global config and make it look like we have multiple procs. */
     GlobalConfig* gconfig = (GlobalConfig*)global_config_instance();
 
-    FSMETAConfig config;
-    FSMETAParamsInternal params;
+    FsMetadataConfig config;
+    FsMetadataParamsInternal params;
 
-    config.n_mk_dirs = 50;
+    config.n_mkdirs = 50;
 
     reset_global_distribute();
     params = get_fsmetadata_params(&config);
 
     /* n.b. kilobytes is converted to bytes */
 
-    assert(params.node_n_mk_dirs == 50);
+    assert(params.node_n_mkdirs == 50);
 
     /* If we change the number of processes, the work should be appropriately distributed. */
 
@@ -55,7 +55,7 @@ static void test_dir_params() {
     reset_global_distribute();
     params = get_fsmetadata_params(&config);
 
-    assert(params.node_n_mk_dirs == 10);
+    assert(params.node_n_mkdirs == 10);
 
     /* Restore the global config */
     gconfig->nprocs = 1;

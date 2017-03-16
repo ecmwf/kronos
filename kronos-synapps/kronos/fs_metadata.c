@@ -33,17 +33,17 @@
 
 /* ------------------------------------------------------------------------------------------------------------------ */ 
 
-FSMETAParamsInternal get_fsmetadata_params(const FSMETAConfig* config) {
+FsMetadataParamsInternal get_fsmetadata_params(const FsMetadataConfig* config) {
 
-    FSMETAParamsInternal params;
+    FsMetadataParamsInternal params;
 
-    assert(config->n_mk_dirs > 0);
+    assert(config->n_mkdirs > 0);
 
     /* The mkdir/rmdir are shared out as uniformly as possible across the processors */
-    if (config->n_mk_dirs) {
-        params.node_n_mk_dirs = global_distribute_work(config->n_mk_dirs);
-    }else{
-        params.node_n_mk_dirs = 0;
+    if (config->n_mkdirs) {
+        params.node_n_mkdirs = global_distribute_work(config->n_mkdirs);
+    } else {
+        params.node_n_mkdirs = 0;
     }
 
     return params;
@@ -60,52 +60,50 @@ static long process_dir_counter() {
 int get_dir_name(char* path_out, size_t max_len) {
 
     const GlobalConfig* global_conf = global_config_instance();
-    int dir;
+    int len;
 
-    dir = snprintf(path_out, max_len, "%s/%s-%li-%li", global_conf->file_shared_path,
+    len = snprintf(path_out, max_len, "%s/%s-%li-%li", global_conf->file_shared_path,
                        global_conf->hostname, (long)getpid(), process_dir_counter());
 
-    return (dir > 0 && dir < PATH_MAX) ? 0 : -1;
+    return (len > 0 && len < PATH_MAX) ? 0 : -1;
 }
 
 /**
  * @brief this function creates a directory with the specified path
  */
-static bool kronos_make_dir(const char* dir_path) {
+static bool kronos_mkdir(const char* dir_path) {
 
-    long error;
+    bool success = true;
 
-    error = mkdir(dir_path, S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP);
-
-    if (error){
-        fprintf(stderr, "Failed to create directory %s \n", dir_path);
+    if (mkdir(dir_path, S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP) != 0) {
+        fprintf(stderr, "Failed to create directory %s (%s)\n", dir_path, strerror(errno));
+        success = false;
     }
 
-    return error;
+    return success;
 }
 
 
 /**
  * @brief this function removes a directory with the specified path
  */
-static bool kronos_rm_dir(const char* dir_path) {
+static bool kronos_rmdir(const char* dir_path) {
 
-    long error;
+    bool success = true;
 
-    error = rmdir(dir_path);
-
-    if (error){
-        fprintf(stderr, "Failed to create directory %s \n", dir_path);
+    if (rmdir(dir_path) != 0) {
+        fprintf(stderr, "Failed to remove directory %s (%s)\n", dir_path, strerror(errno));
+        success = false;
     }
 
-    return error;
+    return success;
 }
 
 
 static int execute_fsmetadata(const void* data) {
 
-    const FSMETAConfig* config = data;
-    FSMETAParamsInternal params;
+    const FsMetadataConfig* config = data;
+    FsMetadataParamsInternal params;
 
     int error;
     long count;
@@ -114,26 +112,31 @@ static int execute_fsmetadata(const void* data) {
 
     params = get_fsmetadata_params(config);
 
-    TRACE2("Creating/removed %li directories", params.node_n_mk_dirs);
+    TRACE2("Creating/removed %li directories", params.node_n_mkdirs);
 
 
     /* --------- creates/removes directories ----------- */
     error = 0;
-    for (count = 0; count < params.node_n_mk_dirs; count++) {
+    for (count = 0; count < params.node_n_mkdirs; count++) {
+
+        success = false;
 
         if (get_dir_name(dir_path, PATH_MAX) == 0) {
 
-            TRACE2("Writing directory %s ...", dir_path);
-            error = kronos_make_dir(dir_path);
+            TRACE2("Writing directory %s", dir_path);
+            success = kronos_mkdir(dir_path);
+
+            if (success) {
+
+                TRACE2("Removing directory %s", dir_path);
+                success = kronos_rmdir(dir_path);
+            }
         }
 
-        if (error) fprintf(stderr, "A write error occurred on creating directory %s\n", dir_path);
-
-        TRACE2("Removing directory %s ...", dir_path);
-        error = kronos_rm_dir(dir_path);
-
-        if (error) fprintf(stderr, "A write error occurred on removing directory %s\n", dir_path);
-
+        if (!success) {
+            fprintf(stderr, "An error occurred in create/delete directory %s\n", dir_path);
+            error = -1;
+        }
     }
 
     return error;
@@ -145,21 +148,20 @@ static int execute_fsmetadata(const void* data) {
 KernelFunctor* init_fsmetadata(const JSON* config_json) {
 
 
-    FSMETAConfig* config;
+    FsMetadataConfig* config;
     KernelFunctor* functor;
 
     TRACE();
 
-    config = malloc(sizeof(FSMETAConfig));
+    config = malloc(sizeof(FsMetadataConfig));
 
-    if (json_object_get_integer(config_json, "n_mkdir", &config->n_mk_dirs) != 0 ||
-        config->n_mk_dirs < 0) {
+    if (json_object_get_integer(config_json, "n_mkdir", &config->n_mkdirs) != 0 ||
+        config->n_mkdirs < 0) {
 
-        fprintf(stderr, "Invalid parameters specified in fs-metadata config\n");
+        fprintf(stderr, "Invalid directory count specified in fs-metadata config\n");
         free(config);
         return NULL;
     }
-
 
     functor = malloc(sizeof(KernelFunctor));
     functor->next = NULL;
