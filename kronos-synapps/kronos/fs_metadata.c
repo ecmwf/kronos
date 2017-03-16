@@ -71,7 +71,7 @@ int get_dir_name(char* path_out, size_t max_len) {
 /**
  * @brief this function creates a directory with the specified path
  */
-static bool kronos_make_dir(const char* dir_path) {
+static bool kronos_mkdir(const char* dir_path) {
 
     bool success = true;
 
@@ -87,7 +87,7 @@ static bool kronos_make_dir(const char* dir_path) {
 /**
  * @brief this function removes a directory with the specified path
  */
-static bool kronos_rm_dir(const char* dir_path) {
+static bool kronos_rmdir(const char* dir_path) {
 
     bool success = true;
 
@@ -124,12 +124,12 @@ static int execute_fsmetadata(const void* data) {
         if (get_dir_name(dir_path, PATH_MAX) == 0) {
 
             TRACE2("Writing directory %s", dir_path);
-            success = kronos_make_dir(dir_path);
+            success = kronos_mkdir(dir_path);
 
             if (success) {
 
                 TRACE2("Removing directory %s", dir_path);
-                success = kronos_rm_dir(dir_path);
+                success = kronos_rmdir(dir_path);
             }
         }
 
