@@ -29,6 +29,7 @@ class ExecutorTests(unittest.TestCase):
             'procs_per_node': 1,
             'job_dir': scratch_tmpdir(),
             'read_cache': scratch_tmpdir(),
+            'job_dir_shared': scratch_tmpdir(),
             'coordinator_binary': 'invalid-binary'
         }
 
@@ -40,6 +41,8 @@ class ExecutorTests(unittest.TestCase):
             shutil.rmtree(self.base_config['job_dir'])
         if os.path.exists(self.base_config['read_cache']):
             shutil.rmtree(self.base_config['read_cache'])
+        if os.path.exists(self.base_config['job_dir_shared']):
+            shutil.rmtree(self.base_config['job_dir_shared'])
 
     def test_wait_until(self):
         """
