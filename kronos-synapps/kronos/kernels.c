@@ -20,6 +20,7 @@
 #include "kronos/cpu.h"
 #include "kronos/file_read.h"
 #include "kronos/file_write.h"
+#include "kronos/fs_metadata.h"
 #include "kronos/global_config.h"
 #include "kronos/kernels.h"
 #include "kronos/mpi.h"
