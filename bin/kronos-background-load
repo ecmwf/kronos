@@ -1,0 +1,88 @@
+#!/usr/bin/env python
+# (C) Copyright 1996-2017 ECMWF.
+# 
+# This software is licensed under the terms of the Apache Licence Version 2.0
+# which can be obtained at http://www.apache.org/licenses/LICENSE-2.0. 
+# In applying this licence, ECMWF does not waive the privileges and immunities 
+# granted to it by virtue of its status as an intergovernmental organisation nor
+# does it submit to any jurisdiction.
+
+
+import os
+import sys
+
+sys.path.append(os.path.dirname(os.path.dirname(__file__)))
+
+from kronos.io.schedule_format import ScheduleFormat
+from kronos.core.time_signal import signal_types
+
+# Generate a template executor configuration and ksf file given the specified settings
+
+if __name__ == '__main__':
+
+    ksf_filename = sys.argv[1] if len(sys.argv) >= 2 else "background.ksf"
+
+    # ----------------------------------------------------------------------
+
+    procs_per_node = 32
+    nnodes = 150
+    repetitions = 10000
+
+    # Read and write 1 GiB in 100 chunks
+    kb_read = 1 * 1024 * 1024
+    kb_write = 1 * 1024 * 1024
+    nreads = 100
+    nwrites = 100
+
+
+    flops = 12345678
+    ndirs = 5000
+
+    # ----------------------------------------------------------------------
+
+    joblist = [{
+        "frames": [[
+            {
+                "name": "cpu",
+                "flops": flops
+            }, {
+                "name": "file-read",
+                "kb_read": kb_read,
+                "n_read": nreads,
+                "mmap": True,
+                "invalidate": True
+            }, {
+                "name": "file-write",
+                "kb_write": kb_write,
+                "n_write": nwrites,
+                "mmap": False
+            }, {
+                "name": "fs_metadata",
+                "n_mkdir": ndirs
+            }
+        ]] * repetitions,
+        "repeat": nnodes,
+        "num_procs": procs_per_node,
+        "start_delay": 0,
+        "metadata": {
+            "job_name": "kronos-bg",
+            "workload_name": "kronos-bg"
+        }
+    }]
+
+    json = {
+        "sa_data_json": joblist,
+        "created": None,
+        "uid": None,
+        "unscaled_metrics_sums": {s: 1.0 for s in signal_types},
+        "scaling_factors": {s: 1.0 for s in signal_types}
+    }
+
+    print "Writing KSF: {}".format(ksf_filename)
+
+    sf = ScheduleFormat(
+        sa_data_json=joblist,
+        scaling_factors={s: 1.0 for s in signal_types},
+        unscaled_metrics_sums={s: 1.0 for s in signal_types})
+
+    sf.write_filename(ksf_filename)
