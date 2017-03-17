@@ -140,6 +140,10 @@
                                                 "type": "boolean",
                                                 "description": "Whether or not read from mmap files"
                                             },
+                                            "invalidate": {
+                                                "type": "boolean",
+                                                "description": "Whether or not read files are kept valid in cache"
+                                            },
                                             "n_read": {
                                                 "type": "integer",
                                                 "description": "Number of read"
