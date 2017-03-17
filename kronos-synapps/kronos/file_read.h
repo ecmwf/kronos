@@ -28,6 +28,8 @@ typedef struct FileReadConfig {
     long kilobytes;
     long reads;
     bool mmap;
+    bool o_direct;
+    bool invalidate;
 
 } FileReadConfig;
 

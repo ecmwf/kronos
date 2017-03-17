@@ -20,11 +20,11 @@ ecbuild_add_option(
 # Add C flags to ensure standards compliance
 
 if( CMAKE_C_COMPILER_ID STREQUAL "GNU" OR CMAKE_C_COMPILER_ID STREQUAL "Clang" )
-    ecbuild_add_c_flags("-std=c89 -pedantic -D_XOPEN_SOURCE=500")
+    ecbuild_add_c_flags("-std=c89 -pedantic -D_XOPEN_SOURCE=600")
 elseif( CMAKE_C_COMPILER_ID STREQUAL "Intel" )
-    ecbuild_add_c_flags("-std=c89 -strict-ansi -D_XOPEN_SOURCE=500 -no-gcc")
+    ecbuild_add_c_flags("-std=c89 -strict-ansi -D_XOPEN_SOURCE=600 -no-gcc")
 elseif( CMAKE_C_COMPILER_ID STREQUAL "Cray" )
-    ecbuild_add_c_flags("-h nognu -h notolerant -h conform -h stdc -h noc99 -D_XOPEN_SOURCE=500" )
+    ecbuild_add_c_flags("-h nognu -h notolerant -h conform -h stdc -h noc99 -D_XOPEN_SOURCE=600" )
 endif()
 
 if( ALLINEA_LIBS_DIR )

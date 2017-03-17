@@ -85,11 +85,12 @@ FileReadParamsInternal get_read_params(const FileReadConfig* config) {
  * @brief file_read_mmap Given a specified filename, size and an appropriate buffer, open and read
  *        the data into a buffer using the mmap procedure
  */
-static bool file_read_mmap(const char* file_path, long read_size, char* buffer) {
+static bool file_read_mmap(const char* file_path, long read_size, char* buffer, bool invalidate) {
 
     int fd;
     char* pmapped;
     bool success;
+    int err;
 
     TRACE();
 
@@ -104,6 +105,19 @@ static bool file_read_mmap(const char* file_path, long read_size, char* buffer) 
         if (pmapped != MAP_FAILED) {
             success = true;
             memcpy(buffer, pmapped, read_size);
+
+            if (invalidate) {
+#if defined(__linux__) || defined(__hpux)
+                if ((err = posix_fadvise(fd, 0, read_size, POSIX_FADV_DONTNEED)) != 0)
+                    fprintf(stderr, "Cache invalidation with posix_fadvise failed: %s\n", strerror(err));
+#elif defined(__FreeBSD__) || defined(__sun__) || defined(__APPLE__)
+                if (msync(buffer, read_size, MS_INVALIDATE) != 0)
+                    fprintf(stderr, "Cache invalidation with msync failed: %s\n", strerror(errno));
+#else
+                fprintf(stderr, "File page mapping invalidation not supported on this platform");
+#endif
+            }
+
             munmap(pmapped, read_size);
         } else {
             fprintf(stderr, "mmap error: (%d) %s\n", errno, strerror(errno));
@@ -129,6 +143,8 @@ static bool file_read_c_api(const char* file_path, long read_size, char* buffer)
     TRACE();
 
     success = false;
+
+    /* TODO: If we want the option to use O_DIRECT, then we need to use POSIX open, not fopen */
 
     file = fopen(file_path, "rb");
     if (file != NULL) {
@@ -189,8 +205,9 @@ int execute_file_read(const void* data) {
             TRACE2("Reading from file %s ...", file_path);
 
             if (config->mmap) {
-                success = file_read_mmap(file_path, size, read_buffer);
+                success = file_read_mmap(file_path, size, read_buffer, config->invalidate);
             } else {
+                assert(!config->invalidate);
                 success = file_read_c_api(file_path, size, read_buffer);
             }
 
@@ -215,10 +232,13 @@ KernelFunctor* init_file_read(const JSON* config_json) {
 
     FileReadConfig* config;
     KernelFunctor* functor;
+    bool success;
 
     TRACE();
 
     config = malloc(sizeof(FileReadConfig));
+
+    success = true;
 
     if (json_object_get_integer(config_json, "kb_read", &config->kilobytes) != 0 ||
         json_object_get_integer(config_json, "n_read", &config->reads) != 0 ||
@@ -226,18 +246,40 @@ KernelFunctor* init_file_read(const JSON* config_json) {
         config->reads <= 0) {
 
         fprintf(stderr, "Invalid parameters specified in file-read config\n");
-        free(config);
-        return NULL;
+        success = false;
     }
 
     if (json_object_get_boolean(config_json, "mmap", &config->mmap) != 0) {
         config->mmap = false;
     }
 
-    functor = malloc(sizeof(KernelFunctor));
-    functor->next = NULL;
-    functor->execute = &execute_file_read;
-    functor->data = config;
+    /*if (json_object_get_boolean(config_json, "o_direct", &config->o_direct) != 0) {*/
+        config->o_direct = false;
+    /*}*/
+
+    if (json_object_get_boolean(config_json, "invalidate", &config->invalidate) != 0) {
+        config->invalidate = false;
+    }
+
+    if (config->invalidate && !config->mmap) {
+        fprintf(stderr, "Read cache invalidation only supported using mmap. Please set mmap=true");
+        success = false;
+    }
+
+    /*if (config->o_direct && config->mmap) {
+        fprintf(stderr, "O_DIRECT is not meaningful with mmap.");
+        success = false;
+    }*/
+
+    if (success) {
+        functor = malloc(sizeof(KernelFunctor));
+        functor->next = NULL;
+        functor->execute = &execute_file_read;
+        functor->data = config;
+    } else {
+        free(config);
+        functor = NULL;
+    }
 
     return functor;
 }
