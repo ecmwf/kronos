@@ -33,8 +33,8 @@ signal_types = OrderedDict([
 
 
 # add print info
-float_format_print = '%14.1f'
-int_format_print = '%14.0f'
+float_format_print = '%16.3f'
+int_format_print = '%16.0f'
 
 signal_types['flops']["print_info"] = {"unit": "Gflops", "format": int_format_print, "conv": 1.0e-9}
 
