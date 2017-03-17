@@ -25,11 +25,14 @@ if __name__ == "__main__":
 
     ksf_data = ScheduleFormat.from_filename(args.ksf)
 
-    # get KSF data and print them
-    tot_metrics = {k: np.asarray([]) for k in time_signal_names}
-    tot_metrics["n_mkdir"] = np.asarray([])
+    # Collect all the metrics names to display..
+    metrics_names = time_signal_names
+    metrics_names_added = ["n_mkdir"]
 
+    # init the metrics
+    tot_metrics = {k: np.asarray([]) for k in metrics_names+metrics_names_added}
 
+    # number of processors
     n_proc_vec = np.asarray([synth_app["num_procs"] for synth_app in ksf_data.synapp_data])
 
     for synth_app in ksf_data.synapp_data:
@@ -62,52 +65,98 @@ if __name__ == "__main__":
                     raise("kernel name {} not recognized!".format(ker["name"]))
 
     # print summary
-    print "\n======================= job stats ==========================\n"
-    _str = "       qty       |"
+    print "\n================================================================ summary ======================================================================"
+    print "N apps: {}".format(len(ksf_data.synapp_data))
+
+    print "\n=============================================================== job stats ====================================================================="
+    _str = "       qty        |"
     _str += "           sum          |"
+    _str += "           avg          |"
     _str += "           min          |"
     _str += "           max          |"
-    _str += "           std          |"
+    _str += "           std         |"
     print _str
+    print "-"*143
 
     if n_proc_vec.size:
-        print "{:17s}{:>25s}{:>25d}{:>25d}{:>25f}".format("Nprocs",
-                                                          "N/A",
-                                                          np.min(n_proc_vec),
-                                                          np.max(n_proc_vec),
-                                                          np.std(n_proc_vec))
+        print "{:17s} :{:>25s}{:>25.2f}{:>25d}{:>25d}{:>25.2f}".format("Nprocs",
+                                                                     "N/A",
+                                                                     np.mean(n_proc_vec),
+                                                                     np.min(n_proc_vec),
+                                                                     np.max(n_proc_vec),
+                                                                     np.std(n_proc_vec)
+                                                                     )
     else:
-        print "{:17s}{:>25s}{:>25s}{:>25s}{:>25s}".format("Nprocs",
-                                                          "N/A",
-                                                          " vector empty!",
-                                                          " vector empty!",
-                                                          " vector empty!")
+        print "{:17s} :{:>25s}{:>25s}{:>25s}{:>25s}{:>25s}".format("Nprocs",
+                                                                 "N/A",
+                                                                 "vector empty!",
+                                                                 "vector empty!",
+                                                                 "vector empty!",
+                                                                 "vector empty!"
+                                                                 )
 
-    print "\n==================== metrics stats =========================\n"
-    _str = "   metric name   |"
+    print "\n============================================================ metrics stats ===================================================================="
+    _str = "   metric name    |"
     _str += "           sum          |"
+    _str += "           avg          |"
     _str += "           min          |"
     _str += "           max          |"
-    _str += "           std          |"
+    _str += "           std         |"
     print _str
-    for k in time_signal_names:
+    print "-" * 143
 
-        if tot_metrics[k].size:
-            unit = signal_types[k]["print_info"]["unit"]
-            form = signal_types[k]["print_info"]["format"]
-            conv = signal_types[k]["print_info"]["conv"]
+    for name in metrics_names:
+
+        if tot_metrics[name].size:
+            unit = signal_types[name]["print_info"]["unit"]
+            form = signal_types[name]["print_info"]["format"]
+            conv = signal_types[name]["print_info"]["conv"]
             str_format = "%-17s:"
             str_format += form + " [" + unit + "]"
             str_format += form + " [" + unit + "]"
             str_format += form + " [" + unit + "]"
             str_format += form + " [" + unit + "]"
-            print str_format % (k, np.sum(tot_metrics[k]) * conv,
-                                np.min(tot_metrics[k]) * conv,
-                                np.max(tot_metrics[k]) * conv,
-                                np.std(tot_metrics[k]) * conv)
+            str_format += form + " [" + unit + "]"
+            print str_format % (name,
+                                np.sum(tot_metrics[name]) * conv,
+                                np.mean(tot_metrics[name]) * conv,
+                                np.min(tot_metrics[name]) * conv,
+                                np.max(tot_metrics[name]) * conv,
+                                np.std(tot_metrics[name]) * conv)
         else:
-            print "{:17s}{:>25s}{:>25s}{:>25s}{:>25s}".format(k,
-                                                              " vector empty!",
-                                                              " vector empty!",
-                                                              " vector empty!",
-                                                              " vector empty!")
+            print "{:17s}:{:>25s}{:>25s}{:>25s}{:>25s}{:>25s}".format(name,
+                                                                     "vector empty!",
+                                                                     "vector empty!",
+                                                                     "vector empty!",
+                                                                     "vector empty!",
+                                                                     "vector empty!"
+                                                                     )
+
+    for name in metrics_names_added:
+
+        if tot_metrics[name].size:
+            unit = "times "
+            form = '%16.0f'
+            conv = 1.0
+            str_format = "%-17s:"
+            str_format += form + " [" + unit + "]"
+            str_format += form + " [" + unit + "]"
+            str_format += form + " [" + unit + "]"
+            str_format += form + " [" + unit + "]"
+            str_format += form + " [" + unit + "]"
+            print str_format % (name,
+                                np.sum(tot_metrics[name]) * conv,
+                                np.mean(tot_metrics[name]) * conv,
+                                np.min(tot_metrics[name]) * conv,
+                                np.max(tot_metrics[name]) * conv,
+                                np.std(tot_metrics[name]) * conv)
+        else:
+            print "{:17s} :{:>25s}{:>25s}{:>25s}{:>25s}{:>25s}".format(name,
+                                                                     "vector empty!",
+                                                                     "vector empty!",
+                                                                     "vector empty!",
+                                                                     "vector empty!",
+                                                                     "vector empty!"
+                                                                     )
+
+    print "\n..done"
