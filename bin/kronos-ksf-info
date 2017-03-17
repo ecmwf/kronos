@@ -16,6 +16,43 @@ import numpy as np
 from kronos.core.time_signal import time_signal_names, signal_types
 from kronos.io.schedule_format import ScheduleFormat
 
+
+def print_qty_header():
+    _str = ""
+    _str += "-" * 143
+    _str += "\n"
+    _str += "       qty        |"
+    _str += "           sum          |"
+    _str += "           avg          |"
+    _str += "           min          |"
+    _str += "           max          |"
+    _str += "           std         |"
+    _str += "\n"
+    _str += "-" * 143
+    return _str
+
+
+def print_one_liner_qty(qty_vec, qty_name):
+    _str = ""
+    if qty_vec.size:
+        _str += "{:17s} :{:>25s}{:>25.2f}{:>25.0f}{:>25.0f}{:>25.2f}".format(qty_name,
+                                                                            "N/A",
+                                                                            np.mean(qty_vec),
+                                                                            np.min(qty_vec),
+                                                                            np.max(qty_vec),
+                                                                            np.std(qty_vec)
+                                                                            )
+    else:
+        _str += "{:17s} :{:>25s}{:>25s}{:>25s}{:>25s}{:>25s}".format(qty_name,
+                                                                    "N/A",
+                                                                    "vector empty!",
+                                                                    "vector empty!",
+                                                                    "vector empty!",
+                                                                    "vector empty!"
+                                                                    )
+    return _str
+
+
 if __name__ == "__main__":
 
     # Parser for the required arguments
@@ -34,6 +71,9 @@ if __name__ == "__main__":
 
     # number of processors
     n_proc_vec = np.asarray([synth_app["num_procs"] for synth_app in ksf_data.synapp_data])
+
+    # start delay
+    start_delay_vec = np.asarray([synth_app["start_delay"] for synth_app in ksf_data.synapp_data])
 
     for synth_app in ksf_data.synapp_data:
         for frame in synth_app["frames"]:
@@ -65,45 +105,16 @@ if __name__ == "__main__":
                     raise("kernel name {} not recognized!".format(ker["name"]))
 
     # print summary
-    print "\n================================================================ summary ======================================================================"
+    print "\nSUMMARY:"
     print "N apps: {}".format(len(ksf_data.synapp_data))
 
-    print "\n=============================================================== job stats ====================================================================="
-    _str = "       qty        |"
-    _str += "           sum          |"
-    _str += "           avg          |"
-    _str += "           min          |"
-    _str += "           max          |"
-    _str += "           std         |"
-    print _str
-    print "-"*143
+    print "\nJOB STATS:"
+    print print_qty_header()
+    print print_one_liner_qty(n_proc_vec, "Nprocs")
+    print print_one_liner_qty(start_delay_vec, "start_delay")
 
-    if n_proc_vec.size:
-        print "{:17s} :{:>25s}{:>25.2f}{:>25d}{:>25d}{:>25.2f}".format("Nprocs",
-                                                                     "N/A",
-                                                                     np.mean(n_proc_vec),
-                                                                     np.min(n_proc_vec),
-                                                                     np.max(n_proc_vec),
-                                                                     np.std(n_proc_vec)
-                                                                     )
-    else:
-        print "{:17s} :{:>25s}{:>25s}{:>25s}{:>25s}{:>25s}".format("Nprocs",
-                                                                 "N/A",
-                                                                 "vector empty!",
-                                                                 "vector empty!",
-                                                                 "vector empty!",
-                                                                 "vector empty!"
-                                                                 )
-
-    print "\n============================================================ metrics stats ===================================================================="
-    _str = "   metric name    |"
-    _str += "           sum          |"
-    _str += "           avg          |"
-    _str += "           min          |"
-    _str += "           max          |"
-    _str += "           std         |"
-    print _str
-    print "-" * 143
+    print "\nMETRICS:"
+    print print_qty_header()
 
     for name in metrics_names:
 
@@ -151,7 +162,7 @@ if __name__ == "__main__":
                                 np.max(tot_metrics[name]) * conv,
                                 np.std(tot_metrics[name]) * conv)
         else:
-            print "{:17s} :{:>25s}{:>25s}{:>25s}{:>25s}{:>25s}".format(name,
+            print "{:17s}:{:>25s}{:>25s}{:>25s}{:>25s}{:>25s}".format(name,
                                                                      "vector empty!",
                                                                      "vector empty!",
                                                                      "vector empty!",
@@ -160,3 +171,4 @@ if __name__ == "__main__":
                                                                      )
 
     print "\n..done"
+
