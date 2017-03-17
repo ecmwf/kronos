@@ -36,17 +36,17 @@ signal_types = OrderedDict([
 float_format_print = '%16.3f'
 int_format_print = '%16.0f'
 
-signal_types['flops']["print_info"] = {"unit": "Gflops", "format": int_format_print, "conv": 1.0e-9}
+signal_types['flops']["print_info"] = {"unit": "Gflops", "format": int_format_print, "conv": 1.0/(1024.0**3)}
 
-signal_types['kb_read']["print_info"] = {"unit": "Gbytes", "format": float_format_print, "conv": 1.0e-6}
-signal_types['kb_write']["print_info"] = {"unit": "Gbytes", "format": float_format_print, "conv": 1.0e-6}
+signal_types['kb_read']["print_info"] = {"unit": "Gbytes", "format": float_format_print, "conv": 1.0/(1024.0**2)}
+signal_types['kb_write']["print_info"] = {"unit": "Gbytes", "format": float_format_print, "conv": 1.0/(1024.0**2)}
 signal_types['n_read']["print_info"] = {"unit": "times ", "format": int_format_print, "conv": 1.0}
 signal_types['n_write']["print_info"] = {"unit": "times ", "format": int_format_print, "conv": 1.0}
 
 signal_types['n_pairwise']["print_info"] = {"unit": "times ", "format": int_format_print, "conv": 1.0}
-signal_types['kb_pairwise']["print_info"] = {"unit": "Gbytes", "format": float_format_print, "conv": 1.0e-6}
+signal_types['kb_pairwise']["print_info"] = {"unit": "Gbytes", "format": float_format_print, "conv": 1.0/(1024.0**2)}
 signal_types['n_collective']["print_info"] = {"unit": "times ", "format": int_format_print, "conv": 1.0}
-signal_types['kb_collective']["print_info"] = {"unit": "Gbytes", "format": float_format_print, "conv": 1.0e-6}
+signal_types['kb_collective']["print_info"] = {"unit": "Gbytes", "format": float_format_print, "conv": 1.0/(1024.0**2)}
 
 
 time_signal_names = signal_types.keys()
