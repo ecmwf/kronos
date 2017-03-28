@@ -8,6 +8,8 @@ from kronos.executor.job_classes.base_job import BaseJob
 job_template = """
 #!/bin/sh
 
+module load openmpi
+
 export KRONOS_WRITE_DIR="{write_dir}"
 export KRONOS_READ_DIR="{read_dir}"
 export KRONOS_SHARED_DIR="{shared_dir}"
@@ -47,6 +49,7 @@ class Job(BaseJob):
         script_format = {
             'write_dir': self.path,
             'read_dir': self.executor.read_cache_path,
+            'shared_dir': self.executor.job_dir_shared,
             'coordinator_binary': self.executor.coordinator_binary,
             'num_procs': nprocs,
             'input_file': self.input_file,
