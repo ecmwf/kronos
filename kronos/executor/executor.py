@@ -5,6 +5,7 @@ import imp
 import os
 import sys
 import time
+from shutil import copy2
 
 sys.path.append(os.path.dirname(os.path.dirname(__file__)))
 
@@ -27,7 +28,7 @@ class Executor(object):
         'procs_per_node', 'read_cache', 'allinea_path', 'allinea_ld_library_path', 'allinea_licence_file',
         'local_tmpdir', 'submission_workers']
 
-    def __init__(self, config, schedule):
+    def __init__(self, config, schedule, ksf_file):
         """
         Initialisation. Passed a dictionary of configurations
         """
@@ -57,6 +58,8 @@ class Executor(object):
         if os.path.exists(self.job_dir):
             raise IOError("Path {} already exists".format(self.job_dir))
         os.makedirs(self.job_dir)
+        copy2(ksf_file, self.job_dir)
+
 
         # shared dir
         self.job_dir_shared = config.get("job_dir_shared", os.path.join(os.getcwd(), "run/shared"))
