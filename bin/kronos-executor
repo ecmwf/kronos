@@ -36,4 +36,4 @@ if __name__ == "__main__":
     with open(ksf_file, 'r') as f:
         schedule = ScheduleFormat.from_file(f)
 
-    Executor(config, schedule, ksf_file).run()
+    Executor(config, schedule, ksf_file=ksf_file).run()
