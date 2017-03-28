@@ -1,0 +1,261 @@
+# (C) Copyright 1996-2017 ECMWF.
+#
+# This software is licensed under the terms of the Apache Licence Version 2.0
+# which can be obtained at http://www.apache.org/licenses/LICENSE-2.0.
+# In applying this licence, ECMWF does not waive the privileges and immunities
+# granted to it by virtue of its status as an intergovernmental organisation nor
+# does it submit to any jurisdiction.
+
+"""
+show info of a KSF file
+"""
+
+import argparse
+import numpy as np
+
+from kronos.core.time_signal import time_signal_names, signal_types
+from kronos.io.profile_format import ProfileFormat
+from kronos.io.schedule_format import ScheduleFormat
+
+
+def factory(args):
+
+    """
+    A simple factory that returns the appropriate class of file info
+    :param args:
+    :return:
+    """
+
+    if args.ksf:
+
+        return ksf_info(ScheduleFormat.from_filename(args.ksf).synapp_data)
+
+    elif args.kpf:
+
+        return kpf_info(ProfileFormat.from_filename(args.kpf).profiled_jobs)
+    else:
+        raise Exception("no valid option passed. Type --help for info and options")
+
+
+class file_info(object):
+
+    metrics_names = time_signal_names
+
+    def __init__(self, jobs_data):
+
+        # Collect all the metrics names to display..
+        self.tot_metrics = {k: np.asarray([]) for k in self.metrics_names}
+
+        self.jobs_data = jobs_data
+
+    def n_apps(self):
+        return -1
+
+    def get_tot_metrics(self):
+        pass
+
+
+class ksf_info(file_info):
+
+    metrics_names = time_signal_names + ["n_mkdir"]
+
+    def __init__(self, jobs_data):
+
+        super(ksf_info, self).__init__(jobs_data)
+
+    def n_procs(self):
+        return np.asarray([app["num_procs"] for app in self.jobs_data])
+
+    def start_delay(self):
+        return np.asarray([app["start_delay"] for app in self.jobs_data])
+
+    def get_tot_metrics(self):
+        """
+        Return the dictionary with the metrics totals..
+        :return:
+        """
+
+        for synth_app in self.jobs_data:
+            for frame in synth_app["frames"]:
+
+                for ker in frame:
+
+                    if ker["name"] == "cpu":
+                        self.tot_metrics["flops"] = np.append(self.tot_metrics["flops"],
+                                                              signal_types["flops"]["type"](ker["flops"]))
+
+                    elif ker["name"] == "file-read":
+                        self.tot_metrics["kb_read"] = np.append(self.tot_metrics["kb_read"],
+                                                                signal_types["kb_read"]["type"](ker["kb_read"]))
+                        self.tot_metrics["n_read"] = np.append(self.tot_metrics["n_read"],
+                                                               signal_types["n_read"]["type"](ker["n_read"]))
+
+                    elif ker["name"] == "file-write":
+                        self.tot_metrics["kb_write"] = np.append(self.tot_metrics["kb_write"],
+                                                                 signal_types["kb_write"]["type"](ker["kb_write"]))
+                        self.tot_metrics["n_write"] = np.append(self.tot_metrics["n_write"],
+                                                                signal_types["n_write"]["type"](ker["n_write"]))
+
+                    elif ker["name"] == "mpi":
+                        self.tot_metrics["n_pairwise"] = np.append(self.tot_metrics["n_pairwise"],
+                                                                   signal_types["n_pairwise"]["type"](ker["n_pairwise"]))
+                        self.tot_metrics["kb_pairwise"] = np.append(self.tot_metrics["kb_pairwise"],
+                                                                    signal_types["kb_pairwise"]["type"](ker["kb_pairwise"]))
+                        self.tot_metrics["n_collective"] = np.append(self.tot_metrics["n_collective"],
+                                                                     signal_types["n_collective"]["type"](ker["n_collective"]))
+                        self.tot_metrics["kb_collective"] = np.append(self.tot_metrics["kb_collective"],
+                                                                      signal_types["kb_collective"]["type"](ker["kb_collective"]))
+
+                    # ------------ additional kernels --------
+                    elif ker["name"] == "fs_metadata":
+                        self.tot_metrics["n_mkdir"] = np.append(self.tot_metrics["n_mkdir"], int(ker["n_mkdir"]))
+
+                    else:
+                        raise ("kernel name {} not recognized!".format(ker["name"]))
+
+        return self.tot_metrics
+
+
+class kpf_info(file_info):
+
+    def __init__(self, jobs_data):
+
+        super(kpf_info, self).__init__(jobs_data)
+
+    def n_procs(self):
+        return np.asarray([app["ncpus"] for app in self.jobs_data])
+
+    def start_delay(self):
+        delay_vec = np.asarray([app["time_start"] for app in self.jobs_data])
+        delay_vec = delay_vec - min(delay_vec)
+        return delay_vec
+
+    def get_tot_metrics(self):
+        """
+        Return the dictionary with the metrics totals..
+        :return:
+        """
+
+        for job in self.jobs_data:
+
+            for ts in signal_types:
+                if ts in job["time_series"].keys():
+                    self.tot_metrics[ts] = np.append(self.tot_metrics[ts], sum(job["time_series"][ts]["values"]))
+
+        return self.tot_metrics
+
+def print_qty_header():
+    """
+    Print a header
+    :return:
+    """
+    _str = ""
+    _str += "-" * 143
+    _str += "\n"
+    _str += "       qty        |"
+    _str += "           sum          |"
+    _str += "           avg          |"
+    _str += "           min          |"
+    _str += "           max          |"
+    _str += "           std         |"
+    _str += "\n"
+    _str += "-" * 143
+    return _str
+
+
+def print_one_liner_qty(qty_vec, qty_name):
+    """
+    Print one-line quantities
+    :param qty_vec:
+    :param qty_name:
+    :return:
+    """
+    _str = ""
+    if qty_vec.size:
+        _str += "{:17s}:{:>25s}{:>25.2f}{:>25.0f}{:>25.0f}{:>25.2f}".format(qty_name,
+                                                                            "N/A",
+                                                                            np.mean(qty_vec),
+                                                                            np.min(qty_vec),
+                                                                            np.max(qty_vec),
+                                                                            np.std(qty_vec)
+                                                                            )
+    else:
+        _str += "{:17s}:{:>25s}{:>25s}{:>25s}{:>25s}{:>25s}".format(qty_name,
+                                                                    "N/A",
+                                                                    "vector empty!",
+                                                                    "vector empty!",
+                                                                    "vector empty!",
+                                                                    "vector empty!"
+                                                                    )
+    return _str
+
+
+def print_metrics(tot_metrics):
+    """
+    Print tot of metrics
+    :param tot_metrics:
+    :return:
+    """
+
+    _str = ""
+
+    for name in time_signal_names:
+
+        if tot_metrics[name].size:
+            unit = signal_types[name]["print_info"]["unit"]
+            form = signal_types[name]["print_info"]["format"]
+            conv = signal_types[name]["print_info"]["conv"]
+            str_format = "%-17s:"
+            str_format += form + " [" + unit + "]"
+            str_format += form + " [" + unit + "]"
+            str_format += form + " [" + unit + "]"
+            str_format += form + " [" + unit + "]"
+            str_format += form + " [" + unit + "]"
+            _str += str_format % (name,
+                                np.sum(tot_metrics[name]) * conv,
+                                np.mean(tot_metrics[name]) * conv,
+                                np.min(tot_metrics[name]) * conv,
+                                np.max(tot_metrics[name]) * conv,
+                                np.std(tot_metrics[name]) * conv)
+        else:
+            _str += "{:17s}:{:>25s}{:>25s}{:>25s}{:>25s}{:>25s}".format(name,
+                                                                      "vector empty!",
+                                                                      "vector empty!",
+                                                                      "vector empty!",
+                                                                      "vector empty!",
+                                                                      "vector empty!"
+                                                                      )
+        _str += "\n"
+
+    return _str
+
+
+if __name__ == "__main__":
+
+    # Parser for the required arguments
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--ksf", type=str, help="File name of KSF to inspect")
+    parser.add_argument("--kpf", type=str, help="File name of KSF of the corresponding kronos run")
+    args = parser.parse_args()
+
+    info = factory(args)
+    n_proc_vec = info.n_procs()
+    start_delay_vec = info.start_delay()
+    tot_metrics = info.get_tot_metrics()
+
+    # print summary
+    print "\nSUMMARY:"
+    print "N apps: {}".format(len(info.jobs_data))
+
+    print "\nJOB STATS:"
+    print print_qty_header()
+    print print_one_liner_qty(n_proc_vec, "Nprocs")
+    print print_one_liner_qty(start_delay_vec, "start_delay")
+
+    print "\nMETRICS:"
+    print print_qty_header()
+    print print_metrics(tot_metrics)
+
+    print "\n..done"
+
+

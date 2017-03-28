@@ -43,7 +43,7 @@ setup(
         'bin/kronos-run-summary',
         'bin/kronos-map-2-kpf',
         'bin/kronos-view-json',
-        'bin/kronos-ksf-info'
+        'bin/kronos-show-info'
     ],
     include_package_data=True,
     install_requires=requirements,
