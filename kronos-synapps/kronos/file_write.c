@@ -162,6 +162,7 @@ static bool file_write_c_api(const char* file_path, long write_size) {
             buffer = malloc(chunk_size);
 
             result = fwrite(buffer, 1, chunk_size, file);
+            fflush(file);
 
             free(buffer);
             buffer = NULL;
