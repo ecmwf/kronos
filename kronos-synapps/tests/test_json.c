@@ -38,6 +38,7 @@
 
 static const char* temporary_filename = "_kronos_tests_tmp";
 static const char* temporary_filename2 = "_kronos_tests_tmp2";
+static const char* temporary_filename3 = "_kronos_tests_tmp3";
 
 FILE* create_open_tmp_file(const char* data) {
 
@@ -457,6 +458,7 @@ void test_parse_array() {
     fp2 = fopen(temporary_filename2, "r");
 
     fread(buffer, 1, 53, fp2);
+
     test_val = strncmp(correct_string, buffer, strlen(correct_string));
     assert(test_val == 0);
     fclose(fp2);
@@ -813,6 +815,36 @@ void test_allocate_json() {
 }
 
 
+void test_print_string() {
+
+    /* When printing, we need to ensure that things are correctly escaped.
+     * We have already tested the escaping above, so check that it works correctly
+     * at print time! */
+
+    const char* src = "\"String \\\" with \\\\ all \\/ the \\b special \\f chars \\n ... \\r -> \\t\"";
+    FILE* fp;
+    JSON* json;
+    int size;
+    int test_val; /* Used to avoid c89 warnings with gcc */
+    char buffer[256];
+
+    json = json_from_string(src);
+
+    fp = fopen(temporary_filename3, "w");
+    write_json(fp, json);
+    fclose(fp);
+
+    fp = fopen(temporary_filename3, "r");
+    size = fread(buffer, 1, sizeof(buffer), fp);
+    fclose(fp);
+    remove(temporary_filename3);
+
+    assert(size == strlen(src));
+    test_val = strncmp(src, buffer, size);
+    assert(test_val == 0);
+}
+
+
 /* ------------------------------------------------------------------------------------------------------------------ */
 
 int main() {
@@ -833,5 +865,6 @@ int main() {
     test_object_get_integer();
     test_object_get_boolean();
     test_allocate_json();
+    test_print_string();
     return 0;
 }

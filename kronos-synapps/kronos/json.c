@@ -937,11 +937,50 @@ static void print_json_array(FILE* fp_out, const JSON* json) {
 
 static void print_json_string(FILE* fp_out, const JSON* json) {
 
+    int i;
+
     assert(json->type == JSON_STRING);
     assert(json->string != NULL);
     assert(json->count >= 0);
+    assert(json->string[json->count-1] == '\0');
 
-    fprintf(fp_out, "\"%.*s\"", json->count, json->string);
+    putc('"', fp_out);
+
+    for (i = 0; i < json->count-1; i++) {
+        switch (json->string[i]) {
+        case '"':
+        case '\\':
+        case '/':
+            putc('\\', fp_out);
+            putc(json->string[i], fp_out);
+            break;
+        case '\b':
+            fprintf(fp_out, "\\b");
+            break;
+        case '\f':
+            fprintf(fp_out, "\\f");
+            break;
+        case '\n':
+            fprintf(fp_out, "\\n");
+            break;
+        case '\r':
+            fprintf(fp_out, "\\r");
+            break;
+        case '\t':
+            fprintf(fp_out, "\\t");
+            break;
+        default:
+            putc(json->string[i], fp_out);
+        }
+    }
+
+    putc('"', fp_out);
+
+    /*
+     * n.b. the trivial implementation doesn't escape anything
+     *
+     * fprintf(fp_out, "\"%.*s\"", json->count, json->string);
+     */
 }
 
 
