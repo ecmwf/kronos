@@ -265,7 +265,9 @@ int parse_string(JSONInput* input, JSON* json) {
     }
 
     /* Ensure that the string is null-terminated */
+    assert(size > length);
     str[length] = '\0';
+
     json->count = length+1; /* Include the null terminator */
     json->string = str;
     json->type = JSON_STRING;
