@@ -824,8 +824,6 @@ int json_object_get_boolean(const JSON* json, const char* key, bool* value) {
  * Routines for printing jsons
  */
 
-static void print_json_internal(FILE* fp_out, const JSON* json);
-
 static void print_json_array(FILE* fp_out, const JSON* json) {
 
     int i;
@@ -836,7 +834,7 @@ static void print_json_array(FILE* fp_out, const JSON* json) {
     fprintf(fp_out, "[");
     for (i = 0; i < json->count; i++) {
         fprintf(fp_out, (first ? "": ","));
-        print_json_internal(fp_out, &json->array[i]);
+        write_json(fp_out, &json->array[i]);
         first = false;
     }
     fprintf(fp_out, "]");
@@ -879,7 +877,7 @@ static void print_json_object(FILE* fp_out, const JSON* json) {
 
         assert(elem->name);
         fprintf(fp_out, "\"%s\":", elem->name);
-        print_json_internal(fp_out, elem);
+        write_json(fp_out, elem);
 
         first = false;
         elem = elem->next;
@@ -889,7 +887,7 @@ static void print_json_object(FILE* fp_out, const JSON* json) {
 
 }
 
-static void print_json_internal(FILE* fp_out, const JSON* json) {
+void write_json(FILE* fp_out, const JSON* json) {
 
     switch (json->type) {
 
@@ -909,6 +907,6 @@ static void print_json_internal(FILE* fp_out, const JSON* json) {
 void print_json(FILE* fp_out, const JSON* json) {
 
     fprintf(fp_out, "JSON(");
-    print_json_internal(fp_out, json);
+    write_json(fp_out, json);
     fprintf(fp_out, ")");
 }

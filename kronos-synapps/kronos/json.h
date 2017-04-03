@@ -58,7 +58,9 @@ JSON* json_from_string(const char* str);
 
 void free_json(JSON* json);
 
+/* Print json is slightly more human readable */
 void print_json(FILE* fp_out, const JSON* json);
+void write_json(FILE* fp_out, const JSON* json);
 
 /*
  * Type testing
