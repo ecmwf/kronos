@@ -50,6 +50,7 @@ typedef struct JSON {
 
 } JSON;
 
+/** Only for comparison purposes. Not an allocator */
 const JSON* null_json();
 
 JSON* parse_json(FILE* fp);
@@ -61,6 +62,23 @@ void free_json(JSON* json);
 /* Print json is slightly more human readable */
 void print_json(FILE* fp_out, const JSON* json);
 void write_json(FILE* fp_out, const JSON* json);
+
+/*
+ * Constructing jsons
+ */
+
+JSON* json_null_new();
+JSON* json_string_new(const char* str);
+JSON* json_string_new_len(const char* str, int len);
+JSON* json_number_new(double val);
+JSON* json_array_new();
+JSON* json_object_new();
+
+/** Append an element to a json array. n.b. This takes ownership of elem (and frees it) */
+void json_array_append(JSON* json, JSON* elem);
+
+/** Insert an element into a json object. n.b. This takes ownership of elem (and frees it) */
+void json_object_insert(JSON* json, const char* key, JSON* elem);
 
 /*
  * Type testing

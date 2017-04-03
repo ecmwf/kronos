@@ -266,7 +266,7 @@ int parse_string(JSONInput* input, JSON* json) {
 
     /* Ensure that the string is null-terminated */
     str[length] = '\0';
-    json->count = length;
+    json->count = length+1; /* Include the null terminator */
     json->string = str;
     json->type = JSON_STRING;
 
@@ -401,7 +401,7 @@ int parse_object(JSONInput* input, JSON* json) {
         value_json->name = str_json->string;
         value_json->next = json->array;
         json->array = value_json;
-        free(str_json);
+        free(str_json); /* n.b. not json_free, as we have discombobulated it */
         json->count++;
 
         c = peek(input, false);
@@ -529,6 +529,99 @@ const JSON* null_json() {
     json.count = 0;
 
     return &json;
+}
+
+JSON* json_null_new() {
+
+    JSON* json = new_json();
+    return json;
+}
+
+
+JSON* json_string_new_len(const char* str, int len) {
+
+    JSON* json = new_json();
+
+    json->type = JSON_STRING;
+    json->count = len+1;
+    json->string = malloc(len+1);
+
+    strncpy(json->string, str, len);
+    json->string[len] = '\0';
+
+    return json;
+}
+
+
+JSON* json_string_new(const char* str) {
+
+    return json_string_new_len(str, strlen(str));
+}
+
+JSON* json_number_new(double val) {
+
+    JSON* json = new_json();
+
+    json->type = JSON_NUMBER;
+    json->number = val;
+    return json;
+}
+
+
+JSON* json_array_new() {
+
+    JSON* json = new_json();
+
+    json->type = JSON_ARRAY;
+}
+
+
+void json_array_append(JSON* json, JSON* elem) {
+
+    JSON* old_array;
+    int i;
+
+    /* Check that either we have no elements, or the array is allocated! */
+    assert((json->count == 0) != (json->array != 0));
+
+    old_array = json->array;
+    json->array = new_jsons(json->count + 1);
+
+    for (i = 0; i < json->count; i++) {
+        swap_jsons(&json->array[i], &old_array[i]);
+        destruct_json(&old_array[i]);
+    }
+    free(old_array);
+
+    swap_jsons(&json->array[json->count], elem);
+    free_json(elem);
+
+    json->count++;
+}
+
+
+JSON* json_object_new() {
+
+    JSON* json = new_json();
+    json->type = JSON_OBJECT;
+}
+
+void json_object_insert(JSON* json, const char* key, JSON* value) {
+
+    /* The key is stored inside the value */
+
+    int len = strlen(key);
+    assert(value->name == 0);
+    value->name = malloc(len+1);
+    strncpy(value->name, key, len+1);
+
+    /* Insert the json into the chain. */
+
+    assert(value->next == 0);
+    value->next = json->array;
+    json->array = value;
+
+    json->count++;
 }
 
 
@@ -691,7 +784,7 @@ int json_string_length(const JSON* json) {
     if (json_is_string(json)) {
         assert(json->count >= 0);
         assert(json->string);
-        return json->count;
+        return json->count-1;
     } else {
         return -1;
     }
@@ -713,7 +806,7 @@ int json_array_length(const JSON* json) {
     assert(json);
     if (json_is_array(json)) {
         assert(json->count >= 0);
-        assert(json->array);
+        assert(json->count == 0 || json->array != 0);
         return json->count;
     } else {
         return -1;
