@@ -38,6 +38,7 @@
 
 static const char* temporary_filename = "_kronos_tests_tmp";
 static const char* temporary_filename2 = "_kronos_tests_tmp2";
+static const char* temporary_filename3 = "_kronos_tests_tmp3";
 
 FILE* create_open_tmp_file(const char* data) {
 
@@ -457,6 +458,7 @@ void test_parse_array() {
     fp2 = fopen(temporary_filename2, "r");
 
     fread(buffer, 1, 53, fp2);
+
     test_val = strncmp(correct_string, buffer, strlen(correct_string));
     assert(test_val == 0);
     fclose(fp2);
@@ -701,6 +703,148 @@ void test_object_get_boolean() {
 }
 
 
+void test_allocate_json() {
+
+    const char* str = "This is a test";
+    char buffer[100];
+    long x;
+    double d;
+
+    int test_val; /* Used to avoid c89 warnings with gcc */
+
+    const JSON* cj;
+    JSON* j2;
+    JSON* j = json_null_new();
+
+    assert(json_is_null(j));
+    free_json(j);
+
+    /* Test string construction */
+
+    j = json_string_new(str);
+
+    assert(json_is_string(j));
+    assert(json_as_string(j, buffer, sizeof(buffer)) == 0);
+    test_val = strncmp(buffer, str, 100);
+    assert(test_val == 0);
+    free_json(j);
+
+    j = json_string_new_len(str, 3);
+    assert(json_is_string(j));
+    assert(json_as_string(j, buffer, sizeof(buffer)) == 0);
+    test_val = strncmp(buffer, "Thi", 100);
+    assert(test_val == 0);
+    free_json(j);
+
+    /* Test number-related jsons */
+
+    j = json_number_new((int)666);
+    assert(json_is_number(j));
+    assert(json_as_integer(j, &x) == 0);
+    assert(json_as_double(j, &d) == 0);
+    assert(x == 666);
+    assert(d == 666);
+    free_json(j);
+
+    j = json_number_new(123.456);
+    assert(json_is_number(j));
+    assert(json_as_double(j, &d) == 0);
+    assert(fabs(d - 123.456) < 1.0e-6);
+    free_json(j);
+
+    /* Test the array construction */
+
+    j = json_array_new();
+    assert(json_is_array(j));
+    assert(json_array_length(j) == 0);
+
+    json_array_append(j, json_string_new("I am a test"));
+    assert(json_is_array(j));
+    assert(json_array_length(j) == 1);
+
+    json_array_append(j, json_number_new(999));
+    assert(json_is_array(j));
+    assert(json_array_length(j) == 2);
+
+    cj = json_array_element(j, 0);
+    assert(json_is_string(cj));
+    assert(json_string_length(cj) == 11);
+    assert(json_as_string(cj, buffer, sizeof(buffer)) == 0);
+    test_val = strncmp(buffer, "I am a test", sizeof(buffer));
+    assert(test_val == 0);
+
+    assert(json_as_integer(json_array_element(j, 1), &x) == 0);
+    assert(x == 999);
+    free_json(j);
+
+    /* Test object construction */
+
+    j = json_object_new();
+    assert(json_is_object(j));
+    assert(json_object_count(j) == 0);
+    assert(!json_object_has(j, "key1"));
+    assert(!json_object_has(j, "key2"));
+
+    json_object_insert(j, "key1", json_string_new("I am another test"));
+    assert(json_is_object(j));
+    assert(json_object_count(j) == 1);
+    assert(json_object_has(j, "key1"));
+    assert(!json_object_has(j, "key2"));
+
+    j2 = json_array_new();
+    json_array_append(j2, json_number_new(4321));
+    json_object_insert(j, "key2", j2);
+    j2 = 0;
+    assert(json_is_object(j));
+    assert(json_object_count(j) == 2);
+    assert(json_object_has(j, "key1"));
+    assert(json_object_has(j, "key2"));
+
+    cj = json_object_get(j, "key1");
+    assert(json_is_string(cj));
+    assert(json_as_string(cj, buffer, sizeof(buffer)) == 0);
+    test_val = strncmp(buffer, "I am another test", sizeof(buffer));
+    assert(test_val == 0);
+
+    cj = json_object_get(j, "key2");
+    assert(json_is_array(cj));
+    assert(json_is_number(json_array_element(cj, 0)));
+    assert(json_as_integer(json_array_element(cj, 0), &x) == 0);
+    assert(x == 4321);
+    free_json(j);
+}
+
+
+void test_print_string() {
+
+    /* When printing, we need to ensure that things are correctly escaped.
+     * We have already tested the escaping above, so check that it works correctly
+     * at print time! */
+
+    const char* src = "\"String \\\" with \\\\ all \\/ the \\b special \\f chars \\n ... \\r -> \\t\"";
+    FILE* fp;
+    JSON* json;
+    int size;
+    int test_val; /* Used to avoid c89 warnings with gcc */
+    char buffer[256];
+
+    json = json_from_string(src);
+
+    fp = fopen(temporary_filename3, "w");
+    write_json(fp, json);
+    fclose(fp);
+
+    fp = fopen(temporary_filename3, "r");
+    size = fread(buffer, 1, sizeof(buffer), fp);
+    fclose(fp);
+    remove(temporary_filename3);
+
+    assert(size == strlen(src));
+    test_val = strncmp(src, buffer, size);
+    assert(test_val == 0);
+}
+
+
 /* ------------------------------------------------------------------------------------------------------------------ */
 
 int main() {
@@ -720,5 +864,7 @@ int main() {
     test_null_json();
     test_object_get_integer();
     test_object_get_boolean();
+    test_allocate_json();
+    test_print_string();
     return 0;
 }

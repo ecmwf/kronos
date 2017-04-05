@@ -265,8 +265,10 @@ int parse_string(JSONInput* input, JSON* json) {
     }
 
     /* Ensure that the string is null-terminated */
+    assert(size > length);
     str[length] = '\0';
-    json->count = length;
+
+    json->count = length+1; /* Include the null terminator */
     json->string = str;
     json->type = JSON_STRING;
 
@@ -401,7 +403,7 @@ int parse_object(JSONInput* input, JSON* json) {
         value_json->name = str_json->string;
         value_json->next = json->array;
         json->array = value_json;
-        free(str_json);
+        free(str_json); /* n.b. not json_free, as we have discombobulated it */
         json->count++;
 
         c = peek(input, false);
@@ -529,6 +531,99 @@ const JSON* null_json() {
     json.count = 0;
 
     return &json;
+}
+
+JSON* json_null_new() {
+
+    JSON* json = new_json();
+    return json;
+}
+
+
+JSON* json_string_new_len(const char* str, int len) {
+
+    JSON* json = new_json();
+
+    json->type = JSON_STRING;
+    json->count = len+1;
+    json->string = malloc(len+1);
+
+    strncpy(json->string, str, len);
+    json->string[len] = '\0';
+
+    return json;
+}
+
+
+JSON* json_string_new(const char* str) {
+
+    return json_string_new_len(str, strlen(str));
+}
+
+JSON* json_number_new(double val) {
+
+    JSON* json = new_json();
+
+    json->type = JSON_NUMBER;
+    json->number = val;
+    return json;
+}
+
+
+JSON* json_array_new() {
+
+    JSON* json = new_json();
+
+    json->type = JSON_ARRAY;
+}
+
+
+void json_array_append(JSON* json, JSON* elem) {
+
+    JSON* old_array;
+    int i;
+
+    /* Check that either we have no elements, or the array is allocated! */
+    assert((json->count == 0) != (json->array != 0));
+
+    old_array = json->array;
+    json->array = new_jsons(json->count + 1);
+
+    for (i = 0; i < json->count; i++) {
+        swap_jsons(&json->array[i], &old_array[i]);
+        destruct_json(&old_array[i]);
+    }
+    free(old_array);
+
+    swap_jsons(&json->array[json->count], elem);
+    free_json(elem);
+
+    json->count++;
+}
+
+
+JSON* json_object_new() {
+
+    JSON* json = new_json();
+    json->type = JSON_OBJECT;
+}
+
+void json_object_insert(JSON* json, const char* key, JSON* value) {
+
+    /* The key is stored inside the value */
+
+    int len = strlen(key);
+    assert(value->name == 0);
+    value->name = malloc(len+1);
+    strncpy(value->name, key, len+1);
+
+    /* Insert the json into the chain. */
+
+    assert(value->next == 0);
+    value->next = json->array;
+    json->array = value;
+
+    json->count++;
 }
 
 
@@ -691,7 +786,7 @@ int json_string_length(const JSON* json) {
     if (json_is_string(json)) {
         assert(json->count >= 0);
         assert(json->string);
-        return json->count;
+        return json->count-1;
     } else {
         return -1;
     }
@@ -713,7 +808,7 @@ int json_array_length(const JSON* json) {
     assert(json);
     if (json_is_array(json)) {
         assert(json->count >= 0);
-        assert(json->array);
+        assert(json->count == 0 || json->array != 0);
         return json->count;
     } else {
         return -1;
@@ -824,8 +919,6 @@ int json_object_get_boolean(const JSON* json, const char* key, bool* value) {
  * Routines for printing jsons
  */
 
-static void print_json_internal(FILE* fp_out, const JSON* json);
-
 static void print_json_array(FILE* fp_out, const JSON* json) {
 
     int i;
@@ -836,7 +929,7 @@ static void print_json_array(FILE* fp_out, const JSON* json) {
     fprintf(fp_out, "[");
     for (i = 0; i < json->count; i++) {
         fprintf(fp_out, (first ? "": ","));
-        print_json_internal(fp_out, &json->array[i]);
+        write_json(fp_out, &json->array[i]);
         first = false;
     }
     fprintf(fp_out, "]");
@@ -844,11 +937,50 @@ static void print_json_array(FILE* fp_out, const JSON* json) {
 
 static void print_json_string(FILE* fp_out, const JSON* json) {
 
+    int i;
+
     assert(json->type == JSON_STRING);
     assert(json->string != NULL);
     assert(json->count >= 0);
+    assert(json->string[json->count-1] == '\0');
 
-    fprintf(fp_out, "\"%.*s\"", json->count, json->string);
+    putc('"', fp_out);
+
+    for (i = 0; i < json->count-1; i++) {
+        switch (json->string[i]) {
+        case '"':
+        case '\\':
+        case '/':
+            putc('\\', fp_out);
+            putc(json->string[i], fp_out);
+            break;
+        case '\b':
+            fprintf(fp_out, "\\b");
+            break;
+        case '\f':
+            fprintf(fp_out, "\\f");
+            break;
+        case '\n':
+            fprintf(fp_out, "\\n");
+            break;
+        case '\r':
+            fprintf(fp_out, "\\r");
+            break;
+        case '\t':
+            fprintf(fp_out, "\\t");
+            break;
+        default:
+            putc(json->string[i], fp_out);
+        }
+    }
+
+    putc('"', fp_out);
+
+    /*
+     * n.b. the trivial implementation doesn't escape anything
+     *
+     * fprintf(fp_out, "\"%.*s\"", json->count, json->string);
+     */
 }
 
 
@@ -879,7 +1011,7 @@ static void print_json_object(FILE* fp_out, const JSON* json) {
 
         assert(elem->name);
         fprintf(fp_out, "\"%s\":", elem->name);
-        print_json_internal(fp_out, elem);
+        write_json(fp_out, elem);
 
         first = false;
         elem = elem->next;
@@ -889,7 +1021,7 @@ static void print_json_object(FILE* fp_out, const JSON* json) {
 
 }
 
-static void print_json_internal(FILE* fp_out, const JSON* json) {
+void write_json(FILE* fp_out, const JSON* json) {
 
     switch (json->type) {
 
@@ -909,6 +1041,6 @@ static void print_json_internal(FILE* fp_out, const JSON* json) {
 void print_json(FILE* fp_out, const JSON* json) {
 
     fprintf(fp_out, "JSON(");
-    print_json_internal(fp_out, json);
+    write_json(fp_out, json);
     fprintf(fp_out, ")");
 }
