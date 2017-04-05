@@ -253,8 +253,29 @@ void report_stats(FILE* fp) {
 static JSON* logger_json(const StatisticsLogger* logger) {
 
     JSON* json = json_object_new();
+    double average;
+    double stddev;
 
     json_object_insert(json, "count", json_number_new(logger->count));
+
+    if (logger->logBytes) {
+        average = logger->count ?
+                    (double)logger->sumBytes / (double)logger->count : 0;
+        stddev = calc_stddev(logger->count, logger->sumBytes, logger->sumBytesSquared);
+
+        json_object_insert(json, "bytes", json_number_new(logger->sumBytes));
+        json_object_insert(json, "averageBytes", json_number_new(average));
+        json_object_insert(json, "stddevBytes", json_number_new(stddev));
+    }
+
+    if (logger->logTimes) {
+        average = logger->count ? logger->sumTimes / logger->count : 0;
+        stddev = calc_stddev(logger->count, logger->sumTimes, logger->sumTimesSquared);
+
+        json_object_insert(json, "elapsed", json_number_new(logger->sumTimes));
+        json_object_insert(json, "averageElapsed", json_number_new(average));
+        json_object_insert(json, "stddevElapsed", json_number_new(stddev));
+    }
 
     return json;
 }
