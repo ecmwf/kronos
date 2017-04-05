@@ -19,6 +19,7 @@
 #include "kronos/json.h"
 #include "kronos/global_config.h"
 #include "kronos/frames.h"
+#include "kronos/stats.h"
 
 
 /* ------------------------------------------------------------------------------------------------------------------ */
@@ -64,6 +65,10 @@ int main(int argc, char** argv)
                 err = execute_frame_list(frames);
                 free_frame_list(frames);
             }
+
+            /* Statistics reporting on what has happened */
+            report_stats(stderr);
+            free_stats_registry();
 
             clean_global_config();
             free_json(json);

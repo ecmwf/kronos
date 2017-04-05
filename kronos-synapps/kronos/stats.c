@@ -15,6 +15,8 @@
 
 #include "kronos/stats.h"
 #include "kronos/bool.h"
+#include "kronos/global_config.h"
+#include "kronos/utility.h"
 
 #include <string.h>
 #include <stdlib.h>
@@ -32,8 +34,8 @@ typedef struct StatisticsRegistry {
 static StatisticsRegistry* stats_instance() {
 
     static StatisticsRegistry registry;
+    static bool initialised = false;
 
-    bool initialised = false;
     if (!initialised) {
         registry.loggers = 0;
         initialised = true;
@@ -71,7 +73,7 @@ void free_stats_registry() {
 }
 
 
-StatisticsLogger* create_stats_logger(const char *name) {
+static StatisticsLogger* create_stats_logger(const char* name) {
 
     StatisticsRegistry* registry = stats_instance();
 
@@ -85,6 +87,15 @@ StatisticsLogger* create_stats_logger(const char *name) {
     logger = malloc(sizeof(StatisticsLogger));
     logger->name = strdup(name);
 
+    logger->count = 0;
+    logger->sumBytes = 0;
+    logger->sumBytesSquared = 0;
+    logger->sumTimes = 0;
+    logger->sumTimesSquared = 0;
+
+    logger->logTimes = false;
+    logger->logBytes = false;
+
     /* Insert into the linked list */
     logger->next = registry->loggers;
     registry->loggers = logger;
@@ -93,8 +104,160 @@ StatisticsLogger* create_stats_logger(const char *name) {
 }
 
 
-void report_stats(FILE* fp) {}
+void stats_start(StatisticsLogger* logger) {
 
-JSON* stats_json() {}
+    assert(logger->logTimes);
+    logger->startTime = take_time();
+}
+
+
+void stats_log_event(StatisticsLogger* logger) {
+
+    assert(!logger->logBytes);
+    assert(!logger->logTimes);
+
+    logger->count++;
+}
+
+
+void stats_stop_log(StatisticsLogger* logger) {
+
+    assert(!logger->logBytes);
+    assert(logger->logTimes);
+
+    double elapsed = take_time() - logger->startTime;
+    assert(elapsed >= 0);
+
+    logger->count++;
+
+    logger->sumTimes += elapsed;
+    logger->sumTimesSquared += elapsed * elapsed;
+}
+
+
+void stats_stop_log_bytes(StatisticsLogger* logger, unsigned long bytes) {
+
+    assert(logger->logBytes);
+    assert(logger->logTimes);
+
+    double elapsed = take_time() - logger->startTime;
+    assert(elapsed >= 0);
+
+    logger->count++;
+
+    logger->sumTimes += elapsed;
+    logger->sumTimesSquared += elapsed * elapsed;
+
+    logger->sumBytes += bytes;
+    logger->sumBytesSquared += bytes * bytes;
+}
+
+
+StatisticsLogger *create_stats_times_logger(const char* name) {
+
+    StatisticsLogger* logger = create_stats_logger(name);
+
+    logger->logTimes = true;
+
+    return logger;
+}
+
+StatisticsLogger *create_stats_times_bytes_logger(const char* name) {
+
+    StatisticsLogger* logger = create_stats_logger(name);
+
+    logger->logTimes = true;
+    logger->logBytes = true;
+
+    return logger;
+}
+
+static double calc_stddev(unsigned long int count, double sum, double sumSquares) {
+
+    double intermediate;
+
+    if (count == 0) return 0;
+
+    /* Ensure we catch the case where the std deviation should be zero, but we end
+     * up taking the square root of a very small negative number due to floating
+     * point rounding errors */
+    intermediate = (count * sumSquares) - (sum * sum);
+    if (intermediate < 0) return 0;
+
+    return sqrt(intermediate) / count;
+}
+
+
+static void report_logger(FILE* fp, const StatisticsLogger* logger) {
+
+    const GlobalConfig* global_conf = global_config_instance();
+
+    double average;
+    double stddev;
+
+    /* Report counts */
+
+    fprintf(fp, "%s:%d %s count: %d\n",
+           global_conf->hostname,
+           global_conf->pid,
+           logger->name,
+           logger->count);
+
+    /* Report data stats */
+
+    if (logger->logBytes) {
+
+        average = logger->count ?
+                    (double)logger->sumBytes / (double)logger->count : 0;
+        stddev = calc_stddev(logger->count, logger->sumBytes, logger->sumBytesSquared);
+
+        fprintf(fp, "%s:%d %s bytes (tot, avg, std): %lu, %lu, %lu\n",
+               global_conf->hostname,
+               global_conf->pid,
+               logger->name,
+               logger->sumBytes,
+               (unsigned long)average,
+               (unsigned long)stddev);
+    }
+
+    /* Report timing stats */
+
+    if (logger->logTimes) {
+
+        average = logger->count ? logger->sumTimes / logger->count : 0;
+        stddev = calc_stddev(logger->count, logger->sumTimes, logger->sumTimesSquared);
+
+        fprintf(fp, "%s:%d %s times (tot, avg, std): %es, %es, %es\n",
+               global_conf->hostname,
+               global_conf->pid,
+               logger->name,
+               logger->sumTimes,
+               average,
+               stddev);
+    }
+}
+
+void report_stats(FILE* fp) {
+
+    StatisticsRegistry* registry = stats_instance();
+
+    const StatisticsLogger* logger = registry->loggers;
+    while (logger != 0) {
+        report_logger(fp, logger);
+        logger = logger->next;
+    }
+}
+
+JSON* stats_json() {
+
+    /* TODO
+     *
+     * i) Build JSONS for each logger
+     * ii) Aggregate into a JSON for a process
+     * iii) If we are using MPI, bring each of these JSONS back to the head node
+     * iv) Annotate with KPR macroscopic information
+     * v) Create a wrapper routine that dumps to file.
+     */
+}
 
 /* ------------------------------------------------------------------------------------------------------------------ */

@@ -41,7 +41,7 @@ static StatisticsLogger* stats_instance() {
     static StatisticsLogger* logger = 0;
 
     if (logger == 0)
-        logger = create_stats_logger("write");
+        logger = create_stats_times_bytes_logger("write");
 
     return logger;
 }
@@ -177,8 +177,14 @@ static bool file_write_c_api(const char* file_path, long write_size) {
 
             buffer = malloc(chunk_size);
 
+            stats_start(stats_instance());
+
             result = fwrite(buffer, 1, chunk_size, file);
+
+            TRACE1("Flushing chunk.");
             fflush(file);
+
+            stats_stop_log_bytes(stats_instance(), chunk_size);
 
             free(buffer);
             buffer = NULL;

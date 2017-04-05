@@ -18,7 +18,9 @@
 #define kronos_global_config_H
 
 #include <limits.h>
+#include <sys/types.h>
 #include <time.h>
+
 
 #include "kronos/json.h"
 #include "kronos/bool.h"
@@ -37,9 +39,11 @@ typedef struct GlobalConfig {
     char file_shared_path[PATH_MAX];
 
     char hostname[HOST_NAME_MAX];
+    pid_t pid;
 
     clock_t start_time;
     time_t start_time2;
+    double start_time3;
 
 } GlobalConfig;
 

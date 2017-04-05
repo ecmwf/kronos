@@ -15,6 +15,9 @@
 
 #include "utility.h"
 
+#include <sys/time.h>
+#include <assert.h>
+
 /* ------------------------------------------------------------------------------------------------------------------ */
 
 /*
@@ -56,6 +59,19 @@ bool is_power_of_2(long num) {
  */
 void dummy_deoptimise(void * array) {
     (void) array;
+}
+
+
+/*
+ * Take the curretn wall time, in Unix epoch time, and return it as a double (in seconds)
+ */
+double take_time() {
+
+    struct timeval t;
+
+    assert(gettimeofday(&t, 0) == 0);
+
+    return (double)t.tv_sec + ((double)t.tv_usec / 1000000.);
 }
 
 /* ------------------------------------------------------------------------------------------------------------------ */

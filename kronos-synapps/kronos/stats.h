@@ -17,6 +17,8 @@
 #ifndef kronos_stats_H
 #define kronos_stats_H
 
+#include "kronos/bool.h"
+
 #include <stdio.h>
 
 typedef struct JSON JSON;
@@ -29,6 +31,19 @@ typedef struct StatisticsLogger {
 
     char* name;
 
+    unsigned long int count;
+
+    unsigned long int sumBytes;
+    unsigned long int sumBytesSquared;
+
+    double sumTimes;
+    double sumTimesSquared;
+
+    bool logTimes;
+    bool logBytes;
+
+    double startTime;
+
     struct StatisticsLogger* next;
 
 } StatisticsLogger;
@@ -40,8 +55,17 @@ typedef struct StatisticsLogger {
  *       not attempt to clean it up.
  */
 
-StatisticsLogger* create_stats_logger(const char* name);
+StatisticsLogger* create_stats_times_logger(const char* name);
+StatisticsLogger* create_stats_times_bytes_logger(const char* name);
 void free_stats_registry();
+
+/**
+ * Logging functions
+ */
+void stats_start(StatisticsLogger* logger);
+void stats_log_event(StatisticsLogger* logger);
+void stats_stop_log(StatisticsLogger* logger);
+void stats_stop_log_bytes(StatisticsLogger* logger, unsigned long bytes);
 
 /**
  * Handles to the statistics loggers are stored centrally to make outputting

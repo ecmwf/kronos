@@ -16,27 +16,32 @@
 #include <stdarg.h>
 #include <stdio.h>
 
-#include "kronos/trace.h"
 #include "kronos/global_config.h"
+#include "kronos/trace.h"
+#include "kronos/utility.h"
 
 
 /* ------------------------------------------------------------------------------------------------------------------ */
 
 void printf_trace(const char* fn_id, const char* fmt, ...) {
 
-    clock_t now;
-    time_t now2;
+    /*clock_t now;
+    time_t now2;*/
+    double now;
     va_list args;
 
     const GlobalConfig* global_conf = global_config_instance();
 
     if (global_conf->enable_trace) {
 
-        now = clock();
+        /*now = clock();
         now2 = time(NULL);
 
         printf("[%f : %li][%s]: ", ((double)(now - global_conf->start_time)) / CLOCKS_PER_SEC,
-               (long)difftime(now2, global_conf->start_time2), fn_id);
+               (long)difftime(now2, global_conf->start_time2), fn_id);*/
+
+        now = take_time();
+        printf("[%f][%s]: ", now - global_conf->start_time3, fn_id);
 
         va_start(args, fmt);
         vprintf(fmt, args);

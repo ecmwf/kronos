@@ -22,6 +22,7 @@
 
 #include "kronos/global_config.h"
 #include "kronos/mpi.h"
+#include "kronos/utility.h"
 
 
 static GlobalConfig global_config;
@@ -122,9 +123,11 @@ int init_global_config(const JSON* json, int argc, char** argv) {
         fprintf(stderr, "Error getting current hostname: (%d) %s\n", errno, strerror(errno));
         error = -1;
     }
+    global_config.pid = getpid();
 
     global_config.start_time = clock();
     global_config.start_time2 = time(NULL);
+    global_config.start_time3 = take_time();
 
     /*
      * Processes and MPI

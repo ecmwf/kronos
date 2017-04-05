@@ -27,6 +27,8 @@ bool is_power_of_2(long num);
 
 void dummy_deoptimise(void * array);
 
+double take_time();
+
 /* ------------------------------------------------------------------------------------------------------------------ */
 
 #endif /* kronos_utility_H */
