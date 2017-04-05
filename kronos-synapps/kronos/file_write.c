@@ -26,9 +26,25 @@
 #include "kronos/file_write.h"
 #include "kronos/global_config.h"
 #include "kronos/json.h"
+#include "kronos/stats.h"
 #include "kronos/trace.h"
 
 /* ------------------------------------------------------------------------------------------------------------------ */
+
+/**
+ * Return a handle to a static logger instance, ensuring that it is correctly
+ * registered
+ */
+
+static StatisticsLogger* stats_instance() {
+
+    static StatisticsLogger* logger = 0;
+
+    if (logger == 0)
+        logger = create_stats_logger("write");
+
+    return logger;
+}
 
 FileWriteParamsInternal get_write_params(const FileWriteConfig* config) {
 

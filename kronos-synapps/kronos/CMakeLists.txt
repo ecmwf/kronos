@@ -17,10 +17,10 @@ ecbuild_add_library (
         file_read.h
         file_write.c
         file_write.h
-        fs_metadata.h
-        fs_metadata.c
         frames.c
         frames.h
+        fs_metadata.c
+        fs_metadata.h
         global_config.c
         global_config.h
         json.c
@@ -29,6 +29,8 @@ ecbuild_add_library (
         kernels.h
         mpi.c
         mpi.h
+        stats.c
+        stats.h
         trace.c
         trace.h
         utility.c
