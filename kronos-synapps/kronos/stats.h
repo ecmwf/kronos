@@ -18,10 +18,9 @@
 #define kronos_stats_H
 
 #include "kronos/bool.h"
+#include "kronos/json.h"
 
 #include <stdio.h>
-
-typedef struct JSON JSON;
 
 /* ------------------------------------------------------------------------------------------------------------------ */
 
@@ -74,7 +73,7 @@ void stats_stop_log_bytes(StatisticsLogger* logger, unsigned long bytes);
 
 void report_stats(FILE* fp);
 
-JSON* stats_json();
+JSON* report_stats_json();
 
 
 

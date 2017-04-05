@@ -237,6 +237,7 @@ static void report_logger(FILE* fp, const StatisticsLogger* logger) {
     }
 }
 
+
 void report_stats(FILE* fp) {
 
     StatisticsRegistry* registry = stats_instance();
@@ -248,7 +249,18 @@ void report_stats(FILE* fp) {
     }
 }
 
-JSON* stats_json() {
+
+static JSON* logger_json(const StatisticsLogger* logger) {
+
+    JSON* json = json_object_new();
+
+    json_object_insert(json, "count", json_number_new(logger->count));
+
+    return json;
+}
+
+
+JSON* report_stats_json() {
 
     /* TODO
      *
@@ -258,6 +270,20 @@ JSON* stats_json() {
      * iv) Annotate with KPR macroscopic information
      * v) Create a wrapper routine that dumps to file.
      */
+
+    StatisticsRegistry* registry = stats_instance();
+
+    const StatisticsLogger* logger;
+
+    JSON* json = json_object_new();
+
+    logger = registry->loggers;
+    while (logger != 0) {
+        json_object_insert(json, logger->name, logger_json(logger));
+        logger = logger->next;
+    }
+
+    return json;
 }
 
 /* ------------------------------------------------------------------------------------------------------------------ */
