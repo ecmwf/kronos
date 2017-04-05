@@ -40,6 +40,7 @@ setup(
         'bin/kronos-model',
         'bin/kronos-raw-to-kpf',
         'bin/kronos-plot-run',
+        'bin/kronos-plot-kpf',
         'bin/kronos-run-summary',
         'bin/kronos-map-2-kpf',
         'bin/kronos-view-json',

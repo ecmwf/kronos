@@ -164,7 +164,7 @@ class DarshanIngestedJob(IngestedJob):
 
             if model_file.read_time_start is not None and (model_file.read_count != 0 or model_file.bytes_read != 0):
                 read_data.append((model_file.read_time_start, model_file.bytes_read / 1024.0,
-                                  model_file.read_time_end - model_file.read_time_end))
+                                  model_file.read_time_end - model_file.read_time_start))
                 read_counts.append((model_file.read_time_start, model_file.read_count,
                                     model_file.read_time_end - model_file.read_time_start))
 
