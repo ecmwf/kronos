@@ -123,7 +123,7 @@ class kpf_info(file_info):
         super(kpf_info, self).__init__(jobs_data)
 
     def n_procs(self):
-        return np.asarray([app["ncpus"] for app in self.jobs_data])
+        return np.asarray([app["ncpus"] for app in self.jobs_data if app.get("ncpus")])
 
     def start_delay(self):
         delay_vec = np.asarray([app["time_start"] for app in self.jobs_data])
@@ -139,8 +139,9 @@ class kpf_info(file_info):
         for job in self.jobs_data:
 
             for ts in signal_types:
-                if ts in job["time_series"].keys():
-                    self.tot_metrics[ts] = np.append(self.tot_metrics[ts], sum(job["time_series"][ts]["values"]))
+                if job.get("time_series"):
+                    if ts in job["time_series"].keys():
+                        self.tot_metrics[ts] = np.append(self.tot_metrics[ts], sum(job["time_series"][ts]["values"]))
 
         return self.tot_metrics
 
@@ -171,6 +172,7 @@ def print_one_liner_qty(qty_vec, qty_name):
     :return:
     """
     _str = ""
+
     if qty_vec.size:
         _str += "{:17s}:{:>25s}{:>25.2f}{:>25.0f}{:>25.0f}{:>25.2f}".format(qty_name,
                                                                             "N/A",
