@@ -71,7 +71,7 @@ void stats_stop_log_bytes(StatisticsLogger* logger, unsigned long bytes);
  * data straightforward.
  */
 
-void report_stats(FILE* fp);
+void report_stats();
 
 JSON* report_stats_json();
 

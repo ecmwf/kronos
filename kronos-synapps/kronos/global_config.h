@@ -45,6 +45,10 @@ typedef struct GlobalConfig {
     time_t start_time2;
     double start_time3;
 
+    bool print_statistics;
+    bool write_statistics_file;
+    char statistics_file[PATH_MAX];
+
 } GlobalConfig;
 
 

@@ -68,12 +68,9 @@ int main(int argc, char** argv)
             }
 
             /* Statistics reporting on what has happened */
-            report_stats(stderr);
-            stats_json = report_stats_json();
-            print_json(stderr, stats_json);
-            free_json(stats_json);
-            free_stats_registry();
 
+            report_stats();
+            free_stats_registry();
             clean_global_config();
             free_json(json);
         } else {

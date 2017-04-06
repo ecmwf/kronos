@@ -86,6 +86,17 @@ int init_global_config(const JSON* json, int argc, char** argv) {
         strcat(global_config.file_shared_path, "/shared");
     }
 
+    if ((tmp_json = json_object_get(json, "statistics_path")) != NULL) {
+        if (json_as_string(tmp_json, global_config.statistics_file, PATH_MAX) != 0) {
+            error = -1;
+            fprintf(stderr, "Error reading statistics_path as string from global configuration\nGot:");
+            print_json(stderr, tmp_json);
+            fprintf(stderr, "\n");
+        }
+    } else {
+        getcwd(global_config.statistics_file, PATH_MAX);
+        strcat(global_config.statistics_file, "/statistics.kpr");
+    }
 
     /* The above paths can be overridden from environment variables */
 
@@ -100,6 +111,34 @@ int init_global_config(const JSON* json, int argc, char** argv) {
     env_ptr = getenv("KRONOS_SHARED_DIR");
     if (env_ptr != NULL)
         strncpy(global_config.file_shared_path, env_ptr, PATH_MAX);
+
+    env_ptr = getenv("KRONOS_STATS_FILE");
+    if (env_ptr != NULL)
+        strncpy(global_config.statistics_file, env_ptr, PATH_MAX);
+
+    /*
+     * Control statistics output
+     */
+
+    global_config.print_statistics = false;
+    if ((tmp_json = json_object_get(json, "print_statistics")) != NULL) {
+        if (json_as_boolean(tmp_json, &global_config.print_statistics) != 0) {
+            error = -1;
+            fprintf(stderr, "Error reading print_statistics as boolean from global configuration\nGot:");
+            print_json(stderr, tmp_json);
+            fprintf(stderr, "\n");
+        }
+    }
+
+    global_config.write_statistics_file = true;
+    if ((tmp_json = json_object_get(json, "write_statistics_file")) != NULL) {
+        if (json_as_boolean(tmp_json, &global_config.write_statistics_file) != 0) {
+            error = -1;
+            fprintf(stderr, "Error reading write_statistics_file as boolean from global configuration\nGot:");
+            print_json(stderr, tmp_json);
+            fprintf(stderr, "\n");
+        }
+    }
 
     /*
      * Input conditions
@@ -185,8 +224,11 @@ int init_global_config(const JSON* json, int argc, char** argv) {
         printf("File read cache: %s\n", global_config.file_read_path);
         printf("File write cache: %s\n", global_config.file_write_path);
         printf("File shared path: %s\n", global_config.file_shared_path);
+        if (global_config.write_statistics_file)
+            printf("Statistics output file: %s\n", global_config.statistics_file);
         printf("Hostname: %s\n", global_config.hostname);
         printf("Trace output: %s\n", (global_config.enable_trace ? "true":"false"));
+        printf("Print statistics: %s\n", (global_config.print_statistics ? "true":"false"));
         printf("Initial timestamp: %f, %s\n",
                (double)global_config.start_time, asctime(localtime(&global_config.start_time)));
 #ifdef HAVE_MPI

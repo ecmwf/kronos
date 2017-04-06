@@ -17,10 +17,12 @@
 #include "kronos/bool.h"
 #include "kronos/global_config.h"
 #include "kronos/utility.h"
+#include "kronos/trace.h"
 
 #include <string.h>
 #include <stdlib.h>
 #include <assert.h>
+#include <errno.h>
 
 /* ------------------------------------------------------------------------------------------------------------------ */
 
@@ -122,10 +124,12 @@ void stats_log_event(StatisticsLogger* logger) {
 
 void stats_stop_log(StatisticsLogger* logger) {
 
+    double elapsed;
+
     assert(!logger->logBytes);
     assert(logger->logTimes);
 
-    double elapsed = take_time() - logger->startTime;
+    elapsed = take_time() - logger->startTime;
     assert(elapsed >= 0);
 
     logger->count++;
@@ -137,10 +141,12 @@ void stats_stop_log(StatisticsLogger* logger) {
 
 void stats_stop_log_bytes(StatisticsLogger* logger, unsigned long bytes) {
 
+    double elapsed;
+
     assert(logger->logBytes);
     assert(logger->logTimes);
 
-    double elapsed = take_time() - logger->startTime;
+    elapsed = take_time() - logger->startTime;
     assert(elapsed >= 0);
 
     logger->count++;
@@ -238,14 +244,44 @@ static void report_logger(FILE* fp, const StatisticsLogger* logger) {
 }
 
 
-void report_stats(FILE* fp) {
+void report_stats() {
+
+    const GlobalConfig* global_conf = global_config_instance();
 
     StatisticsRegistry* registry = stats_instance();
 
-    const StatisticsLogger* logger = registry->loggers;
-    while (logger != 0) {
-        report_logger(fp, logger);
-        logger = logger->next;
+    JSON* json;
+
+    /* Report statistics to stdout */
+
+    if (global_conf->print_statistics) {
+        const StatisticsLogger* logger = registry->loggers;
+        while (logger != 0) {
+            report_logger(stdout, logger);
+            logger = logger->next;
+        }
+    }
+
+    /* Build and output JSONs */
+
+    if (global_conf->write_statistics_file) {
+
+        json = report_stats_json();
+        if (json != 0) {
+
+            FILE* fp = fopen(global_conf->statistics_file, "w");
+            if (fp != 0) {
+                TRACE2("Writing statistics file to: %s", global_conf->statistics_file);
+                write_json(fp, json);
+                fclose(fp);
+            } else {
+                fprintf(stderr, "Failed to create statistics file: %s (%s)\n", global_conf->statistics_file, strerror(errno));
+            }
+
+            free_json(json);
+        } else {
+            fprintf(stderr, "Failed to build statistics json");
+        }
     }
 }
 
