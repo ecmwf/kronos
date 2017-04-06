@@ -17,10 +17,21 @@
 
 #include "kronos/cpu.h"
 #include "kronos/global_config.h"
+#include "kronos/stats.h"
 #include "kronos/trace.h"
 #include "kronos/utility.h"
 
 /* ------------------------------------------------------------------------------------------------------------------ */
+
+static StatisticsLogger* stats_instance() {
+
+    static StatisticsLogger* logger = 0;
+
+    if (logger == 0)
+        logger = create_stats_times_logger("cpu");
+
+    return logger;
+}
 
 CPUParamsInternal get_cpu_params(const CPUConfig* config) {
 
@@ -44,10 +55,14 @@ static int execute_cpu(const void* data) {
 
     TRACE3("Executing FLOPs: %li, per MPI process: %li", config->flops, params.node_flops);
 
+    stats_start(stats_instance());
+
     for (i = 0; i < params.node_flops; i++) {
         c += a * b;
     }
     dummy_deoptimise((void*)&c);
+
+    stats_stop_log(stats_instance());
 
     return 0;
 }
