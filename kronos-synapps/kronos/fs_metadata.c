@@ -26,12 +26,32 @@
 #include "kronos/fs_metadata.h"
 #include "kronos/global_config.h"
 #include "kronos/json.h"
+#include "kronos/stats.h"
 #include "kronos/trace.h"
 
-
-
-
 /* ------------------------------------------------------------------------------------------------------------------ */ 
+
+
+static StatisticsLogger* mkdir_stats_instance() {
+
+    static StatisticsLogger* logger = 0;
+
+    if (logger == 0)
+        logger = create_stats_times_logger("mkdir");
+
+    return logger;
+}
+
+
+static StatisticsLogger* rmdir_stats_instance() {
+
+    static StatisticsLogger* logger = 0;
+
+    if (logger == 0)
+        logger = create_stats_times_logger("rmdir");
+
+    return logger;
+}
 
 FsMetadataParamsInternal get_fsmetadata_params(const FsMetadataConfig* config) {
 
@@ -75,10 +95,12 @@ static bool kronos_mkdir(const char* dir_path) {
 
     bool success = true;
 
+    stats_start(rmdir_stats_instance());
     if (mkdir(dir_path, S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP) != 0) {
         fprintf(stderr, "Failed to create directory %s (%s)\n", dir_path, strerror(errno));
         success = false;
     }
+    stats_stop_log(rmdir_stats_instance());
 
     return success;
 }
@@ -91,10 +113,12 @@ static bool kronos_rmdir(const char* dir_path) {
 
     bool success = true;
 
+    stats_start(mkdir_stats_instance());
     if (rmdir(dir_path) != 0) {
         fprintf(stderr, "Failed to remove directory %s (%s)\n", dir_path, strerror(errno));
         success = false;
     }
+    stats_stop_log(mkdir_stats_instance());
 
     return success;
 }
