@@ -15,9 +15,11 @@
 
 #include <assert.h>
 #include <ctype.h>
+#include <math.h>
+#include <stdarg.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <math.h>
 
 #include "kronos/json.h"
 
@@ -31,7 +33,14 @@ typedef struct JSONInput {
     const char** string;
 } JSONInput;
 
+typedef struct JSONOutput {
+    FILE* file;
+    char** string;
+    int len;
+} JSONOutput;
+
 static JSON* parse_json_internal(JSONInput* input);
+static void write_json_internal(JSONOutput* out, const JSON* json);
 
 
 /* ------------------------------------------------------------------------------------------------------------------ */
@@ -115,6 +124,36 @@ static int consume(JSONInput* input, const char* str) {
     while (*str)
         if ((ret = consume_char(input, *str++)) < 0) break;
     return ret;
+}
+
+/* ------------------------------------------------------------------------------------------------------------------ */
+
+/*
+ * Utility routines for manipulating characters written to files strings
+ */
+
+static int json_printf(JSONOutput* out, const char* fmt, ...) {
+
+    va_list args;
+    va_start(args, fmt);
+
+    if (out->file) {
+        vfprintf(out->file, fmt, args);
+    } else {
+        assert(false);
+    }
+
+    va_end(args);
+}
+
+
+static int json_putc(JSONOutput* out, int c) {
+
+    if (out->file) {
+        putc(c, out->file);
+    } else {
+        assert(false);
+    }
 }
 
 
@@ -919,23 +958,23 @@ int json_object_get_boolean(const JSON* json, const char* key, bool* value) {
  * Routines for printing jsons
  */
 
-static void print_json_array(FILE* fp_out, const JSON* json) {
+static void print_json_array(JSONOutput* out, const JSON* json) {
 
     int i;
     bool first = true;
 
     assert(json->type == JSON_ARRAY);
 
-    fprintf(fp_out, "[");
+    json_putc(out, '[');
     for (i = 0; i < json->count; i++) {
-        fprintf(fp_out, (first ? "": ","));
-        write_json(fp_out, &json->array[i]);
+        json_printf(out, (first ? "": ","));
+        write_json_internal(out, &json->array[i]);
         first = false;
     }
-    fprintf(fp_out, "]");
+    json_putc(out, ']');
 }
 
-static void print_json_string(FILE* fp_out, const JSON* json) {
+static void print_json_string(JSONOutput* out, const JSON* json) {
 
     int i;
 
@@ -944,37 +983,37 @@ static void print_json_string(FILE* fp_out, const JSON* json) {
     assert(json->count >= 0);
     assert(json->string[json->count-1] == '\0');
 
-    putc('"', fp_out);
+    json_putc(out, '"');
 
     for (i = 0; i < json->count-1; i++) {
         switch (json->string[i]) {
         case '"':
         case '\\':
         case '/':
-            putc('\\', fp_out);
-            putc(json->string[i], fp_out);
+            json_putc(out, '\\');
+            json_putc(out, json->string[i]);
             break;
         case '\b':
-            fprintf(fp_out, "\\b");
+            json_printf(out, "\\b");
             break;
         case '\f':
-            fprintf(fp_out, "\\f");
+            json_printf(out, "\\f");
             break;
         case '\n':
-            fprintf(fp_out, "\\n");
+            json_printf(out, "\\n");
             break;
         case '\r':
-            fprintf(fp_out, "\\r");
+            json_printf(out, "\\r");
             break;
         case '\t':
-            fprintf(fp_out, "\\t");
+            json_printf(out, "\\t");
             break;
         default:
-            putc(json->string[i], fp_out);
+            json_putc(out, json->string[i]);
         }
     }
 
-    putc('"', fp_out);
+    json_putc(out, '"');
 
     /*
      * n.b. the trivial implementation doesn't escape anything
@@ -984,63 +1023,80 @@ static void print_json_string(FILE* fp_out, const JSON* json) {
 }
 
 
-static void print_json_number(FILE* fp_out, const JSON* json) {
+static void print_json_number(JSONOutput* out, const JSON* json) {
 
     assert(json->type == JSON_NUMBER);
 
     if (fabs(((double)(long)json->number) - json->number) == 0.0) {
-        fprintf(fp_out, "%li", (long)json->number);
+        json_printf(out, "%li", (long)json->number);
     } else {
-        fprintf(fp_out, "%e", json->number);
+        json_printf(out, "%e", json->number);
     }
 }
 
 
-static void print_json_object(FILE* fp_out, const JSON* json) {
+static void print_json_object(JSONOutput* out, const JSON* json) {
 
     bool first = true;
     const JSON* elem = json->array;
 
     assert(json->type == JSON_OBJECT);
 
-    fprintf(fp_out, "{");
+    json_putc(out, '{');
     while (elem) {
 
         if (!first)
-            fprintf(fp_out, ",");
+             json_putc(out, ',');
 
         assert(elem->name);
-        fprintf(fp_out, "\"%s\":", elem->name);
-        write_json(fp_out, elem);
+        json_printf(out, "\"%s\":", elem->name);
+        write_json_internal(out, elem);
 
         first = false;
         elem = elem->next;
     }
 
-    fprintf(fp_out, "}");
+    json_putc(out, '}');
 
 }
 
-void write_json(FILE* fp_out, const JSON* json) {
+static void write_json_internal(JSONOutput* out, const JSON* json) {
 
     switch (json->type) {
 
-    case JSON_NULL:    fprintf(fp_out, "null"); break;
-    case JSON_BOOLEAN: fprintf(fp_out, (json->boolean ? "true" : "false")); break;
-    case JSON_NUMBER:  print_json_number(fp_out, json); break;
-    case JSON_STRING:  print_json_string(fp_out, json); break;
-    case JSON_OBJECT:  print_json_object(fp_out, json); break;
-    case JSON_ARRAY:   print_json_array(fp_out, json); break;
+    case JSON_NULL:    json_printf(out, "null"); break;
+    case JSON_BOOLEAN: json_printf(out, (json->boolean ? "true" : "false")); break;
+    case JSON_NUMBER:  print_json_number(out, json); break;
+    case JSON_STRING:  print_json_string(out, json); break;
+    case JSON_OBJECT:  print_json_object(out, json); break;
+    case JSON_ARRAY:   print_json_array(out, json); break;
 
     default:
-        fprintf(fp_out, "Unknown component");
+        json_printf(out, "Unknown component");
         break;
     }
 }
 
 void print_json(FILE* fp_out, const JSON* json) {
 
+    JSONOutput out;
+    out.file = fp_out;
+    out.string = NULL;
+    out.len = 0;
+
     fprintf(fp_out, "JSON(");
-    write_json(fp_out, json);
+    write_json_internal(&out, json);
     fprintf(fp_out, ")");
+}
+
+void write_json(FILE* fp_out, const JSON* json) {
+
+    JSONOutput out;
+    out.file = fp_out;
+    out.string = NULL;
+    out.len = 0;
+
+    write_json_internal(&out, json);
+
+
 }
