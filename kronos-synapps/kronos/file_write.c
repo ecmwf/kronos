@@ -32,8 +32,8 @@
 /* ------------------------------------------------------------------------------------------------------------------ */
 
 /**
- * Return a handle to a static logger instance, ensuring that it is correctly
- * registered
+ * Return a pointer to a registered logger. Ensure that it is correctly
+ * initialised on the first call.
  */
 
 static StatisticsLogger* stats_instance() {
