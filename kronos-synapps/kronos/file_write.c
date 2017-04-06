@@ -95,11 +95,14 @@ static bool file_write_mmap(const char* file_path, long write_size) {
     char* pmapped;
     char* buffer;
     bool success;
-    long chunk_size, offset, remaining;
+    long chunk_size, offset, remaining, aligned, aligned_size, aligned_remainder, pagesize;
 
     TRACE();
 
     success = false;
+
+    pagesize = sysconf(_SC_PAGESIZE);
+    TRACE2("Page size: %li", pagesize);
 
     fd = open(file_path, O_RDWR | O_CREAT | O_EXCL, S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP);
     if (fd != -1) {
@@ -123,7 +126,20 @@ static bool file_write_mmap(const char* file_path, long write_size) {
 
                     buffer = malloc(chunk_size);
 
+                    stats_start(stats_instance());
+
                     memcpy(pmapped + offset, buffer, chunk_size);
+
+                    TRACE1("Flushing chunk.");
+
+                    aligned_size = chunk_size + ((unsigned long)(pmapped + offset) % pagesize);
+                    aligned_remainder = aligned_size % pagesize;
+                    if (aligned_remainder != 0)
+                        aligned_size += pagesize - aligned_remainder;
+                    aligned = (pmapped + offset) - ((unsigned long)(pmapped + offset) % pagesize);
+                    msync(aligned, chunk_size, MS_SYNC);
+
+                    stats_stop_log_bytes(stats_instance(), chunk_size);
 
                     free(buffer);
                     buffer = NULL;
