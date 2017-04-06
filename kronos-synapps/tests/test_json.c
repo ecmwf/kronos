@@ -427,7 +427,9 @@ void test_parse_array() {
     JSON* json;
 
     const char* correct_string = "JSON([-1.234500e+02,[\"hello there\",false],true,null])";
+    const char* print_string =  "[-1.234500e+02,[\"hello there\",false],true,null]";
     char buffer[53];
+    char buffer2[100];
     const JSON* elem;
     int test_val; /* Used to avoid c89 warnings with GCC */
 
@@ -464,6 +466,12 @@ void test_parse_array() {
     fclose(fp2);
     remove(temporary_filename2);
 
+    /* Test writing to string */
+
+    assert(write_json_string(buffer2, sizeof(buffer2), json) == strlen(print_string) + 1); /* Include '\0' in length */
+    test_val = strncmp(print_string, buffer2, sizeof(buffer2));
+    assert(test_val == 0);
+
     /* Test that the elements are correct */
 
     elem = json_array_element(json, 0);
@@ -497,10 +505,13 @@ void test_parse_object() {
     JSON* json;
 
     const char* correct_string = "JSON({\"array\":[1,2,3.140000e+00],\"an-integer\":999,\"a string\":\"hello there\"})";
+    const char* src_string = "{\n\"a string\":\"hello there\", \"an-integer\": 999, \"array\":[1,2,3.14]}";
+    const char* print_string = "{\"array\":[1,2,3.140000e+00],\"an-integer\":999,\"a string\":\"hello there\"}";
     char buffer[76];
+    char buffer2[100];
     int test_val; /* Used to avoid c89 warnings with GCC */
 
-    fp = create_open_tmp_file("{\n\"a string\":\"hello there\", \"an-integer\": 999, \"array\":[1,2,3.14]}");
+    fp = create_open_tmp_file(src_string);
     assert(fp);
 
     json = parse_json(fp);
@@ -529,6 +540,12 @@ void test_parse_object() {
     fclose(fp2);
     remove(temporary_filename2);
 
+    /* Test writing to string */
+
+    assert(write_json_string(buffer2, sizeof(buffer2), json) == strlen(print_string) + 1); /* Include '\0' in length */
+    test_val = strncmp(print_string, buffer2, sizeof(buffer2));
+    assert(test_val == 0);
+
     /* Test that the elements are correct */
 
     assert(json_object_count(json) == 3);
@@ -552,10 +569,12 @@ void test_parse_from_string() {
     FILE* fp2;
     JSON* json;
     char buffer[76];
+    char buffer2[100];
     int test_val; /* Used to avoid c89 warnings with GCC */
 
     const char* correct_string = "JSON({\"array\":[1,2,3.140000e+00],\"an-integer\":999,\"a string\":\"hello there\"})";
     const char* src_string = "{\n\"a string\":\"hello there\", \"an-integer\": 999, \"array\":[1,2,3.14]}";
+    const char* print_string = "{\"array\":[1,2,3.140000e+00],\"an-integer\":999,\"a string\":\"hello there\"}";
 
     json = json_from_string(src_string);
     assert(json);
@@ -582,6 +601,12 @@ void test_parse_from_string() {
     assert(test_val == 0);
     fclose(fp2);
     remove(temporary_filename2);
+
+    /* Test writing to string */
+
+    assert(write_json_string(buffer2, sizeof(buffer2), json) == strlen(print_string) + 1); /* Include '\0' in length */
+    test_val = strncmp(print_string, buffer2, sizeof(buffer2));
+    assert(test_val == 0);
 
     /* Test that the elements are correct */
 

@@ -35,8 +35,8 @@ typedef struct JSONInput {
 
 typedef struct JSONOutput {
     FILE* file;
-    char** string;
-    int len;
+    char* string;
+    int len, alloc_size;
 } JSONOutput;
 
 static JSON* parse_json_internal(JSONInput* input);
@@ -134,13 +134,19 @@ static int consume(JSONInput* input, const char* str) {
 
 static int json_printf(JSONOutput* out, const char* fmt, ...) {
 
+    int len, delta;
+
     va_list args;
     va_start(args, fmt);
 
     if (out->file) {
         vfprintf(out->file, fmt, args);
     } else {
-        assert(false);
+
+        /* n.b. delta excludes the null terminator, as does len (which is cumulative). */
+        len = out->alloc_size - out->len;
+        delta = vsnprintf(&out->string[out->len], (len > 0 ? len : 0), fmt, args);
+        out->len += delta;
     }
 
     va_end(args);
@@ -152,7 +158,14 @@ static int json_putc(JSONOutput* out, int c) {
     if (out->file) {
         putc(c, out->file);
     } else {
-        assert(false);
+        assert(out->string);
+        assert(out->alloc_size != 0);
+
+        /* n.b. We keep incrementing len as appropriate, so we can see how
+         *      big a buffer we would need */
+        if (out->len < out->alloc_size)
+            out->string[out->len] = c;
+        out->len++;
     }
 }
 
@@ -967,7 +980,7 @@ static void print_json_array(JSONOutput* out, const JSON* json) {
 
     json_putc(out, '[');
     for (i = 0; i < json->count; i++) {
-        json_printf(out, (first ? "": ","));
+        if (!first) json_putc(out, ',');
         write_json_internal(out, &json->array[i]);
         first = false;
     }
@@ -1095,8 +1108,27 @@ void write_json(FILE* fp_out, const JSON* json) {
     out.file = fp_out;
     out.string = NULL;
     out.len = 0;
+    out.alloc_size = 0;
+
+    write_json_internal(&out, json);
+}
+
+int write_json_string(char* str, int size, const JSON* json) {
+
+    JSONOutput out;
+    out.file = NULL;
+    out.string = str;
+    out.len = 0;
+    out.alloc_size = size;
 
     write_json_internal(&out, json);
 
+    /* Ensure correct termination of strings, even if the output is truncated. */
+    if (out.len < size)
+        str[out.len++] = '\0';
+    str[size-1] = '\0';
 
+    fprintf(stderr, "len: %d\n", out.len);
+    fprintf(stderr, "strlen: %d\n", strlen(str));
+    return out.len;
 }

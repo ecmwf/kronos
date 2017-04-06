@@ -63,6 +63,13 @@ void free_json(JSON* json);
 void print_json(FILE* fp_out, const JSON* json);
 void write_json(FILE* fp_out, const JSON* json);
 
+/**
+ * Write a json into a provided string buffer. Returns the number of characters written including
+ * the terminal \0, or the number of characters required if larger than the
+ * specified size
+ */
+int write_json_string(char* str, int size, const JSON* json);
+
 /*
  * Constructing jsons
  */
