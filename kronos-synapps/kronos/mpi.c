@@ -20,12 +20,35 @@
 #include "kronos/global_config.h"
 #include "kronos/trace.h"
 #include "kronos/utility.h"
+#include "kronos/stats.h"
 
 /* ------------------------------------------------------------------------------------------------------------------ */
 
 #ifdef HAVE_MPI
 
 /* ------------------------------------------------------------------------------------------------------------------ */
+
+static StatisticsLogger* collective_stats_instance() {
+
+    static StatisticsLogger* logger = 0;
+
+    if (logger == 0)
+        logger = create_stats_times_bytes_logger("mpi-collective");
+
+    return logger;
+}
+
+
+static StatisticsLogger* pairwise_stats_instance() {
+
+    static StatisticsLogger* logger = 0;
+
+    if (logger == 0)
+        logger = create_stats_times_bytes_logger("mpi-pairwise");
+
+    return logger;
+}
+
 
 MPIParamsInternal get_mpi_params(const MPIConfig* config) {
 
@@ -101,7 +124,9 @@ static int execute_mpi(const void* data) {
             node = node_index;
 
             TRACE3("Performing broadcast of %d bytes from node %d", params.broadcast_size, node);
+            stats_start(collective_stats_instance());
             err = MPI_Bcast(buffer, params.broadcast_size, MPI_CHAR, node, MPI_COMM_WORLD);
+            stats_stop_log_bytes(collective_stats_instance(), params.broadcast_size);
         }
 
         free(buffer);
@@ -140,11 +165,13 @@ static int execute_mpi(const void* data) {
             nodea = pair_index - (nodeb * (nodeb - 1) / 2);
 
             TRACE4("MPI sending %d bytes from node %d to %d", params.pairwise_size, nodea, nodeb);
+            stats_start(pairwise_stats_instance());
             if (global_conf->mpi_rank == nodea) {
                 err = MPI_Send(buffer, params.pairwise_size, MPI_CHAR, nodeb, pairwise_tag, MPI_COMM_WORLD);
             } else if (global_conf->mpi_rank == nodeb) {
                 err = MPI_Recv(buffer, params.pairwise_size, MPI_CHAR, nodea, pairwise_tag, MPI_COMM_WORLD, &status);
             }
+            stats_stop_log_bytes(pairwise_stats_instance(), params.pairwise_size);
 
         }
 
