@@ -220,7 +220,7 @@ class ModelJob(object):
         Some quick sanity checks
         """
         if not self.is_valid():
-            raise KeyError("Job {} is missing field".format(self.job_name))
+            raise KeyError("Job {} (label:{}) is missing field".format(self.job_name, self.label))
 
     def is_valid(self):
         """

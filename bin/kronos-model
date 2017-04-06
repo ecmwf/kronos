@@ -20,6 +20,7 @@ from kronos.core.workload_data import WorkloadData
 from kronos.core.config.config import Config
 from kronos.core.model import KronosModel
 from kronos.core.postprocess.run_plotter import RunPlotter
+from kronos.core.report import Report
 
 from kronos.io.profile_format import ProfileFormat
 
@@ -105,7 +106,12 @@ if __name__ == "__main__":
         app = Kronos(config)
 
         if args.model:
+
+            # do the modelling
             app.model()
+
+            # print final report of measures
+            Report.print_report()
         else:
             print "command line parsing error.."
             sys.exit(-1)
