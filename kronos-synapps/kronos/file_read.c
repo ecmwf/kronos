@@ -27,10 +27,26 @@
 #include "kronos/file_read.h"
 #include "kronos/global_config.h"
 #include "kronos/json.h"
+#include "kronos/stats.h"
 #include "kronos/trace.h"
 #include "kronos/utility.h"
 
 /* ------------------------------------------------------------------------------------------------------------------ */
+
+/**
+ * Return a pointer to a registered logger. Ensure that it is correctly
+ * initialised on the first call.
+ */
+
+static StatisticsLogger* stats_instance() {
+
+    static StatisticsLogger* logger = 0;
+
+    if (logger == 0)
+        logger = create_stats_times_bytes_logger("read");
+
+    return logger;
+}
 
 FileReadParamsInternal get_read_params(const FileReadConfig* config) {
 
@@ -96,6 +112,8 @@ static bool file_read_mmap(const char* file_path, long read_size, char* buffer, 
 
     success = false;
 
+    stats_start(stats_instance());
+
     fd = open(file_path, O_RDONLY);
     if (fd != -1) {
 
@@ -125,6 +143,8 @@ static bool file_read_mmap(const char* file_path, long read_size, char* buffer, 
         close(fd);
     }
 
+    stats_stop_log_bytes(stats_instance(), read_size);
+
     return success;
 }
 
@@ -144,6 +164,8 @@ static bool file_read_c_api(const char* file_path, long read_size, char* buffer)
 
     success = false;
 
+    stats_start(stats_instance());
+
     /* TODO: If we want the option to use O_DIRECT, then we need to use POSIX open, not fopen */
 
     file = fopen(file_path, "rb");
@@ -158,6 +180,8 @@ static bool file_read_c_api(const char* file_path, long read_size, char* buffer)
         }
         fclose(file);
     }
+
+    stats_stop_log_bytes(stats_instance(), read_size);
 
     return success;
 
