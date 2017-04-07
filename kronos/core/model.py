@@ -12,6 +12,7 @@ import data_analysis
 import workload_data
 import generator
 from exceptions_iows import ConfigurationError
+from kronos.core.report import Report, ModelMeasure
 
 from synthetic_app import SyntheticWorkload
 from kronos_tools.print_colour import print_colour
@@ -44,9 +45,15 @@ class KronosModel(object):
         self.config_generator = None
 
         self.workloads = workloads
+        self.total_metrics_wl_orig = {}
+
         self.jobs_for_clustering = []
         self.clusters = []
         self.modelled_sa_jobs = []
+
+        self.sa_workload = None
+        self.tot_n_jobs_wl_original = None
+        self.tot_duration_wl_original = None
 
         # check that there is the "model" entry in the config file..
         if not self.config.model:
@@ -76,6 +83,25 @@ class KronosModel(object):
         if self.config_fill_in:
             self._apply_workload_fillin()
 
+            # calculate metrics of total sums over all the original workloads
+            # TODO: the calculation of the original sums should go somewhere else..
+            self.total_metrics_wl_orig = {}
+            for wl in self.workloads:
+                tot = wl.total_metrics_sum_dict
+                for k, v in tot.iteritems():
+
+                    if self.total_metrics_wl_orig.get(k):
+                        self.total_metrics_wl_orig[k] += v
+                    else:
+                        self.total_metrics_wl_orig[k] = v
+
+            self.tot_n_jobs_wl_original = len([j for wl in self.workloads for j in wl.jobs])
+
+            #calc max execution time for all the workloads..
+            t_min = min(j.time_start for wl in self.workloads for j in wl.jobs)
+            t_max = max(j.time_start for wl in self.workloads for j in wl.jobs)
+            self.tot_duration_wl_original = t_max - t_min
+
         # 2) apply classification
         if self.config_classification:
             self._apply_classification()
@@ -83,6 +109,7 @@ class KronosModel(object):
         # 3) apply generation
         if self.config_generator:
             self._apply_generation()
+            self.generate_synthetic_workload()
 
     def _apply_workload_fillin(self):
         """
@@ -96,11 +123,7 @@ class KronosModel(object):
         for operation in self.config_fill_in['operations']:
             getattr(filler, operation['type'])()
 
-    def export_synthetic_workload(self):
-        """
-        Export the synthetic workload generated from the model
-        :return:
-        """
+    def generate_synthetic_workload(self):
 
         if not self.modelled_sa_jobs:
             raise ConfigurationError("cannot export before generating the model!")
@@ -108,10 +131,28 @@ class KronosModel(object):
         # set up the synthetic workload
         sa_workload = SyntheticWorkload(self.config, self.modelled_sa_jobs)
         sa_workload.scaling_factors = self.config_generator['scaling_factors']
+        self.sa_workload = sa_workload
 
-        # export the synthetic workload
+        # calculate the total values measure
+        tot_apps = self.sa_workload.total_metrics_dict()
+        relative_metrics_totals = {k: (v - tot_apps[k] / sa_workload.scaling_factors[k]) / float(v) * 100.0
+                                   for k, v in self.total_metrics_wl_orig.iteritems()}
+        Report.add_measure(ModelMeasure("relative_totals", relative_metrics_totals, __name__))
+
+        # calculate the measure relative to the number of jobs..
+        t_scaling = self.config_generator['total_submit_interval']/self.tot_duration_wl_original*self.config_generator['submit_rate_factor']
+        dt_orig = self.tot_duration_wl_original
+        dt_sapps = sa_workload.max_sa_time_interval()
+        Report.add_measure(ModelMeasure("relative_time_interval", (dt_orig-dt_sapps/t_scaling)*100./dt_orig, __name__))
+
+    def export_synthetic_workload(self):
+        """
+        Export the synthetic workload generated from the model
+        :return:
+        """
+
         ksf_path = os.path.join(self.config.dir_output, self.config.ksf_filename)
-        sa_workload.export_ksf(ksf_path)
+        self.sa_workload.export_ksf(ksf_path)
 
     def _check_jobs(self):
         """
@@ -240,3 +281,4 @@ class KronosModel(object):
                                                                n_bins_for_pdf=self.config_generator['n_bins_for_pdf'])
 
         self.modelled_sa_jobs = sapps_generator.generate_synthetic_apps()
+

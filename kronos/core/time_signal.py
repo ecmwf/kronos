@@ -21,8 +21,8 @@ signal_types = OrderedDict([
     # (file) I/O
     ('kb_read',  {'type': float, 'category': 'file-read',  'behaviour': 'sum', 'max_value': 1.0e20}),
     ('kb_write', {'type': float, 'category': 'file-write', 'behaviour': 'sum', 'max_value': 1.0e20}),
-    ('n_read',   {'type': int,   'category': 'file-read',  'behaviour': 'sum', 'max_value': 1000.0}),
-    ('n_write',  {'type': int,   'category': 'file-write', 'behaviour': 'sum', 'max_value': 100.00}),
+    ('n_read',   {'type': int,   'category': 'file-read',  'behaviour': 'sum', 'max_value': 1.0e20}),
+    ('n_write',  {'type': int,   'category': 'file-write', 'behaviour': 'sum', 'max_value': 1.0e20}),
 
     # MPI activity
     ('n_pairwise',    {'type': int,   'category': 'mpi',  'behaviour': 'sum', 'max_value': 1.0e20}),

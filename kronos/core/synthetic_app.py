@@ -116,6 +116,14 @@ class SyntheticWorkload(object):
             pickle.dump(self, f)
             print_colour("green", "synthetic workload pickle file saved to {}".format(self.config.dir_output))
 
+    def max_sa_time_interval(self):
+        """
+        Calculate the maximum time delay for the synthetic apps
+        :return:
+        """
+
+        return max(sa.time_start for sa in self.app_list)
+
     def export_ksf(self, filename):
         """
         Write a KSF file that describes the synthetic schedule,
