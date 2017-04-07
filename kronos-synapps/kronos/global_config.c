@@ -163,6 +163,7 @@ int init_global_config(const JSON* json, int argc, char** argv) {
         error = -1;
     }
     global_config.pid = getpid();
+    global_config.uid = getuid();
 
     global_config.start_time = clock();
     global_config.start_time2 = time(NULL);

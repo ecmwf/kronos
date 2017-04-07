@@ -40,6 +40,7 @@ typedef struct GlobalConfig {
 
     char hostname[HOST_NAME_MAX];
     pid_t pid;
+    uid_t uid;
 
     clock_t start_time;
     time_t start_time2;

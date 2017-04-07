@@ -18,11 +18,14 @@
 #include "kronos/global_config.h"
 #include "kronos/utility.h"
 #include "kronos/trace.h"
+#include "kronos/mpi.h"
 
 #include <string.h>
 #include <stdlib.h>
 #include <assert.h>
 #include <errno.h>
+
+static void write_kpr(const char* filename);
 
 /* ------------------------------------------------------------------------------------------------------------------ */
 
@@ -264,34 +267,23 @@ void report_stats() {
 
     /* Build and output JSONs */
 
-    if (global_conf->write_statistics_file) {
+    if (global_conf->write_statistics_file)
+        write_kpr(global_conf->statistics_file);
 
-        json = report_stats_json();
-        if (json != 0) {
-
-            FILE* fp = fopen(global_conf->statistics_file, "w");
-            if (fp != 0) {
-                TRACE2("Writing statistics file to: %s", global_conf->statistics_file);
-                write_json(fp, json);
-                fclose(fp);
-            } else {
-                fprintf(stderr, "Failed to create statistics file: %s (%s)\n", global_conf->statistics_file, strerror(errno));
-            }
-
-            free_json(json);
-        } else {
-            fprintf(stderr, "Failed to build statistics json");
-        }
-    }
 }
 
 
 static JSON* logger_json(const StatisticsLogger* logger) {
 
-    JSON* json = json_object_new();
+    const GlobalConfig* global_conf = global_config_instance();
+
+    JSON* json;
     double average;
     double stddev;
 
+    /* The logging details */
+
+    json = json_object_new();
     json_object_insert(json, "count", json_number_new(logger->count));
 
     if (logger->logBytes) {
@@ -319,28 +311,181 @@ static JSON* logger_json(const StatisticsLogger* logger) {
 
 JSON* report_stats_json() {
 
-    /* TODO
-     *
-     * i) Build JSONS for each logger
-     * ii) Aggregate into a JSON for a process
-     * iii) If we are using MPI, bring each of these JSONS back to the head node
-     * iv) Annotate with KPR macroscopic information
-     * v) Create a wrapper routine that dumps to file.
-     */
+    const GlobalConfig* global_conf = global_config_instance();
 
     StatisticsRegistry* registry = stats_instance();
 
     const StatisticsLogger* logger;
 
-    JSON* json = json_object_new();
+    JSON* json_stats = json_object_new();
+    JSON* json;
 
     logger = registry->loggers;
     while (logger != 0) {
-        json_object_insert(json, logger->name, logger_json(logger));
+        json_object_insert(json_stats, logger->name, logger_json(logger));
         logger = logger->next;
     }
 
+    /* Identify which rank we are, and construct the wrapper */
+
+    json = json_object_new();
+    json_object_insert(json, "stats", json_stats);
+    json_object_insert(json, "host", json_string_new(global_conf->hostname));
+    json_object_insert(json, "pid", json_number_new(global_conf->pid));
+    json_object_insert(json, "rank", json_number_new(global_conf->mpi_rank));
+
     return json;
+}
+
+
+static void write_kpr(const char* filename) {
+
+    const GlobalConfig* global_conf = global_config_instance();
+
+    FILE* fp;
+    JSON* stats_json;
+    JSON* json;
+    JSON* aggregated_stats;
+    time_t t;
+    struct tm * tm;
+
+    const int buff_size = 4096;
+
+    int send_size;
+    int i, err, total_count;
+
+    int* recvcounts = 0;
+    int* offsets = 0;
+
+    char send_buffer[buff_size];
+    char date_buffer[50];
+    char* recv_buffer = 0;
+    bool success = true;
+
+    /* TODO: Deal with the case where the buffer is too small! */
+    /* TODO: Check for MPI errors, and handle them gracefully */
+
+    /* Gather all of the statistics locally */
+
+    stats_json = report_stats_json();
+
+    if (global_conf->mpi_rank == 0) {
+
+        aggregated_stats = json_array_new();
+        json_array_append(aggregated_stats, stats_json);
+
+#ifdef HAVE_MPI
+
+        /* Recieve serialised JSONs from all of the other ranks (n.b. root does not send) */
+
+        recvcounts = malloc(global_conf->nprocs * sizeof(int));
+        offsets = malloc(global_conf->nprocs * sizeof(int));
+
+        send_size = 0;
+        err = MPI_Gather(&send_size, 1, MPI_INT, recvcounts, 1, MPI_INT, 0, MPI_COMM_WORLD);
+        if (err != MPI_SUCCESS) {
+            MPI_Error_string(err, send_buffer, buff_size);
+            fprintf(stderr, "An error occurred in MPI_Gather: %s (%d)\n", send_buffer, err);
+            success = false;
+        }
+
+        /* Determine the offsets for each received serialised JSON, and collect them on the root */
+
+        if (success) {
+
+            total_count = 0;
+            for (i = 0; i < global_conf->nprocs; i++) {
+                offsets[i] = total_count;
+                total_count += recvcounts[i];
+            }
+
+            recv_buffer = malloc(total_count);
+
+            err = MPI_Gatherv(send_buffer, send_size, MPI_CHAR, recv_buffer, recvcounts, offsets, MPI_CHAR, 0, MPI_COMM_WORLD);
+            if (err != MPI_SUCCESS) {
+                MPI_Error_string(err, send_buffer, buff_size);
+                fprintf(stderr, "An error occurred in MPI_Gatherv: %s (%d)\n", send_buffer, err);
+                success = false;
+            }
+        }
+
+        /* Convert the strings back to JSONS and append them to the list. n.b. Loop from 1, as we
+         * have already included the root node */
+
+        if (success) {
+            for (i = 1; i < global_conf->nprocs; i++) {
+                json = json_from_string(&recv_buffer[offsets[i]]);
+                if (json == 0) {
+                    fprintf(stderr, "An error occurred getting statistics for rank: %d\n", i);
+                    continue;
+                }
+                json_array_append(aggregated_stats, json);
+            }
+        }
+
+        free(recv_buffer);
+        free(offsets);
+        free(recvcounts);
+#endif
+
+        /* Construct an outer KPR object */
+
+        json = json_object_new();
+
+        json_object_insert(json, "uid", json_number_new(global_conf->uid));
+        json_object_insert(json, "tag", json_string_new("KRONOS-KPR-MAGIC"));
+        json_object_insert(json, "version", json_number_new(1));
+        json_object_insert(json, "ranks", aggregated_stats);
+
+        /* Output the time according to rfc3339 */
+        t = time(NULL);
+        tm = localtime(&t);
+        strftime(date_buffer, sizeof(date_buffer), "%Y-%m-%dT%H:%M:%S+00:00", tm);
+        json_object_insert(json, "created", json_string_new(date_buffer));
+
+        /* Write the KPR to disk (only the head node) */
+
+        fp = fopen(global_conf->statistics_file, "w");
+        if (fp != 0) {
+            TRACE2("Writing statistics file to: %s", filename);
+            write_json(fp, json);
+            fclose(fp);
+        } else {
+            fprintf(stderr, "Failed to create statistics file: %s (%s)\n", filename, strerror(errno));
+        }
+
+        free_json(json);
+
+    } else {
+
+        /* On all other nodes, we just send the data to the head node */
+
+        /* Serialise the JSON data into a buffer */
+
+        send_size = write_json_string(send_buffer, buff_size, stats_json);
+        if (send_size > buff_size) {
+            fprintf(stderr, "Insufficient buffer size to transfer statistics json. Needs %d bytes\n", send_size);
+            send_size = 0;
+        }
+
+        /* Send the sizes, and then the data */
+
+        err = MPI_Gather(&send_size, 1, MPI_INT, 0, 0, 0, 0, MPI_COMM_WORLD);
+        if (err != MPI_SUCCESS) {
+            MPI_Error_string(err, send_buffer, buff_size);
+            fprintf(stderr, "An error occurred in MPI_Gather: %s (%d)\n", send_buffer, err);
+        } else {
+            err = MPI_Gatherv(send_buffer, send_size, MPI_CHAR, 0, 0, 0, MPI_CHAR, 0, MPI_COMM_WORLD);
+            if (err != MPI_SUCCESS) {
+                MPI_Error_string(err, send_buffer, buff_size);
+                fprintf(stderr, "An error occurred in MPI_Gatherv: %s (%d)\n", send_buffer, err);
+            }
+        }
+
+        free_json(stats_json);
+    }
+
+
 }
 
 /* ------------------------------------------------------------------------------------------------------------------ */
