@@ -10,9 +10,8 @@
 import unittest
 
 import numpy as np
-# import matplotlib.pyplot as plt
-# from plot_handler import PlotHandler
-from kronos.core.kronos_tools.time_pdf import equiv_time_pdf_exact, equiv_time_pdf
+
+from kronos.core.time_schedule import factory
 
 
 class EquivTimePDFTest(unittest.TestCase):
@@ -37,12 +36,13 @@ class EquivTimePDFTest(unittest.TestCase):
         # output (rescaled) times
         output_duration = 98.0
         output_ratio = 1.0
-        output_times, output_time_pdf, output_time_bins = equiv_time_pdf_exact(start_times_vec,
-                                                                               global_t0,
-                                                                               global_tend,
-                                                                               output_duration,
-                                                                               output_ratio,
-                                                                               n_bins)
+
+        output_times, output_time_pdf, output_time_bins = factory["equiv_time_pdf_exact"](start_times_vec,
+                                                                                          global_t0,
+                                                                                          global_tend,
+                                                                                          output_duration,
+                                                                                          output_ratio,
+                                                                                          n_bins).create_schedule()
 
         # make sure that if the ratio is 1, it returns the same pdf
         self.assertTrue(all(input_hist == output_time_pdf))
@@ -56,7 +56,9 @@ class EquivTimePDFTest(unittest.TestCase):
         # plt.xlabel('start time')
         # plt.ylabel('# jobs')
         # plt.subplot(2, 1, 2)
-        # plt.bar((output_time_bins[1:]+output_time_bins[:-1])/2., output_time_pdf, output_time_bins[1] - output_time_bins[0], color='r')
+        # plt.bar((output_time_bins[1:]+output_time_bins[:-1])/2.,
+        #         output_time_pdf, output_time_bins[1] - output_time_bins[0],
+        #         color='r')
         # plt.xlim(xmin=0, xmax=output_duration)
         # plt.xlabel('start time')
         # plt.ylabel('# jobs')
@@ -83,12 +85,13 @@ class EquivTimePDFTest(unittest.TestCase):
         # output (rescaled) times
         output_duration = 0.5
         output_ratio = (input_times_max-input_times_min)/output_duration
-        output_times, output_time_pdf, output_time_bins = equiv_time_pdf(start_times_vec,
-                                                                         global_t0,
-                                                                         global_tend,
-                                                                         output_duration,
-                                                                         output_ratio,
-                                                                         n_bins)
+
+        output_times, output_time_pdf, output_time_bins = factory["equiv_time_pdf"](start_times_vec,
+                                                                                    global_t0,
+                                                                                    global_tend,
+                                                                                    output_duration,
+                                                                                    output_ratio,
+                                                                                    n_bins).create_schedule()
 
         # tests on the time stamps
         self.assertTrue((max(output_times)-min(output_times)) <= output_duration)
@@ -102,7 +105,9 @@ class EquivTimePDFTest(unittest.TestCase):
         # plt.xlabel('start time')
         # plt.ylabel('# jobs')
         # plt.subplot(2, 1, 2)
-        # plt.bar((output_time_bins[1:] + output_time_bins[:-1]) / 2., output_time_pdf, output_time_bins[1] - output_time_bins[0], color='r')
+        # plt.bar((output_time_bins[1:] + output_time_bins[:-1]) / 2.,
+        #         output_time_pdf, output_time_bins[1] - output_time_bins[0],
+        #         color='r')
         # plt.xlim(xmin=0, xmax=output_duration)
         # plt.xlabel('start time')
         # plt.ylabel('# jobs')
