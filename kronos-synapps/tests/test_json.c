@@ -737,9 +737,9 @@ void test_object_get_double() {
     /* Check that we can correctly extract a double element */
 
     assert(json_object_get_double(json, "elem1", &value) == 0);
-    assert(abs(value - 123.45) < 1.0e-10);
+    assert(fabs(value - 123.45) < 1.0e-10);
     assert(json_object_get_double(json, "elem3", &value) == 0);
-    assert(abs(value - 666.) < 1.0e-10);
+    assert(fabs(value - 666.) < 1.0e-10);
 
     /* Check that we correctly fail to get a non-double value */
 
