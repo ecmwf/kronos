@@ -5,11 +5,20 @@
 # In applying this licence, ECMWF does not waive the privileges and immunities 
 # granted to it by virtue of its status as an intergovernmental organisation nor
 # does it submit to any jurisdiction.
-
+import logging
 import sys
 
 
-def print_colour(col, text, end="\n", flush=False):
+log_level_map = {
+    "debug": logging.debug,
+    "info": logging.info,
+    "warning": logging.warning,
+    "error": logging.error,
+    "critical": logging.critical
+}
+
+
+def print_colour(col, text, end="\n", flush=False, log_level=None):
     """
     Print to the terminal in the specified colour
     """
@@ -40,3 +49,16 @@ def print_colour(col, text, end="\n", flush=False):
     sys.stdout.write("{}{}{}{}".format(colour_str, text, reset_str, end))
     if flush:
         sys.stdout.flush()
+
+    # if a log level is passed, use it..
+    if log_level:
+        try:
+            log_function = log_level_map[log_level.lower()]
+        except KeyError:
+            print "log level not found, set to [info]"
+            log_function = logging.info
+    else:
+        log_function = logging.info
+
+    # pass the message to log..
+    log_function("{}".format(text))

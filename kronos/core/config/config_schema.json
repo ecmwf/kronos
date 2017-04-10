@@ -9,6 +9,10 @@
       "type": "boolean",
       "description": "verbose flag"
     },
+    "kronos_log_file": {
+      "type": "string",
+      "description": "name of log-file"
+    },
     "created": {
         "type": "string",
         "format": "date-time",

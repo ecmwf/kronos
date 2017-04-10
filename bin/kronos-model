@@ -24,6 +24,7 @@ from kronos.core.report import Report
 
 from kronos.io.profile_format import ProfileFormat
 
+
 class Kronos(object):
     """
     Kronos main class
@@ -36,9 +37,6 @@ class Kronos(object):
         self.workload_model = None
         self.model_jobs = None
         self.synthetic_apps = None
-
-        if self.config.verbose:
-            print "VERBOSE logging enabled"
 
     def model(self):
         """
