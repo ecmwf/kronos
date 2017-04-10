@@ -32,7 +32,7 @@ class Report(object):
     def print_report(cls):
 
         # calculate longest measure name
-        print "\n____________ MODEL METRICS ______________"
+        print_colour("white", "\n____________ MODEL METRICS ______________")
 
         for m in cls.list_measures:
 
