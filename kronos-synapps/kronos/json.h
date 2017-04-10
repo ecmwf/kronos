@@ -120,6 +120,7 @@ const JSON* json_object_get(const JSON* json, const char* key);
 
 int json_object_get_integer(const JSON* json, const char* key, long* value);
 int json_object_get_boolean(const JSON* json, const char* key, bool* value);
+int json_object_get_double(const JSON* json, const char* key, double* value);
 
 
 /* ------------------------------------------------------------------------------------------------------------------ */

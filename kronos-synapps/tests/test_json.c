@@ -703,14 +703,14 @@ void test_object_get_boolean() {
     bool value;
     JSON* json = json_from_string("{ \"elem1\": true, \"elem2\": \"hi there\", \"elem3\": false }");
 
-    /* Check that we can correctly extract an integer element */
+    /* Check that we can correctly extract a boolean element */
 
     assert(json_object_get_boolean(json, "elem1", &value) == 0);
     assert(value == true);
     assert(json_object_get_boolean(json, "elem3", &value) == 0);
     assert(value == false);
 
-    /* Check that we correctly fail to get a non-integer value */
+    /* Check that we correctly fail to get a non-boolean value */
 
     assert(json_object_get_boolean(json, "elem2", &value) != 0);
 
@@ -724,6 +724,37 @@ void test_object_get_boolean() {
 
     json = json_from_string("1234");
     assert(json_object_get_boolean(json, "elem2", &value) != 0);
+    free_json(json);
+}
+
+
+void test_object_get_double() {
+
+    double value;
+
+    JSON* json = json_from_string("{ \"elem1\": 123.45, \"elem2\": \"hi there\", \"elem3\": 666 }");
+
+    /* Check that we can correctly extract a double element */
+
+    assert(json_object_get_double(json, "elem1", &value) == 0);
+    assert(abs(value - 123.45) < 1.0e-10);
+    assert(json_object_get_double(json, "elem3", &value) == 0);
+    assert(abs(value - 666.) < 1.0e-10);
+
+    /* Check that we correctly fail to get a non-double value */
+
+    assert(json_object_get_double(json, "elem2", &value) != 0);
+
+    /* Check that we correctly fail to get a non-existent value */
+
+    assert(json_object_get_double(json, "invalid", &value) != 0);
+
+    free_json(json);
+
+    /* Check that we cannot extract a key from a non-object */
+
+    json = json_from_string("1234");
+    assert(json_object_get_double(json, "elem2", &value) != 0);
     free_json(json);
 }
 
@@ -889,6 +920,7 @@ int main() {
     test_null_json();
     test_object_get_integer();
     test_object_get_boolean();
+    test_object_get_double();
     test_allocate_json();
     test_print_string();
     return 0;

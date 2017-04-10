@@ -964,6 +964,28 @@ int json_object_get_boolean(const JSON* json, const char* key, bool* value) {
     return error;
 }
 
+int json_object_get_double(const JSON* json, const char* key, double* value) {
+
+    const JSON* elem;
+    int error = -1;
+
+    assert(json);
+    assert(key);
+
+    elem = json_object_get(json, key);
+    if (elem) {
+        if (json_as_double(elem, value) == 0) {
+            error = 0;
+        } else {
+            fprintf(stderr, "Error reading field \"%s\" as double\n", key);
+        }
+    } else {
+        fprintf(stderr, "Field \"%s\" not found\n", key);
+    }
+
+    return error;
+}
+
 
 /* ------------------------------------------------------------------------------------------------------------------ */
 
