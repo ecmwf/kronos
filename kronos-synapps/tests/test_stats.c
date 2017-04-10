@@ -66,7 +66,7 @@ static void test_create_loggers() {
 
     assert_logger_count(1);
 
-    logger2 = create_stats_times_logger("logger2");
+    logger2 = create_stats_times_bytes_logger("logger2");
 
     assert(logger2 != logger1);
 
