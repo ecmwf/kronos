@@ -66,14 +66,22 @@ static void test_create_loggers() {
 
     assert_logger_count(1);
 
+<<<<<<< HEAD
     logger2 = create_stats_times_bytes_logger("logger2");
+=======
+    logger2 = create_stats_times_logger("logger2");
+>>>>>>> c2ada14397f346b5251df056ebedb20ce9ada07f
 
     assert(logger2 != logger1);
 
     test_val = strcmp("logger2", logger2->name);
     assert(test_val == 0);
     assert(logger2->logTimes);
+<<<<<<< HEAD
     assert(logger2->logBytes);
+=======
+    assert(!logger2->logBytes);
+>>>>>>> c2ada14397f346b5251df056ebedb20ce9ada07f
 
     assert(logger2->count == 0);
     assert(logger2->sumBytes == 0);
