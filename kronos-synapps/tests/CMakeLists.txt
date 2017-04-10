@@ -40,3 +40,9 @@ ecbuild_add_test(
     SOURCES test_mpi.c
     CONDITION HAVE_MPI
     LIBS kronos )
+
+
+ecbuild_add_test(
+    TARGET kronos_test_stats
+    SOURCES test_stats.c
+    LIBS kronos )
