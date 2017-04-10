@@ -22,6 +22,7 @@
 #include <assert.h>
 #endif
 #include <stdlib.h>
+#include <math.h>
 
 #include "kronos/global_config.h"
 #include "kronos/json.h"
@@ -99,6 +100,7 @@ static void test_timers() {
     assert_logger_count(0);
 
     logger1 = create_stats_times_logger("logger1");
+    assert_logger_count(1);
 
     stats_start(logger1);
     usleep(20000);
@@ -129,6 +131,7 @@ static void test_timers_with_bytes() {
     assert_logger_count(0);
 
     logger1 = create_stats_times_bytes_logger("logger1");
+    assert_logger_count(1);
 
     stats_start(logger1);
     usleep(20000);
@@ -156,6 +159,68 @@ static void test_timers_with_bytes() {
     assert_logger_count(0);
 }
 
+static void test_logger_json() {
+
+    StatisticsLogger* logger1;
+    JSON* report;
+    const JSON* stats;
+    const JSON* json_logger;
+    long tmpi;
+    double tmpf;
+
+    assert_logger_count(0);
+
+    logger1 = create_stats_times_bytes_logger("logger1");
+    assert_logger_count(1);
+
+    stats_start(logger1);
+    usleep(20000);
+    stats_stop_log_bytes(logger1, 6666);
+    stats_start(logger1);
+    usleep(40000);
+    stats_stop_log_bytes(logger1, 7777);
+
+    /* Get hold of a json that describes this logger */
+
+    report = report_stats_json();
+    stats = json_object_get(report, "stats");
+
+    assert(stats != 0);
+    assert(json_is_object(stats));
+    assert(json_object_count(stats) == 1);
+
+    json_logger = json_object_get(stats, "logger1");
+    assert(json_logger != 0);
+
+    assert(json_object_get_integer(json_logger, "count", &tmpi) == 0);
+    assert(tmpi == 2);
+
+    assert(json_object_get_integer(json_logger, "bytes", &tmpi) == 0);
+    assert(tmpi == 14443);
+
+    assert(json_object_get_double(json_logger, "averageBytes", &tmpf) == 0);
+    assert(fabs(tmpf - 7221.5) < 1.0e-10);
+
+    assert(json_object_get_double(json_logger, "stddevBytes", &tmpf) == 0);
+    assert(fabs(tmpf - 555.5) < 1.0e-10);
+
+    assert(json_object_get_double(json_logger, "elapsed", &tmpf) == 0);
+    assert(fabs(tmpf - 0.06) < 0.001);
+
+    assert(json_object_get_double(json_logger, "averageElapsed", &tmpf) == 0);
+    assert(fabs(tmpf - 0.03) < 0.005);
+
+    assert(json_object_get_double(json_logger, "stddevElapsed", &tmpf) == 0);
+    assert(fabs(tmpf - 0.01) < 1.0e-4);
+
+    free_json(report);
+
+    /* And clear up */
+
+    free_stats_registry();
+    assert_logger_count(0);
+}
+
 /* ------------------------------------------------------------------------------------------------------------------ */
 
 int main() {
@@ -169,6 +234,7 @@ int main() {
     test_create_loggers();
     test_timers();
     test_timers_with_bytes();
+    test_logger_json();
 
 
     clean_global_config();
