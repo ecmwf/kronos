@@ -66,22 +66,14 @@ static void test_create_loggers() {
 
     assert_logger_count(1);
 
-<<<<<<< HEAD
     logger2 = create_stats_times_bytes_logger("logger2");
-=======
-    logger2 = create_stats_times_logger("logger2");
->>>>>>> c2ada14397f346b5251df056ebedb20ce9ada07f
 
     assert(logger2 != logger1);
 
     test_val = strcmp("logger2", logger2->name);
     assert(test_val == 0);
     assert(logger2->logTimes);
-<<<<<<< HEAD
     assert(logger2->logBytes);
-=======
-    assert(!logger2->logBytes);
->>>>>>> c2ada14397f346b5251df056ebedb20ce9ada07f
 
     assert(logger2->count == 0);
     assert(logger2->sumBytes == 0);
@@ -136,23 +128,27 @@ static void test_timers_with_bytes() {
 
     assert_logger_count(0);
 
-    logger1 = create_stats_times_logger("logger1");
+    logger1 = create_stats_times_bytes_logger("logger1");
 
     stats_start(logger1);
     usleep(20000);
-    stats_stop_log(logger1);
+    stats_stop_log_bytes(logger1, 6666);
 
     assert(logger1->count == 1);
     assert(logger1->sumTimes >= 0.0198 && logger1->sumTimes <= 0.0202);
     assert(logger1->sumTimesSquared >= 0.00039 && logger1->sumTimesSquared <= 0.00041);
+    assert(logger1->sumBytes == 6666);
+    assert(logger1->sumBytesSquared == 44435556);
 
     stats_start(logger1);
     usleep(40000);
-    stats_stop_log(logger1);
+    stats_stop_log_bytes(logger1, 7777);
 
     assert(logger1->count == 2);
     assert(logger1->sumTimes >= 0.0598 && logger1->sumTimes <= 0.0603);
     assert(logger1->sumTimesSquared >= 0.0019 && logger1->sumTimesSquared <= 0.0021);
+    assert(logger1->sumBytes == 14443);
+    assert(logger1->sumBytesSquared == 104917285);
 
     /* And clear up */
 
