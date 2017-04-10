@@ -12,7 +12,7 @@ import json
 from config_format import ConfigFormat
 from kronos.core.exceptions_iows import ConfigurationError
 
-log_level_map = {
+log_keys_map = {
     "debug": logging.DEBUG,
     "info": logging.INFO,
     "warning": logging.WARNING,
