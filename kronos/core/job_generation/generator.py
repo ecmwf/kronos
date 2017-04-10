@@ -6,15 +6,15 @@
 # granted to it by virtue of its status as an intergovernmental organisation nor
 # does it submit to any jurisdiction.
 
-from exceptions_iows import ConfigurationError
-from jobs import ModelJob
+from kronos.core.exceptions_iows import ConfigurationError
+from kronos.core.jobs import ModelJob
 from kronos.core.kronos_tools.gyration_radius import r_gyration
 # from kronos_tools.print_colour import print_colour
 import numpy as np
 
-from kronos.core.time_schedule import factory
-from synthetic_app import SyntheticApp
-from time_signal import TimeSignal, time_signal_names
+from kronos.core.job_schedule import factory
+from kronos.core.synthetic_app import SyntheticApp
+from kronos.core.time_signal import TimeSignal, time_signal_names
 
 
 class SyntheticWorkloadGenerator(object):
@@ -246,6 +246,3 @@ class SyntheticWorkloadGenerator(object):
                     r_gyr_wl_all[wl_name].append(r_gyration(matrix_jobs_in_cluster))
 
         return r_gyr_wl_all
-
-
-

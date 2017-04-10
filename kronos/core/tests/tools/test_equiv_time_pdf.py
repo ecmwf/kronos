@@ -11,7 +11,7 @@ import unittest
 
 import numpy as np
 
-from kronos.core.time_schedule import factory
+from kronos.core.job_schedule import factory
 
 
 class EquivTimePDFTest(unittest.TestCase):
