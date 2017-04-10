@@ -5,12 +5,20 @@
 # In applying this licence, ECMWF does not waive the privileges and immunities 
 # granted to it by virtue of its status as an intergovernmental organisation nor
 # does it submit to any jurisdiction.
-
+import logging
 import os
 import json
 
 from config_format import ConfigFormat
 from kronos.core.exceptions_iows import ConfigurationError
+
+log_keys_map = {
+    "debug": logging.DEBUG,
+    "info": logging.INFO,
+    "warning": logging.WARNING,
+    "error": logging.ERROR,
+    "critical": logging.CRITICAL
+}
 
 
 class Config(object):
@@ -20,6 +28,9 @@ class Config(object):
 
     # Debugging info
     verbose = False
+
+    kronos_log_file = "kronos-log.log"
+
     version = None
     uid = None
     created = None
@@ -86,4 +97,10 @@ class Config(object):
 
         if not os.path.exists(self.dir_output):
             raise ConfigurationError("output folder {} - does not exist!".format(self.dir_output))
+
+        # set level of verbosity through flag self.verbose
+        if self.verbose:
+            logging.basicConfig(filename=self.kronos_log_file, level=logging.DEBUG)
+        else:
+            logging.basicConfig(filename=self.kronos_log_file, level=logging.INFO)
 
