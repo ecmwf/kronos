@@ -37,11 +37,11 @@ class Report(object):
 
             # simple line if the metrics is a scalar
             if isinstance(m.value, int) or isinstance(m.value, float):
-                print "{}: {} (calculated in {})\n".format(m.name, m.value, m.source_function)
+                print "\n{}: {} (calculated in {})\n".format(m.name, m.value, m.source_function)
 
             # print in multi-line is the metric is a dictionary:
             if isinstance(m.value, dict):
-                print "{}: (calculated in {})".format(m.name, m.source_function)
+                print "\n{}: (calculated in {})".format(m.name, m.source_function)
                 for k, v in m.value.iteritems():
                     print "{}: {}".format(k, v)
 

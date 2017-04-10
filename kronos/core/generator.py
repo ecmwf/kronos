@@ -8,6 +8,7 @@
 
 from exceptions_iows import ConfigurationError
 from jobs import ModelJob
+from kronos.core.kronos_tools.gyration_radius import r_gyration
 from kronos_tools.print_colour import print_colour
 import numpy as np
 
@@ -38,6 +39,9 @@ class SyntheticWorkloadGenerator(object):
         self.global_t0 = global_t0
         self.global_tend = global_tend
         self.n_bins_for_pdf = n_bins_for_pdf
+
+        # dictionary of all the jobs created from clusters
+        self.modelled_jobs_dict = {}
 
     def check_config(self):
         """
@@ -110,8 +114,13 @@ class SyntheticWorkloadGenerator(object):
                 )
                 generated_model_jobs.append(job)
 
-            # --- then create the synthetic apps from the generated model jobs --
+            # Store the model jobs into the modelled_jobs_dict
+            self.modelled_jobs_dict[cluster['source-workload']] = (generated_model_jobs, vec_clust_indexes)
+
+            # Then create the synthetic apps from the generated model jobs
             modelled_sa_jobs = self.model_jobs_to_sa(generated_model_jobs, cluster['source-workload'])
+
+            # And append the synthetic apps to the list
             generated_sa_from_all_wl.extend(modelled_sa_jobs)
 
         return generated_sa_from_all_wl
@@ -170,9 +179,17 @@ class SyntheticWorkloadGenerator(object):
             n_job_ratio = n_sa/float(len(cluster['jobs_for_clustering']))*100.
             print "====> Generated {} jobs from cluster (#job ratio = {:.2f}%)".format(n_sa,n_job_ratio)
 
-            # --- then create the synthetic apps from the generated model jobs --
+            # # --- then create the synthetic apps from the generated model jobs --
+            # modelled_sa_jobs = self.model_jobs_to_sa(generated_model_jobs, cluster['source-workload'])
+            # generated_sa_from_all_wl.extend(modelled_sa_jobs)
+
+            # Store the model jobs into the modelled_jobs_dict
+            self.modelled_jobs_dict[cluster['source-workload']] = (generated_model_jobs, vec_clust_indexes)
+
+            # Then create the synthetic apps from the generated model jobs
             modelled_sa_jobs = self.model_jobs_to_sa(generated_model_jobs, cluster['source-workload'])
 
+            # And append the synthetic apps to the list
             generated_sa_from_all_wl.extend(modelled_sa_jobs)
 
         return generated_sa_from_all_wl
@@ -230,9 +247,17 @@ class SyntheticWorkloadGenerator(object):
                 )
                 generated_model_jobs.append(job)
 
-            # --- then create the synthetic apps from the generated model jobs --
+            # # --- then create the synthetic apps from the generated model jobs --
+            # modelled_sa_jobs = self.model_jobs_to_sa(generated_model_jobs, cluster['source-workload'])
+            # generated_sa_from_all_wl.extend(modelled_sa_jobs)
+
+            # Store the model jobs into the modelled_jobs_dict
+            self.modelled_jobs_dict[cluster['source-workload']] = (generated_model_jobs, vec_clust_indexes)
+
+            # Then create the synthetic apps from the generated model jobs
             modelled_sa_jobs = self.model_jobs_to_sa(generated_model_jobs, cluster['source-workload'])
 
+            # And append the synthetic apps to the list
             generated_sa_from_all_wl.extend(modelled_sa_jobs)
 
         return generated_sa_from_all_wl
@@ -260,3 +285,33 @@ class SyntheticWorkloadGenerator(object):
             sa_list.append(app)
 
         return sa_list
+
+    def calculate_modeljobs_r_gyrations(self):
+
+        # take the number of bins in the cluster data
+        nbins = self.clusters[0]["cluster_matrix"].shape[1]
+        r_gyr_wl_all = {wl_name: [] for wl_name in self.modelled_jobs_dict.keys()}
+
+        for wl_name in self.modelled_jobs_dict.keys():
+
+            jobs, clustidx = self.modelled_jobs_dict[wl_name]
+
+            jobs = np.asarray(jobs)
+            clustidx = np.asarray(clustidx)
+
+            # loop over all the cluster indices of this wl
+            for idx in range(max(clustidx)+1):
+
+                # create a matrix of values from jobs associated to this cluster
+                jobs_from_cluster = jobs[clustidx == idx]
+
+                if jobs_from_cluster.size:
+                    matrix_jobs_in_cluster = np.asarray([j.ts_to_vector(nbins) for j in jobs_from_cluster])
+
+                    # Calculate the radius of gyration for this cluster
+                    r_gyr_wl_all[wl_name].append(r_gyration(matrix_jobs_in_cluster))
+
+        return r_gyr_wl_all
+
+
+
