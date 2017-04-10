@@ -11,7 +11,7 @@ import unittest
 
 import numpy as np
 
-from kronos.core.job_schedule import factory
+from kronos.core.job_generation.schedule import job_schedule_factory
 
 
 class EquivTimePDFTest(unittest.TestCase):
@@ -37,12 +37,12 @@ class EquivTimePDFTest(unittest.TestCase):
         output_duration = 98.0
         output_ratio = 1.0
 
-        output_times, output_time_pdf, output_time_bins = factory["equiv_time_pdf_exact"](start_times_vec,
-                                                                                          global_t0,
-                                                                                          global_tend,
-                                                                                          output_duration,
-                                                                                          output_ratio,
-                                                                                          n_bins).create_schedule()
+        output_times, output_time_pdf, output_time_bins = job_schedule_factory["equiv_time_pdf_exact"](start_times_vec,
+                                                                                                       global_t0,
+                                                                                                       global_tend,
+                                                                                                       output_duration,
+                                                                                                       output_ratio,
+                                                                                                       n_bins).create_schedule()
 
         # make sure that if the ratio is 1, it returns the same pdf
         self.assertTrue(all(input_hist == output_time_pdf))
@@ -86,12 +86,12 @@ class EquivTimePDFTest(unittest.TestCase):
         output_duration = 0.5
         output_ratio = (input_times_max-input_times_min)/output_duration
 
-        output_times, output_time_pdf, output_time_bins = factory["equiv_time_pdf"](start_times_vec,
-                                                                                    global_t0,
-                                                                                    global_tend,
-                                                                                    output_duration,
-                                                                                    output_ratio,
-                                                                                    n_bins).create_schedule()
+        output_times, output_time_pdf, output_time_bins = job_schedule_factory["equiv_time_pdf"](start_times_vec,
+                                                                                                 global_t0,
+                                                                                                 global_tend,
+                                                                                                 output_duration,
+                                                                                                 output_ratio,
+                                                                                                 n_bins).create_schedule()
 
         # tests on the time stamps
         self.assertTrue((max(output_times)-min(output_times)) <= output_duration)

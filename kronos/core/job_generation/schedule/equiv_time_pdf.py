@@ -6,7 +6,8 @@
 # granted to it by virtue of its status as an intergovernmental organisation nor
 # does it submit to any jurisdiction.
 import numpy as np
-from kronos.core.job_schedule.base import TimeScheduleBase
+
+from kronos.core.job_generation.schedule.base import TimeScheduleBase
 
 
 class TimeSchedulePDF(TimeScheduleBase):
@@ -29,7 +30,7 @@ class TimeSchedulePDF(TimeScheduleBase):
                                               submit_rate_factor,
                                               n_bins_for_pdf)
 
-    def create_schedule(self):        
+    def create_schedule(self):
         """
         Function that returns a "random" distribution of times according to a given PDF
         """

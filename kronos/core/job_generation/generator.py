@@ -5,16 +5,13 @@
 # In applying this licence, ECMWF does not waive the privileges and immunities 
 # granted to it by virtue of its status as an intergovernmental organisation nor
 # does it submit to any jurisdiction.
-
-from kronos.core.exceptions_iows import ConfigurationError
-from kronos.core.jobs import ModelJob
-from kronos.core.kronos_tools.gyration_radius import r_gyration
-# from kronos_tools.print_colour import print_colour
 import numpy as np
 
-from kronos.core.job_schedule import factory
+from kronos.core.exceptions_iows import ConfigurationError
+from kronos.core.job_generation.strategy_spawn import StrategySpawn
+from kronos.core.kronos_tools.gyration_radius import r_gyration
+from kronos.core.job_generation.schedule import job_schedule_factory
 from kronos.core.synthetic_app import SyntheticApp
-from kronos.core.time_signal import TimeSignal, time_signal_names
 
 
 class SyntheticWorkloadGenerator(object):
@@ -77,49 +74,25 @@ class SyntheticWorkloadGenerator(object):
         n_bins_for_pdf = self.n_bins_for_pdf if self.n_bins_for_pdf else 20
 
         # generate a synthetic workload for each cluster of jobs
-        for cluster in self.clusters:
+        for wl_clusters in self.clusters:
 
-            start_times = [j.time_start for j in cluster['jobs_for_clustering']]
+            start_times = [j.time_start for j in wl_clusters['jobs_for_clustering']]
 
-            start_times_vec_sa, _, _ = factory["equiv_time_pdf"](start_times,
-                                                                 self.global_t0,
-                                                                 self.global_tend,
-                                                                 self.config_generator['total_submit_interval'],
-                                                                 self.config_generator['submit_rate_factor'],
-                                                                 n_bins_for_pdf).create_schedule()
+            jobs_schedule_strategy = job_schedule_factory["equiv_time_pdf"](start_times,
+                                                                            self.global_t0,
+                                                                            self.global_tend,
+                                                                            self.config_generator['total_submit_interval'],
+                                                                            self.config_generator['submit_rate_factor'],
+                                                                            n_bins_for_pdf)
 
-            # Random vector of cluster indices
-            n_modelled_jobs = len(start_times_vec_sa)
-            np.random.seed(self.config_generator['random_seed'])
-            vec_clust_indexes = np.random.randint(cluster['cluster_matrix'].shape[0], size=n_modelled_jobs)
-
-            # loop over the clusters and generates jos as needed
-            generated_model_jobs = []
-            for cc, idx in enumerate(vec_clust_indexes):
-
-                ts_dict = {}
-                row = cluster['cluster_matrix'][idx, :]
-                ts_yvalues = np.split(row, len(time_signal_names))
-                for tt, ts_vv in enumerate(ts_yvalues):
-                    ts_name = time_signal_names[tt]
-                    ts = TimeSignal(ts_name).from_values(ts_name, np.arange(len(ts_vv)), ts_vv)
-                    ts_dict[ts_name] = ts
-
-                job = ModelJob(
-                    time_start=start_times_vec_sa[cc],
-                    duration=None,
-                    ncpus=self.config_generator['synthapp_n_cpu'],
-                    nnodes=self.config_generator['synthapp_n_nodes'],
-                    timesignals=ts_dict,
-                    label="job-{}".format(cc)
-                )
-                generated_model_jobs.append(job)
+            generation_strategy = StrategySpawn(jobs_schedule_strategy, wl_clusters, self.config_generator)
+            model_jobs, vec_clust_indexes = generation_strategy.generate_jobs()
 
             # Store the model jobs into the modelled_jobs_dict
-            self.modelled_jobs_dict[cluster['source-workload']] = (generated_model_jobs, vec_clust_indexes)
+            self.modelled_jobs_dict[wl_clusters['source-workload']] = (model_jobs, vec_clust_indexes)
 
             # Then create the synthetic apps from the generated model jobs
-            modelled_sa_jobs = self.model_jobs_to_sa(generated_model_jobs, cluster['source-workload'])
+            modelled_sa_jobs = self.model_jobs_to_sa(model_jobs, wl_clusters['source-workload'])
 
             # And append the synthetic apps to the list
             generated_sa_from_all_wl.extend(modelled_sa_jobs)
@@ -136,60 +109,24 @@ class SyntheticWorkloadGenerator(object):
         n_bins_for_pdf = self.n_bins_for_pdf if self.n_bins_for_pdf else 20
 
         # generate a synthetic workload for each cluster of jobs
-        for cluster in self.clusters:
+        for wl_clusters in self.clusters:
+            start_times = [j.time_start for j in wl_clusters['jobs_for_clustering']]
 
-            print "Generating jobs from cluster: {}, that has {} jobs".format(cluster['source-workload'],
-                                                                              len(cluster['jobs_for_clustering']))
+            jobs_schedule_strategy = job_schedule_factory["equiv_time_pdf_exact"](start_times,
+                                                                                  self.global_t0,
+                                                                                  self.global_tend,
+                                                                                  self.config_generator['total_submit_interval'],
+                                                                                  self.config_generator['submit_rate_factor'],
+                                                                                  n_bins_for_pdf)
 
-            start_times = [j.time_start for j in cluster['jobs_for_clustering']]
-
-            start_times_vec_sa, _, _ = factory["equiv_time_pdf"](start_times,
-                                                                 self.global_t0,
-                                                                 self.global_tend,
-                                                                 self.config_generator['total_submit_interval'],
-                                                                 self.config_generator['submit_rate_factor'],
-                                                                 n_bins_for_pdf).create_schedule()
-
-            # Random vector of cluster indices
-            n_modelled_jobs = len(start_times_vec_sa)
-            np.random.seed(self.config_generator['random_seed'])
-            vec_clust_indexes = np.random.randint(cluster['cluster_matrix'].shape[0], size=n_modelled_jobs)
-
-            # loop over the clusters and generates jos as needed
-            generated_model_jobs = []
-            for cc, idx in enumerate(vec_clust_indexes):
-
-                ts_dict = {}
-                row = cluster['cluster_matrix'][idx, :]
-                ts_yvalues = np.split(row, len(time_signal_names))
-                for tt, ts_vv in enumerate(ts_yvalues):
-                    ts_name = time_signal_names[tt]
-                    ts = TimeSignal(ts_name).from_values(ts_name, np.arange(len(ts_vv)), ts_vv)
-                    ts_dict[ts_name] = ts
-
-                job = ModelJob(
-                    time_start=start_times_vec_sa[cc],
-                    duration=None,
-                    ncpus=self.config_generator['synthapp_n_cpu'],
-                    nnodes=self.config_generator['synthapp_n_nodes'],
-                    timesignals=ts_dict,
-                    label="job-{}".format(cc)
-                )
-                generated_model_jobs.append(job)
-
-            n_sa = len(generated_model_jobs)
-            n_job_ratio = n_sa/float(len(cluster['jobs_for_clustering']))*100.
-            print "====> Generated {} jobs from cluster (#job ratio = {:.2f}%)".format(n_sa,n_job_ratio)
-
-            # # --- then create the synthetic apps from the generated model jobs --
-            # modelled_sa_jobs = self.model_jobs_to_sa(generated_model_jobs, cluster['source-workload'])
-            # generated_sa_from_all_wl.extend(modelled_sa_jobs)
+            generation_strategy = StrategySpawn(jobs_schedule_strategy, wl_clusters, self.config_generator)
+            model_jobs, vec_clust_indexes = generation_strategy.generate_jobs()
 
             # Store the model jobs into the modelled_jobs_dict
-            self.modelled_jobs_dict[cluster['source-workload']] = (generated_model_jobs, vec_clust_indexes)
+            self.modelled_jobs_dict[wl_clusters['source-workload']] = (model_jobs, vec_clust_indexes)
 
             # Then create the synthetic apps from the generated model jobs
-            modelled_sa_jobs = self.model_jobs_to_sa(generated_model_jobs, cluster['source-workload'])
+            modelled_sa_jobs = self.model_jobs_to_sa(model_jobs, wl_clusters['source-workload'])
 
             # And append the synthetic apps to the list
             generated_sa_from_all_wl.extend(modelled_sa_jobs)

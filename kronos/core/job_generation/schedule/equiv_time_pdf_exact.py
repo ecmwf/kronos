@@ -6,7 +6,8 @@
 # granted to it by virtue of its status as an intergovernmental organisation nor
 # does it submit to any jurisdiction.
 import numpy as np
-from kronos.core.job_schedule.base import TimeScheduleBase
+
+from kronos.core.job_generation.schedule.base import TimeScheduleBase
 
 
 class TimeSchedulePDFexact(TimeScheduleBase):
