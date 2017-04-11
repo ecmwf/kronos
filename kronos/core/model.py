@@ -139,13 +139,13 @@ class KronosModel(object):
         tot_apps = self.sa_workload.total_metrics_dict()
         relative_metrics_totals = {k: (v - tot_apps[k] / sa_workload.scaling_factors[k]) / float(v) * 100.0
                                    for k, v in self.total_metrics_wl_orig.iteritems()}
-        Report.add_measure(ModelMeasure("relative_totals", relative_metrics_totals, __name__))
+        Report.add_measure(ModelMeasure("relative_totals [%]", relative_metrics_totals, __name__))
 
         # calculate the measure relative to the number of jobs..
         t_scaling = self.config_generator['total_submit_interval']/self.tot_duration_wl_original*self.config_generator['submit_rate_factor']
         dt_orig = self.tot_duration_wl_original
         dt_sapps = sa_workload.max_sa_time_interval()
-        Report.add_measure(ModelMeasure("relative_time_interval", (dt_orig-dt_sapps/t_scaling)*100./dt_orig, __name__))
+        Report.add_measure(ModelMeasure("relative_time_interval [%]", (dt_orig-dt_sapps/t_scaling)*100./dt_orig, __name__))
 
     def export_synthetic_workload(self):
         """
@@ -298,7 +298,7 @@ class KronosModel(object):
         for cluster in self.clusters:
             r_gyr_wl = cluster["r_gyration"]
             r_gyr_modeljobs = np.mean(r_gyr_modeljobs_all[cluster["source-workload"]])
-            r_gyr_all_pc[cluster["source-workload"]] = np.abs((r_gyr_wl-r_gyr_modeljobs))/r_gyr_wl*100
+            r_gyr_all_pc[cluster["source-workload"]] = (1.0 - np.abs((r_gyr_modeljobs-r_gyr_wl))/r_gyr_wl)*100
 
-        Report.add_measure(ModelMeasure("relative_r_gyration", r_gyr_all_pc, __name__))
+        Report.add_measure(ModelMeasure("relative_r_gyration [%]", r_gyr_all_pc, __name__))
 
