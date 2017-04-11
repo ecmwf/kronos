@@ -52,7 +52,7 @@ class StrategySpawn(StrategyBase):
                 ncpus=self.config['synthapp_n_cpu'],
                 nnodes=self.config['synthapp_n_nodes'],
                 timesignals=ts_dict,
-                label="job-{}".format(cc)
+                label="job-{}-cl-{}".format(cc, idx)
             )
             generated_model_jobs.append(job)
 
