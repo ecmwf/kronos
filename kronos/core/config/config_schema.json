@@ -421,7 +421,7 @@
           "properties": {
             "type": {
               "type": "string",
-              "enum": ["match_job_pdf","match_job_pdf_exact"],
+              "enum": ["match_job_pdf","match_job_pdf_exact", "match_job_pdf_exact_rand"],
               "description": "PDF distribution of profiled jobs to generate the synth apps: \n\n- match_job_pdf_exact: synth apps are scheduled to result in a perfect \n  match with the profiled jobs PDF (intended as how probable a job is to be scheduled \n  in a certain interval of time relative to the duration of the  synthetic schedule)]\n\n- match_job_pdf: synthetic apps are randomly generated from a PDF that matches the profiled jobs PDF\n"
             },
             "n_bins_for_pdf": {

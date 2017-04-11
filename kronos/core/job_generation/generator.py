@@ -34,7 +34,8 @@ class SyntheticWorkloadGenerator(object):
     # this map stores various combinations of generation strategies
     generation_mapping = {
         "match_job_pdf": ("equiv_time_pdf", "spawn"),
-        "match_job_pdf_exact": ("equiv_time_pdf_exact", "spawn")
+        "match_job_pdf_exact": ("equiv_time_pdf_exact", "spawn"),
+        "match_job_pdf_exact_rand": ("equiv_time_pdf_exact", "spawn_random")
     }
 
     def __init__(self, config_generator, clusters, global_t0, global_tend, n_bins_for_pdf=None):
