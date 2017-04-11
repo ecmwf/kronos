@@ -1,0 +1,185 @@
+# (C) Copyright 1996-2017 ECMWF.
+# 
+# This software is licensed under the terms of the Apache Licence Version 2.0
+# which can be obtained at http://www.apache.org/licenses/LICENSE-2.0. 
+# In applying this licence, ECMWF does not waive the privileges and immunities 
+# granted to it by virtue of its status as an intergovernmental organisation nor
+# does it submit to any jurisdiction.
+import numpy as np
+
+from kronos.core.exceptions_iows import ConfigurationError
+from kronos.core.job_generation.strategy_spawn import StrategySpawn
+from kronos.core.kronos_tools.gyration_radius import r_gyration
+from kronos.core.job_generation.schedule import job_schedule_factory
+from kronos.core.synthetic_app import SyntheticApp
+
+
+class SyntheticWorkloadGenerator(object):
+    """
+    This class represents a generator thaat reads the output of the clusters and
+    produces a synthetic workload according to matching strategies:
+    -  random: jobs are randomly generated from the clusters to match the submit rate
+    - match probability: jobs are generated to match PDF of jobs..
+    """
+    required_config_fields = [
+                             "type"
+                             "random_seed",
+                             "_scaling_factors",
+                             "submit_rate_factor",
+                             "synthapp_n_proc",
+                             "total_submit_interval",
+                             ]
+
+    def __init__(self, config_generator, clusters, global_t0, global_tend, n_bins_for_pdf=None):
+        self.config_generator = config_generator
+        self.clusters = clusters
+        self.global_t0 = global_t0
+        self.global_tend = global_tend
+        self.n_bins_for_pdf = n_bins_for_pdf
+
+        # dictionary of all the jobs created from clusters
+        self.modelled_jobs_dict = {}
+
+    def check_config(self):
+        """
+        Check the keys of the configuration
+        :return:
+        """
+
+        for req_item in self.required_config_fields:
+            if req_item not in self.config_generator.keys():
+                raise ConfigurationError("{} requires to specify {}".format(self.__class__.__name__, req_item))
+            setattr(self, req_item, self.config_generator[req_item])
+
+    def generate_synthetic_apps(self):
+        """
+        Main method that call the specific generation method requested
+        :return:
+        """
+
+        generation_func = getattr(self, self.config_generator['type'], None)
+
+        if generation_func:
+            return generation_func()
+        else:
+            raise ConfigurationError("'type' in generation configuration not recognized")
+
+    def match_job_pdf(self):
+        """
+        Generate jobs matching PDF of jobs in the time window of the workload
+        :return:
+        """
+
+        generated_sa_from_all_wl = []
+        n_bins_for_pdf = self.n_bins_for_pdf if self.n_bins_for_pdf else 20
+
+        # generate a synthetic workload for each cluster of jobs
+        for wl_clusters in self.clusters:
+
+            start_times = [j.time_start for j in wl_clusters['jobs_for_clustering']]
+
+            jobs_schedule_strategy = job_schedule_factory["equiv_time_pdf"](start_times,
+                                                                            self.global_t0,
+                                                                            self.global_tend,
+                                                                            self.config_generator['total_submit_interval'],
+                                                                            self.config_generator['submit_rate_factor'],
+                                                                            n_bins_for_pdf)
+
+            generation_strategy = StrategySpawn(jobs_schedule_strategy, wl_clusters, self.config_generator)
+            model_jobs, vec_clust_indexes = generation_strategy.generate_jobs()
+
+            # Store the model jobs into the modelled_jobs_dict
+            self.modelled_jobs_dict[wl_clusters['source-workload']] = (model_jobs, vec_clust_indexes)
+
+            # Then create the synthetic apps from the generated model jobs
+            modelled_sa_jobs = self.model_jobs_to_sa(model_jobs, wl_clusters['source-workload'])
+
+            # And append the synthetic apps to the list
+            generated_sa_from_all_wl.extend(modelled_sa_jobs)
+
+        return generated_sa_from_all_wl
+
+    def match_job_pdf_exact(self):
+        """
+        Generate jobs matching PDF of jobs in the time window of the workload (trying an exact distribution..)
+        :return:
+        """
+
+        generated_sa_from_all_wl = []
+        n_bins_for_pdf = self.n_bins_for_pdf if self.n_bins_for_pdf else 20
+
+        # generate a synthetic workload for each cluster of jobs
+        for wl_clusters in self.clusters:
+            start_times = [j.time_start for j in wl_clusters['jobs_for_clustering']]
+
+            jobs_schedule_strategy = job_schedule_factory["equiv_time_pdf_exact"](start_times,
+                                                                                  self.global_t0,
+                                                                                  self.global_tend,
+                                                                                  self.config_generator['total_submit_interval'],
+                                                                                  self.config_generator['submit_rate_factor'],
+                                                                                  n_bins_for_pdf)
+
+            generation_strategy = StrategySpawn(jobs_schedule_strategy, wl_clusters, self.config_generator)
+            model_jobs, vec_clust_indexes = generation_strategy.generate_jobs()
+
+            # Store the model jobs into the modelled_jobs_dict
+            self.modelled_jobs_dict[wl_clusters['source-workload']] = (model_jobs, vec_clust_indexes)
+
+            # Then create the synthetic apps from the generated model jobs
+            modelled_sa_jobs = self.model_jobs_to_sa(model_jobs, wl_clusters['source-workload'])
+
+            # And append the synthetic apps to the list
+            generated_sa_from_all_wl.extend(modelled_sa_jobs)
+
+        return generated_sa_from_all_wl
+
+    @staticmethod
+    def model_jobs_to_sa(model_jobs, label):
+        """
+        This method takes a list of model jobs and translates tham into synthetic apps
+        :param model_jobs:
+        :param label:
+        :return:
+        """
+
+        sa_list = []
+        for cc, job in enumerate(model_jobs):
+            app = SyntheticApp(
+                job_name="RS-appID-{}".format(cc),
+                time_signals=job.timesignals,
+                ncpus=job.ncpus,
+                nnodes=job.nnodes,
+                time_start=job.time_start,
+                label=label
+            )
+
+            sa_list.append(app)
+
+        return sa_list
+
+    def calculate_modeljobs_r_gyrations(self):
+
+        # take the number of bins in the cluster data
+        nbins = self.clusters[0]["cluster_matrix"].shape[1]
+        r_gyr_wl_all = {wl_name: [] for wl_name in self.modelled_jobs_dict.keys()}
+
+        for wl_name in self.modelled_jobs_dict.keys():
+
+            jobs, clustidx = self.modelled_jobs_dict[wl_name]
+
+            jobs = np.asarray(jobs)
+            clustidx = np.asarray(clustidx)
+
+            # loop over all the cluster indices of this wl
+            for idx in range(max(clustidx)+1):
+
+                # create a matrix of values from jobs associated to this cluster
+                jobs_from_cluster = jobs[clustidx == idx]
+
+                if jobs_from_cluster.size:
+                    matrix_jobs_in_cluster = np.asarray([j.ts_to_vector(nbins) for j in jobs_from_cluster])
+
+                    # Calculate the radius of gyration for this cluster
+                    r_gyr_wl_all[wl_name].append(r_gyration(matrix_jobs_in_cluster))
+
+        return r_gyr_wl_all

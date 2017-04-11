@@ -13,7 +13,7 @@ import unittest
 import numpy as np
 
 from kronos.core import time_signal
-from kronos.core import generator
+from kronos.core.job_generation import generator
 from kronos.core.jobs import ModelJob
 from kronos.core.workload_data import WorkloadData
 
