@@ -107,16 +107,16 @@ static void test_timers() {
     stats_stop_log(logger1);
 
     assert(logger1->count == 1);
-    assert(logger1->sumTimes >= 0.0198 && logger1->sumTimes <= 0.0202);
-    assert(logger1->sumTimesSquared >= 0.00039 && logger1->sumTimesSquared <= 0.00041);
+    assert(fabs(logger1->sumTimes - 0.02) < 0.0002);
+    assert(fabs(logger1->sumTimesSquared - 0.0004) < 0.00001);
 
     stats_start(logger1);
     usleep(40000);
     stats_stop_log(logger1);
 
     assert(logger1->count == 2);
-    assert(logger1->sumTimes >= 0.0598 && logger1->sumTimes <= 0.0603);
-    assert(logger1->sumTimesSquared >= 0.0019 && logger1->sumTimesSquared <= 0.0021);
+    assert(fabs(logger1->sumTimes - 0.06) < 0.0003);
+    assert(fabs(logger1->sumTimesSquared - 0.002) < 0.0001);
 
     /* And clear up */
 
@@ -138,8 +138,8 @@ static void test_timers_with_bytes() {
     stats_stop_log_bytes(logger1, 6666);
 
     assert(logger1->count == 1);
-    assert(logger1->sumTimes >= 0.0198 && logger1->sumTimes <= 0.0202);
-    assert(logger1->sumTimesSquared >= 0.00039 && logger1->sumTimesSquared <= 0.00041);
+    assert(fabs(logger1->sumTimes - 0.02) < 0.0002);
+    assert(fabs(logger1->sumTimesSquared - 0.0004) < 0.00001);
     assert(logger1->sumBytes == 6666);
     assert(logger1->sumBytesSquared == 44435556);
 
@@ -148,8 +148,8 @@ static void test_timers_with_bytes() {
     stats_stop_log_bytes(logger1, 7777);
 
     assert(logger1->count == 2);
-    assert(logger1->sumTimes >= 0.0598 && logger1->sumTimes <= 0.0603);
-    assert(logger1->sumTimesSquared >= 0.0019 && logger1->sumTimesSquared <= 0.0021);
+    assert(fabs(logger1->sumTimes - 0.06) < 0.0003);
+    assert(fabs(logger1->sumTimesSquared - 0.002) < 0.0001);
     assert(logger1->sumBytes == 14443);
     assert(logger1->sumBytesSquared == 104917285);
 
@@ -198,6 +198,9 @@ static void test_logger_json() {
     assert(json_object_get_integer(json_logger, "bytes", &tmpi) == 0);
     assert(tmpi == 14443);
 
+    assert(json_object_get_integer(json_logger, "sumSquaredBytes", &tmpi) == 0);
+    assert(tmpi == 104917285);
+
     assert(json_object_get_double(json_logger, "averageBytes", &tmpf) == 0);
     assert(fabs(tmpf - 7221.5) < 1.0e-10);
 
@@ -206,6 +209,9 @@ static void test_logger_json() {
 
     assert(json_object_get_double(json_logger, "elapsed", &tmpf) == 0);
     assert(fabs(tmpf - 0.06) < 0.001);
+
+    assert(json_object_get_double(json_logger, "sumSquaredElapsed", &tmpf) == 0);
+    assert(fabs(tmpf - 0.002) < 0.0001);
 
     assert(json_object_get_double(json_logger, "averageElapsed", &tmpf) == 0);
     assert(fabs(tmpf - 0.03) < 0.005);

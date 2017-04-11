@@ -293,6 +293,7 @@ static JSON* logger_json(const StatisticsLogger* logger) {
 
         json_object_insert(json, "bytes", json_number_new(logger->sumBytes));
         json_object_insert(json, "averageBytes", json_number_new(average));
+        json_object_insert(json, "sumSquaredBytes", json_number_new(logger->sumBytesSquared));
         json_object_insert(json, "stddevBytes", json_number_new(stddev));
     }
 
@@ -302,6 +303,7 @@ static JSON* logger_json(const StatisticsLogger* logger) {
 
         json_object_insert(json, "elapsed", json_number_new(logger->sumTimes));
         json_object_insert(json, "averageElapsed", json_number_new(average));
+        json_object_insert(json, "sumSquaredElapsed", json_number_new(logger->sumTimesSquared));
         json_object_insert(json, "stddevElapsed", json_number_new(stddev));
     }
 
