@@ -12,6 +12,8 @@ import copy
 from kronos.core.kronos_tools.print_colour import print_colour
 from kronos.core.job_generation.strategy_base import StrategyBase
 from kronos.core.jobs import ModelJob
+from kronos.core.workload_data import WorkloadData
+
 
 class StrategySpawnRand(StrategyBase):
     """
@@ -76,8 +78,21 @@ class StrategySpawnRand(StrategyBase):
             )
             generated_model_jobs.append(job)
 
-        n_sa = len(generated_model_jobs)
-        n_job_ratio = n_sa / float(len(self.wl_clusters['jobs_for_clustering'])) * 100.
-        print_colour("white", "====> Generated {} jobs from cluster (#job ratio = {:.2f}%)".format(n_sa, n_job_ratio))
+        # --- at last, normalize the time-signals of the generated jobs in order to preserve time-series sums ---
 
+        # create a workload from jobs in cluster and generated model jobs
+        wl_original = WorkloadData(jobs=self.wl_clusters['jobs_for_clustering'], tag="original_jobs")
+        wl_generated = WorkloadData(jobs=generated_model_jobs, tag="generated_jobs")
+        ts_orig = wl_original.total_metrics_sum_dict
+        ts_generated = wl_generated.total_metrics_sum_dict
+
+        # normalize generated jobs
+        for job in generated_model_jobs:
+            for ts in ts_generated.keys():
+
+                if float(ts_generated[ts]):
+                    job.timesignals[ts].yvalues = job.timesignals[ts].yvalues / float(ts_generated[ts]) * ts_orig[ts]
+
+        n_job_ratio = len(generated_model_jobs) / float(len(self.wl_clusters['jobs_for_clustering'])) * 100.
+        print_colour("white", "====> Generated {} jobs from cluster (#job ratio = {:.2f}%)".format(len(generated_model_jobs), n_job_ratio))
         return generated_model_jobs, vec_clust_indexes.tolist()
