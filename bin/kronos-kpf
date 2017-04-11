@@ -18,4 +18,15 @@ from kronos.io.profile_format import ProfileFormat
 
 if __name__ == '__main__':
 
-    print ProfileFormat.describe()
+    # If no arguments are supplied, print the schema in a human readable form. Otherwise treat the
+    # arguments as files to be validated against the schema.
+    if len(sys.argv) == 1:
+        print ProfileFormat.describe()
+    else:
+        for filename in sys.argv[1:]:
+            print "Opening and validating: {}".format(filename)
+            try:
+                ProfileFormat.from_filename(filename)
+                print "OK!"
+            except Exception as e:
+                print e
