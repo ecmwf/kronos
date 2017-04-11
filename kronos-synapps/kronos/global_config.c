@@ -95,7 +95,7 @@ int init_global_config(const JSON* json, int argc, char** argv) {
         }
     } else {
         getcwd(global_config.statistics_file, PATH_MAX);
-        strcat(global_config.statistics_file, "/statistics.kpr");
+        strcat(global_config.statistics_file, "/statistics.krf");
     }
 
     /* The above paths can be overridden from environment variables */
