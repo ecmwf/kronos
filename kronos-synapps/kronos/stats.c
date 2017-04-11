@@ -25,7 +25,7 @@
 #include <assert.h>
 #include <errno.h>
 
-static void write_kpr(const char* filename);
+static void write_krf(const char* filename);
 
 /* ------------------------------------------------------------------------------------------------------------------ */
 
@@ -268,7 +268,7 @@ void report_stats() {
     /* Build and output JSONs */
 
     if (global_conf->write_statistics_file)
-        write_kpr(global_conf->statistics_file);
+        write_krf(global_conf->statistics_file);
 
 }
 
@@ -293,6 +293,7 @@ static JSON* logger_json(const StatisticsLogger* logger) {
 
         json_object_insert(json, "bytes", json_number_new(logger->sumBytes));
         json_object_insert(json, "averageBytes", json_number_new(average));
+        json_object_insert(json, "sumSquaredBytes", json_number_new(logger->sumBytesSquared));
         json_object_insert(json, "stddevBytes", json_number_new(stddev));
     }
 
@@ -302,6 +303,7 @@ static JSON* logger_json(const StatisticsLogger* logger) {
 
         json_object_insert(json, "elapsed", json_number_new(logger->sumTimes));
         json_object_insert(json, "averageElapsed", json_number_new(average));
+        json_object_insert(json, "sumSquaredElapsed", json_number_new(logger->sumTimesSquared));
         json_object_insert(json, "stddevElapsed", json_number_new(stddev));
     }
 
@@ -338,7 +340,7 @@ JSON* report_stats_json() {
 }
 
 
-static void write_kpr(const char* filename) {
+static void write_krf(const char* filename) {
 
     const GlobalConfig* global_conf = global_config_instance();
 
@@ -428,12 +430,12 @@ static void write_kpr(const char* filename) {
         free(recvcounts);
 #endif
 
-        /* Construct an outer KPR object */
+        /* Construct an outer KRF object */
 
         json = json_object_new();
 
         json_object_insert(json, "uid", json_number_new(global_conf->uid));
-        json_object_insert(json, "tag", json_string_new("KRONOS-KPR-MAGIC"));
+        json_object_insert(json, "tag", json_string_new("KRONOS-KRF-MAGIC"));
         json_object_insert(json, "version", json_number_new(1));
         json_object_insert(json, "ranks", aggregated_stats);
 
@@ -443,7 +445,7 @@ static void write_kpr(const char* filename) {
         strftime(date_buffer, sizeof(date_buffer), "%Y-%m-%dT%H:%M:%S+00:00", tm);
         json_object_insert(json, "created", json_string_new(date_buffer));
 
-        /* Write the KPR to disk (only the head node) */
+        /* Write the KRF to disk (only the head node) */
 
         fp = fopen(global_conf->statistics_file, "w");
         if (fp != 0) {
