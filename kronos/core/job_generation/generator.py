@@ -38,12 +38,13 @@ class SyntheticWorkloadGenerator(object):
         "match_job_pdf_exact_rand": ("equiv_time_pdf_exact", "spawn_random")
     }
 
-    def __init__(self, config_generator, clusters, global_t0, global_tend, n_bins_for_pdf=None):
+    def __init__(self, config_generator, clusters, global_t0, global_tend, n_bins_for_pdf=None, n_bins_timesignals=None):
         self.config_generator = config_generator
         self.clusters = clusters
         self.global_t0 = global_t0
         self.global_tend = global_tend
         self.n_bins_for_pdf = n_bins_for_pdf
+        self.n_bins_timesignals = n_bins_timesignals
 
         # dictionary of all the jobs created from clusters
         self.modelled_jobs_dict = {}
@@ -126,7 +127,7 @@ class SyntheticWorkloadGenerator(object):
     def calculate_modeljobs_r_gyrations(self):
 
         # take the number of bins in the cluster data
-        nbins = self.clusters[0]["cluster_matrix"].shape[1]
+        nbins = self.n_bins_timesignals
         r_gyr_wl_all = {wl_name: [] for wl_name in self.modelled_jobs_dict.keys()}
 
         for wl_name in self.modelled_jobs_dict.keys():

@@ -45,22 +45,32 @@ class StrategySpawnRand(StrategyBase):
         for ic in range(n_clusters):
 
             # jobs in this cluster
-            jobs_in_cluster = np.asarray(clustered_jobs_all)[clustered_jobs_labels == ic]
+            # jobs_in_cluster = np.asarray(clustered_jobs_all)[clustered_jobs_labels == ic]
+            # jobs_in_cluster = [clustered_jobs_all[cc] for cc, ic in enumerate(clustered_jobs_labels) if ic == 1]
+            jobs_in_cluster = []
+            for ccc, icc in enumerate(clustered_jobs_labels):
+                if icc == ic:
+                    jobs_in_cluster.append(clustered_jobs_all[ccc])
+
             jobs_in_cluster_idxs = np.arange(len(jobs_in_cluster))
             n_jobs_to_generate_from_cluster = max(1, int(len(jobs_in_cluster)*model_job_fraction))
+
+            if n_jobs_to_generate_from_cluster > len(jobs_in_cluster):
+                n_jobs_to_generate_from_cluster = len(jobs_in_cluster)
 
             # take a random sample of jobs in cluster (according to job fraction)
             jobs_in_cluster_sampled_idx = np.random.choice(jobs_in_cluster_idxs,
                                                            n_jobs_to_generate_from_cluster,
                                                            replace=False)
 
-            chosen_model_jobs.extend(jobs_in_cluster[jobs_in_cluster_sampled_idx])
-            vec_clust_indexes = np.append(vec_clust_indexes, np.ones(n_jobs_to_generate_from_cluster, dtype=int)*ic)
+            jobs_in_cluster_for_generation = []
+            for idxj in jobs_in_cluster_sampled_idx:
+                jobs_in_cluster_for_generation.append(jobs_in_cluster[idxj])
 
-        # make sure that the total model jobs produced do not exceeded the global number decided in the schedule
-        if len(chosen_model_jobs) > len(start_times_vec_sa):
-            chosen_model_jobs = chosen_model_jobs[:len(start_times_vec_sa)]
-            vec_clust_indexes = vec_clust_indexes[:len(start_times_vec_sa)]
+            # chosen_model_jobs.extend(jobs_in_cluster[jobs_in_cluster_sampled_idx])
+            chosen_model_jobs.extend(jobs_in_cluster_for_generation)
+
+            vec_clust_indexes = np.append(vec_clust_indexes, np.ones(n_jobs_to_generate_from_cluster, dtype=int)*ic)
 
         # generates model jobs as needed
         generated_model_jobs = []
@@ -68,8 +78,15 @@ class StrategySpawnRand(StrategyBase):
 
             job_copy = copy.deepcopy(job)
 
+            # assign this job a start time (if more jobs are created, the start time is chosen randomly within the
+            # start times..)
+            if cc < len(start_times_vec_sa):
+                start_time = start_times_vec_sa[cc]
+            else:
+                start_time = start_times_vec_sa[np.random.randint(0, len(start_times_vec_sa), 1)[0]]
+
             job = ModelJob(
-                time_start=start_times_vec_sa[cc],
+                time_start=start_time,
                 duration=None,
                 ncpus=self.config['synthapp_n_cpu'],
                 nnodes=self.config['synthapp_n_nodes'],
@@ -89,7 +106,6 @@ class StrategySpawnRand(StrategyBase):
         # normalize generated jobs
         for job in generated_model_jobs:
             for ts in ts_generated.keys():
-
                 if float(ts_generated[ts]):
                     job.timesignals[ts].yvalues = job.timesignals[ts].yvalues / float(ts_generated[ts]) * ts_orig[ts]
 
