@@ -142,10 +142,11 @@ class KronosModel(object):
         Report.add_measure(ModelMeasure("relative_totals [%]", relative_metrics_totals, __name__))
 
         # calculate the measure relative to the number of jobs..
-        t_scaling = self.config_generator['total_submit_interval']/self.tot_duration_wl_original*self.config_generator['submit_rate_factor']
+        # t_scaling = self.config_generator['total_submit_interval']/self.tot_duration_wl_original*self.config_generator['submit_rate_factor']
+        t_scaling = self.config_generator['total_submit_interval'] / self.tot_duration_wl_original
         dt_orig = self.tot_duration_wl_original
         dt_sapps = sa_workload.max_sa_time_interval()
-        Report.add_measure(ModelMeasure("relative_time_interval [%]", (dt_orig-dt_sapps/t_scaling)*100./dt_orig, __name__))
+        Report.add_measure(ModelMeasure("relative_time_interval [%]", (dt_orig-dt_sapps/t_scaling)/dt_orig*100., __name__))
 
     def export_synthetic_workload(self):
         """
