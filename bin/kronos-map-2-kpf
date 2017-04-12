@@ -54,7 +54,7 @@ if __name__ == "__main__":
     print "writing output kpf file: {}".format(args.kpf_file)
 
     # ---------- Process the run jsons ----------
-    job_dirs = [x for x in os.listdir(args.path_run) if os.path.isdir(os.path.join(args.path_run, x))]
+    job_dirs = [x for x in os.listdir(args.path_run) if os.path.isdir(os.path.join(args.path_run, x)) and "job-" in x]
 
     fname_list = []
     dict_name_label = {}
