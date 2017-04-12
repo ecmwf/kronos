@@ -12,17 +12,13 @@ Kronos tool to quickly plot a KPF file
 
 import argparse
 import sys
-import os
 import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.pyplot import cm
 
 from kronos.core.jobs import ModelJob
-from kronos.core.time_signal import signal_types, time_signal_names
+from kronos.core.time_signal import time_signal_names
 from kronos.io.profile_format import ProfileFormat
-
-sys.path.append(os.path.dirname(os.path.dirname(__file__)))
-
 from kronos.core.plot_handler import PlotHandler
 from kronos.core.workload_data import WorkloadDataGroup
 
@@ -33,12 +29,9 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("path_unmodelled_kpf", help="path of KPF file of un-modelled data to over-plot")
     parser.add_argument("-b", "--nbins", help="path of KPF file of un-modelled data to over-plot", default=2000)
-    parser.add_argument("-xn", "--xmin", help="path of KPF file of un-modelled data to over-plot", default=0)
-    parser.add_argument("-xm", "--xmax", help="path of KPF file of un-modelled data to over-plot", default=14)
+    parser.add_argument("-xn", "--xmin", help="path of KPF file of un-modelled data to over-plot")
+    parser.add_argument("-xm", "--xmax", help="path of KPF file of un-modelled data to over-plot")
     args = parser.parse_args()
-
-    # retrieve information from KPF of original workloads
-    # wl_orig_group = WorkloadDataGroup.from_pickled(args.path_unmodelled_kpf)
 
     # check number of unique labels in KPF and create a group only if it contains less than 10 labels
     kpf_data = ProfileFormat.from_filename(args.path_unmodelled_kpf)
@@ -59,6 +52,13 @@ if __name__ == "__main__":
     vals_max_orig = wl_orig_group.max_timeseries(n_bins=args.nbins)
     vals_sum_orig = wl_orig_group.sum_timeseries
     t_0 = wl_orig_group.min_start_time()
+    t_1 = t_0 + wl_orig_group.total_duration
+
+    if not args.xmin:
+        xmin = t_0
+
+    if not args.xmax:
+        xmax = t_1
 
     plt_hdl = PlotHandler()
     color = iter(cm.rainbow(np.linspace(0, 1, len(wl_orig_group.tags))))
