@@ -137,7 +137,7 @@ class KronosModel(object):
 
         # calculate the total values measure
         tot_apps = self.sa_workload.total_metrics_dict()
-        relative_metrics_totals = {k: (v - tot_apps[k] / sa_workload.scaling_factors[k]) / float(v) * 100.0
+        relative_metrics_totals = {k: np.abs(v - tot_apps[k]) / float(v) * 100.0
                                    for k, v in self.total_metrics_wl_orig.iteritems()}
         Report.add_measure(ModelMeasure("relative_totals [%]", relative_metrics_totals, __name__))
 
