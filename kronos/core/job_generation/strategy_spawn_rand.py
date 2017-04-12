@@ -45,13 +45,7 @@ class StrategySpawnRand(StrategyBase):
         for ic in range(n_clusters):
 
             # jobs in this cluster
-            # jobs_in_cluster = np.asarray(clustered_jobs_all)[clustered_jobs_labels == ic]
-            # jobs_in_cluster = [clustered_jobs_all[cc] for cc, ic in enumerate(clustered_jobs_labels) if ic == 1]
-            jobs_in_cluster = []
-            for ccc, icc in enumerate(clustered_jobs_labels):
-                if icc == ic:
-                    jobs_in_cluster.append(clustered_jobs_all[ccc])
-
+            jobs_in_cluster = np.asarray(clustered_jobs_all)[clustered_jobs_labels == ic]
             jobs_in_cluster_idxs = np.arange(len(jobs_in_cluster))
             n_jobs_to_generate_from_cluster = max(1, int(len(jobs_in_cluster)*model_job_fraction))
 
