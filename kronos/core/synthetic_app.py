@@ -73,12 +73,14 @@ class SyntheticWorkload(object):
                             tot[ts.name] = ts.sum * fact
         return tot
 
-    @property
     def total_metrics_apps(self, n_bins=None):
         """
         Calculates the metrics of the whole workload (as sums of the kernels metrics) on the fly
         :return:
         """
+
+        if not n_bins:
+            raise ConfigurationError("n_bins should be set!")
 
         # initialize the sums
         metrics_sums = Counter({k: 0. for k in time_signal_names})
@@ -130,11 +132,12 @@ class SyntheticWorkload(object):
         this file can be given directly to the executor
         :return:
         """
+        n_bins = self.config.model["classification"]["clustering"]["num_timesignal_bins"]
 
         print_colour("green", "Exporting {} synth-apps to KSF schedule: {}".format(len(self.app_list), filename))
 
         # pre-calculate sums for efficiency..
-        tot_metrics_apps = self.total_metrics_apps
+        tot_metrics_apps = self.total_metrics_apps(n_bins=n_bins)
         tot_metrics_orig = self.total_metrics_dict()
 
         print "----- Metrics sums over workload: ------"
@@ -159,7 +162,7 @@ class SyntheticWorkload(object):
             str_format = "%-14s: " + form + " [" + unit + "]"
             print str_format % (k, tot_metrics_apps[k] * conv)
 
-        ScheduleFormat.from_synthetic_workload(self).write_filename(filename)
+        ScheduleFormat.from_synthetic_workload(self, n_bins=n_bins).write_filename(filename)
 
 
 class SyntheticApp(ModelJob):
@@ -222,6 +225,10 @@ class SyntheticApp(ModelJob):
 
             if not kernel.empty:
                 kernels.append(kernel.synapp_config(n_bins=n_bins))
+
+        # check if all the kernels have the same length
+        if not all(len(i) == len(kernels[0]) for i in kernels):
+            raise ConfigurationError("something is wrong, kernels should have the same length!")
 
         # Instead of a list of kernels, each of which contains a time series, we want a time series each of
         # which contains a list of kernels. Do the inversion!

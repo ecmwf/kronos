@@ -27,6 +27,7 @@ class ScheduleFormat(JSONIoFormat):
                  sa_data=None,
                  created=None,
                  uid=None,
+                 n_bins=None,
                  scaling_factors=None,
                  unscaled_metrics_sums=None):
 
@@ -34,7 +35,7 @@ class ScheduleFormat(JSONIoFormat):
         assert (sa_data is not None) != (sa_data_json is not None)
         if sa_data:
             sorted_apps = sorted(sa_data, key=lambda a: a.time_start)
-            sa_data_json = [app.export('', job_entry_only=True) for i, app in enumerate(sorted_apps)]
+            sa_data_json = [app.export('', job_entry_only=True, n_bins=n_bins) for i, app in enumerate(sorted_apps)]
 
         # initialize internals
         self.synapp_data = sa_data_json
@@ -75,7 +76,7 @@ class ScheduleFormat(JSONIoFormat):
         )
 
     @classmethod
-    def from_synthetic_workload(cls, synth_workload):
+    def from_synthetic_workload(cls, synth_workload, n_bins):
         """
         Creates a ksf handler from synthetic workload data
         :param synth_workload:
@@ -87,7 +88,8 @@ class ScheduleFormat(JSONIoFormat):
         return cls(
             sa_data=synth_workload.app_list,
             unscaled_metrics_sums=synth_workload.total_metrics_dict(),
-            scaling_factors=synth_workload.scaling_factors
+            scaling_factors=synth_workload.scaling_factors,
+            n_bins=n_bins
         )
 
     def output_dict(self):

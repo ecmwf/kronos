@@ -77,7 +77,7 @@ class CPUKernel(KernelBase):
         """
         Special case code: apply max value constrain.
         """
-        data = super(CPUKernel, self).synapp_config(n_bins=None)
+        data = super(CPUKernel, self).synapp_config(n_bins=n_bins)
 
         for d in data:
 
@@ -103,7 +103,7 @@ class MPIKernel(KernelBase):
         """
         Special case code: We cannot have a zero number of actions for a non-zero amount of data.
         """
-        data = super(MPIKernel, self).synapp_config(n_bins=None)
+        data = super(MPIKernel, self).synapp_config(n_bins=n_bins)
 
         for d in data:
 
@@ -145,7 +145,7 @@ class FileReadKernel(KernelBase):
         """
         Special case code: We cannot have a zero number of actions for a non-zero amount of data.
         """
-        data = super(FileReadKernel, self).synapp_config(n_bins=None)
+        data = super(FileReadKernel, self).synapp_config(n_bins=n_bins)
 
         for d in data:
 
@@ -178,7 +178,7 @@ class FileWriteKernel(KernelBase):
         Special case code: We cannot have a zero amount of data for a non-zero number of writes,
         nor a zero amount of data for a non-zero number of writes
         """
-        data = super(FileWriteKernel, self).synapp_config(n_bins=None)
+        data = super(FileWriteKernel, self).synapp_config(n_bins=n_bins)
 
         for d in data:
 
