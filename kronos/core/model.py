@@ -132,7 +132,12 @@ class KronosModel(object):
 
         # set up the synthetic workload
         sa_workload = SyntheticWorkload(self.config, self.modelled_sa_jobs)
-        sa_workload.scaling_factors = self.config_generator['scaling_factors']
+
+        # set up the scaling factors as individual sc * global sc
+        scaling_facts = self.config_generator['scaling_factors']
+        scaling_global = self.config_generator['global_scaling_factor']
+        sa_workload.scaling_factors = {k: v*scaling_global for k, v in scaling_facts.iteritems()}
+
         self.sa_workload = sa_workload
 
         # calculate the total values measure

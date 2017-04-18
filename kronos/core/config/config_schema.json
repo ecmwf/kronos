@@ -432,6 +432,10 @@
               "type": "integer",
               "description": "Seed for random number generation"
             },
+            "global_scaling_factor": {
+              "type": "number",
+              "description": "Global scaling factor"
+            },
             "scaling_factors": {
               "type": "object",
               "description": "User-defined scaling factors of the job metrics",
