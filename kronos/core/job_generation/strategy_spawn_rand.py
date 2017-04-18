@@ -25,8 +25,8 @@ class StrategySpawnRand(StrategyBase):
 
     def generate_jobs(self):
 
-        print_colour("white", "Generating jobs from cluster: {}, that has {} jobs".format(self.wl_clusters['source-workload'],
-                                                                          len(self.wl_clusters['jobs_for_clustering'])))
+        print_colour("white", "====> Generating jobs from sub-workload: {}, that has {} jobs".format(self.wl_clusters['source-workload'],
+                                                                                               len(self.wl_clusters['jobs_for_clustering'])))
 
         start_times_vec_sa, _, _ = self.schedule_strategy.create_schedule()
 
@@ -41,7 +41,8 @@ class StrategySpawnRand(StrategyBase):
         model_job_fraction = min(1, n_modelled_jobs/float(len(self.wl_clusters['jobs_for_clustering'])))
 
         chosen_model_jobs = []
-        vec_clust_indexes = np.asarray([],dtype=int)
+        vec_clust_indexes = np.asarray([], dtype=int)
+        mean_ncpu_nnodes_in_cluster = []
         for ic in range(n_clusters):
 
             # jobs in this cluster
@@ -64,6 +65,17 @@ class StrategySpawnRand(StrategyBase):
             # chosen_model_jobs.extend(jobs_in_cluster[jobs_in_cluster_sampled_idx])
             chosen_model_jobs.extend(jobs_in_cluster_for_generation)
 
+            ncpus_vec = [job.ncpus for job in jobs_in_cluster_for_generation]
+            ncpus_vec = ncpus_vec if ncpus_vec else [self.config['synthapp_n_cpu']]
+            mean_ncpus = np.mean(ncpus_vec)
+
+            nnodes_vec = [job.nnodes for job in jobs_in_cluster_for_generation]
+            nnodes_vec = nnodes_vec if nnodes_vec else self.config['synthapp_n_nodes']
+            mean_nnodes = np.mean(nnodes_vec)
+            mean_ncpu_nnodes_in_cluster.append({"ncpus": mean_ncpus, "nnodes": mean_nnodes})
+
+            print_colour("white", "cluster {} - mean_ncpus={}, mean_nnodes={}".format(ic, mean_ncpus, mean_nnodes))
+
             vec_clust_indexes = np.append(vec_clust_indexes, np.ones(n_jobs_to_generate_from_cluster, dtype=int)*ic)
 
         # generates model jobs as needed
@@ -71,6 +83,13 @@ class StrategySpawnRand(StrategyBase):
         for cc, job in enumerate(chosen_model_jobs):
 
             job_copy = copy.deepcopy(job)
+
+            cluster_idx = vec_clust_indexes[cc]
+            scaled_mean_cpus_in_cluster = mean_ncpu_nnodes_in_cluster[cluster_idx]["ncpus"] * self.config['global_scaling_factor']
+            scaled_mean_cpus_in_cluster = max(1, int(scaled_mean_cpus_in_cluster))
+
+            scaled_mean_nnodes_in_cluster = mean_ncpu_nnodes_in_cluster[cluster_idx]["nnodes"] * self.config['global_scaling_factor']
+            scaled_mean_nnodes_in_cluster = max(1, int(scaled_mean_nnodes_in_cluster))
 
             # assign this job a start time (if more jobs are created, the start time is chosen randomly within the
             # start times..)
@@ -82,8 +101,8 @@ class StrategySpawnRand(StrategyBase):
             job = ModelJob(
                 time_start=start_time,
                 duration=None,
-                ncpus=self.config['synthapp_n_cpu'],
-                nnodes=self.config['synthapp_n_nodes'],
+                ncpus=job_copy.ncpus if job_copy.ncpus else scaled_mean_cpus_in_cluster,
+                nnodes=job_copy.ncpus if job_copy.ncpus else scaled_mean_nnodes_in_cluster,
                 timesignals=job_copy.timesignals,
                 label="job-{}".format(cc)
             )
@@ -104,5 +123,5 @@ class StrategySpawnRand(StrategyBase):
                     job.timesignals[ts].yvalues = job.timesignals[ts].yvalues / float(ts_generated[ts]) * ts_orig[ts]
 
         n_job_ratio = len(generated_model_jobs) / float(len(self.wl_clusters['jobs_for_clustering'])) * 100.
-        print_colour("white", "====> Generated {} jobs from cluster (#job ratio = {:.2f}%)".format(len(generated_model_jobs), n_job_ratio))
+        print_colour("white", "<==== Generated {} jobs (#job ratio = {:.2f}%)".format(len(generated_model_jobs), n_job_ratio))
         return generated_model_jobs, vec_clust_indexes.tolist()
