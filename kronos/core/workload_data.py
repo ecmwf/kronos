@@ -434,6 +434,10 @@ class WorkloadDataGroup(PickableObject):
         return max(max(wl.running_jobs[1]) for wl in self.workloads)
 
     @property
+    def sum_jobs(self):
+        return sum(len(wl.jobs) for wl in self.workloads)
+
+    @property
     def max_running_cpus(self):
         return max(max(wl.running_cpus[1]) for wl in self.workloads)
 
@@ -461,6 +465,7 @@ class WorkloadDataGroup(PickableObject):
         return max(job.time_start+job.duration for wl in self.workloads for job in wl.jobs) - \
                 min(job.time_start for wl in self.workloads for job in wl.jobs)
 
+    @property
     def min_start_time(self):
         return min(j.time_start for wl in self.workloads for j in wl.jobs)
 
