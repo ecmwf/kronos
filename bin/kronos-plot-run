@@ -18,6 +18,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.pyplot import cm
 
+from kronos.core.time_signal import time_signal_names
+
 sys.path.append(os.path.dirname(os.path.dirname(__file__)))
 
 from kronos.core.plot_handler import PlotHandler
@@ -29,140 +31,128 @@ if __name__ == "__main__":
 
     # Parser for the required arguments
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("path_model_kpf", type=str, help="The path of the KPF file to read")
-    parser.add_argument("path_unmodelled_kpf", help="path of KPF file of un-modelled data to over-plot")
-    parser.add_argument("-p", "--plot", action="store_true", help="plot the output of the run")
+    parser.add_argument("path_model_kpf", type=str, help="Path of the KPF file to read")
+    parser.add_argument("path_unmodelled_pickle", help="Path of pickle file of un-modelled data to over-plot")
+    parser.add_argument("--nbins", "-n", help="Number of bins used to discretise the time series")
     args = parser.parse_args()
 
-    n_bins = 30
+    # take n_bins or use a default value
+    n_bins = args.nbins if args.nbins else 30
 
     # retrieve kpf data from model run
     kpf_workload = WorkloadData.from_kpf(ProfileFormat.from_filename(args.path_model_kpf))
     n_apps = len(kpf_workload.jobs)
     wl_model_group = kpf_workload.group_by_job_labels
-    max_running_jobs_model = wl_model_group.max_running_jobs
-    max_running_cpus_model = wl_model_group.max_running_cpus
-    vals_max_model = wl_model_group.max_timeseries(n_bins=n_bins)
-    vals_sum_model = wl_model_group.sum_timeseries
+    t0_model = wl_model_group.min_start_time
 
     # retrieve information from KPF of original workloads
-    wl_orig_group = WorkloadDataGroup.from_pickled(args.path_unmodelled_kpf)
-    max_running_jobs_orig = wl_orig_group.max_running_jobs
-    max_running_cpus_orig = wl_orig_group.max_running_cpus
-    vals_max_orig = wl_orig_group.max_timeseries(n_bins=n_bins)
-    vals_sum_orig = wl_orig_group.sum_timeseries
+    wl_orig_group = WorkloadDataGroup.from_pickled(args.path_unmodelled_pickle)
+    t0_orig = wl_orig_group.min_start_time
 
-    if args.plot:
+    plt_hdl = PlotHandler()
+    color = iter(cm.rainbow(np.linspace(0, 1, len(wl_model_group.tags))))
+    plt.figure(plt_hdl.get_fig_handle_ID(), figsize=(18, 6))
+
+    # collect all the info before plotting for efficiency reasons..
+    plot_info_model = {}
+    plot_info_orig = {}
+    for ll, label in enumerate(wl_model_group.tags):
+
+        # --------- retrieve kpf data from iteration -------------
+        kpf_workload = wl_model_group.get_workload_by_name(label)
+        n_jobs_in_group = wl_model_group.sum_jobs
+        time_stamps, n_running_vec = kpf_workload.running_jobs
+        total_metrics_model = kpf_workload.total_metrics_timesignals
+
+        plot_info_model[label] = {
+            "n_jobs_in_group": n_jobs_in_group,
+            "times_n_running": (time_stamps, n_running_vec),
+            "total_metrics": total_metrics_model,
+        }
+        # --------------------------------------------------------
+
+        # ------- retrieve jobs fro the original workload.. ------
+        kpf_workload_orig = wl_orig_group.get_workload_by_name(label)
+        n_jobs_in_group_orig = wl_orig_group.sum_jobs
+        time_stamps_orig, n_running_vec_orig = kpf_workload_orig.running_jobs
+        total_metrics_original = kpf_workload_orig.total_metrics_timesignals
+
+        plot_info_orig[label] = {
+            "n_jobs_in_group": n_jobs_in_group_orig,
+            "times_n_running": (time_stamps_orig, n_running_vec_orig),
+            "total_metrics": total_metrics_original,
+        }
+        # --------------------------------------------------------
+
+    for ll, label in enumerate(wl_model_group.tags):
+
+        print "label: {}".format(label)
+
+        # --------- retrieve kpf data from iteration -------------
+        n_jobs_in_group = plot_info_model[label]["n_jobs_in_group"]
+        time_stamps, n_running_vec = plot_info_model[label]["times_n_running"]
+
+        n_jobs_in_group_orig = plot_info_orig[label]["n_jobs_in_group"]
+        time_stamps_orig, n_running_vec_orig = plot_info_orig[label]["times_n_running"]
+        # --------------------------------------------------------
+
+        # ------------------ plots ----------------------------
+        line_color = next(color)
+
+        plt.subplot(2, 1, 1)
+        plt.subplots_adjust(left=0.2, right=0.8, top=0.9, bottom=0.1)
+        plt.plot(time_stamps-t0_model, n_running_vec/n_jobs_in_group,
+                 color=line_color,
+                 linestyle='-',
+                 label=label)
+        plt.legend(loc='center left', bbox_to_anchor=(1, 0.5))
+        plt.ylabel('#jobs/N_jobs - model')
+        plt.xlabel('time [s]')
+
+        plt.subplot(2, 1, 2)
+        plt.subplots_adjust(left=0.2, right=0.8, top=0.9, bottom=0.1)
+        plt.plot(time_stamps_orig-t0_orig, n_running_vec_orig/n_jobs_in_group_orig,
+                 color=line_color,
+                 linestyle='-')
+        plt.ylabel('#jobs/N_jobs - original')
+        plt.xlabel('time [s]')
+
+    plt.savefig('n_jobs.png')
+    plt.close()
+
+    # plots of the total time-signals
+    for tt, ts_name in enumerate(time_signal_names):
+
+        print "plotting metric {}".format(ts_name)
 
         plt_hdl = PlotHandler()
         color = iter(cm.rainbow(np.linspace(0, 1, len(wl_model_group.tags))))
-        n_plots = len(kpf_workload.total_metrics_timesignals.keys()) + 1
-        fig_size = (18, 2 * n_plots)
-        plt.figure(plt_hdl.get_fig_handle_ID(), figsize=fig_size)
-        id_plot = 0
+        plt.figure(plt_hdl.get_fig_handle_ID(), figsize=(18, 6))
 
-        # plot_info collects plotting info during the iterations, to allow bar over-plotting..
-        plot_info = []
-
-        cum_model_vals = {}
         for ll, label in enumerate(wl_model_group.tags):
 
-            print "label: {}".format(label)
+            total_metrics_model_ts = plot_info_model[label]["total_metrics"].get(ts_name)
+            total_metrics_original_ts = plot_info_orig[label]["total_metrics"].get(ts_name)
 
-            # --------- retrieve kpf data from iteration -------------
-            kpf_workload = wl_model_group.get_workload_by_name(label)
-            time_stamps, n_running_vec = kpf_workload.running_jobs
-            # --------------------------------------------------------
-
-            # ------- retrieve jobs fro the original workload.. ------
-            kpf_workload_orig = wl_orig_group.get_workload_by_name(label)
-            time_stamps_orig, n_running_vec_orig = kpf_workload_orig.running_jobs
-            # --------------------------------------------------------
-
-            # ------------------ plots ----------------------------
             line_color = next(color)
-            id_plot = 1
-            plt.subplot(n_plots, 1, id_plot)
+
+            plt.subplot(2, 1, 1)
             plt.subplots_adjust(left=0.2, right=0.8, top=0.9, bottom=0.1)
-
-            plt.plot((time_stamps-min(time_stamps))/float(max(time_stamps)-min(time_stamps)),
-                     n_running_vec/float(max_running_jobs_model),
-                     color=line_color, linestyle='-', label=label+"-modelled")
-
-            plt.plot((time_stamps_orig-min(time_stamps_orig))/float(max(time_stamps_orig)-min(time_stamps_orig)),
-                     n_running_vec_orig/float(max_running_jobs_orig),
-                     color=line_color, linestyle='--', label=label+"-profiled")
-
-            plt.ylabel('#jobs')
-            plt.xlim(xmin=0, xmax=1)
+            if total_metrics_model_ts:
+                plt.plot(total_metrics_model_ts.xvalues-t0_model, total_metrics_model_ts.yvalues,
+                         color=line_color,
+                         label=label)
+            plt.ylabel(ts_name+" - model")
+            plt.xlabel('time [s]')
             plt.legend(loc='center left', bbox_to_anchor=(1, 0.5))
-            plt.title('#Synthetic Apps: {}'.format(n_apps))
 
-            # plot of the total time-signals
-            total_metrics_model = kpf_workload.total_metrics_timesignals
-            total_metrics_original = kpf_workload_orig.total_metrics_timesignals
-            dx_bin = 1.0/float(n_bins)
-            bar_w = dx_bin/2.5
-            bar_offset = bar_w
+            plt.subplot(2, 1, 2)
+            plt.subplots_adjust(left=0.2, right=0.8, top=0.9, bottom=0.1)
+            if total_metrics_original_ts:
+                plt.plot(total_metrics_original_ts.xvalues-t0_orig, total_metrics_original_ts.yvalues,
+                         color=line_color)
+            plt.ylabel(ts_name+" - original")
+            plt.xlabel('time [s]')
 
-            plot_dict = {}
-            for tt, ts_name in enumerate(total_metrics_model.keys()):
-                ts = total_metrics_model[ts_name]
-                time_stamps, vals = ts.digitized(n_bins)
-                times_norm = (time_stamps - min(time_stamps)) / float(max(time_stamps) - min(time_stamps))
-
-                ts = total_metrics_original[ts_name]
-                time_stamps_orig, vals_orig = ts.digitized(n_bins)
-                times_norm_orig = (time_stamps_orig - min(time_stamps_orig)) / float(max(time_stamps_orig) - min(time_stamps_orig))
-
-                # values to plot are in the profiled workload scale, so the model values need to be rescaled
-                # according to the metrics sums..
-                vals_model = vals/vals_sum_model[ts_name] * vals_sum_orig[ts_name]
-                vals_orig = vals_orig
-
-                plot_dict[ts_name] = {"times": times_norm,
-                                      "model_vals": vals_model,
-                                      "orig_vals": vals_orig}
-
-            plot_info.append(plot_dict)
-
-            for tt, ts_name in enumerate(total_metrics_model.keys()):
-                id_plot += 1
-                plt.subplot(n_plots, 1, id_plot)
-                plt.subplots_adjust(left=0.2, right=0.8, top=0.9, bottom=0.1)
-
-                if ll == 0:
-                    plt.bar(plot_info[ll][ts_name]["times"]-bar_offset, plot_info[ll][ts_name]["model_vals"],
-                            bar_w, color=line_color)
-
-                    plt.bar(plot_info[ll][ts_name]["times"], plot_info[ll][ts_name]["orig_vals"],
-                            bar_w, color=line_color, hatch='//')
-                else:
-
-                    cumul_model_val = np.zeros(n_bins)
-                    for l in range(ll):
-                        cumul_model_val += plot_info[l][ts_name]["model_vals"]
-
-                    cumul_orig_val = np.zeros(n_bins)
-                    for l in range(ll):
-                        cumul_orig_val += plot_info[l][ts_name]["orig_vals"]
-
-                    plt.bar(plot_info[ll][ts_name]["times"]-bar_offset, plot_info[ll][ts_name]["model_vals"],
-                            bar_w, bottom=cumul_model_val, color=line_color)
-
-                    plt.bar(plot_info[ll][ts_name]["times"], plot_info[ll][ts_name]["orig_vals"],
-                            bar_w, bottom=cumul_orig_val, color=line_color, hatch='//')
-
-                plt.ylabel(ts_name)
-                plt.xlim(xmin=0, xmax=1)
-
-                # set x-axes labels and ticks as appropriate
-                if tt == len(total_metrics_model)-1:
-                    plt.xlabel('time')
-                else:
-                    plt.tick_params(axis='x', which='both', bottom='off', top='off', labelbottom='off')
-
-        plt.show()
-
-    else:
-        print "Nothing done! type 'kronos-plot-run -h' for valid options"
+        plt.savefig(ts_name+'.png')
+        plt.close()
