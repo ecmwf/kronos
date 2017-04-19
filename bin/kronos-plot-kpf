@@ -29,8 +29,8 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("path_unmodelled_kpf", help="path of KPF file of un-modelled data to over-plot")
     parser.add_argument("-b", "--nbins", help="path of KPF file of un-modelled data to over-plot", default=2000)
-    parser.add_argument("-xn", "--xmin", help="path of KPF file of un-modelled data to over-plot")
-    parser.add_argument("-xm", "--xmax", help="path of KPF file of un-modelled data to over-plot")
+    parser.add_argument("-xn", "--xmin", help="min x-limit")
+    parser.add_argument("-xm", "--xmax", help="max x-limit")
     args = parser.parse_args()
 
     # check number of unique labels in KPF and create a group only if it contains less than 10 labels
