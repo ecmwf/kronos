@@ -6,6 +6,7 @@
 # granted to it by virtue of its status as an intergovernmental organisation nor
 # does it submit to any jurisdiction.
 import numpy as np
+import copy
 
 from kronos.core.exceptions_iows import ConfigurationError
 from kronos.core.job_generation import strategy_factory
@@ -13,6 +14,7 @@ from kronos.core.job_generation import strategy_factory
 from kronos.core.kronos_tools.gyration_radius import r_gyration
 from kronos.core.job_generation.schedule import job_schedule_factory
 from kronos.core.synthetic_app import SyntheticApp
+from kronos.core.workload_data import WorkloadData
 
 
 class SyntheticWorkloadGenerator(object):
@@ -46,8 +48,8 @@ class SyntheticWorkloadGenerator(object):
         self.n_bins_for_pdf = n_bins_for_pdf
         self.n_bins_timesignals = n_bins_timesignals
 
-        # dictionary of all the jobs created from clusters
-        self.modelled_jobs_dict = {}
+        # dictionary of all the un-normalized jobs created from clusters (stored for calculating r_gyration)
+        self.unnormalized_modelled_jobs_dict = {}
 
     def check_config(self):
         """
@@ -89,16 +91,42 @@ class SyntheticWorkloadGenerator(object):
             generation_strategy = strategy_factory[spawning_strategy](jobs_schedule_strategy, wl_clusters, self.config_generator)
             model_jobs, vec_clust_indexes = generation_strategy.generate_jobs()
 
-            # Store the model jobs into the modelled_jobs_dict
-            self.modelled_jobs_dict[wl_clusters['source-workload']] = (model_jobs, vec_clust_indexes)
+            # Store the model jobs into the unnormalized_modelled_jobs_dict
+            self.unnormalized_modelled_jobs_dict[wl_clusters['source-workload']] = (model_jobs, vec_clust_indexes)
+
+            normalized_jobs = self.normalize_jobs(model_jobs, wl_clusters)
 
             # Then create the synthetic apps from the generated model jobs
-            modelled_sa_jobs = self.model_jobs_to_sa(model_jobs, wl_clusters['source-workload'])
+            modelled_sa_jobs = self.model_jobs_to_sa(normalized_jobs, wl_clusters['source-workload'])
 
             # And append the synthetic apps to the list
             generated_sa_from_all_wl.extend(modelled_sa_jobs)
 
         return generated_sa_from_all_wl
+
+    @staticmethod
+    def normalize_jobs(model_jobs, wl_clusters):
+        """
+        Normalize the time-signals of the generated jobs in order to preserve time-series sums in each sub-workload ---
+        :param model_jobs:
+        :param wl_name:
+        :return:
+        """
+
+        # create a workload from jobs in cluster and generated model jobs
+        wl_original = WorkloadData(jobs=wl_clusters['jobs_for_clustering'], tag="original_jobs")
+        wl_generated = WorkloadData(jobs=model_jobs, tag="generated_jobs")
+        ts_orig = wl_original.total_metrics_sum_dict
+        ts_generated = wl_generated.total_metrics_sum_dict
+
+        # normalize generated jobs
+        normalized_jobs = copy.deepcopy(model_jobs)
+        for job in normalized_jobs:
+            for ts in ts_generated.keys():
+                if float(ts_generated[ts]):
+                    job.timesignals[ts].yvalues = job.timesignals[ts].yvalues / float(ts_generated[ts]) * ts_orig[ts]
+
+        return normalized_jobs
 
     @staticmethod
     def model_jobs_to_sa(model_jobs, label):
@@ -128,11 +156,11 @@ class SyntheticWorkloadGenerator(object):
 
         # take the number of bins in the cluster data
         nbins = self.n_bins_timesignals
-        r_gyr_wl_all = {wl_name: [] for wl_name in self.modelled_jobs_dict.keys()}
+        r_gyr_wl_all = {wl_name: [] for wl_name in self.unnormalized_modelled_jobs_dict.keys()}
 
-        for wl_name in self.modelled_jobs_dict.keys():
+        for wl_name in self.unnormalized_modelled_jobs_dict.keys():
 
-            jobs, clustidx = self.modelled_jobs_dict[wl_name]
+            jobs, clustidx = self.unnormalized_modelled_jobs_dict[wl_name]
 
             jobs = np.asarray(jobs)
             clustidx = np.asarray(clustidx)

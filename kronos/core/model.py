@@ -144,7 +144,7 @@ class KronosModel(object):
         tot_apps = self.sa_workload.total_metrics_dict()
         relative_metrics_totals = {k: np.abs(v - tot_apps[k]) / float(v) * 100.0
                                    for k, v in self.total_metrics_wl_orig.iteritems()}
-        Report.add_measure(ModelMeasure("relative_totals [%]", relative_metrics_totals, __name__))
+        Report.add_measure(ModelMeasure("Scaled metrics sums - error [%]", relative_metrics_totals, __name__))
 
         # calculate the measure relative to the number of jobs..
         t_scaling = self.config_generator['total_submit_interval'] / self.tot_duration_wl_original
@@ -244,19 +244,20 @@ class KronosModel(object):
             clusters_matrix = cluster_handler.clusters
             clusters_labels = cluster_handler.labels
 
-            # check values in the matrix
-            for row in clusters_matrix:
-                if (row < 0.).any():
-                    print "value < 0 encountered after clustering! corrected to 0."
-                    row[row < 0.] = 0.
+            # # check values in the matrix
+            # for row in clusters_matrix:
+            #     if (row < 0.).any():
+            #         print "value < 0 encountered after clustering! corrected to 0."
+            #         row[row < 0.] = 0.
 
             # calculate the mean radius of gyration (among all clusters) for each sub-workload
             r_sub_wl_mean = []
-            matrix_jobs_in_cluster = []
+            matrix_jobs_in_cluster_all = []
             nbins = clustering_config['num_timesignal_bins']
             for cc in range(clusters_matrix.shape[0]):
                 matrix_jobs_in_cluster = np.asarray([j.ts_to_vector(nbins) for j in np.asarray(wl.jobs)[clusters_labels == cc]])
                 r_sub_wl_mean.append(r_gyration(matrix_jobs_in_cluster))
+                matrix_jobs_in_cluster_all.append(matrix_jobs_in_cluster)
 
             self.clusters.append({
                                   'source-workload': wl_entry,
@@ -264,7 +265,7 @@ class KronosModel(object):
                                   'cluster_matrix': clusters_matrix,
                                   'labels': clusters_labels,
                                   'r_gyration': r_sub_wl_mean,
-                                  'matrix_jobs_in_cluster': matrix_jobs_in_cluster
+                                  'matrix_jobs_in_cluster': matrix_jobs_in_cluster_all
                                   })
 
     def _apply_generation(self):
@@ -304,10 +305,11 @@ class KronosModel(object):
         # Calculate the radius of gyration of clusters and generated model jobs
         r_gyr_all_pc = {}
         r_gyr_modeljobs_all = sapps_generator.calculate_modeljobs_r_gyrations()
+
         for cluster in self.clusters:
             r_gyr_wl = np.mean(cluster["r_gyration"])
             r_gyr_modeljobs = np.mean(r_gyr_modeljobs_all[cluster["source-workload"]])
             r_gyr_all_pc[cluster["source-workload"]] = np.abs(r_gyr_modeljobs-r_gyr_wl)/r_gyr_wl*100
 
-        Report.add_measure(ModelMeasure("relative_r_gyration [%]", r_gyr_all_pc, __name__))
+        Report.add_measure(ModelMeasure("r_gyration error [%]", r_gyr_all_pc, __name__))
 

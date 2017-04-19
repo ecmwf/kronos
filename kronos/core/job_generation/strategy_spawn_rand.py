@@ -12,7 +12,6 @@ import copy
 from kronos.core.kronos_tools.print_colour import print_colour
 from kronos.core.job_generation.strategy_base import StrategyBase
 from kronos.core.jobs import ModelJob
-from kronos.core.workload_data import WorkloadData
 
 
 class StrategySpawnRand(StrategyBase):
@@ -85,11 +84,12 @@ class StrategySpawnRand(StrategyBase):
             job_copy = copy.deepcopy(job)
 
             cluster_idx = vec_clust_indexes[cc]
+
             scaled_mean_cpus_in_cluster = mean_ncpu_nnodes_in_cluster[cluster_idx]["ncpus"] * self.config['global_scaling_factor']
-            scaled_mean_cpus_in_cluster = max(1, int(scaled_mean_cpus_in_cluster))
+            job_ncpus = max(1, int(job_copy.ncpus*self.config['global_scaling_factor'])) if job_copy.ncpus else max(1, int(scaled_mean_cpus_in_cluster))
 
             scaled_mean_nnodes_in_cluster = mean_ncpu_nnodes_in_cluster[cluster_idx]["nnodes"] * self.config['global_scaling_factor']
-            scaled_mean_nnodes_in_cluster = max(1, int(scaled_mean_nnodes_in_cluster))
+            job_nnodes = max(1, int(job_copy.nnodes * self.config['global_scaling_factor'])) if job_copy.nnodes else max(1, int(scaled_mean_nnodes_in_cluster))
 
             # assign this job a start time (if more jobs are created, the start time is chosen randomly within the
             # start times..)
@@ -101,26 +101,12 @@ class StrategySpawnRand(StrategyBase):
             job = ModelJob(
                 time_start=start_time,
                 duration=None,
-                ncpus=job_copy.ncpus if job_copy.ncpus else scaled_mean_cpus_in_cluster,
-                nnodes=job_copy.ncpus if job_copy.ncpus else scaled_mean_nnodes_in_cluster,
+                ncpus=job_ncpus,
+                nnodes=job_nnodes,
                 timesignals=job_copy.timesignals,
                 label="job-{}".format(cc)
             )
             generated_model_jobs.append(job)
-
-        # --- at last, normalize the time-signals of the generated jobs in order to preserve time-series sums ---
-
-        # create a workload from jobs in cluster and generated model jobs
-        wl_original = WorkloadData(jobs=self.wl_clusters['jobs_for_clustering'], tag="original_jobs")
-        wl_generated = WorkloadData(jobs=generated_model_jobs, tag="generated_jobs")
-        ts_orig = wl_original.total_metrics_sum_dict
-        ts_generated = wl_generated.total_metrics_sum_dict
-
-        # normalize generated jobs
-        for job in generated_model_jobs:
-            for ts in ts_generated.keys():
-                if float(ts_generated[ts]):
-                    job.timesignals[ts].yvalues = job.timesignals[ts].yvalues / float(ts_generated[ts]) * ts_orig[ts]
 
         n_job_ratio = len(generated_model_jobs) / float(len(self.wl_clusters['jobs_for_clustering'])) * 100.
         print_colour("white", "<==== Generated {} jobs (#job ratio = {:.2f}%)".format(len(generated_model_jobs), n_job_ratio))
