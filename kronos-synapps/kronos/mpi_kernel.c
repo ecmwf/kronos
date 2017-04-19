@@ -16,7 +16,7 @@
 #include <stdlib.h>
 #include <math.h>
 
-#include "kronos/mpi.h"
+#include "kronos/mpi_kernel.h"
 #include "kronos/global_config.h"
 #include "kronos/trace.h"
 #include "kronos/utility.h"

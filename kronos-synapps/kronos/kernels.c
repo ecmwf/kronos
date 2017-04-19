@@ -23,7 +23,7 @@
 #include "kronos/fs_metadata.h"
 #include "kronos/global_config.h"
 #include "kronos/kernels.h"
-#include "kronos/mpi.h"
+#include "kronos/mpi_kernel.h"
 #include "kronos/trace.h"
 
 /* ------------------------------------------------------------------------------------------------------------------ */

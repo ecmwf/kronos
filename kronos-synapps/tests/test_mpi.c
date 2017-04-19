@@ -27,7 +27,7 @@
 #include "kronos/json.h"
 #include "kronos/utility.h"
 #include "kronos/kernels.h"
-#include "kronos/mpi.h"
+#include "kronos/mpi_kernel.h"
 
 /* ------------------------------------------------------------------------------------------------------------------ */
 
