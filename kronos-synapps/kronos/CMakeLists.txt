@@ -27,8 +27,8 @@ ecbuild_add_library (
         json.h
         kernels.c
         kernels.h
-        mpi.c
-        mpi.h
+        mpi_kernel.c
+        mpi_kernel.h
         stats.c
         stats.h
         trace.c
