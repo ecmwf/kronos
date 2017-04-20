@@ -463,7 +463,6 @@ static void write_krf(const char* filename) {
         /* On all other nodes, we just send the data to the head node */
 
         /* Serialise the JSON data into a buffer */
-
         send_size = write_json_string(send_buffer, buff_size, stats_json);
         if (send_size > buff_size) {
             fprintf(stderr, "Insufficient buffer size to transfer statistics json. Needs %d bytes\n", send_size);
@@ -471,8 +470,8 @@ static void write_krf(const char* filename) {
         }
 
         /* Send the sizes, and then the data */
-
-        err = MPI_Gather(&send_size, 1, MPI_INT, 0, 0, 0, 0, MPI_COMM_WORLD);
+        /* NOTE: recvtype specified to avoid segfault in MPICH. Should be ignored according to MPI standard */
+        err = MPI_Gather(&send_size, 1, MPI_INT, 0, 0, MPI_INT, 0, MPI_COMM_WORLD);
         if (err != MPI_SUCCESS) {
             MPI_Error_string(err, send_buffer, buff_size);
             fprintf(stderr, "An error occurred in MPI_Gather: %s (%d)\n", send_buffer, err);
@@ -483,7 +482,6 @@ static void write_krf(const char* filename) {
                 fprintf(stderr, "An error occurred in MPI_Gatherv: %s (%d)\n", send_buffer, err);
             }
         }
-
         free_json(stats_json);
     }
 
