@@ -1150,7 +1150,5 @@ int write_json_string(char* str, int size, const JSON* json) {
         str[out.len++] = '\0';
     str[size-1] = '\0';
 
-    fprintf(stderr, "len: %d\n", out.len);
-    fprintf(stderr, "strlen: %d\n", strlen(str));
     return out.len;
 }
