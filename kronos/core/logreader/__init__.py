@@ -9,7 +9,7 @@
 from kronos.core.logreader.stdout_ecmwf import StdoutECMWFDataSet
 from profiler_reader import ingest_allinea_profiles
 from scheduler_reader import ingest_accounting_logs, ingest_pbs_logs, ingest_epcc_csv_logs
-from darshan import DarshanDataSet
+from darshan import DarshanDataSet, Darshan3DataSet
 from ipm import IPMDataSet
 
 simple_ingest_mapping = {
@@ -21,6 +21,7 @@ simple_ingest_mapping = {
 
 class_ingest_mapping = {
     'darshan': DarshanDataSet,
+    'darshan3': Darshan3DataSet,
     'ipm': IPMDataSet,
     'stdout-ecmwf': StdoutECMWFDataSet
 }

@@ -15,7 +15,7 @@ import mock
 from kronos.core.jobs import IngestedJob
 from kronos.core.logreader.base import LogReader
 from kronos.core.logreader.darshan import (DarshanIngestedJobFile, DarshanIngestedJob, DarshanLogReaderError, DarshanLogReader,
-                               DarshanDataSet)
+                                           DarshanDataSet, DarshanLogReader3)
 
 
 class DarshanIngestedJobFileTest(unittest.TestCase):
@@ -531,6 +531,70 @@ class DarshanLogReaderTest(unittest.TestCase):
         self.assertEqual(f.bytes_read, 0)
         self.assertEqual(f.bytes_written, 0)
         self.assertEqual(f.read_count, 0)
+        self.assertEqual(f.write_count, 0)
+
+
+    def test_read_parser_output_darshan_v3(self):
+        """
+        Given some (correct) output from darshan-parser, do we interpret it properly?
+        """
+        with open(os.path.join(os.path.dirname(os.path.realpath(__file__)), 'parsed-darshan-log-3'), 'r') as f:
+            data = f.read()
+
+        lr = DarshanLogReader3('test-path')
+
+        ingested = lr._read_log_internal(data, 'a-file', 'a-label')
+
+        # We return an array of jobs, which in this case will contain only one
+        self.assertIsInstance(ingested, list)
+        self.assertEqual(len(ingested), 1)
+        ingested = ingested[0]
+        self.assertIsInstance(ingested, DarshanIngestedJob)
+
+        self.assertEqual(ingested.filename, "a-file")
+        self.assertEqual(ingested.jobid, 50177)
+        self.assertEqual(ingested.label, "a-label")
+        self.assertEqual(ingested.log_version, "3.10")
+        self.assertEqual(ingested.time_start, 1492777755)
+        self.assertEqual(ingested.uid, 4426)
+
+        # We should have parsed the file details correctly
+        self.assertEqual(len(ingested.file_details), 4)
+
+        self.assertIn("path-to-file-1", ingested.file_details)
+        f = ingested.file_details["path-to-file-1"]
+        self.assertEqual(f.name, "path-to-file-1")
+        self.assertEqual(f.open_count, 1)
+        self.assertEqual(f.bytes_read, 0)
+        self.assertEqual(f.bytes_written, 458590750)
+        self.assertEqual(f.read_count, 0)
+        self.assertEqual(f.write_count, 2)
+
+        self.assertIn("path-to-file-2", ingested.file_details)
+        f = ingested.file_details["path-to-file-2"]
+        self.assertEqual(f.name, "path-to-file-2")
+        self.assertEqual(f.open_count, 1)
+        self.assertEqual(f.bytes_read, 0)
+        self.assertEqual(f.bytes_written, 54299)
+        self.assertEqual(f.read_count, 0)
+        self.assertEqual(f.write_count, 7643)
+
+        self.assertIn("path-to-file-3", ingested.file_details)
+        f = ingested.file_details["path-to-file-3"]
+        self.assertEqual(f.name, "path-to-file-3")
+        self.assertEqual(f.open_count, 1)
+        self.assertEqual(f.bytes_read, 0)
+        self.assertEqual(f.bytes_written, 458590750)
+        self.assertEqual(f.read_count, 0)
+        self.assertEqual(f.write_count, 2)
+
+        self.assertIn("path-to-file-4", ingested.file_details)
+        f = ingested.file_details["path-to-file-4"]
+        self.assertEqual(f.name, "path-to-file-4")
+        self.assertEqual(f.open_count, 542)
+        self.assertEqual(f.bytes_read, 35520512)
+        self.assertEqual(f.bytes_written, 0)
+        self.assertEqual(f.read_count, 542)
         self.assertEqual(f.write_count, 0)
 
 

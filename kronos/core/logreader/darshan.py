@@ -240,8 +240,6 @@ class DarshanLogReader(LogReader):
         "CP_F_WRITE_END_TIMESTAMP": 'write_time_end',
         "CP_F_CLOSE_TIMESTAMP": 'close_time'
 
-
-
         # CP_SIZE_AT_OPEN
         # CP_MODE
         # CP_POSIX_FSEEKS, CP_POSIX_SEEKS
@@ -347,6 +345,138 @@ class DarshanLogReader(LogReader):
             yield current_job
 
 
+class DarshanLogReader3(LogReader):
+
+    job_class = DarshanIngestedJob
+    log_type_name = "Darshan"
+    file_pattern = "*.darshan"
+    recursive = True
+
+    # By default we end up with a whole load of darshan logfiles within a directory.
+    label_method = "directory"
+
+    darshan_params = {
+        'exe': ('exe_cmd', str),
+        'uid': ('uid', int),
+        'jobid': ('jobid', int),
+        'nprocs': ('nprocs', int),
+        'start_time': ('time_start', int),
+        'end_time': ('time_end', int),
+        'darshan log version': ('log_version', str)
+    }
+
+    # File parameters for the synthetic apps profiled with Darshan v3.11
+    file_params = {
+        'STDIO_BYTES_READ': 'bytes_read',
+        'STDIO_BYTES_WRITTEN': 'bytes_written',
+        'STDIO_OPENS': 'open_count',
+        'STDIO_WRITES': 'write_count',
+        'STDIO_READS': 'read_count',
+        "STDIO_F_OPEN_START_TIMESTAMP": "open_time",
+        'STDIO_F_READ_START_TIMESTAMP': 'read_time_start',
+        'STDIO_F_WRITE_START_TIMESTAMP': 'write_time_start',
+        "STDIO_F_READ_END_TIMESTAMP": 'read_time_end',
+        "STDIO_F_WRITE_END_TIMESTAMP": 'write_time_end',
+        "STDIO_F_CLOSE_END_TIMESTAMP": 'close_time'
+    }
+
+    def __init__(self, path, **kwargs):
+
+        # Custom configuration:
+        self.parser_command = kwargs.pop('parser', 'darshan-parser')
+
+        super(DarshanLogReader3, self).__init__(path, **kwargs)
+
+    def read_log(self, filename, suggested_label):
+        """
+        Read a darshan log!
+        """
+        # try:
+        #     output = subprocess.check_output([self.parser_command, filename])
+        # except subprocess.CalledProcessError as e:
+
+        pipes = subprocess.Popen([self.parser_command, filename], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        output, error = pipes.communicate()
+
+        if len(error) != 0:
+            print_colour("orange", "\n{}".format(error.strip()), flush=True)
+
+        if pipes.returncode != 0:
+            if len(error) == 0:
+                print ""
+            print_colour("red", "Got an error: {} - {}".format(pipes.returncode, filename), flush=True)
+
+            # Just skip this (with warnings), as the Darshan data is only being used in conjunction with something
+            # else, so there won't be a blank.
+            return []
+
+        return self._read_log_internal(output, filename, suggested_label)
+
+    def _read_log_internal(self, parser_output, filename, suggested_label):
+
+        files = {}
+        params = {
+            'label': suggested_label,
+            'filename': filename
+        }
+
+        for line in parser_output.splitlines():
+
+            trimmed_line = line.strip()
+
+            if len(trimmed_line) == 0:
+                pass
+            elif trimmed_line[0] == '#':
+                bits = trimmed_line.split(':', 1)
+                parameter_key = bits[0][1:].strip()
+                job_key, key_type = self.darshan_params.get(parameter_key, (None, None))
+                if job_key:
+                    if job_key == 'exe_cmd':
+                        params[job_key] = key_type(bits[1].strip())
+                    else:
+                        params[job_key] = key_type(bits[1].split()[0].strip())
+            else:
+                # A data line
+                bits = trimmed_line.split()
+                # file = ' '.join(bits[4:])
+                filename = bits[5]
+
+                # Add the file to the map if required
+                if filename not in files:
+                    files[filename] = DarshanIngestedJobFile(filename)
+
+                file_elem = self.file_params.get(bits[3], None)
+                if file_elem is not None:
+                    currval = getattr(files[filename], file_elem) or 0
+                    setattr(files[filename], file_elem, currval + float(bits[4]))
+
+        return [self.job_class(file_details=files, **params)]
+
+    def read_logs(self):
+        """
+        Darshan produces one log per command executed in the script. This results in multiple Darshan files per
+        job, which need to be aggregated. Each of the jobs will be sequential, so we combine them.
+        """
+
+        current_job = None
+
+        for job in super(DarshanLogReader3, self).read_logs():
+
+            if current_job is None:
+                current_job = job
+
+            elif job.label == current_job.label:
+                current_job.aggregate(job)
+
+            else:
+                yield current_job
+                current_job = job
+
+        # And when we are at the end of the list, yield the current job
+        if current_job is not None:
+            yield current_job
+
+
 class DarshanDataSet(IngestedDataSet):
 
     log_reader_class = DarshanLogReader
@@ -364,4 +494,24 @@ class DarshanDataSet(IngestedDataSet):
             # yield job.model_job(global_start_time)
             yield job.model_job()
 
+
+class Darshan3DataSet(IngestedDataSet):
+    """
+    Darshan dataset extracted from darshan v3
+    """
+
+    log_reader_class = DarshanLogReader3
+
+    def model_jobs(self):
+        """
+        Model the Darshan jobs, given a list of injested jobs
+
+        """
+        # The created times are all in seconds since an arbitrary reference, so we want to get
+        # them relative to a zero-time
+        # global_start_time = min((j.time_start for j in self.joblist))
+
+        for job in self.joblist:
+            # yield job.model_job(global_start_time)
+            yield job.model_job()
 

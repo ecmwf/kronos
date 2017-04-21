@@ -1,0 +1,173 @@
+# darshan log version: 3.10
+# compression method: ZLIB
+# exe: /perm/ma/maab/builds_lxg/kronos_build/bin/kronos-coordinator /gpfs/lxg/shared_tmp/maab/kronos_run/output/job-0/input.json
+# uid: 4426
+# jobid: 50177
+# start_time: 1492777755
+# start_time_asci: Fri Apr 21 12:29:15 2017
+# end_time: 1492777915
+# end_time_asci: Fri Apr 21 12:31:55 2017
+# nprocs: 48
+# run time: 161
+# metadata: lib_ver = 3.1.4
+# metadata: h = romio_no_indep_rw=true;cb_nodes=4
+
+# log file regions
+# -------------------------------------------------------
+# header: 360 bytes (uncompressed)
+# job data: 224 bytes (compressed)
+# record table: 5000 bytes (compressed)
+# STDIO module: 10874 bytes (compressed), ver=1
+
+# mounted file systems (mount point and fs type)
+# -------------------------------------------------------
+# mount entry:	/scratch/ma	nfs
+# mount entry:	/vol/netlog	nfs
+# mount entry:	/usr/local	nfs
+# mount entry:	/gpfs/lxg	gpfs
+# mount entry:	/var/tmp	ext3
+# mount entry:	/perm/ma	nfs
+# mount entry:	/home/ma	nfs
+# mount entry:	/	ext4
+
+# description of columns:
+#   <module>: module responsible for this I/O record.
+#   <rank>: MPI rank.  -1 indicates that the file is shared
+#      across all processes and statistics are aggregated.
+#   <record id>: hash of the record's file path
+#   <counter name> and <counter value>: statistical counters.
+#      A value of -1 indicates that Darshan could not monitor
+#      that counter, and its value should be ignored.
+#   <file name>: full file path for the record.
+#   <mount pt>: mount point that the file resides on.
+#   <fs type>: type of file system that the file resides on.
+
+# *******************************************************
+# STDIO module data
+# *******************************************************
+
+# description of STDIO counters:
+#   STDIO_{OPENS|WRITES|READS|SEEKS|FLUSHES} are types of operations.
+#   STDIO_BYTES_*: total bytes read and written.
+#   STDIO_MAX_BYTE_*: highest offset byte read and written.
+#   STDIO_*_RANK: rank of the processes that were the fastest and slowest at I/O (for shared files).
+#   STDIO_*_RANK_BYTES: bytes transferred by the fastest and slowest ranks (for shared files).
+#   STDIO_F_*_START_TIMESTAMP: timestamp of the first call to that type of function.
+#   STDIO_F_*_END_TIMESTAMP: timestamp of the completion of the last call to that type of function.
+#   STDIO_F_*_TIME: cumulative time spent in different types of functions.
+#   STDIO_F_*_RANK_TIME: fastest and slowest I/O time for a single rank (for shared files).
+#   STDIO_F_VARIANCE_RANK_*: variance of total I/O time and bytes moved for all ranks (for shared files).
+
+#<module>	<rank>	<record id>	<counter>	<value>	<file name>	<mount pt>	<fs type>
+STDIO	0	6162670235365735723	STDIO_OPENS	1	path-to-file-1	/gpfs/lxg	gpfs
+STDIO	0	6162670235365735723	STDIO_READS	0	path-to-file-1	/gpfs/lxg	gpfs
+STDIO	0	6162670235365735723	STDIO_WRITES	2	path-to-file-1	/gpfs/lxg	gpfs
+STDIO	0	6162670235365735723	STDIO_SEEKS	0	path-to-file-1	/gpfs/lxg	gpfs
+STDIO	0	6162670235365735723	STDIO_FLUSHES	2	path-to-file-1	/gpfs/lxg	gpfs
+STDIO	0	6162670235365735723	STDIO_BYTES_WRITTEN	458590750	path-to-file-1	/gpfs/lxg	gpfs
+STDIO	0	6162670235365735723	STDIO_BYTES_READ	0	path-to-file-1	/gpfs/lxg	gpfs
+STDIO	0	6162670235365735723	STDIO_MAX_BYTE_READ	0	path-to-file-1	/gpfs/lxg	gpfs
+STDIO	0	6162670235365735723	STDIO_MAX_BYTE_WRITTEN	458590749	path-to-file-1	/gpfs/lxg	gpfs
+STDIO	0	6162670235365735723	STDIO_FASTEST_RANK	0	path-to-file-1	/gpfs/lxg	gpfs
+STDIO	0	6162670235365735723	STDIO_FASTEST_RANK_BYTES	0	path-to-file-1	/gpfs/lxg	gpfs
+STDIO	0	6162670235365735723	STDIO_SLOWEST_RANK	0	path-to-file-1	/gpfs/lxg	gpfs
+STDIO	0	6162670235365735723	STDIO_SLOWEST_RANK_BYTES	0	path-to-file-1	/gpfs/lxg	gpfs
+STDIO	0	6162670235365735723	STDIO_F_META_TIME	1.970148	path-to-file-1	/gpfs/lxg	gpfs
+STDIO	0	6162670235365735723	STDIO_F_WRITE_TIME	0.326557	path-to-file-1	/gpfs/lxg	gpfs
+STDIO	0	6162670235365735723	STDIO_F_READ_TIME	0.000000	path-to-file-1	/gpfs/lxg	gpfs
+STDIO	0	6162670235365735723	STDIO_F_OPEN_START_TIMESTAMP	27.378792	path-to-file-1	/gpfs/lxg	gpfs
+STDIO	0	6162670235365735723	STDIO_F_CLOSE_START_TIMESTAMP	29.675539	path-to-file-1	/gpfs/lxg	gpfs
+STDIO	0	6162670235365735723	STDIO_F_WRITE_START_TIMESTAMP	29.348129	path-to-file-1	/gpfs/lxg	gpfs
+STDIO	0	6162670235365735723	STDIO_F_READ_START_TIMESTAMP	0.000000	path-to-file-1	/gpfs/lxg	gpfs
+STDIO	0	6162670235365735723	STDIO_F_OPEN_END_TIMESTAMP	29.348082	path-to-file-1	/gpfs/lxg	gpfs
+STDIO	0	6162670235365735723	STDIO_F_CLOSE_END_TIMESTAMP	29.676397	path-to-file-1	/gpfs/lxg	gpfs
+STDIO	0	6162670235365735723	STDIO_F_WRITE_END_TIMESTAMP	29.675157	path-to-file-1	/gpfs/lxg	gpfs
+STDIO	0	6162670235365735723	STDIO_F_READ_END_TIMESTAMP	0.000000	path-to-file-1	/gpfs/lxg	gpfs
+STDIO	0	6162670235365735723	STDIO_F_FASTEST_RANK_TIME	0.000000	path-to-file-1	/gpfs/lxg	gpfs
+STDIO	0	6162670235365735723	STDIO_F_SLOWEST_RANK_TIME	0.000000	path-to-file-1	/gpfs/lxg	gpfs
+STDIO	0	6162670235365735723	STDIO_F_VARIANCE_RANK_TIME	0.000000	path-to-file-1	/gpfs/lxg	gpfs
+STDIO	0	6162670235365735723	STDIO_F_VARIANCE_RANK_BYTES	0.000000	path-to-file-1	/gpfs/lxg	gpfs
+STDIO	0	9390482442659109318	STDIO_OPENS	1	path-to-file-2	/gpfs/lxg	gpfs
+STDIO	0	9390482442659109318	STDIO_READS	0	path-to-file-2	/gpfs/lxg	gpfs
+STDIO	0	9390482442659109318	STDIO_WRITES	7643	path-to-file-2	/gpfs/lxg	gpfs
+STDIO	0	9390482442659109318	STDIO_SEEKS	0	path-to-file-2	/gpfs/lxg	gpfs
+STDIO	0	9390482442659109318	STDIO_FLUSHES	0	path-to-file-2	/gpfs/lxg	gpfs
+STDIO	0	9390482442659109318	STDIO_BYTES_WRITTEN	54299	path-to-file-2	/gpfs/lxg	gpfs
+STDIO	0	9390482442659109318	STDIO_BYTES_READ	0	path-to-file-2	/gpfs/lxg	gpfs
+STDIO	0	9390482442659109318	STDIO_MAX_BYTE_READ	0	path-to-file-2	/gpfs/lxg	gpfs
+STDIO	0	9390482442659109318	STDIO_MAX_BYTE_WRITTEN	54298	path-to-file-2	/gpfs/lxg	gpfs
+STDIO	0	9390482442659109318	STDIO_FASTEST_RANK	0	path-to-file-2	/gpfs/lxg	gpfs
+STDIO	0	9390482442659109318	STDIO_FASTEST_RANK_BYTES	0	path-to-file-2	/gpfs/lxg	gpfs
+STDIO	0	9390482442659109318	STDIO_SLOWEST_RANK	0	path-to-file-2	/gpfs/lxg	gpfs
+STDIO	0	9390482442659109318	STDIO_SLOWEST_RANK_BYTES	0	path-to-file-2	/gpfs/lxg	gpfs
+STDIO	0	9390482442659109318	STDIO_F_META_TIME	0.002668	path-to-file-2	/gpfs/lxg	gpfs
+STDIO	0	9390482442659109318	STDIO_F_WRITE_TIME	0.001160	path-to-file-2	/gpfs/lxg	gpfs
+STDIO	0	9390482442659109318	STDIO_F_READ_TIME	0.000000	path-to-file-2	/gpfs/lxg	gpfs
+STDIO	0	9390482442659109318	STDIO_F_OPEN_START_TIMESTAMP	149.629572	path-to-file-2	/gpfs/lxg	gpfs
+STDIO	0	9390482442659109318	STDIO_F_CLOSE_START_TIMESTAMP	149.632478	path-to-file-2	/gpfs/lxg	gpfs
+STDIO	0	9390482442659109318	STDIO_F_WRITE_START_TIMESTAMP	149.630587	path-to-file-2	/gpfs/lxg	gpfs
+STDIO	0	9390482442659109318	STDIO_F_READ_START_TIMESTAMP	0.000000	path-to-file-2	/gpfs/lxg	gpfs
+STDIO	0	9390482442659109318	STDIO_F_OPEN_END_TIMESTAMP	149.630576	path-to-file-2	/gpfs/lxg	gpfs
+STDIO	0	9390482442659109318	STDIO_F_CLOSE_END_TIMESTAMP	149.634142	path-to-file-2	/gpfs/lxg	gpfs
+STDIO	0	9390482442659109318	STDIO_F_WRITE_END_TIMESTAMP	149.632477	path-to-file-2	/gpfs/lxg	gpfs
+STDIO	0	9390482442659109318	STDIO_F_READ_END_TIMESTAMP	0.000000	path-to-file-2	/gpfs/lxg	gpfs
+STDIO	0	9390482442659109318	STDIO_F_FASTEST_RANK_TIME	0.000000	path-to-file-2	/gpfs/lxg	gpfs
+STDIO	0	9390482442659109318	STDIO_F_SLOWEST_RANK_TIME	0.000000	path-to-file-2	/gpfs/lxg	gpfs
+STDIO	0	9390482442659109318	STDIO_F_VARIANCE_RANK_TIME	0.000000	path-to-file-2	/gpfs/lxg	gpfs
+STDIO	0	9390482442659109318	STDIO_F_VARIANCE_RANK_BYTES	0.000000	path-to-file-2	/gpfs/lxg	gpfs
+STDIO	0	17098977012713052610	STDIO_OPENS	1	path-to-file-3	/gpfs/lxg	gpfs
+STDIO	0	17098977012713052610	STDIO_READS	0	path-to-file-3	/gpfs/lxg	gpfs
+STDIO	0	17098977012713052610	STDIO_WRITES	2	path-to-file-3	/gpfs/lxg	gpfs
+STDIO	0	17098977012713052610	STDIO_SEEKS	0	path-to-file-3	/gpfs/lxg	gpfs
+STDIO	0	17098977012713052610	STDIO_FLUSHES	2	path-to-file-3	/gpfs/lxg	gpfs
+STDIO	0	17098977012713052610	STDIO_BYTES_WRITTEN	458590750	path-to-file-3	/gpfs/lxg	gpfs
+STDIO	0	17098977012713052610	STDIO_BYTES_READ	0	path-to-file-3	/gpfs/lxg	gpfs
+STDIO	0	17098977012713052610	STDIO_MAX_BYTE_READ	0	path-to-file-3	/gpfs/lxg	gpfs
+STDIO	0	17098977012713052610	STDIO_MAX_BYTE_WRITTEN	458590749	path-to-file-3	/gpfs/lxg	gpfs
+STDIO	0	17098977012713052610	STDIO_FASTEST_RANK	0	path-to-file-3	/gpfs/lxg	gpfs
+STDIO	0	17098977012713052610	STDIO_FASTEST_RANK_BYTES	0	path-to-file-3	/gpfs/lxg	gpfs
+STDIO	0	17098977012713052610	STDIO_SLOWEST_RANK	0	path-to-file-3	/gpfs/lxg	gpfs
+STDIO	0	17098977012713052610	STDIO_SLOWEST_RANK_BYTES	0	path-to-file-3	/gpfs/lxg	gpfs
+STDIO	0	17098977012713052610	STDIO_F_META_TIME	10.384103	path-to-file-3	/gpfs/lxg	gpfs
+STDIO	0	17098977012713052610	STDIO_F_WRITE_TIME	0.300153	path-to-file-3	/gpfs/lxg	gpfs
+STDIO	0	17098977012713052610	STDIO_F_READ_TIME	0.000000	path-to-file-3	/gpfs/lxg	gpfs
+STDIO	0	17098977012713052610	STDIO_F_OPEN_START_TIMESTAMP	29.676415	path-to-file-3	/gpfs/lxg	gpfs
+STDIO	0	17098977012713052610	STDIO_F_CLOSE_START_TIMESTAMP	40.360945	path-to-file-3	/gpfs/lxg	gpfs
+STDIO	0	17098977012713052610	STDIO_F_WRITE_START_TIMESTAMP	40.059945	path-to-file-3	/gpfs/lxg	gpfs
+STDIO	0	17098977012713052610	STDIO_F_READ_START_TIMESTAMP	0.000000	path-to-file-3	/gpfs/lxg	gpfs
+STDIO	0	17098977012713052610	STDIO_F_OPEN_END_TIMESTAMP	40.059922	path-to-file-3	/gpfs/lxg	gpfs
+STDIO	0	17098977012713052610	STDIO_F_CLOSE_END_TIMESTAMP	40.361541	path-to-file-3	/gpfs/lxg	gpfs
+STDIO	0	17098977012713052610	STDIO_F_WRITE_END_TIMESTAMP	40.360595	path-to-file-3	/gpfs/lxg	gpfs
+STDIO	0	17098977012713052610	STDIO_F_READ_END_TIMESTAMP	0.000000	path-to-file-3	/gpfs/lxg	gpfs
+STDIO	0	17098977012713052610	STDIO_F_FASTEST_RANK_TIME	0.000000	path-to-file-3	/gpfs/lxg	gpfs
+STDIO	0	17098977012713052610	STDIO_F_SLOWEST_RANK_TIME	0.000000	path-to-file-3	/gpfs/lxg	gpfs
+STDIO	0	17098977012713052610	STDIO_F_VARIANCE_RANK_TIME	0.000000	path-to-file-3	/gpfs/lxg	gpfs
+STDIO	0	17098977012713052610	STDIO_F_VARIANCE_RANK_BYTES	0.000000	path-to-file-3	/gpfs/lxg	gpfs
+STDIO	-1	425155030087334329	STDIO_OPENS	542	path-to-file-4	/gpfs/lxg	gpfs
+STDIO	-1	425155030087334329	STDIO_READS	542	path-to-file-4	/gpfs/lxg	gpfs
+STDIO	-1	425155030087334329	STDIO_WRITES	0	path-to-file-4	/gpfs/lxg	gpfs
+STDIO	-1	425155030087334329	STDIO_SEEKS	0	path-to-file-4	/gpfs/lxg	gpfs
+STDIO	-1	425155030087334329	STDIO_FLUSHES	0	path-to-file-4	/gpfs/lxg	gpfs
+STDIO	-1	425155030087334329	STDIO_BYTES_WRITTEN	0	path-to-file-4	/gpfs/lxg	gpfs
+STDIO	-1	425155030087334329	STDIO_BYTES_READ	35520512	path-to-file-4	/gpfs/lxg	gpfs
+STDIO	-1	425155030087334329	STDIO_MAX_BYTE_READ	65535	path-to-file-4	/gpfs/lxg	gpfs
+STDIO	-1	425155030087334329	STDIO_MAX_BYTE_WRITTEN	0	path-to-file-4	/gpfs/lxg	gpfs
+STDIO	-1	425155030087334329	STDIO_FASTEST_RANK	20	path-to-file-4	/gpfs/lxg	gpfs
+STDIO	-1	425155030087334329	STDIO_FASTEST_RANK_BYTES	589824	path-to-file-4	/gpfs/lxg	gpfs
+STDIO	-1	425155030087334329	STDIO_SLOWEST_RANK	13	path-to-file-4	/gpfs/lxg	gpfs
+STDIO	-1	425155030087334329	STDIO_SLOWEST_RANK_BYTES	1048576	path-to-file-4	/gpfs/lxg	gpfs
+STDIO	-1	425155030087334329	STDIO_F_META_TIME	0.009541	path-to-file-4	/gpfs/lxg	gpfs
+STDIO	-1	425155030087334329	STDIO_F_WRITE_TIME	0.000000	path-to-file-4	/gpfs/lxg	gpfs
+STDIO	-1	425155030087334329	STDIO_F_READ_TIME	0.014031	path-to-file-4	/gpfs/lxg	gpfs
+STDIO	-1	425155030087334329	STDIO_F_OPEN_START_TIMESTAMP	27.346307	path-to-file-4	/gpfs/lxg	gpfs
+STDIO	-1	425155030087334329	STDIO_F_CLOSE_START_TIMESTAMP	27.346351	path-to-file-4	/gpfs/lxg	gpfs
+STDIO	-1	425155030087334329	STDIO_F_WRITE_START_TIMESTAMP	0.000000	path-to-file-4	/gpfs/lxg	gpfs
+STDIO	-1	425155030087334329	STDIO_F_READ_START_TIMESTAMP	27.346319	path-to-file-4	/gpfs/lxg	gpfs
+STDIO	-1	425155030087334329	STDIO_F_OPEN_END_TIMESTAMP	27.378637	path-to-file-4	/gpfs/lxg	gpfs
+STDIO	-1	425155030087334329	STDIO_F_CLOSE_END_TIMESTAMP	27.378671	path-to-file-4	/gpfs/lxg	gpfs
+STDIO	-1	425155030087334329	STDIO_F_WRITE_END_TIMESTAMP	0.000000	path-to-file-4	/gpfs/lxg	gpfs
+STDIO	-1	425155030087334329	STDIO_F_READ_END_TIMESTAMP	27.378664	path-to-file-4	/gpfs/lxg	gpfs
+STDIO	-1	425155030087334329	STDIO_F_FASTEST_RANK_TIME	0.000373	path-to-file-4	/gpfs/lxg	gpfs
+STDIO	-1	425155030087334329	STDIO_F_SLOWEST_RANK_TIME	0.000728	path-to-file-4	/gpfs/lxg	gpfs
+STDIO	-1	425155030087334329	STDIO_F_VARIANCE_RANK_TIME	0.000000	path-to-file-4	/gpfs/lxg	gpfs
+STDIO	-1	425155030087334329	STDIO_F_VARIANCE_RANK_BYTES	34173324856.888889	path-to-file-4	/gpfs/lxg	gpfs
