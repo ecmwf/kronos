@@ -21,14 +21,14 @@
 
 # mounted file systems (mount point and fs type)
 # -------------------------------------------------------
-# mount entry:	/scratch/ma	nfs
-# mount entry:	/vol/netlog	nfs
-# mount entry:	/usr/local	nfs
-# mount entry:	unknown	unknown
-# mount entry:	/var/tmp	ext3
-# mount entry:	/perm/ma	nfs
-# mount entry:	/home/ma	nfs
-# mount entry:	/	ext4
+# mount entry:	dummy_path	nfs
+# mount entry:	dummy_path	nfs
+# mount entry:	dummy_path	nfs
+# mount entry:	dummy_path	unknown
+# mount entry:	dummy_path	ext3
+# mount entry:	dummy_path	nfs
+# mount entry:	dummy_path	nfs
+# mount entry:	dummy_path	ext4
 
 # description of columns:
 #   <module>: module responsible for this I/O record.
