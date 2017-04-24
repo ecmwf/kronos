@@ -43,6 +43,7 @@ setup(
         'bin/kronos-plot-kpf',
         'bin/kronos-run-summary',
         'bin/kronos-map-2-kpf',
+        'bin/kronos-dsh-2-kpf',
         'bin/kronos-view-json',
         'bin/kronos-show-info'
     ],
