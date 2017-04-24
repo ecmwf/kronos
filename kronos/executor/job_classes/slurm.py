@@ -35,6 +35,11 @@ export IPM_LOGDIR={job_dir}/ipm-logs
 export IPM_HPM=PAPI_FP_OPS,PAPI_TOT_INS,PAPI_L1_DCM,PAPI_L2_DCM,PAPI_L3_DCM,PAPI_L1_DCA,PAPI_L1_TCM,PAPI_L2_TCM,PAPI_L3_TCM
 """
 
+darshan_template = """
+export DARSHAN_LOG_PATH={job_dir}
+export LD_PRELOAD={darshan_lib_path}
+"""
+
 allinea_template = """
 # Configure Allinea Map
 export PATH={allinea_path}:${{PATH}}
@@ -57,6 +62,7 @@ class SLURMMixin(object):
 
     submit_script_template = job_template
     ipm_template = ipm_template
+    darshan_template = darshan_template
     allinea_template = allinea_template
     allinea_lic_file_template = allinea_lic_file_template
         
