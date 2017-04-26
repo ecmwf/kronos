@@ -29,9 +29,26 @@ static void write_krf(const char* filename);
 
 /* ------------------------------------------------------------------------------------------------------------------ */
 
+typedef struct TimeSeriesFrame {
+
+    double duration;
+    struct TimeSeriesFrame* next;
+
+} TimeSeriesFrame;
+
+
 typedef struct StatisticsRegistry {
 
     StatisticsLogger* loggers;
+
+    /* Time series data */
+
+    TimeSeriesFrame * first;
+    TimeSeriesFrame * last;
+    unsigned long int frameCount;
+
+    double frameStartTime;
+    bool timing;
 
 } StatisticsRegistry;
 
@@ -43,6 +60,10 @@ static StatisticsRegistry* stats_instance() {
 
     if (!initialised) {
         registry.loggers = 0;
+        registry.first = 0;
+        registry.last = 0;
+        registry.frameCount = 0;
+        registry.timing = false;
         initialised = true;
     }
 
@@ -66,15 +87,32 @@ static void free_stats_logger(StatisticsLogger *logger) {
 void free_stats_registry() {
 
     StatisticsRegistry* registry = stats_instance();
-    StatisticsLogger* logger = registry->loggers;
 
+    StatisticsLogger* logger;
+    StatisticsLogger* nextLogger;
+
+    TimeSeriesFrame* frame;
+    TimeSeriesFrame* nextFrame;
+
+    logger = registry->loggers;
     while (logger != 0) {
-        StatisticsLogger* next = logger->next;
+        nextLogger = logger->next;
         free_stats_logger(logger);
-        logger = next;
+        logger = nextLogger;
     }
 
     registry->loggers = 0;
+
+    frame = registry->first;
+    while (frame != 0) {
+        nextFrame = frame->next;
+        free(frame);
+        frame = nextFrame;
+    }
+
+    registry->first = 0;
+    registry->last = 0;
+    registry->frameCount = 0;
 }
 
 
@@ -179,6 +217,45 @@ StatisticsLogger *create_stats_times_bytes_logger(const char* name) {
     logger->logBytes = true;
 
     return logger;
+}
+
+void start_time_series_logging() {
+
+    StatisticsRegistry* registry = stats_instance();
+    assert(!registry->timing);
+    assert(registry->first = 0);
+    assert(registry->last = 0);
+
+    registry->frameStartTime = take_time();
+    registry->timing = true;
+}
+
+void log_time_series_chunk() {
+
+    StatisticsRegistry* registry = stats_instance;
+
+    double endTime = take_time();
+    double elapsed = endTime - registry->frameStartTime;
+
+    TimeSeriesFrame* frame = malloc(sizeof(TimeSeriesFrame));
+
+    frame->duration = elapsed;
+
+    /* Add this frame as the last in a series */
+
+    frame->next = 0;
+
+    if (registry->first == 0) {
+        registry->first = frame;
+    } else {
+        registry->last->next = frame;
+    }
+
+    registry->last = frame;
+
+    /* We start timing the next frame synchronously with the end of this one, to
+     * ensure the generated time series is contiguous */
+    registry->frameStartTime = endTime;
 }
 
 static double calc_stddev(unsigned long int count, double sum, double sumSquares) {

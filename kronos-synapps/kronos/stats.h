@@ -61,10 +61,18 @@ void free_stats_registry();
 /**
  * Logging functions
  */
+
 void stats_start(StatisticsLogger* logger);
 void stats_log_event(StatisticsLogger* logger);
 void stats_stop_log(StatisticsLogger* logger);
 void stats_stop_log_bytes(StatisticsLogger* logger, unsigned long bytes);
+
+/**
+ * Time series logging
+ */
+
+void start_time_series_logging();
+void log_time_series_chunk();
 
 /**
  * Handles to the statistics loggers are stored centrally to make outputting

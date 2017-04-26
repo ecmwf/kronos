@@ -60,6 +60,10 @@ int main(int argc, char** argv)
                 }
             }
 
+            /* We want to log the time series behaviour of the kernels, not the
+             * ancilliary bumpf. So only log the kernels */
+            start_time_series_logging();
+
             if (frames == NULL) {
                 fprintf(stderr, "Error initialising kernel list\n");
             } else {
