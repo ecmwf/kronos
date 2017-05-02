@@ -16,16 +16,68 @@ import os
 import subprocess
 import json
 import argparse
-import sys
+import numpy as np
 
-from kronos.core import logreader
 from kronos.core.logreader.darshan import DarshanLogReader3
-
-sys.path.append(os.path.dirname(os.path.dirname(__file__)))
-
+from kronos.core.time_signal import time_signal_names, signal_types
 from kronos.core.exceptions_iows import ConfigurationError
 from kronos.io.profile_format import ProfileFormat
-from kronos.core.logreader import profiler_reader
+
+
+def get_tot_metrics(app_list):
+    """
+    Return the dictionary with the metrics totals from a json data of a synthetic app..
+    :return:
+    """
+
+    # make a list out of the input json data..
+    app_list = app_list if isinstance(app_list, list) else [app_list]
+
+    metrics_names = time_signal_names
+    tot_metrics = {k: np.asarray([]) for k in metrics_names}
+
+    for synth_app in app_list:
+        for frame in synth_app["frames"]:
+
+            for ker in frame:
+
+                if ker["name"] == "cpu":
+                    tot_metrics["flops"] = np.append(tot_metrics["flops"],
+                                                          signal_types["flops"]["type"](ker["flops"]))
+
+                elif ker["name"] == "file-read":
+                    tot_metrics["kb_read"] = np.append(tot_metrics["kb_read"],
+                                                            signal_types["kb_read"]["type"](ker["kb_read"]))
+                    tot_metrics["n_read"] = np.append(tot_metrics["n_read"],
+                                                           signal_types["n_read"]["type"](ker["n_read"]))
+
+                elif ker["name"] == "file-write":
+                    tot_metrics["kb_write"] = np.append(tot_metrics["kb_write"],
+                                                             signal_types["kb_write"]["type"](ker["kb_write"]))
+                    tot_metrics["n_write"] = np.append(tot_metrics["n_write"],
+                                                            signal_types["n_write"]["type"](ker["n_write"]))
+
+                elif ker["name"] == "mpi":
+                    tot_metrics["n_pairwise"] = np.append(tot_metrics["n_pairwise"],
+                                                               signal_types["n_pairwise"]["type"](ker["n_pairwise"]))
+                    tot_metrics["kb_pairwise"] = np.append(tot_metrics["kb_pairwise"],
+                                                                signal_types["kb_pairwise"]["type"](ker["kb_pairwise"]))
+                    tot_metrics["n_collective"] = np.append(tot_metrics["n_collective"],
+                                                                 signal_types["n_collective"]["type"](
+                                                                     ker["n_collective"]))
+                    tot_metrics["kb_collective"] = np.append(tot_metrics["kb_collective"],
+                                                                  signal_types["kb_collective"]["type"](
+                                                                      ker["kb_collective"]))
+
+                # ------------ additional kernels --------
+                elif ker["name"] == "fs_metadata":
+                    tot_metrics["n_mkdir"] = np.append(tot_metrics["n_mkdir"], int(ker["n_mkdir"]))
+
+                else:
+                    raise ("kernel name {} not recognized!".format(ker["name"]))
+
+    return tot_metrics
+
 
 if __name__ == "__main__":
 
@@ -103,29 +155,24 @@ if __name__ == "__main__":
 
             # Explicitly call the darshan3 logreader and parse the files one by one
             dsh_reader = DarshanLogReader3(tmp_dir_abs, parser=args.darshan_parser)
-            parsed_dsh_file = dsh_reader.read_log(darshan_file_full, suggested_label=label)[0].model_job()
-            model_jobs.append(parsed_dsh_file)
+            parsed_dsh_model_job = dsh_reader.read_log(darshan_file_full, suggested_label=label)[0].model_job()
+            model_jobs.append(parsed_dsh_model_job)
 
-            # print parsed_dsh_file
+            # Make a quick comparison with what is requested in the input.json
+            app_metrics_dict = get_tot_metrics(json_data)
+            print "{:<15s};{:>15s};{:>15s}".format("metric", "input.json", "darshan")
+            for k in time_signal_names:
+                if parsed_dsh_model_job.timesignals[k]:
+                    dsh_metric = parsed_dsh_model_job.timesignals[k].sum
+                    print "{:15s};{:15.3f};{:15.3f}".format(k, np.sum(app_metrics_dict[k]), dsh_metric)
 
-    #         fname_list.append(darshan_txt)
-    #         dict_name_label[darshan_txt] = label
-    #
-    # fname_list.sort()
-    #
-    # # job_map_dataset = profiler_reader.ingest_allinea_profiles(tmp_dir_abs,
-    # #                                                           list_json_files=fname_list,
-    # #                                                           json_label_map=dict_name_label)
-    #
-    # dataset = logreader.ingest_data("darshan3", args.path, ingest_config=ingest_config)
-    # inested_dsh3_job = Darshan3DataSet.read_log
-    #
-    # lr = DarshanLogReader3.read_log(tmp_dir_abs, parser=args.darshan_parser)
-    # dataset = cls(lr.read_logs(), ingest_path, ingest_config)
-    #
-    #
+    # Build the data structure for the KPF file format
     pf = ProfileFormat(model_jobs=model_jobs, workload_tag='allinea_map_files')
 
     # write output kpf file..
     with open(args.kpf_file, 'w') as f:
         pf.write(f)
+
+
+
+

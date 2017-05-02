@@ -220,7 +220,7 @@ class ModelJob(object):
         Some quick sanity checks
         """
         if not self.is_valid():
-            raise KeyError("Job {} (label:{}) is missing field".format(self.job_name, self.label))
+            raise KeyError("Job {} (label:{}) not valid!".format(self.job_name, self.label))
 
     def is_valid(self):
         """
@@ -239,6 +239,19 @@ class ModelJob(object):
                                                                                             self.label,
                                                                                             null_ts))
             return False
+
+        for ts_name, ts in self.timesignals.iteritems():
+
+            if max(ts.xvalues) > self.duration:
+                print_colour("red", " job [{}] with label [{}] has timesignal: {} longer than its own duration".format(self.job_name,
+                                                                                                self.label,
+                                                                                                ts_name))
+                print_colour("red", "duration:{}, start+duration:{} [sec], start+timesignal: {} [sec]".format(
+                    self.duration,
+                    self.time_start + self.duration,
+                    self.time_start + max(ts.xvalues)) )
+
+                return False
 
         return True
 

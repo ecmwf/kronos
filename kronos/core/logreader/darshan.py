@@ -355,6 +355,11 @@ class DarshanLogReader3(LogReader):
     # By default we end up with a whole load of darshan logfiles within a directory.
     label_method = "directory"
 
+    files_to_filter_out = [
+        "statistics.krf",
+        "<STDOUT>"
+    ]
+
     darshan_params = {
         'exe': ('exe_cmd', str),
         'uid': ('uid', int),
@@ -368,16 +373,37 @@ class DarshanLogReader3(LogReader):
     # File parameters for the synthetic apps profiled with Darshan v3.11
     file_params = {
         'STDIO_BYTES_READ': 'bytes_read',
+        'POSIX_BYTES_READ': 'bytes_read',
+
         'STDIO_BYTES_WRITTEN': 'bytes_written',
+        'POSIX_BYTES_WRITTEN': 'bytes_written',
+
         'STDIO_OPENS': 'open_count',
+        'POSIX_OPENS': 'open_count',
+
         'STDIO_WRITES': 'write_count',
+        'POSIX_WRITES': 'write_count',
+
         'STDIO_READS': 'read_count',
+        'POSIX_READS': 'read_count',
+
         "STDIO_F_OPEN_START_TIMESTAMP": "open_time",
+        "POSIX_F_OPEN_START_TIMESTAMP": "open_time",
+
         'STDIO_F_READ_START_TIMESTAMP': 'read_time_start',
+        'POSIX_F_READ_START_TIMESTAMP': 'read_time_start',
+
         'STDIO_F_WRITE_START_TIMESTAMP': 'write_time_start',
+        'POSIX_F_WRITE_START_TIMESTAMP': 'write_time_start',
+
         "STDIO_F_READ_END_TIMESTAMP": 'read_time_end',
+        "POSIX_F_READ_END_TIMESTAMP": 'read_time_end',
+
         "STDIO_F_WRITE_END_TIMESTAMP": 'write_time_end',
-        "STDIO_F_CLOSE_END_TIMESTAMP": 'close_time'
+        "POSIX_F_WRITE_END_TIMESTAMP": 'write_time_end',
+
+        "STDIO_F_CLOSE_END_TIMESTAMP": 'close_time',
+        "POSIX_F_CLOSE_END_TIMESTAMP": 'close_time'
     }
 
     def __init__(self, path, **kwargs):
@@ -442,13 +468,15 @@ class DarshanLogReader3(LogReader):
                 filename = bits[5]
 
                 # Add the file to the map if required
-                if filename not in files:
-                    files[filename] = DarshanIngestedJobFile(filename)
+                if not any([fname in filename for fname in self.files_to_filter_out]):
 
-                file_elem = self.file_params.get(bits[3], None)
-                if file_elem is not None:
-                    currval = getattr(files[filename], file_elem) or 0
-                    setattr(files[filename], file_elem, currval + float(bits[4]))
+                    if filename not in files:
+                        files[filename] = DarshanIngestedJobFile(filename)
+
+                    file_elem = self.file_params.get(bits[3], None)
+                    if file_elem is not None:
+                        currval = getattr(files[filename], file_elem) or 0
+                        setattr(files[filename], file_elem, currval + float(bits[4]))
 
         return [self.job_class(file_details=files, **params)]
 
