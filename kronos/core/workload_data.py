@@ -469,4 +469,8 @@ class WorkloadDataGroup(PickableObject):
     def min_start_time(self):
         return min(j.time_start for wl in self.workloads for j in wl.jobs)
 
+    @property
+    def max_end_time(self):
+        return max(j.time_start+j.duration for wl in self.workloads for j in wl.jobs)
+
 
