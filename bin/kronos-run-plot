@@ -12,8 +12,6 @@ Kronos tool to quickly inspect the results of a run
 """
 
 import argparse
-import sys
-import os
 import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.pyplot import cm
@@ -45,7 +43,7 @@ if __name__ == "__main__":
     tend_model = wl_model_group.max_end_time
     ts_sums_model = wl_model_group.sum_timeseries
     t_bins_model = np.linspace(t0_model, tend_model, n_bins + 1)
-    t_model_all = (t_bins_model[:-1] + t_bins_model[1:]) / 2.0
+    t_model_all = (t_bins_model[:-1]+t_bins_model[1:]) / 2.0
     n_jobs_in_group_model = wl_model_group.sum_jobs
 
     # retrieve information from KPF of original workloads
@@ -57,68 +55,46 @@ if __name__ == "__main__":
     t_orig_all = (t_bins_orig[:-1] + t_bins_orig[1:]) / 2.0
     n_jobs_in_group_orig = wl_orig_group.sum_jobs
 
-    print "{:^20}{:^20}{:^20}{:^20}".format("name", "sum model", "sum orig", "sum relative")
-    for ts_name in ts_sums_model.keys():
-        print "{:<20};{:>20.2f};{:>20.5f};{:>20.5f}".format(ts_name,
-                                                            ts_sums_model[ts_name],
-                                                            ts_sums_orig[ts_name],
-                                                            ts_sums_model[ts_name]/ts_sums_orig[ts_name])
-
     plt_hdl = PlotHandler()
     color = iter(cm.rainbow(np.linspace(0, 1, len(wl_model_group.tags))))
     plt.figure(plt_hdl.get_fig_handle_ID(), figsize=(18, 6))
 
-    # collect all the info before plotting for efficiency reasons..
+    # ----------- collect all the info before plotting for efficiency reasons.. ---------------
     plot_info_model = {}
     plot_info_orig = {}
+    n_jobs_relative_offset = {}
     for ll, label in enumerate(wl_model_group.tags):
 
         # --------- retrieve kpf data from iteration -------------
         kpf_workload = wl_model_group.get_workload_by_name(label)
         total_metrics_model = kpf_workload.total_metrics_timesignals
 
+        times_relative_model = t_model_all - t_model_all[0]
+        running_model = running_series(wl_model_group.get_workload_by_name(label).jobs, t_model_all)
+        running_model_norm = running_model / float(n_jobs_in_group_model)
+
         plot_info_model[label] = {
             "total_metrics": total_metrics_model,
+            "times_relative_model": times_relative_model,
+            "running_model_norm": running_model_norm,
         }
+
         # --------------------------------------------------------
 
         # ------- retrieve jobs fro the original workload.. ------
         kpf_workload_orig = wl_orig_group.get_workload_by_name(label)
         total_metrics_original = kpf_workload_orig.total_metrics_timesignals
 
-        plot_info_orig[label] = {
-            "total_metrics": total_metrics_original,
-        }
-        # --------------------------------------------------------
-
-    n_jobs_relative_offset = {}
-    for ll, label in enumerate(wl_model_group.tags):
-
-        print "label: {}".format(label)
-
-        # ------------------ plots ----------------------------
-        line_color = next(color)
-
-        plt.subplot(2, 1, 1)
-        plt.subplots_adjust(left=0.2, right=0.8, top=0.9, bottom=0.1)
-        times_relative_model = t_model_all - t_model_all[0]
-        running_model = running_series(wl_model_group.get_workload_by_name(label).jobs, t_model_all)
-        running_model_norm = running_model / float(n_jobs_in_group_model)
-        plt.plot(times_relative_model, running_model_norm, color=line_color, linestyle='-', label=label)
-        plt.legend(loc='center left', bbox_to_anchor=(1, 0.5))
-        plt.ylabel('#jobs/Njobs (model)')
-        plt.xlabel('time [s]')
-        plt.title('#jobs/Njobs (n_bins={} [s])'.format(n_bins))
-
-        plt.subplot(2, 1, 2)
-        plt.subplots_adjust(left=0.2, right=0.8, top=0.9, bottom=0.1)
         times_relative_orig = t_orig_all - t_orig_all[0]
         running_orig = running_series(wl_orig_group.get_workload_by_name(label).jobs, t_orig_all)
         running_orig_norm = running_orig / float(n_jobs_in_group_orig)
-        plt.plot(times_relative_orig, running_orig_norm, color=line_color, linestyle='-')
 
-        plt.ylabel('#jobs/Njobs (original)')
-        plt.xlabel('time [s]')
+        plot_info_orig[label] = {
+            "total_metrics": total_metrics_original,
+            "times_relative_orig": times_relative_orig,
+            "running_orig_norm": running_orig_norm,
+        }
+        # --------------------------------------------------------
 
         # --- append the relative offset by cross-correlation of the n jobs signals ---
         n_jobs_relative_offset[label] = calculate_signals_similarity(times_relative_model,
@@ -126,68 +102,147 @@ if __name__ == "__main__":
                                                                      times_relative_orig,
                                                                      running_orig_norm)
 
-        pass
+        # ------ now extract metrics grouped per time series..
+        for tt, ts_name in enumerate(time_signal_names):
+
+            total_metrics_model_ts = total_metrics_model.get(ts_name)
+            total_metrics_original_ts = total_metrics_original.get(ts_name)
+
+            # model
+            if plot_info_model[label]["total_metrics"].get(ts_name):
+                y_vals_norm_model = total_metrics_model_ts.yvalues / ts_sums_model[ts_name]
+                times_plot_model, binned_vals_model = bin_array(total_metrics_model_ts.xvalues, y_vals_norm_model, t_bins_model, mode="sum")
+                times_relative_model = times_plot_model - times_plot_model[0]
+
+                plot_info_model[label][ts_name] = {
+                    "times_relative_model": times_relative_model,
+                    "binned_vals_model": binned_vals_model,
+                }
+
+            # orig
+            if plot_info_orig[label]["total_metrics"].get(ts_name):
+                y_vals_norm_orig = total_metrics_original_ts.yvalues / ts_sums_orig[ts_name]
+                times_plot_orig, binned_vals_orig = bin_array(total_metrics_original_ts.xvalues, y_vals_norm_orig, t_bins_orig, mode="sum")
+                times_relative_orig = times_plot_orig - times_plot_orig[0]
+
+                plot_info_orig[label][ts_name] = {
+                    "times_relative_orig": times_relative_orig,
+                    "binned_vals_orig": binned_vals_orig,
+                }
+
+    # ------------------ plots ----------------------------
+    for ll, label in enumerate(wl_model_group.tags):
+
+        line_color = next(color)
+
+        plt.subplot(2, 1, 1)
+        plt.subplots_adjust(left=0.2, right=0.8, top=0.9, bottom=0.1)
+        plt.plot(plot_info_model[label]["times_relative_model"],
+                 plot_info_model[label]["running_model_norm"],
+                 color=line_color, linestyle='-', label=label)
+        plt.legend(loc='center left', bbox_to_anchor=(1, 0.5))
+        plt.ylabel('#jobs/Njobs (model)')
+        plt.xlabel('time [s]')
+        plt.title('#jobs/Njobs (n_bins={} [s])'.format(n_bins))
+
+        plt.subplot(2, 1, 2)
+        plt.subplots_adjust(left=0.2, right=0.8, top=0.9, bottom=0.1)
+        plt.plot(plot_info_orig[label]["times_relative_orig"],
+                 plot_info_orig[label]["running_orig_norm"],
+                 color=line_color, linestyle='-')
+        plt.ylabel('#jobs/Njobs (original)')
+        plt.xlabel('time [s]')
 
     plt.savefig('n_jobs.png')
     plt.close()
-
-    # print relative time offset..
-    print "{:^30s}|{:^30s}|{:^30s}|".format("workload", " relative time error [%]", " relative corr err [%]")
-    for label in n_jobs_relative_offset.keys():
-        print "{:30s}|{:30.1f}|{:30.1f}|".format(label, n_jobs_relative_offset[label][0], n_jobs_relative_offset[label][1])
 
     # plots of the total time-signals
     metrics_relative_offset = {}
     for tt, ts_name in enumerate(time_signal_names):
 
-        print "Metric {:30s}".format(ts_name)
-
         plt_hdl = PlotHandler()
         color = iter(cm.rainbow(np.linspace(0, 1, len(wl_model_group.tags))))
         plt.figure(plt_hdl.get_fig_handle_ID(), figsize=(18, 6))
 
-        print "{:^30s}|{:^30s}|{:^30s}|".format("workload", " relative time error [%]", "relative corr err [%]")
-
         for ll, label in enumerate(wl_model_group.tags):
-
-            total_metrics_model_ts = plot_info_model[label]["total_metrics"].get(ts_name)
-            total_metrics_original_ts = plot_info_orig[label]["total_metrics"].get(ts_name)
 
             line_color = next(color)
 
             plt.subplot(2, 1, 1)
             plt.subplots_adjust(left=0.2, right=0.8, top=0.9, bottom=0.1)
-            if total_metrics_model_ts:
-                y_vals_norm_model = total_metrics_model_ts.yvalues/ts_sums_model[ts_name]
-                times_plot_model, binned_vals_model = bin_array(total_metrics_model_ts.xvalues, y_vals_norm_model, t_bins_model, mode="sum")
-                times_relative_model = times_plot_model-times_plot_model[0]
-                plt.plot(times_relative_model, binned_vals_model, color=line_color, label=label)
+            if plot_info_model[label]["total_metrics"].get(ts_name):
+                plt.plot(plot_info_model[label][ts_name]["times_relative_model"],
+                         plot_info_model[label][ts_name]["binned_vals_model"],
+                         color=line_color, label=label)
             plt.ylabel(ts_name+" - model")
             plt.xlabel('time [s]')
             plt.legend(loc='center left', bbox_to_anchor=(1, 0.5))
 
             plt.subplot(2, 1, 2)
             plt.subplots_adjust(left=0.2, right=0.8, top=0.9, bottom=0.1)
-            if total_metrics_original_ts:
-                y_vals_norm_orig = total_metrics_original_ts.yvalues / ts_sums_orig[ts_name]
-                times_plot_orig, binned_vals_orig = bin_array(total_metrics_original_ts.xvalues, y_vals_norm_orig, t_bins_orig, mode="sum")
-                times_relative_orig = times_plot_orig - times_plot_orig[0]
-                plt.plot(times_relative_orig, binned_vals_orig, color=line_color, label=label)
+            if plot_info_orig[label]["total_metrics"].get(ts_name):
+                plt.plot(plot_info_orig[label][ts_name]["times_relative_orig"],
+                         plot_info_orig[label][ts_name]["binned_vals_orig"],
+                         color=line_color, label=label)
             plt.ylabel(ts_name+" - original")
             plt.xlabel('time [s]')
-
-            # calculate metrics relative offset
-            if total_metrics_model_ts and total_metrics_original_ts:
-                metrics_relative_offset[ts_name] = {label: calculate_signals_similarity(times_relative_model,
-                                                                                        binned_vals_model,
-                                                                                        times_relative_orig,
-                                                                                        binned_vals_orig)}
-                # print relative time offset..
-                print "{:30s}|{:30.1f}|{:30.1f}|".format(label,
-                                                         metrics_relative_offset[ts_name][label][0],
-                                                         metrics_relative_offset[ts_name][label][1])
 
         plt.savefig(ts_name+'.png')
         plt.close()
 
+    # print summary
+    _fl = 25
 
+    print "\nRUN SUMMARY\n"
+    print "{}".format("-" * (_fl + 1) * 4)
+    print "{:^{l}}{:^{l}}{:^{l}}{:^{l}}".format("name", "sum model", "sum orig", "sum relative", l=_fl)
+    print "{}".format("-" * (_fl + 1) * 4)
+    for ts_name in ts_sums_model.keys():
+        print "{:<{l}};{:>{l}.2f};{:>{l}.2f};{:>{l}.5f}".format(ts_name,
+                                                                ts_sums_model[ts_name],
+                                                                ts_sums_orig[ts_name],
+                                                                ts_sums_model[ts_name]/ts_sums_orig[ts_name],
+                                                                l=_fl)
+
+    # print relative time offset..
+    print "\nNUMBER OF JOBS - ERROR:\n"
+    print "{}".format("-" * (_fl + 1) * 3)
+    print "{:^{l}s}|{:^{l}s}|{:^{l}s}|".format("workload",
+                                               "relative time error [%]",
+                                               "relative corr err [%]",
+                                               l=_fl)
+    print "{}".format("-" * (_fl + 1) * 3)
+
+    for label in n_jobs_relative_offset.keys():
+        print "{:<{l}s}|{:>{l}.1f}|{:>{l}.1f}|".format(label, n_jobs_relative_offset[label][0],
+                                                       n_jobs_relative_offset[label][1],
+                                                       l=_fl)
+
+    # plots of the total time-signals
+    for tt, ts_name in enumerate(time_signal_names):
+
+        print "\n{} - ERROR:\n".format(ts_name.upper())
+        print "{}".format("-" * (_fl + 1) * 3)
+        print "{:^{l}s}|{:^{l}s}|{:^{l}s}|".format("workload",
+                                                   "relative time error [%]",
+                                                   "relative corr err [%]",
+                                                   l=_fl)
+        print "{}".format("-" * (_fl + 1) * 3)
+
+        for ll, label in enumerate(wl_model_group.tags):
+
+            # calculate metrics relative offset
+            if plot_info_model[label]["total_metrics"].get(ts_name) and plot_info_orig[label]["total_metrics"].get(ts_name):
+                metrics_relative_offset[ts_name] = {label: calculate_signals_similarity(plot_info_model[label][ts_name]["times_relative_model"],
+                                                                                        plot_info_model[label][ts_name]["binned_vals_model"],
+                                                                                        plot_info_orig[label][ts_name]["times_relative_orig"],
+                                                                                        plot_info_orig[label][ts_name]["binned_vals_orig"])}
+                # print relative time offset..
+                print "{:<{l}s}|{:>{l}.1f}|{:>{l}.1f}|".format(label,
+                                                               metrics_relative_offset[ts_name][label][0],
+                                                               metrics_relative_offset[ts_name][label][1],
+                                                               l=_fl)
+            else:
+
+                # print relative time offset..
+                print "{:<{l}s}|{:>{l}s}|{:>{l}s}|".format(label, "N/A", "N/A", l=_fl)
