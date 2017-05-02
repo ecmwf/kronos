@@ -29,23 +29,28 @@ setup(
         'kronos': 'kronos'
     },
     scripts=[
-        'bin/kronos-conf',
-        'bin/kronos-config-enquire',
-        'bin/kronos-dummy-workload',
-        'bin/kronos-executor',
-        'bin/kronos-generate-read-files',
         'bin/kronos-ingest',
+        'bin/kronos-model',
+
+        'bin/kronos-view-json',
+        'bin/kronos-show-info',
+        'bin/kronos-conf',
         'bin/kronos-kpf',
         'bin/kronos-ksf',
-        'bin/kronos-model',
+        'bin/kronos-config-enquire',
+        'bin/kronos-dummy-workload',
+
+        'bin/kronos-generate-read-files',
+        'bin/kronos-executor',
         'bin/kronos-raw-to-kpf',
-        'bin/kronos-plot-run',
+
         'bin/kronos-plot-kpf',
-        'bin/kronos-run-summary',
         'bin/kronos-map-2-kpf',
         'bin/kronos-dsh-2-kpf',
-        'bin/kronos-view-json',
-        'bin/kronos-show-info'
+
+        'bin/kronos-run-perf',
+        'bin/kronos-run-plot',
+        'bin/kronos-run-summary',
     ],
     include_package_data=True,
     install_requires=requirements,
