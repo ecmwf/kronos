@@ -1,0 +1,203 @@
+#!/usr/bin/env python
+# (C) Copyright 1996-2017 ECMWF.
+#
+# This software is licensed under the terms of the Apache Licence Version 2.0
+# which can be obtained at http://www.apache.org/licenses/LICENSE-2.0.
+# In applying this licence, ECMWF does not waive the privileges and immunities
+# granted to it by virtue of its status as an intergovernmental organisation nor
+# does it submit to any jurisdiction.
+
+"""
+script to generate a summary from the KRF files in the run folder
+"""
+
+import os
+import json
+import argparse
+
+import numpy as np
+import matplotlib.pyplot as plt
+
+from kronos.core.exceptions_iows import ConfigurationError
+
+
+def lin_reg(x_in, y_in, alpha=1e-1, niter=10000):
+
+    """ simple linear regression """
+    theta = np.zeros((2, 1))
+    cost = 0
+
+    for ii in range(niter):
+        cost, grad = calc_grad(x_in, y_in, theta)
+        theta = theta - alpha * grad
+        print "theta: {} ".format(theta)
+
+    return cost, theta
+
+
+def calc_grad(x_in, y_in, theta):
+
+    """ grad for linear regression """
+    x_in = x_in.reshape([np.asarray(x_in).size, -1])
+    y_in = y_in.reshape([np.asarray(y_in).size, -1])
+
+    mm = len(x_in)
+
+    xx = np.hstack((np.ones(x_in.shape), x_in))
+
+    diff_vec = np.dot(xx, theta)-y_in
+    cost = 1./(2.*mm) * np.dot(np.transpose(diff_vec), diff_vec)
+    grad = 1./mm * np.dot(np.transpose(xx), np.dot(xx, theta)-y_in )
+
+    return cost, grad
+
+
+if __name__ == "__main__":
+
+    # Parser for the required arguments
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("path_run", type=str, help="Path of the kronos run folder (contains the job-<ID> sub-folders)")
+    args = parser.parse_args()
+
+    if not os.path.exists(args.path_run):
+        raise ConfigurationError("Specified run path does not exist: {}".format(args.path_run))
+
+    # ---------- Process the run jsons ----------
+    job_dirs = [x for x in os.listdir(args.path_run) if os.path.isdir(os.path.join(args.path_run, x)) and "job-" in x]
+
+    fname_list = []
+    dict_name_label = {}
+
+    jobs_data_all = []
+    for job_dir in job_dirs:
+
+        sub_dir_path_abs = os.path.join(args.path_run, job_dir)
+        sub_dir_files = os.listdir(sub_dir_path_abs)
+        krf_file = [f for f in sub_dir_files if f.endswith('.krf')]
+
+        if krf_file:
+
+            map_file_name = krf_file[0]
+            map_file_full = os.path.join(sub_dir_path_abs, map_file_name)
+            map_base_abs = os.path.splitext(map_file_full)[0]
+            # print "processing KRF file: {}".format(map_file_full)
+
+            input_file_path_abs = os.path.join(sub_dir_path_abs, 'input.json')
+            stats_file_path_abs = os.path.join(sub_dir_path_abs, 'statistics.krf')
+
+            # read input file
+            with open(input_file_path_abs, 'r') as f:
+                json_data_input = json.load(f)
+
+            # read stats file
+            with open(stats_file_path_abs, 'r') as f:
+                json_data_stats = json.load(f)
+
+            # transfer data from input file to stats file
+            json_data_stats['metadata'] = json_data_input['metadata']
+
+            # append to a global data structure..
+            jobs_data_all.append(json_data_stats)
+
+    # -------- calculate relevant summary measures as needed.. ---------
+    data_keys = {
+        "cpu": {"label": "FLOPS/sec", "conv": 1.0},
+        "read": {"label": "I/O read: [G/s]", "conv": 1.0/1024**3},
+        "write": {"label": "I/O write: [G/s]", "conv": 1.0/1024**3},
+        "mpi-pairwise": {"label": "MPI p2p: [G/s]", "conv": 1.0/1024**3},
+        "mpi-collective": {"label": "MPI col: [G/s]", "conv": 1.0/1024**3}
+    }
+
+    perf_data = {}
+    for name in data_keys.keys():
+        perf_data[name] = [(rank["stats"][name]["count"],
+                            rank["stats"][name]["bytes"] if name != "cpu" else 0.0,
+                            rank["stats"][name]["elapsed"])
+                           for sa in jobs_data_all for rank in sa["ranks"] if rank["stats"].get(name)]
+    # ------------------------------------------------------------------------------------------------
+
+    summary_data = {}
+    for k in data_keys.keys():
+        summary_data[k] = {"vec": zip(*perf_data[k])}
+
+    flop_data = zip(*perf_data["cpu"])
+    read_data = zip(*perf_data["read"])
+    write_data = zip(*perf_data["write"])
+    mpi_p2p_data = zip(*perf_data["mpi-pairwise"])
+    mpi_col_data = zip(*perf_data["mpi-collective"])
+
+    for k in summary_data.keys():
+
+        # counter per sec
+        if k == "cpu":
+            summary_data[k]["mean"] = sum(summary_data[k]["vec"][0]) / float(sum(summary_data[k]["vec"][2]))
+            summary_data[k]["max"] = np.max(np.asarray(summary_data[k]["vec"][0])/np.asarray(summary_data[k]["vec"][2]))
+            summary_data[k]["min"] = np.min(np.asarray(summary_data[k]["vec"][0])/np.asarray(summary_data[k]["vec"][2]))
+            summary_data[k]["std"] = np.std(np.asarray(summary_data[k]["vec"][0])/np.asarray(summary_data[k]["vec"][2]))
+
+        # bytes per sec..
+        else:
+            summary_data[k]["mean"] = sum(summary_data[k]["vec"][1]) / float(sum(summary_data[k]["vec"][2]))
+            summary_data[k]["max"] = np.max(np.asarray(summary_data[k]["vec"][1])/np.asarray(summary_data[k]["vec"][2]))
+            summary_data[k]["min"] = np.min(np.asarray(summary_data[k]["vec"][1])/np.asarray(summary_data[k]["vec"][2]))
+            summary_data[k]["std"] = np.std(np.asarray(summary_data[k]["vec"][1])/np.asarray(summary_data[k]["vec"][2]))
+    # ---------------------------------------------------------
+
+    _fl = 20
+    print "{:<52s}".format("\nPERFORMANCE SUMMARY:\n")
+    print "{}".format("-"*(_fl+1)*5)
+    print "{:<{l}s}|{:^{l}s}|{:^{l}s}|{:^{l}s}|{:^{l}s}|".format("Name",
+                                                                 "avg",
+                                                                 "max",
+                                                                 "min",
+                                                                 "std",
+                                                                 "latency (est)",
+                                                                 "bandwidth (est)",
+                                                                 l=_fl)
+    print "{}".format("-"*(_fl+1)*5)
+
+    for k in summary_data.keys():
+        print "{:<{l}s}|{:^{l}f}|{:^{l}f}|{:^{l}f}|{:^{l}f}|".format(data_keys[k]["label"],
+                                                                     summary_data[k]["mean"]*data_keys[k]["conv"],
+                                                                     summary_data[k]["max"]*data_keys[k]["conv"],
+                                                                     summary_data[k]["min"]*data_keys[k]["conv"],
+                                                                     summary_data[k]["std"]*data_keys[k]["conv"],
+                                                                     l=_fl)
+
+    # # ----------------- plot for testing only -----------------
+    # read_size_vec = np.asarray(read_data[1], dtype=float)/np.asarray(read_data[0], dtype=float)
+    # time_per_read_vec = np.asarray(read_data[2], dtype=float)/np.asarray(read_data[0], dtype=float)
+    #
+    # read_size_vec_max = np.max(read_size_vec)
+    # read_size_vec /= read_size_vec_max
+    #
+    # time_per_read_vec_max = np.max(time_per_read_vec)
+    # time_per_read_vec /= time_per_read_vec_max
+    #
+    # plt.plot(read_size_vec*read_size_vec_max, time_per_read_vec*time_per_read_vec_max, "b+")
+    # plt.xlabel("read size")
+    # plt.ylabel("elapsed time per read")
+    # # plt.xscale('log')
+    # # plt.yscale('log')
+    #
+    # read_size_vec = read_size_vec.reshape([read_size_vec.size, -1])
+    #
+    # # print "read_size_vec"
+    # # print read_size_vec
+    # # print "time_per_read_vec"
+    # # print time_per_read_vec
+    #
+    # cost, theta = lin_reg(read_size_vec, time_per_read_vec)
+    # xx = np.hstack((np.ones(read_size_vec.shape), read_size_vec))
+    #
+    # print "theta.shape {}".format(theta.shape)
+    # print "xx.shape {}".format(xx.shape)
+    # print "read_size_vec.shape {}".format(read_size_vec.shape)
+    # print "np.dot(xx, theta).shape {}".format(np.dot(xx, theta).shape)
+    #
+    # theta[1] *= read_size_vec_max
+    # plt.plot(read_size_vec, np.dot(xx, theta), 'r+')
+    # plt.show()
+    # # ---------------------------------------------------------
+
+

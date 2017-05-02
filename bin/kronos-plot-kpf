@@ -51,7 +51,7 @@ if __name__ == "__main__":
     max_running_jobs_orig = wl_orig_group.max_running_jobs
     vals_max_orig = wl_orig_group.max_timeseries(n_bins=args.nbins)
     vals_sum_orig = wl_orig_group.sum_timeseries
-    t_0 = wl_orig_group.min_start_time()
+    t_0 = wl_orig_group.min_start_time
     t_1 = t_0 + wl_orig_group.total_duration
 
     if not args.xmin:
