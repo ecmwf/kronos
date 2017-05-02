@@ -76,42 +76,49 @@ class ksf_info(file_info):
         """
 
         for synth_app in self.jobs_data:
+
+            app_metrics = {k: np.asarray([]) for k in self.metrics_names}
+
             for frame in synth_app["frames"]:
 
                 for ker in frame:
 
                     if ker["name"] == "cpu":
-                        self.tot_metrics["flops"] = np.append(self.tot_metrics["flops"],
+                        app_metrics["flops"] = np.append(app_metrics["flops"],
                                                               signal_types["flops"]["type"](ker["flops"]))
 
                     elif ker["name"] == "file-read":
-                        self.tot_metrics["kb_read"] = np.append(self.tot_metrics["kb_read"],
+                        app_metrics["kb_read"] = np.append(app_metrics["kb_read"],
                                                                 signal_types["kb_read"]["type"](ker["kb_read"]))
-                        self.tot_metrics["n_read"] = np.append(self.tot_metrics["n_read"],
+                        app_metrics["n_read"] = np.append(app_metrics["n_read"],
                                                                signal_types["n_read"]["type"](ker["n_read"]))
 
                     elif ker["name"] == "file-write":
-                        self.tot_metrics["kb_write"] = np.append(self.tot_metrics["kb_write"],
+                        app_metrics["kb_write"] = np.append(app_metrics["kb_write"],
                                                                  signal_types["kb_write"]["type"](ker["kb_write"]))
-                        self.tot_metrics["n_write"] = np.append(self.tot_metrics["n_write"],
+                        app_metrics["n_write"] = np.append(app_metrics["n_write"],
                                                                 signal_types["n_write"]["type"](ker["n_write"]))
 
                     elif ker["name"] == "mpi":
-                        self.tot_metrics["n_pairwise"] = np.append(self.tot_metrics["n_pairwise"],
+                        app_metrics["n_pairwise"] = np.append(app_metrics["n_pairwise"],
                                                                    signal_types["n_pairwise"]["type"](ker["n_pairwise"]))
-                        self.tot_metrics["kb_pairwise"] = np.append(self.tot_metrics["kb_pairwise"],
+                        app_metrics["kb_pairwise"] = np.append(app_metrics["kb_pairwise"],
                                                                     signal_types["kb_pairwise"]["type"](ker["kb_pairwise"]))
-                        self.tot_metrics["n_collective"] = np.append(self.tot_metrics["n_collective"],
+                        app_metrics["n_collective"] = np.append(app_metrics["n_collective"],
                                                                      signal_types["n_collective"]["type"](ker["n_collective"]))
-                        self.tot_metrics["kb_collective"] = np.append(self.tot_metrics["kb_collective"],
+                        app_metrics["kb_collective"] = np.append(app_metrics["kb_collective"],
                                                                       signal_types["kb_collective"]["type"](ker["kb_collective"]))
 
                     # ------------ additional kernels --------
                     elif ker["name"] == "fs_metadata":
-                        self.tot_metrics["n_mkdir"] = np.append(self.tot_metrics["n_mkdir"], int(ker["n_mkdir"]))
+                        app_metrics["n_mkdir"] = np.append(app_metrics["n_mkdir"], int(ker["n_mkdir"]))
 
                     else:
                         raise ("kernel name {} not recognized!".format(ker["name"]))
+
+            # append synth app sums into totats
+            for k in app_metrics.keys():
+                self.tot_metrics[k] = np.append(self.tot_metrics[k], sum(app_metrics[k]))
 
         return self.tot_metrics
 
