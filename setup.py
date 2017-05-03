@@ -49,7 +49,7 @@ setup(
         'bin/kronos-dsh-2-kpf',
 
         'bin/kronos-run-perf',
-        'bin/kronos-run-plot',
+        'bin/kronos-run-analysis',
         'bin/kronos-run-summary',
     ],
     include_package_data=True,
