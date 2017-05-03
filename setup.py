@@ -50,7 +50,6 @@ setup(
 
         'bin/kronos-run-perf',
         'bin/kronos-run-analysis',
-        'bin/kronos-run-summary',
     ],
     include_package_data=True,
     install_requires=requirements,
