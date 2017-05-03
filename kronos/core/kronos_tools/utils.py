@@ -140,6 +140,14 @@ def calculate_signals_similarity(t1, v1, t2, v2):
     assert len(t1) == len(t2)
     assert len(v1) == len(v2)
 
+    if not np.linalg.norm(v1):
+        print "Warning: signal 1 has zero norm!"
+        return -1.0, -1.0
+
+    if not np.linalg.norm(v2):
+        print "Warning: signal 2 has zero norm!"
+        return -1.0, -1.0
+
     v1_norm = v1/np.linalg.norm(v1)
     v2_norm = v2/np.linalg.norm(v2)
 
