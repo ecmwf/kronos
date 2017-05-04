@@ -170,7 +170,7 @@ class SyntheticApp(ModelJob):
     A type of ModelJob which is used as the output stage (after modelling, scaling, etc.). There is a one-to-one
     mapping between these SyntheticApp classes and execution runs of the synthetic application (coordinator).
     """
-    def __init__(self, job_name=None, time_signals=None, **kwargs):
+    def __init__(self, job_name=None, time_signals=None, metrics_hard_limits=None, **kwargs):
 
         super(SyntheticApp, self).__init__(
             timesignals=time_signals,
@@ -180,6 +180,7 @@ class SyntheticApp(ModelJob):
 
         self.job_name = job_name
         self._scaling_factors = None
+        self.metrics_hard_limits = metrics_hard_limits
 
     def export(self, filename=None, n_bins=None, job_entry_only=False):
         """
@@ -218,10 +219,7 @@ class SyntheticApp(ModelJob):
         kernels = []
         for kernel_type in app_kernels.available_kernels:
 
-            if self._scaling_factors:
-                kernel = kernel_type(self.timesignals, self._scaling_factors)
-            else:
-                kernel = kernel_type(self.timesignals)
+            kernel = kernel_type(self.timesignals, self._scaling_factors, self.metrics_hard_limits)
 
             if not kernel.empty:
                 kernels.append(kernel.synapp_config(n_bins=n_bins))

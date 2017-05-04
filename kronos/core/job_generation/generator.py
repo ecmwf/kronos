@@ -10,7 +10,6 @@ import copy
 
 from kronos.core.exceptions_iows import ConfigurationError
 from kronos.core.job_generation import strategy_factory
-
 from kronos.core.kronos_tools.gyration_radius import r_gyration
 from kronos.core.job_generation.schedule import job_schedule_factory
 from kronos.core.synthetic_app import SyntheticApp
@@ -97,7 +96,9 @@ class SyntheticWorkloadGenerator(object):
             normalized_jobs = self.normalize_jobs(model_jobs, wl_clusters)
 
             # Then create the synthetic apps from the generated model jobs
-            modelled_sa_jobs = self.model_jobs_to_sa(normalized_jobs, wl_clusters['source-workload'])
+            modelled_sa_jobs = self.model_jobs_to_sa(normalized_jobs,
+                                                     wl_clusters['source-workload'],
+                                                     metrics_hard_limits=self.config_generator.get("metrics_hard_limits"))
 
             # And append the synthetic apps to the list
             generated_sa_from_all_wl.extend(modelled_sa_jobs)
@@ -129,11 +130,12 @@ class SyntheticWorkloadGenerator(object):
         return normalized_jobs
 
     @staticmethod
-    def model_jobs_to_sa(model_jobs, label):
+    def model_jobs_to_sa(model_jobs, label, metrics_hard_limits=None):
         """
         This method takes a list of model jobs and translates tham into synthetic apps
         :param model_jobs:
         :param label:
+        :param metrics_hard_limits
         :return:
         """
 
@@ -145,6 +147,7 @@ class SyntheticWorkloadGenerator(object):
                 ncpus=job.ncpus,
                 nnodes=job.nnodes,
                 time_start=job.time_start,
+                metrics_hard_limits=metrics_hard_limits,
                 label=label
             )
 

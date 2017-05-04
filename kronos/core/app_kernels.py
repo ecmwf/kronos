@@ -9,7 +9,7 @@
 """
 We need a way to convert a time series into the input for the synthetic app kernels
 """
-from time_signal import signal_types
+from kronos.core.kronos_tools.print_colour import print_colour
 
 
 class KernelBase(object):
@@ -17,9 +17,11 @@ class KernelBase(object):
     name = None
     signals = ()
 
-    def __init__(self, timesignals, stretching_factor_dict=None):
+    def __init__(self, timesignals, stretching_factor_dict=None, metrics_hard_limits=None):
+
         self.timesignals = timesignals
         self.stretching_factor_dict = stretching_factor_dict
+        self.metrics_hard_limits = metrics_hard_limits
 
     @property
     def empty(self):
@@ -33,6 +35,27 @@ class KernelBase(object):
         if kwargs:
             data.update(kwargs)
         return data
+
+    def apply_hard_limits(self, time_signal_names, time_signals):
+        """
+        Apply hard limits if specified
+        :param time_signal_names:
+        :param time_signals:
+        :return:
+        """
+
+        if self.metrics_hard_limits:
+            for tt, ts_name in enumerate(time_signal_names):
+
+                if self.metrics_hard_limits.get(ts_name):
+
+                    if sum(time_signals[tt]) > self.metrics_hard_limits[ts_name]:
+                        print_colour("orange", "applied hard limit to metric {} in kernel {}".format(ts_name, self.name),
+                                     log_level="debug")
+                        sc_ = self.metrics_hard_limits[ts_name] / float(sum(time_signals[tt]))
+                        time_signals[tt] = [t * sc_ for t in time_signals[tt]]
+
+        return time_signals
 
     def synapp_config(self, n_bins=None):
         """
@@ -51,6 +74,9 @@ class KernelBase(object):
         factors.update(self.stretching_factor_dict or {})
 
         time_signals = [self.timesignals[ts_name].digitized(nbins=n_bins)[1] * factors[ts_name] for ts_name in time_signal_names]
+
+        # apply hard limits if set by user..
+        time_signals = self.apply_hard_limits(time_signal_names, time_signals)
 
         frames = [ { k: v for k, v in zip(key_names, ts_data) } for ts_data in zip(*time_signals) ]
 
@@ -85,7 +111,7 @@ class CPUKernel(KernelBase):
                 raise ValueError('flops={} is < 0!'.format(d['flops']))
 
             if d['flops'] >= 0:
-                d['flops'] = int(min(d['flops'], signal_types['flops']['max_value']))
+                d['flops'] = int(d['flops'])
 
         return data
 
@@ -120,12 +146,12 @@ class MPIKernel(KernelBase):
                 raise ValueError('n_pairwise={} is < 0!'.format(d['n_pairwise']))
 
             if d['kb_collective'] >= 0:
-                d['n_collective'] = min(max(1, int(d['n_collective'])), int(signal_types['n_collective']['max_value']))
-                d['kb_collective'] = min(d['kb_collective'], signal_types['kb_collective']['max_value'])
+                d['n_collective'] = max(1, int(d['n_collective']))
+                # d['kb_collective'] = d['kb_collective']
 
             if d['kb_pairwise'] >= 0:
-                d['n_pairwise'] = min(max(1, int(d['n_pairwise'])), int(signal_types['n_pairwise']['max_value']))
-                d['kb_pairwise'] = min(d['kb_pairwise'], signal_types['kb_pairwise']['max_value'])
+                d['n_pairwise'] = max(1, int(d['n_pairwise']))
+                # d['kb_pairwise'] = d['kb_pairwise']
 
         return data
 
@@ -156,8 +182,8 @@ class FileReadKernel(KernelBase):
                 raise ValueError('n_read is < 0!'.format(d['n_read']))
 
             if d['kb_read'] >= 0:
-                d['n_read'] = min(max(1, int(d['n_read'])), int(signal_types['n_read']['max_value']))
-                d['kb_read'] = min(d['kb_read'], signal_types['kb_read']['max_value'])
+                d['n_read'] = max(1, int(d['n_read']))
+                # d['kb_read'] = d['kb_read']
 
         return data
 
@@ -188,12 +214,12 @@ class FileWriteKernel(KernelBase):
                 raise ValueError('kb_write={} is < 0!'.format(d['kb_write']))
 
             if d['n_write'] > 0:
-                d['kb_write'] = min(max(1, d['kb_write']), signal_types['kb_write']['max_value'])
-                d['n_write'] = min(int(d['n_write']), int(signal_types['n_write']['max_value']))
+                d['kb_write'] = max(1, d['kb_write'])
+                # d['n_write'] = int(d['n_write'])
 
             if d['kb_write'] > 0:
-                d['n_write'] = min(max(1, int(d['n_write'])), int(signal_types['n_write']['max_value']))
-                d['kb_write'] = min(d['kb_write'], signal_types['kb_write']['max_value'])
+                d['n_write'] = max(1, int(d['n_write']))
+                # d['kb_write'] = d['kb_write']
 
         return data
 
