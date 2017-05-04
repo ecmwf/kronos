@@ -14,12 +14,8 @@ script to generate a summary from the KRF files in the run folder
 import os
 import json
 import argparse
-
 import numpy as np
-# import matplotlib.pyplot as plt
-
-from kronos.core.exceptions_iows import ConfigurationError
-
+import sys
 
 if __name__ == "__main__":
 
@@ -29,15 +25,19 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     if not os.path.exists(args.path_run):
-        raise ConfigurationError("Specified run path does not exist: {}".format(args.path_run))
+        print "Specified run path does not exist: {}".format(args.path_run)
+        sys.exit(-1)
 
-    # ---------- Process the run jsons ----------
     job_dirs = [x for x in os.listdir(args.path_run) if os.path.isdir(os.path.join(args.path_run, x)) and "job-" in x]
+
+    if not job_dirs:
+        print "Specified path does not contain any job folder (<job-ID>..)!"
+        sys.exit(-1)
 
     fname_list = []
     dict_name_label = {}
 
-    jobs_data_all = []
+    jobs_data_dict = {}
     for job_dir in job_dirs:
 
         sub_dir_path_abs = os.path.join(args.path_run, job_dir)
@@ -49,7 +49,6 @@ if __name__ == "__main__":
             map_file_name = krf_file[0]
             map_file_full = os.path.join(sub_dir_path_abs, map_file_name)
             map_base_abs = os.path.splitext(map_file_full)[0]
-            # print "processing KRF file: {}".format(map_file_full)
 
             input_file_path_abs = os.path.join(sub_dir_path_abs, 'input.json')
             stats_file_path_abs = os.path.join(sub_dir_path_abs, 'statistics.krf')
@@ -65,108 +64,91 @@ if __name__ == "__main__":
             # transfer data from input file to stats file
             json_data_stats['metadata'] = json_data_input['metadata']
 
-            # append to a global data structure..
-            jobs_data_all.append(json_data_stats)
+            if json_data_input['metadata'].get('workload_name'):
+                jobs_data_dict.setdefault(json_data_input['metadata']['workload_name'], []).append(json_data_stats)
 
-    # -------- calculate relevant summary measures as needed.. ---------
-    data_keys = {
-        "cpu": {"label": "FLOPS/sec", "conv": 1.0},
-        "read": {"label": "I/O read: [G/s]", "conv": 1.0/1024**3},
-        "write": {"label": "I/O write: [G/s]", "conv": 1.0/1024**3},
-        "mpi-pairwise": {"label": "MPI p2p: [G/s]", "conv": 1.0/1024**3},
-        "mpi-collective": {"label": "MPI col: [G/s]", "conv": 1.0/1024**3}
-    }
+                # print "job {} - workload {}".format(job_dir, json_data_input['metadata']['workload_name'])
 
-    perf_data = {}
-    for name in data_keys.keys():
-        perf_data[name] = [(rank["stats"][name]["count"],
-                            rank["stats"][name]["bytes"] if name != "cpu" else 0.0,
-                            rank["stats"][name]["elapsed"])
-                           for sa in jobs_data_all for rank in sa["ranks"] if rank["stats"].get(name)]
-    # ------------------------------------------------------------------------------------------------
+    # print summary
+    print "{:<52s}".format("\n\nPERFORMANCE SUMMARY:")
 
-    summary_data = {}
-    for k in data_keys.keys():
-        summary_data[k] = {"vec": zip(*perf_data[k])}
+    for wl_name in jobs_data_dict.keys():
 
-    flop_data = zip(*perf_data["cpu"])
-    read_data = zip(*perf_data["read"])
-    write_data = zip(*perf_data["write"])
-    mpi_p2p_data = zip(*perf_data["mpi-pairwise"])
-    mpi_col_data = zip(*perf_data["mpi-collective"])
+        jobs_in_wl = jobs_data_dict[wl_name]
 
-    for k in summary_data.keys():
+        # -------- calculate relevant summary measures as needed.. ---------
+        data_keys = {
+            "cpu": {"label": "FLOPS/sec", "conv": 1.0},
+            "read": {"label": "I/O read: [G/s]", "conv": 1.0/1024**3},
+            "write": {"label": "I/O write: [G/s]", "conv": 1.0/1024**3},
+            "mpi-pairwise": {"label": "MPI p2p: [G/s]", "conv": 1.0/1024**3},
+            "mpi-collective": {"label": "MPI col: [G/s]", "conv": 1.0/1024**3}
+        }
 
-        # counter per sec
-        if k == "cpu":
-            summary_data[k]["mean"] = sum(summary_data[k]["vec"][0]) / float(sum(summary_data[k]["vec"][2]))
-            summary_data[k]["max"] = np.max(np.asarray(summary_data[k]["vec"][0])/np.asarray(summary_data[k]["vec"][2]))
-            summary_data[k]["min"] = np.min(np.asarray(summary_data[k]["vec"][0])/np.asarray(summary_data[k]["vec"][2]))
-            summary_data[k]["std"] = np.std(np.asarray(summary_data[k]["vec"][0])/np.asarray(summary_data[k]["vec"][2]))
+        perf_data = {}
+        for name in data_keys.keys():
+            perf_data[name] = [(rank["stats"][name]["count"],
+                                rank["stats"][name]["bytes"] if name != "cpu" else 0.0,
+                                rank["stats"][name]["elapsed"])
+                               for sa in jobs_in_wl for rank in sa["ranks"] if rank["stats"].get(name)]
+        # ------------------------------------------------------------------------------------------------
 
-        # bytes per sec..
-        else:
-            summary_data[k]["mean"] = sum(summary_data[k]["vec"][1]) / float(sum(summary_data[k]["vec"][2]))
-            summary_data[k]["max"] = np.max(np.asarray(summary_data[k]["vec"][1])/np.asarray(summary_data[k]["vec"][2]))
-            summary_data[k]["min"] = np.min(np.asarray(summary_data[k]["vec"][1])/np.asarray(summary_data[k]["vec"][2]))
-            summary_data[k]["std"] = np.std(np.asarray(summary_data[k]["vec"][1])/np.asarray(summary_data[k]["vec"][2]))
-    # ---------------------------------------------------------
+        summary_data = {}
+        for k in data_keys.keys():
+            summary_data[k] = {"vec": zip(*perf_data[k])}
 
-    _fl = 20
-    print "{:<52s}".format("\nPERFORMANCE SUMMARY:\n")
-    print "{}".format("-"*(_fl+1)*5)
-    print "{:<{l}s}|{:^{l}s}|{:^{l}s}|{:^{l}s}|{:^{l}s}|".format("Name",
-                                                                 "avg",
-                                                                 "max",
-                                                                 "min",
-                                                                 "std",
-                                                                 "latency (est)",
-                                                                 "bandwidth (est)",
-                                                                 l=_fl)
-    print "{}".format("-"*(_fl+1)*5)
+        for k in summary_data.keys():
 
-    for k in summary_data.keys():
-        print "{:<{l}s}|{:^{l}f}|{:^{l}f}|{:^{l}f}|{:^{l}f}|".format(data_keys[k]["label"],
-                                                                     summary_data[k]["mean"]*data_keys[k]["conv"],
-                                                                     summary_data[k]["max"]*data_keys[k]["conv"],
-                                                                     summary_data[k]["min"]*data_keys[k]["conv"],
-                                                                     summary_data[k]["std"]*data_keys[k]["conv"],
+            if not summary_data[k]["vec"]:
+
+                summary_data[k]["mean"] = "N/A"
+                summary_data[k]["max"] = "N/A"
+                summary_data[k]["min"] = "N/A"
+                summary_data[k]["std"] = "N/A"
+
+            else:
+                # counter per sec
+                if k == "cpu":
+                    summary_data[k]["mean"] = sum(summary_data[k]["vec"][0]) / float(sum(summary_data[k]["vec"][2]))
+                    summary_data[k]["max"] = np.max(np.asarray(summary_data[k]["vec"][0])/np.asarray(summary_data[k]["vec"][2]))*data_keys[k]["conv"]
+                    summary_data[k]["min"] = np.min(np.asarray(summary_data[k]["vec"][0])/np.asarray(summary_data[k]["vec"][2]))*data_keys[k]["conv"]
+                    summary_data[k]["std"] = np.std(np.asarray(summary_data[k]["vec"][0])/np.asarray(summary_data[k]["vec"][2]))*data_keys[k]["conv"]
+
+                # bytes per sec..
+                else:
+                    summary_data[k]["mean"] = sum(summary_data[k]["vec"][1]) / float(sum(summary_data[k]["vec"][2]))*data_keys[k]["conv"]
+                    summary_data[k]["max"] = np.max(np.asarray(summary_data[k]["vec"][1])/np.asarray(summary_data[k]["vec"][2]))*data_keys[k]["conv"]
+                    summary_data[k]["min"] = np.min(np.asarray(summary_data[k]["vec"][1])/np.asarray(summary_data[k]["vec"][2]))*data_keys[k]["conv"]
+                    summary_data[k]["std"] = np.std(np.asarray(summary_data[k]["vec"][1])/np.asarray(summary_data[k]["vec"][2]))*data_keys[k]["conv"]
+
+        _fl = 20
+        print "\n\n{}".format("-"*(_fl+1)*5)
+        print "{:^{l}s}|".format(wl_name, l=(_fl + 1) * 5-1)
+        print "{}".format("-"*(_fl+1)*5)
+        print "{:<{l}s}|{:^{l}s}|{:^{l}s}|{:^{l}s}|{:^{l}s}|".format("Name",
+                                                                     "avg",
+                                                                     "max",
+                                                                     "min",
+                                                                     "std",
+                                                                     "latency (est)",
+                                                                     "bandwidth (est)",
                                                                      l=_fl)
+        print "{}".format("-"*(_fl+1)*5)
 
-    # # ----------------- plot for testing only -----------------
-    # read_size_vec = np.asarray(read_data[1], dtype=float)/np.asarray(read_data[0], dtype=float)
-    # time_per_read_vec = np.asarray(read_data[2], dtype=float)/np.asarray(read_data[0], dtype=float)
-    #
-    # read_size_vec_max = np.max(read_size_vec)
-    # read_size_vec /= read_size_vec_max
-    #
-    # time_per_read_vec_max = np.max(time_per_read_vec)
-    # time_per_read_vec /= time_per_read_vec_max
-    #
-    # plt.plot(read_size_vec*read_size_vec_max, time_per_read_vec*time_per_read_vec_max, "b+")
-    # plt.xlabel("read size")
-    # plt.ylabel("elapsed time per read")
-    # # plt.xscale('log')
-    # # plt.yscale('log')
-    #
-    # read_size_vec = read_size_vec.reshape([read_size_vec.size, -1])
-    #
-    # # print "read_size_vec"
-    # # print read_size_vec
-    # # print "time_per_read_vec"
-    # # print time_per_read_vec
-    #
-    # cost, theta = lin_reg(read_size_vec, time_per_read_vec)
-    # xx = np.hstack((np.ones(read_size_vec.shape), read_size_vec))
-    #
-    # print "theta.shape {}".format(theta.shape)
-    # print "xx.shape {}".format(xx.shape)
-    # print "read_size_vec.shape {}".format(read_size_vec.shape)
-    # print "np.dot(xx, theta).shape {}".format(np.dot(xx, theta).shape)
-    #
-    # theta[1] *= read_size_vec_max
-    # plt.plot(read_size_vec, np.dot(xx, theta), 'r+')
-    # plt.show()
-    # # ---------------------------------------------------------
-
+        for k in summary_data.keys():
+            if isinstance(summary_data[k]["mean"], str):
+                print "{:<{l}s}|{:>{l}}|{:>{l}}|{:>{l}}|{:>{l}}|".format(data_keys[k]["label"],
+                                                                         summary_data[k]["mean"],
+                                                                         summary_data[k]["max"],
+                                                                         summary_data[k]["min"],
+                                                                         summary_data[k]["std"],
+                                                                         l=_fl)
+            else:
+                print "{:<{l}s}|{:>{l}f}|{:>{l}f}|{:>{l}f}|{:>{l}f}|".format(data_keys[k]["label"],
+                                                                             summary_data[k]["mean"],
+                                                                             summary_data[k]["max"],
+                                                                             summary_data[k]["min"],
+                                                                             summary_data[k]["std"],
+                                                                             l=_fl)
+        print "{}".format("-" * (_fl + 1) * 5)
 
