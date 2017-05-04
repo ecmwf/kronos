@@ -17,10 +17,10 @@ import subprocess
 import json
 import argparse
 import numpy as np
+import sys
 
 from kronos.core.logreader.darshan import DarshanLogReader3
 from kronos.core.time_signal import time_signal_names, signal_types
-from kronos.core.exceptions_iows import ConfigurationError
 from kronos.io.profile_format import ProfileFormat
 
 
@@ -89,10 +89,20 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     if not os.path.exists(args.path_run):
-        raise ConfigurationError("Specified run path does not exist: {}".format(args.path_run))
+        print "Specified run path does not exist: {}".format(args.path_run)
+        sys.exit(-1)
+
+    if not os.path.exists(args.darshan_parser):
+        print "Specified darshan parser does not exist: {}".format(args.darshan_parser)
+        sys.exit(-1)
 
     if not args.darshan_parser:
-        raise ConfigurationError("Darshan parser not specified!")
+        print "Darshan parser not specified!"
+        sys.exit(-1)
+
+    if os.path.exists(args.kpf_file):
+        print "Output KPF file {} already exists!".format(args.kpf_file)
+        sys.exit(-1)
 
     # path of the output kpf file
     path_kpf = os.path.dirname(os.path.abspath(args.kpf_file))
@@ -145,13 +155,9 @@ if __name__ == "__main__":
                                  stdout=dsh_f).wait()
 
             # Backup files
-            subprocess.Popen(['cp',
-                              os.path.join(sub_dir_path_abs, parsed_dsh_file_name),
+            subprocess.Popen(['mv',
+                              parsed_dsh_file_name,
                               os.path.join(tmp_dir_abs, darshan_txt)]).wait()
-
-            subprocess.Popen(['cp',
-                              os.path.join(sub_dir_path_abs, darshan_file_name),
-                              os.path.join(tmp_dir_abs, darshan_darshan)]).wait()
 
             # Explicitly call the darshan3 logreader and parse the files one by one
             dsh_reader = DarshanLogReader3(tmp_dir_abs, parser=args.darshan_parser)
