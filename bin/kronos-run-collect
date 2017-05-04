@@ -1,0 +1,71 @@
+#!/usr/bin/env python
+# (C) Copyright 1996-2017 ECMWF.
+#
+# This software is licensed under the terms of the Apache Licence Version 2.0
+# which can be obtained at http://www.apache.org/licenses/LICENSE-2.0.
+# In applying this licence, ECMWF does not waive the privileges and immunities
+# granted to it by virtue of its status as an intergovernmental organisation nor
+# does it submit to any jurisdiction.
+
+"""
+script to collect all the relevant files of the run folder
+"""
+
+import os
+import sys
+import argparse
+import tarfile
+
+if __name__ == "__main__":
+
+    # Parser for the required arguments
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("path_run", type=str, help="Path of the kronos run folder (contains the job-<ID> sub-folders)")
+    args = parser.parse_args()
+
+    if not os.path.exists(args.path_run):
+        print "Specified run path does not exist: {}".format(args.path_run)
+        sys.exit(-1)
+
+    if os.path.exists(os.path.join(args.path_run, 'kronos-run-data.tar.gz')):
+        print "kronos-run-data.tar.gz already exist in: {}".format(args.path_run)
+        sys.exit(-1)
+    else:
+        tar_file = tarfile.open(os.path.join(args.path_run, 'kronos-run-data.tar.gz'), "w:gz")
+
+    files_to_be_collected = [
+        'submit_script',
+        'input.json',
+        'error',
+        'output',
+        'error',
+        'statistics.krf',
+        '.darshan',
+        '.map',
+    ]
+
+    # job sub-directories
+    job_dirs = [x for x in os.listdir(args.path_run) if os.path.isdir(os.path.join(args.path_run, x)) and "job-" in x]
+
+    fname_list = []
+    dict_name_label = {}
+
+    jobs_data_all = []
+    for job_dir in job_dirs:
+
+        print "processing directory {}".format(job_dir)
+
+        sub_dir_path_abs = os.path.join(args.path_run, job_dir)
+        sub_dir_files = os.listdir(sub_dir_path_abs)
+
+        file_names = [f_name for f_name in sub_dir_files for f_name_coll in files_to_be_collected if f_name_coll in f_name]
+
+        print "files {}".format(file_names)
+
+        for file_name in file_names:
+            file_abs_path = os.path.join(sub_dir_path_abs, file_name)
+            tar_file.add(file_abs_path, arcname=os.path.join("run_data", os.path.join(job_dir, file_name)))
+
+    tar_file.close()
+
+    print "done!"
