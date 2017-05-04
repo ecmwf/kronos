@@ -34,7 +34,7 @@ setup(
 
         'bin/kronos-view-json',
         'bin/kronos-show-info',
-        'bin/kronos-conf',
+        'bin/kronos-config',
         'bin/kronos-kpf',
         'bin/kronos-ksf',
         'bin/kronos-config-enquire',
