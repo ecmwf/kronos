@@ -1,8 +1,8 @@
 name: executor
 dependencies:
 - functools32=3.2.3.2=py27_0
-- jsonschema=2.5.1=py27_0
-- openssl=1.0.2k=0
+- jsonschema=2.6.0=py27_0
+- openssl=1.0.2k=1
 - pip=9.0.1=py27_1
 - python=2.7.13=0
 - readline=6.2=2
