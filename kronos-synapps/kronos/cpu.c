@@ -33,6 +33,16 @@ static StatisticsLogger* stats_instance() {
     return logger;
 }
 
+static TimeSeriesLogger* flops_time_series() {
+
+    static TimeSeriesLogger* logger = 0;
+
+    if (logger == 0)
+        logger = register_time_series("flops");
+
+    return logger;
+}
+
 CPUParamsInternal get_cpu_params(const CPUConfig* config) {
 
     const GlobalConfig* global_conf = global_config_instance();
@@ -62,7 +72,11 @@ static int execute_cpu(const void* data) {
     }
     dummy_deoptimise((void*)&c);
 
+    /* Log time series data */
+
     stats_stop_log(stats_instance(), params.node_flops);
+    int frame = log_time_series_chunk();
+    log_time_series_chunk_data(log_time_series_chunk(), flops_time_series(), params.node_flops);
 
     return 0;
 }

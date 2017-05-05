@@ -29,6 +29,8 @@ static void write_krf(const char* filename);
 
 /* ------------------------------------------------------------------------------------------------------------------ */
 
+/* Track the duration of each frame */
+
 typedef struct TimeSeriesFrame {
 
     double duration;
@@ -36,10 +38,21 @@ typedef struct TimeSeriesFrame {
 
 } TimeSeriesFrame;
 
+/* Data chunks may be associated with a particular frame, and carry the data (sparse) */
+
+typedef struct TimeSeriesChunk {
+
+    double value;
+    unsigned long int chunkNumber;
+    struct TimeSeriesChunk* next;
+
+} TimeSeriesChunk;
+
 
 typedef struct StatisticsRegistry {
 
     StatisticsLogger* loggers;
+    TimeSeriesLogger* timeSeriesLoggers;
 
     /* Time series data */
 
@@ -51,6 +64,7 @@ typedef struct StatisticsRegistry {
     bool timing;
 
 } StatisticsRegistry;
+
 
 
 static StatisticsRegistry* stats_instance() {
@@ -230,9 +244,35 @@ void start_time_series_logging() {
     registry->timing = true;
 }
 
-void log_time_series_chunk() {
+TimeSeriesLogger *register_time_series(const char *name) {
 
-    StatisticsRegistry* registry = stats_instance;
+    StatisticsRegistry* registry = stats_instance();
+
+    /* Ensure that an existing time series logger does not exist with this name */
+
+    TimeSeriesLogger* logger = registry->timeSeriesLoggers;
+    while (logger != 0) {
+        assert(logger->name != 0 && strcmp(name, logger->name) != 0);
+        logger = logger->next;
+    }
+
+    logger = malloc(sizeof(TimeSeriesLogger));
+    logger->name = strdup(name);
+
+    logger->chunks = 0;
+    logger->count = 0;
+
+    /* Insert into the linked list */
+
+    logger->next = registry->timeSeriesLoggers;
+    registry->timeSeriesLoggers = logger;
+
+    return logger;
+}
+
+int log_time_series_chunk() {
+
+    StatisticsRegistry* registry = stats_instance();
 
     double endTime = take_time();
     double elapsed = endTime - registry->frameStartTime;
@@ -256,6 +296,24 @@ void log_time_series_chunk() {
     /* We start timing the next frame synchronously with the end of this one, to
      * ensure the generated time series is contiguous */
     registry->frameStartTime = endTime;
+
+    /* Increment the count of frames, and return the index of the one we have just completed */
+    return registry->frameCount++;
+}
+
+void log_time_series_chunk_data(int chunkNumber, TimeSeriesLogger* logger, double value) {
+
+    assert(logger != 0);
+
+    TimeSeriesChunk* chunk = malloc(sizeof(TimeSeriesChunk));
+
+    chunk->chunkNumber = chunkNumber;
+    chunk->value = value;
+
+    chunk->next = logger->chunks;
+    logger->chunks = chunk;
+
+    logger->count++;
 }
 
 static double calc_stddev(unsigned long int count, double sum, double sumSquares) {
@@ -546,6 +604,7 @@ static void write_krf(const char* filename) {
             send_size = 0;
         }
 
+#ifdef HAVE_MPI
         /* Send the sizes, and then the data */
         /* NOTE: recvtype specified to avoid segfault in MPICH. Should be ignored according to MPI standard */
         err = MPI_Gather(&send_size, 1, MPI_INT, 0, 0, MPI_INT, 0, MPI_COMM_WORLD);
@@ -559,6 +618,9 @@ static void write_krf(const char* filename) {
                 fprintf(stderr, "An error occurred in MPI_Gatherv: %s (%d)\n", send_buffer, err);
             }
         }
+#else
+        fprintf(stderr, "Non-root node without MPI compiled in. App misconfigured\n");
+#endif
         free_json(stats_json);
     }
 

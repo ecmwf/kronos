@@ -30,7 +30,6 @@ int main(int argc, char** argv)
     FILE* fp;
     JSON* json;
     const JSON* frames_json;
-    JSON* stats_json;
     const char* input_filename;
     Frame* frames;
 
