@@ -74,6 +74,7 @@ static StatisticsRegistry* stats_instance() {
 
     if (!initialised) {
         registry.loggers = 0;
+        registry.timeSeriesLoggers = 0;
         registry.first = 0;
         registry.last = 0;
         registry.frameCount = 0;

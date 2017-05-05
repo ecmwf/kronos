@@ -235,9 +235,10 @@ static void assert_ts_logger_count(int count, int nframes) {
 
     JSON* report = report_stats_json();
     JSON* component;
+    const JSON* ts;
     int i;
 
-    const JSON* ts = json_object_get(report, "time_series");
+    ts = json_object_get(report, "time_series");
     assert(ts != 0);
     assert(json_is_object(ts));
 
@@ -296,6 +297,103 @@ static void test_create_ts_loggers() {
 }
 
 
+static void test_ts_logging() {
+
+    assert_ts_logger_count(0, 0);
+
+    TimeSeriesLogger* logger1;
+    TimeSeriesLogger* logger2;
+    JSON* report;
+    const JSON* ts;
+    const JSON* ts_cpt;
+    long i;
+    double d;
+
+    int test_val; /* Avoid warnings with GNU + pedantic */
+
+    /* Create the loggers */
+
+    logger1 = register_time_series("ts-1");
+    logger2 = register_time_series("ts-2");
+
+    assert_ts_logger_count(2, 0);
+
+    start_time_series_logging();
+
+    /* Record data to one logger */
+
+    usleep(10000);
+
+    log_time_series_add_chunk_data(logger1, 123.);
+    log_time_series_chunk();
+
+    assert_ts_logger_count(2, 1);
+
+    /* Record data to the other logger */
+
+    usleep(20000);
+
+    log_time_series_add_chunk_data(logger2, 987.);
+    log_time_series_chunk();
+
+    assert_ts_logger_count(2, 2);
+
+    /* Record data to both loggers. Check that it accumulates correctly */
+
+    usleep(40000);
+
+    log_time_series_add_chunk_data(logger1, 456.);
+    log_time_series_add_chunk_data(logger2, 789.);
+    log_time_series_add_chunk_data(logger2, 123.);
+    log_time_series_chunk();
+
+    assert_ts_logger_count(2, 3);
+
+    /* Check the values */
+
+    report = report_stats_json();
+    ts = json_object_get(report, "time_series");
+
+    assert(json_is_object(ts));
+    assert(json_object_has(ts, "durations"));
+    assert(json_object_has(ts, "ts-1"));
+    assert(json_object_has(ts, "ts-2"));
+
+    ts_cpt = json_object_get(ts, "durations");
+    assert(json_is_array(ts_cpt));
+    assert(json_as_double(json_array_element(ts_cpt, 0), &d) == 0);
+    assert(fabs(d - 0.01) < 0.0002);
+    assert(json_as_double(json_array_element(ts_cpt, 1), &d) == 0);
+    assert(fabs(d - 0.02) < 0.0002);
+    assert(json_as_double(json_array_element(ts_cpt, 2), &d) == 0);
+    assert(fabs(d - 0.04) < 0.0002);
+
+    ts_cpt = json_object_get(ts, "ts-1");
+    assert(json_is_array(ts_cpt));
+    assert(json_as_integer(json_array_element(ts_cpt, 0), &i) == 0);
+    assert(i == 123);
+    assert(json_as_integer(json_array_element(ts_cpt, 1), &i) == 0);
+    assert(i == 0);
+    assert(json_as_integer(json_array_element(ts_cpt, 2), &i) == 0);
+    assert(i == 456);
+
+    ts_cpt = json_object_get(ts, "ts-2");
+    assert(json_is_array(ts_cpt));
+    assert(json_as_integer(json_array_element(ts_cpt, 0), &i) == 0);
+    assert(i == 0);
+    assert(json_as_integer(json_array_element(ts_cpt, 1), &i) == 0);
+    assert(i == 987);
+    assert(json_as_integer(json_array_element(ts_cpt, 2), &i) == 0);
+    assert(i == 912);
+
+    /* And clean up */
+
+    free_json(report);
+
+    free_stats_registry();
+    assert_ts_logger_count(0, 0);
+}
+
 /* ------------------------------------------------------------------------------------------------------------------ */
 
 int main() {
@@ -312,7 +410,7 @@ int main() {
     test_logger_json();
 
     test_create_ts_loggers();
-
+    test_ts_logging();
 
     clean_global_config();
     return 0;
