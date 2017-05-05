@@ -26,7 +26,7 @@ class Executor(object):
     available_parameters = [
         'coordinator_binary', 'enable_ipm', 'job_class', 'job_dir', 'job_dir_shared',
         'procs_per_node', 'read_cache', 'allinea_path', 'allinea_ld_library_path', 'allinea_licence_file',
-        'local_tmpdir', 'submission_workers']
+        'local_tmpdir', 'submission_workers', 'enable_darshan', 'darshan_lib_path']
 
     def __init__(self, config, schedule, ksf_file=None):
         """
@@ -69,7 +69,6 @@ class Executor(object):
             raise IOError("Path {} already exists".format(self.job_dir_shared))
         os.makedirs(self.job_dir_shared)
 
-
         # The binary to use can be overridden in the config file
         try:
             self.coordinator_binary = config['coordinator_binary']
@@ -82,6 +81,12 @@ class Executor(object):
 
         # Do we want to use IPM monitoring?
         self.enable_ipm = config.get('enable_ipm', False)
+
+        # Do we want to use Darshan monitoring?
+        self.enable_darshan = config.get('enable_darshan', False)
+        self.darshan_lib_path = config.get('darshan_lib_path', None)
+
+        # Do we want to use Allinea monitoring?
         self.allinea_path = config.get('allinea_path', None)
         self.allinea_licence_file = config.get('allinea_licence_file', None)
         self.allinea_ld_library_path = config.get('allinea_ld_library_path', None)

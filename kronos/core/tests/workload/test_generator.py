@@ -113,7 +113,7 @@ class GeneratorTests(unittest.TestCase):
 
         valid_args = {
             'time_start': 0.1,
-            'duration': 0.2,
+            'duration': 0.5,
             'ncpus': 1,
             'nnodes': 1,
             'timesignals': ts_complete_set

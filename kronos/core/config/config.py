@@ -8,6 +8,7 @@
 import logging
 import os
 import json
+import sys
 
 from config_format import ConfigFormat
 from kronos.core.exceptions_iows import ConfigurationError
@@ -98,9 +99,18 @@ class Config(object):
         if not os.path.exists(self.dir_output):
             raise ConfigurationError("output folder {} - does not exist!".format(self.dir_output))
 
+        # ----------------- logging setup --------------------
         # set level of verbosity through flag self.verbose
         if self.verbose:
-            logging.basicConfig(filename=self.kronos_log_file, level=logging.DEBUG)
+            logging.basicConfig(filename=self.kronos_log_file,
+                                filemode='w',
+                                level=logging.DEBUG)
+
         else:
-            logging.basicConfig(filename=self.kronos_log_file, level=logging.INFO)
+            logging.basicConfig(filename=self.kronos_log_file,
+                                filemode='w',
+                                level=logging.INFO)
+
+        logging.getLogger().addHandler(logging.StreamHandler(sys.stdout))
+        # -----------------------------------------------------
 

@@ -9,6 +9,7 @@ class HPCJob(BaseJob):
 
     submit_script_template = None
     ipm_template = None
+    darshan_template = None
     allinea_template = None
     submit_command = None
     launcher_command = None
@@ -51,6 +52,11 @@ class HPCJob(BaseJob):
         # Enable IPM logging if desired
         if self.executor.enable_ipm:
             script_format['profiling_code'] += self.ipm_template.format(**script_format)
+
+        # Enable Darshan logging if desired
+        if self.executor.enable_darshan:
+            script_format['darshan_lib_path'] = self.executor.darshan_lib_path
+            script_format['profiling_code'] += self.darshan_template.format(**script_format)
 
         # Enable Allinea map if desired
         if self.executor.allinea_path is not None and self.executor.allinea_ld_library_path is not None:

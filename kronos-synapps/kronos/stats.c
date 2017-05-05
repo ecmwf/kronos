@@ -177,7 +177,7 @@ void stats_log_event(StatisticsLogger* logger) {
 }
 
 
-void stats_stop_log(StatisticsLogger* logger) {
+void stats_stop_log(StatisticsLogger* logger, unsigned long repetitions) {
 
     double elapsed;
 
@@ -187,7 +187,7 @@ void stats_stop_log(StatisticsLogger* logger) {
     elapsed = take_time() - logger->startTime;
     assert(elapsed >= 0);
 
-    logger->count++;
+    logger->count += repetitions;
 
     logger->sumTimes += elapsed;
     logger->sumTimesSquared += elapsed * elapsed;

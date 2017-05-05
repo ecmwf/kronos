@@ -6,7 +6,7 @@
 # granted to it by virtue of its status as an intergovernmental organisation nor
 # does it submit to any jurisdiction.
 import logging
-import sys
+# import sys
 
 
 log_level_map = {
@@ -46,9 +46,9 @@ def print_colour(col, text, end="\n", flush=False, log_level=None):
     colour_str = "\033[{}m".format(colour_map.get(col, "0"))
     reset_str = "\033[0m"
 
-    sys.stdout.write("{}{}{}{}".format(colour_str, text, reset_str, end))
-    if flush:
-        sys.stdout.flush()
+    # sys.stdout.write("{}{}{}{}".format(colour_str, text, reset_str, end))
+    # if flush:
+    #     sys.stdout.flush()
 
     # if a log level is passed, use it..
     if log_level:
@@ -61,4 +61,4 @@ def print_colour(col, text, end="\n", flush=False, log_level=None):
         log_function = logging.info
 
     # pass the message to log..
-    log_function("{}".format(text))
+    log_function("{}".format("{}{}{}".format(colour_str, text, reset_str)))

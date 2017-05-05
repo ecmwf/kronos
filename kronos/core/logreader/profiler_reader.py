@@ -85,8 +85,8 @@ def read_allinea_log(filename, jobs_n_bins=None, cfg=None):
     # # fill in the workload structure
     # i_job = IngestedJob()
 
-    # time_start = json_data['profile']['timestamp']
-    # runtime = float(json_data['profile']['runtime_ms']) / 1000.
+    # time_start = json_data_stats['profile']['timestamp']
+    # runtime = float(json_data_stats['profile']['runtime_ms']) / 1000.
     # time_start_epoch = (datetime.strptime(time_start, "%a %b %d %H:%M:%S %Y") -
     #                     datetime(1970, 1, 1)).total_seconds()
 
