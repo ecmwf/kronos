@@ -223,8 +223,8 @@ void start_time_series_logging() {
 
     StatisticsRegistry* registry = stats_instance();
     assert(!registry->timing);
-    assert(registry->first = 0);
-    assert(registry->last = 0);
+    assert(registry->first == 0);
+    assert(registry->last == 0);
 
     registry->frameStartTime = take_time();
     registry->timing = true;
