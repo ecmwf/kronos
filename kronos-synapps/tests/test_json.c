@@ -670,6 +670,37 @@ void test_null_json() {
 }
 
 
+void test_array_from_array() {
+
+    double arr[4];
+    JSON* json;
+
+    int i;
+    double d;
+
+    arr[0] = 123.;
+    arr[1] = 666.;
+    arr[2] = 999.765;
+    arr[3] = 1.;
+
+    json = json_array_from_array(arr, 3);
+
+    assert(json != 0);
+    assert(json_is_array(json));
+    assert(json_array_length(json) == 3);
+
+    assert(json_as_integer(json_array_element(json, 0), &i) == 0);
+    assert(i == 123);
+    assert(json_as_integer(json_array_element(json, 1), &i) == 0);
+    assert(i == 666);
+    assert(json_as_double(json_array_element(json, 2), &d) == 0);
+    assert(fabs(d - 999.765) < 1.0e-10);;
+
+    free_json(json);
+
+}
+
+
 void test_object_get_integer() {
 
     long value;
@@ -940,6 +971,8 @@ void test_print_string() {
     assert(size == strlen(src));
     test_val = strncmp(src, buffer, size);
     assert(test_val == 0);
+
+    free_json(json);
 }
 
 
@@ -958,6 +991,7 @@ int main() {
     test_parse_object();
     test_parse_from_string();
     test_parse_negative_double();
+    test_array_from_array();
     test_invalid_parses();
     test_null_json();
     test_object_get_integer();

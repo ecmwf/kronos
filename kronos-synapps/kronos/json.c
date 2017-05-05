@@ -635,14 +635,18 @@ JSON* json_array_from_array(double* data, int count) {
     JSON* json = json_array_new();
     int i;
 
+    assert(json->count == 0);
+    assert(json->array == 0);
+
     if (count > 0) {
-        json->array = new_jsons(json->count);
+        json->array = new_jsons(count);
         json->count = count;
 
         for (i = 0; i < count; i++) {
             json->array[i].type = JSON_NUMBER;
-            json->number = data[i];
+            json->array[i].number = data[i];
         }
+
     }
 
     return json;
