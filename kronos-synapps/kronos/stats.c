@@ -93,6 +93,22 @@ static void free_stats_logger(StatisticsLogger *logger) {
     free(logger);
 }
 
+static void free_ts_logger(TimeSeriesLogger *logger) {
+
+    assert(logger->name != 0);
+    free(logger->name);
+
+    TimeSeriesChunk* chunk = logger->chunks;
+    TimeSeriesChunk* next;
+    while (chunk != 0) {
+        next = chunk->next;
+        free(chunk);
+        chunk = next;
+    }
+
+    free(logger);
+}
+
 /**
  * Clear up the statistics registry.
  * @note The entries point at StatisticsLogger objects that are owned inside the
@@ -104,9 +120,13 @@ void free_stats_registry() {
 
     StatisticsLogger* logger;
     StatisticsLogger* nextLogger;
+    TimeSeriesLogger* tsLogger;
+    TimeSeriesLogger* nextTsLogger;
 
     TimeSeriesFrame* frame;
     TimeSeriesFrame* nextFrame;
+
+    /* Clean the main statistics loggers */
 
     logger = registry->loggers;
     while (logger != 0) {
@@ -116,6 +136,8 @@ void free_stats_registry() {
     }
 
     registry->loggers = 0;
+
+    /* Clean up the logged frames */
 
     frame = registry->first;
     while (frame != 0) {
@@ -127,6 +149,17 @@ void free_stats_registry() {
     registry->first = 0;
     registry->last = 0;
     registry->frameCount = 0;
+
+    /* Clean up the time series loggers */
+
+    tsLogger = registry->timeSeriesLoggers;
+    while (tsLogger != 0) {
+        nextTsLogger = tsLogger->next;
+        free_ts_logger(tsLogger);
+        tsLogger = nextTsLogger;
+    }
+
+    registry->timeSeriesLoggers = 0;
 }
 
 

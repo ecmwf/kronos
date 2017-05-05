@@ -231,9 +231,11 @@ static void test_logger_json() {
  * Time series functionality */
 
 
-static void assert_ts_logger_count(int count) {
+static void assert_ts_logger_count(int count, int nframes) {
 
     JSON* report = report_stats_json();
+    JSON* component;
+    int i;
 
     const JSON* ts = json_object_get(report, "time_series");
     assert(ts != 0);
@@ -242,13 +244,25 @@ static void assert_ts_logger_count(int count) {
     /* Add one to the count, as there will always be a durations bit */
     assert(json_object_count(ts) == (count + 1));
 
+    /* For all of the loggers, and the duration element, check that the number of time slices is correct */
+
+    component = json_object_first(ts);
+    i = 0;
+    while (component != 0) {
+        assert(json_is_array(component));
+        assert(json_array_length(component) == nframes);
+        component = component->next;
+        i++;
+    }
+    assert (i == (count + 1));
+
     free_json(report);
 }
 
 
 static void test_create_ts_loggers() {
 
-    assert_ts_logger_count(0);
+    assert_ts_logger_count(0, 0);
 
     TimeSeriesLogger* logger1;
     TimeSeriesLogger* logger2;
@@ -263,7 +277,7 @@ static void test_create_ts_loggers() {
     assert(logger1->count == 0);
     assert(logger1->next == 0);
 
-    assert_ts_logger_count(1);
+    assert_ts_logger_count(1, 0);
 
     logger2 = register_time_series("ts-2");
 
@@ -273,12 +287,12 @@ static void test_create_ts_loggers() {
     assert(logger2->count == 0);
     assert(logger2->next == logger1);
 
-    assert_ts_logger_count(2);
+    assert_ts_logger_count(2, 0);
 
     /* And clean up */
 
     free_stats_registry();
-    assert_logger_count(0);
+    assert_ts_logger_count(0, 0);
 }
 
 
