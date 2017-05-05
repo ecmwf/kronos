@@ -104,7 +104,7 @@ static void test_timers() {
 
     stats_start(logger1);
     usleep(20000);
-    stats_stop_log(logger1);
+    stats_stop_log(logger1, 1);
 
     assert(logger1->count == 1);
     assert(fabs(logger1->sumTimes - 0.02) < 0.0002);
@@ -112,7 +112,7 @@ static void test_timers() {
 
     stats_start(logger1);
     usleep(40000);
-    stats_stop_log(logger1);
+    stats_stop_log(logger1, 1);
 
     assert(logger1->count == 2);
     assert(fabs(logger1->sumTimes - 0.06) < 0.0003);

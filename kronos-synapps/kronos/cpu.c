@@ -62,7 +62,7 @@ static int execute_cpu(const void* data) {
     }
     dummy_deoptimise((void*)&c);
 
-    stats_stop_log(stats_instance());
+    stats_stop_log(stats_instance(), params.node_flops);
 
     return 0;
 }

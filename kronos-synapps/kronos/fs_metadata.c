@@ -100,7 +100,7 @@ static bool kronos_mkdir(const char* dir_path) {
         fprintf(stderr, "Failed to create directory %s (%s)\n", dir_path, strerror(errno));
         success = false;
     }
-    stats_stop_log(rmdir_stats_instance());
+    stats_stop_log(rmdir_stats_instance(), 1);
 
     return success;
 }
@@ -118,7 +118,7 @@ static bool kronos_rmdir(const char* dir_path) {
         fprintf(stderr, "Failed to remove directory %s (%s)\n", dir_path, strerror(errno));
         success = false;
     }
-    stats_stop_log(mkdir_stats_instance());
+    stats_stop_log(mkdir_stats_instance(), 1);
 
     return success;
 }
