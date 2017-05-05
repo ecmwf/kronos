@@ -14,7 +14,6 @@ script to generate a summary from the KRF files in the run folder
 import os
 import json
 import argparse
-import numpy as np
 import sys
 
 if __name__ == "__main__":
@@ -67,8 +66,6 @@ if __name__ == "__main__":
             if json_data_input['metadata'].get('workload_name'):
                 jobs_data_dict.setdefault(json_data_input['metadata']['workload_name'], []).append(json_data_stats)
 
-                # print "job {} - workload {}".format(job_dir, json_data_input['metadata']['workload_name'])
-
     # print summary
     print "{:<52s}".format("\n\nPERFORMANCE SUMMARY:")
 
@@ -78,7 +75,7 @@ if __name__ == "__main__":
 
         # -------- calculate relevant summary measures as needed.. ---------
         data_keys = {
-            "cpu": {"label": "FLOPS/sec", "conv": 1.0},
+            "cpu": {"label": "GFLOPS/sec", "conv": 1.0/1024**3},
             "read": {"label": "I/O read: [G/s]", "conv": 1.0/1024**3},
             "write": {"label": "I/O write: [G/s]", "conv": 1.0/1024**3},
             "mpi-pairwise": {"label": "MPI p2p: [G/s]", "conv": 1.0/1024**3},
@@ -109,17 +106,25 @@ if __name__ == "__main__":
             else:
                 # counter per sec
                 if k == "cpu":
-                    summary_data[k]["mean"] = sum(summary_data[k]["vec"][0]) / float(sum(summary_data[k]["vec"][2]))
-                    summary_data[k]["max"] = np.max(np.asarray(summary_data[k]["vec"][0])/np.asarray(summary_data[k]["vec"][2]))*data_keys[k]["conv"]
-                    summary_data[k]["min"] = np.min(np.asarray(summary_data[k]["vec"][0])/np.asarray(summary_data[k]["vec"][2]))*data_keys[k]["conv"]
-                    summary_data[k]["std"] = np.std(np.asarray(summary_data[k]["vec"][0])/np.asarray(summary_data[k]["vec"][2]))*data_keys[k]["conv"]
+
+                    sc = data_keys[k]["conv"]
+                    vals = [f0/float(f2)*sc for f0, f2 in zip(summary_data[k]["vec"][0], summary_data[k]["vec"][2])]
+                    mean_val = sum(vals)/float(len(vals))
+                    summary_data[k]["mean"] = mean_val
+                    summary_data[k]["max"] = max(vals)
+                    summary_data[k]["min"] = min(vals)
+                    summary_data[k]["std"] = (sum([(v-mean_val)**2 for v in vals])/float(len(vals)))**0.5
 
                 # bytes per sec..
                 else:
-                    summary_data[k]["mean"] = sum(summary_data[k]["vec"][1]) / float(sum(summary_data[k]["vec"][2]))*data_keys[k]["conv"]
-                    summary_data[k]["max"] = np.max(np.asarray(summary_data[k]["vec"][1])/np.asarray(summary_data[k]["vec"][2]))*data_keys[k]["conv"]
-                    summary_data[k]["min"] = np.min(np.asarray(summary_data[k]["vec"][1])/np.asarray(summary_data[k]["vec"][2]))*data_keys[k]["conv"]
-                    summary_data[k]["std"] = np.std(np.asarray(summary_data[k]["vec"][1])/np.asarray(summary_data[k]["vec"][2]))*data_keys[k]["conv"]
+
+                    sc = data_keys[k]["conv"]
+                    vals = [f1 / float(f2) * sc for f1, f2 in zip(summary_data[k]["vec"][1], summary_data[k]["vec"][2])]
+                    mean_val = sum(vals) / float(len(vals))
+                    summary_data[k]["mean"] = mean_val
+                    summary_data[k]["max"] = max(vals)
+                    summary_data[k]["min"] = min(vals)
+                    summary_data[k]["std"] = (sum([(v - mean_val) ** 2 for v in vals]) / float(len(vals)) ) ** 0.5
 
         _fl = 20
         print "\n\n{}".format("-"*(_fl+1)*5)
