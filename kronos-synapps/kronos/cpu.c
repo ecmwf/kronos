@@ -74,7 +74,7 @@ static int execute_cpu(const void* data) {
 
     /* Log time series data */
 
-    stats_stop_log(stats_instance());
+    stats_stop_log(stats_instance(), params.node_flops);
     int frame = log_time_series_chunk();
     log_time_series_chunk_data(log_time_series_chunk(), flops_time_series(), params.node_flops);
 
