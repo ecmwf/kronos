@@ -270,7 +270,7 @@ TimeSeriesLogger *register_time_series(const char *name) {
     return logger;
 }
 
-int log_time_series_chunk() {
+void log_time_series_chunk() {
 
     StatisticsRegistry* registry = stats_instance();
 
@@ -296,18 +296,18 @@ int log_time_series_chunk() {
     /* We start timing the next frame synchronously with the end of this one, to
      * ensure the generated time series is contiguous */
     registry->frameStartTime = endTime;
-
-    /* Increment the count of frames, and return the index of the one we have just completed */
-    return registry->frameCount++;
+    registry->frameCount++;
 }
 
-void log_time_series_chunk_data(int chunkNumber, TimeSeriesLogger* logger, double value) {
+void log_time_series_add_chunk_data(TimeSeriesLogger* logger, double value) {
+
+    StatisticsRegistry* registry = stats_instance();
 
     assert(logger != 0);
 
     TimeSeriesChunk* chunk = malloc(sizeof(TimeSeriesChunk));
 
-    chunk->chunkNumber = chunkNumber;
+    chunk->chunkNumber = registry->frameCount;
     chunk->value = value;
 
     chunk->next = logger->chunks;
@@ -446,6 +446,68 @@ static JSON* logger_json(const StatisticsLogger* logger) {
 }
 
 
+JSON* time_series_json() {
+
+    StatisticsRegistry* registry = stats_instance();
+
+    JSON* ts_json = json_object_new();
+
+    int count = registry->frameCount;
+
+    int i;
+    double* arr;
+
+    TimeSeriesFrame* frame;
+    TimeSeriesChunk* chunk;
+    TimeSeriesLogger* logger;
+
+    /* Build sequence of times */
+
+    arr = malloc(sizeof(double) * count);
+    for (i = 0; i < count; i++) {
+        arr[i] = 0;
+    }
+
+    i = 0;
+    frame = registry->first;
+    while (frame != 0) {
+        arr[i] = frame->duration;
+        frame = frame->next;
+        i++;
+    }
+
+    assert(i == count);
+
+    json_object_insert(ts_json, "durations", json_array_from_array(arr, count));
+
+    /* Add an entry for each of the logged time series. */
+
+    logger = registry->timeSeriesLoggers;
+    while (logger != 0) {
+
+        for (i = 0; i < count; i++) {
+            arr[i] = 0;
+        }
+
+        i = 0;
+        chunk = logger->chunks;
+        while (chunk != 0) {
+            arr[chunk->chunkNumber] += chunk->value;
+            chunk = chunk->next;
+            i++;
+        }
+
+        json_object_insert(ts_json, logger->name, json_array_from_array(arr, count));
+
+        logger = logger->next;
+    }
+
+    free(arr);
+
+    return ts_json;
+}
+
+
 JSON* report_stats_json() {
 
     const GlobalConfig* global_conf = global_config_instance();
@@ -457,6 +519,8 @@ JSON* report_stats_json() {
     JSON* json_stats = json_object_new();
     JSON* json;
 
+    /* Report the aggregaed statistics */
+
     logger = registry->loggers;
     while (logger != 0) {
         json_object_insert(json_stats, logger->name, logger_json(logger));
@@ -467,6 +531,7 @@ JSON* report_stats_json() {
 
     json = json_object_new();
     json_object_insert(json, "stats", json_stats);
+    json_object_insert(json, "time_series", time_series_json());
     json_object_insert(json, "host", json_string_new(global_conf->hostname));
     json_object_insert(json, "pid", json_number_new(global_conf->pid));
     json_object_insert(json, "rank", json_number_new(global_conf->mpi_rank));

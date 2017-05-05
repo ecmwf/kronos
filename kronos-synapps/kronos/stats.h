@@ -88,10 +88,10 @@ void stats_stop_log_bytes(StatisticsLogger* logger, unsigned long bytes);
  */
 
 void start_time_series_logging();
-int log_time_series_chunk(); /* Returns the chunk number for the time series. */
+void log_time_series_chunk(); /* Returns the chunk number for the time series. */
 
 TimeSeriesLogger* register_time_series(const char* name);
-void log_time_series_chunk_data(int chunkNumber, TimeSeriesLogger*, double value);
+void log_time_series_add_chunk_data(TimeSeriesLogger*, double value);
 
 /**
  * Handles to the statistics loggers are stored centrally to make outputting
