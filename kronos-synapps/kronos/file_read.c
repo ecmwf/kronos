@@ -246,6 +246,8 @@ int execute_file_read(const void* data) {
         }
     }
 
+    log_time_series_chunk();
+
     free(read_buffer);
 
     return error;

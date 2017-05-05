@@ -181,6 +181,8 @@ static int execute_mpi(const void* data) {
     /* Ignore MPI errors */
     (void) err;
 
+    log_time_series_chunk();
+
     return 0;
 }
 

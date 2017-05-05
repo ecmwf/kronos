@@ -47,6 +47,22 @@ typedef struct StatisticsLogger {
 
 } StatisticsLogger;
 
+/* A time series logger that can be attached to a kernel */
+
+struct TimeSeriesChunk;
+
+typedef struct TimeSeriesLogger {
+
+    char* name;
+
+    unsigned long int count;
+
+    struct TimeSeriesChunk* chunks;
+
+    struct StatisticsLogger* next;
+
+} TimeSeriesLogger;
+
 
 /**
  * Obtain access to a statistics logger for the specified name.
@@ -72,7 +88,10 @@ void stats_stop_log_bytes(StatisticsLogger* logger, unsigned long bytes);
  */
 
 void start_time_series_logging();
-void log_time_series_chunk();
+int log_time_series_chunk(); /* Returns the chunk number for the time series. */
+
+TimeSeriesLogger* register_time_series(const char* name);
+void log_time_series_chunk_data(int chunkNumber, TimeSeriesLogger*, double value);
 
 /**
  * Handles to the statistics loggers are stored centrally to make outputting

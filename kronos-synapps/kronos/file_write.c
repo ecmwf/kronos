@@ -263,6 +263,8 @@ static int execute_file_write(const void* data) {
         }
     }
 
+    log_time_series_chunk();
+
     return error;
 }
 

@@ -163,6 +163,8 @@ static int execute_fsmetadata(const void* data) {
         }
     }
 
+    log_time_series_chunk();
+
     return error;
 }
 
