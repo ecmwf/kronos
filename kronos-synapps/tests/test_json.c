@@ -758,6 +758,48 @@ void test_object_get_double() {
     free_json(json);
 }
 
+void test_object_iterate() {
+
+    double value;
+
+    JSON* json = json_from_string("{ \"elem1\": 123.45, \"elem2\": \"hi there\", \"elem3\": 666 }");
+
+    JSON* elem;
+    int test_val;
+
+    int i;
+    double d;
+    const char* c;
+
+    elem = json_object_first(json);
+
+    test_val = strcmp("elem3", elem->name);
+    assert(test_val == 0);
+    assert(json_as_integer(elem, &i) == 0);
+    assert(i == 666);
+
+    assert(elem->next != 0);
+    elem = elem->next;
+
+    test_val = strcmp("elem2", elem->name);
+    assert(test_val == 0);
+    assert(json_as_string_ptr(elem, &c) == 0);
+    test_val = strcmp("hi there", c);
+    assert(test_val == 0);
+
+    assert(elem->next != 0);
+    elem = elem->next;
+
+    test_val = strcmp("elem1", elem->name);
+    assert(test_val == 0);
+    assert(json_as_double(elem, &d) == 0);
+    assert(fabs(d - 123.45) < 1.0e-10);
+
+    assert(elem->next == 0);
+
+    free_json(json);
+}
+
 
 void test_allocate_json() {
 
@@ -921,6 +963,7 @@ int main() {
     test_object_get_integer();
     test_object_get_boolean();
     test_object_get_double();
+    test_object_iterate();
     test_allocate_json();
     test_print_string();
     return 0;

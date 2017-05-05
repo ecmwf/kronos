@@ -927,6 +927,21 @@ bool json_object_has(const JSON* json, const char* key) {
     return false;
 }
 
+/** Iterate through the key/value pairs in the JSON if you don't know what they are
+ *  @note On first call value must equal 0. */
+
+const JSON* json_object_first(JSON* json) {
+
+    assert(json);
+    if (json_is_object(json)) {
+        if (json_object_count(json) > 0) {
+            return json->array;
+        }
+    }
+
+    return 0;
+}
+
 const JSON* json_object_get(const JSON* json, const char* key) {
     assert(json);
     assert(key);
