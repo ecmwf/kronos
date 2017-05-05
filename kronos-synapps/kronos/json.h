@@ -81,6 +81,8 @@ JSON* json_number_new(double val);
 JSON* json_array_new();
 JSON* json_object_new();
 
+JSON* json_array_from_array(double* data, int count);
+
 /** Append an element to a json array. n.b. This takes ownership of elem (and frees it) */
 void json_array_append(JSON* json, JSON* elem);
 

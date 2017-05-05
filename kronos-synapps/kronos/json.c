@@ -630,6 +630,25 @@ JSON* json_array_new() {
 }
 
 
+JSON* json_array_from_array(double* data, int count) {
+
+    JSON* json = json_array_new();
+    int i;
+
+    if (count > 0) {
+        json->array = new_jsons(json->count);
+        json->count = count;
+
+        for (i = 0; i < count; i++) {
+            json->array[i].type = JSON_NUMBER;
+            json->number = data[i];
+        }
+    }
+
+    return json;
+}
+
+
 void json_array_append(JSON* json, JSON* elem) {
 
     JSON* old_array;
@@ -686,12 +705,15 @@ void destruct_json(JSON* json) {
     switch (json->type) {
 
     case JSON_ARRAY:
-        assert(json->array != NULL);
-        for (i = 0; i < json->count; i++) {
-            destruct_json(&json->array[i]);
-        }
+        if (json->count != 0) {
+            assert(json->array != NULL);
 
-        free(json->array);
+            for (i = 0; i < json->count; i++) {
+                destruct_json(&json->array[i]);
+            }
+
+            free(json->array);
+        }
         break;
 
     case JSON_STRING:

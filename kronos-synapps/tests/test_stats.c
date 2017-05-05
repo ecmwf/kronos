@@ -227,6 +227,61 @@ static void test_logger_json() {
     assert_logger_count(0);
 }
 
+/* -----------------------------------------------------
+ * Time series functionality */
+
+
+static void assert_ts_logger_count(int count) {
+
+    JSON* report = report_stats_json();
+
+    const JSON* ts = json_object_get(report, "time_series");
+    assert(ts != 0);
+    assert(json_is_object(ts));
+
+    /* Add one to the count, as there will always be a durations bit */
+    assert(json_object_count(ts) == (count + 1));
+
+    free_json(report);
+}
+
+
+static void test_create_ts_loggers() {
+
+    assert_ts_logger_count(0);
+
+    TimeSeriesLogger* logger1;
+    TimeSeriesLogger* logger2;
+
+    int test_val; /* Avoid warnings with GNU + pedantic */
+
+    logger1 = register_time_series("ts-1");
+
+    test_val = strcmp("ts-1", logger1->name);
+    assert(test_val == 0);
+    assert(logger1->chunks == 0);
+    assert(logger1->count == 0);
+    assert(logger1->next == 0);
+
+    assert_ts_logger_count(1);
+
+    logger2 = register_time_series("ts-2");
+
+    test_val = strcmp("ts-2", logger2->name);
+    assert(test_val == 0);
+    assert(logger2->chunks == 0);
+    assert(logger2->count == 0);
+    assert(logger2->next == logger1);
+
+    assert_ts_logger_count(2);
+
+    /* And clean up */
+
+    free_stats_registry();
+    assert_logger_count(0);
+}
+
+
 /* ------------------------------------------------------------------------------------------------------------------ */
 
 int main() {
@@ -241,6 +296,8 @@ int main() {
     test_timers();
     test_timers_with_bytes();
     test_logger_json();
+
+    test_create_ts_loggers();
 
 
     clean_global_config();
