@@ -29,33 +29,29 @@ export HOME="${bamboo_working_directory}"
 
 # Work around conda test against nonexistent variable tripping set -e
 
+
 export CONDA_PATH_BACKUP=""
 export PS1=""
-
 # Install the testing environment!
-
 conda install -y pyyaml
-
 # environment for the modeller
 if [[ -f conda_environment.txt ]]; then
     conda env create -n test_env -f conda_environment.txt
 fi
-
-# environment for the executor
-if [[ -f conda_environment.txt ]]; then
-    conda env create -n test_env_exe -f conda_environment_exe.txt
-fi
-
 # Make python packages cloned into the depends directory available to pip
-
 source activate test_env
 find ./depends -maxdepth 1 -mindepth 1 -type d -exec pip install -e {} \;
 source deactivate
 
 
+export HOME="${bamboo_working_directory}"
 export CONDA_PATH_BACKUP=""
 export PS1=""
-
+# environment for the executor
+if [[ -f conda_environment.txt ]]; then
+    conda env create -n test_env_exe -f conda_environment_exe.txt
+fi
+# Make python packages cloned into the depends directory available to pip
 source activate test_env_exe
 find ./depends -maxdepth 1 -mindepth 1 -type d -exec pip install -e {} \;
 source deactivate
