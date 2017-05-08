@@ -36,8 +36,14 @@ export PS1=""
 
 conda install -y pyyaml
 
+# environment for the modeller
 if [[ -f conda_environment.txt ]]; then
     conda env create -n test_env -f conda_environment.txt
+fi
+
+# environment for the executor
+if [[ -f conda_environment.txt ]]; then
+    conda env create -n test_env_exe -f conda_environment_exe.txt
 fi
 
 # Make python packages cloned into the depends directory available to pip
