@@ -16,6 +16,8 @@ import json
 import argparse
 import sys
 
+from kronos.executor.tools import std_of_list, mean_of_list
+
 if __name__ == "__main__":
 
     # Parser for the required arguments
@@ -109,11 +111,10 @@ if __name__ == "__main__":
 
                     sc = data_keys[k]["conv"]
                     vals = [f0/float(f2)*sc for f0, f2 in zip(summary_data[k]["vec"][0], summary_data[k]["vec"][2])]
-                    mean_val = sum(vals)/float(len(vals))
-                    summary_data[k]["mean"] = mean_val
+                    summary_data[k]["mean"] = mean_of_list(vals)
                     summary_data[k]["max"] = max(vals)
                     summary_data[k]["min"] = min(vals)
-                    summary_data[k]["std"] = (sum([(v-mean_val)**2 for v in vals])/float(len(vals)))**0.5
+                    summary_data[k]["std"] = std_of_list(vals)
 
                 # bytes per sec..
                 else:
@@ -121,10 +122,10 @@ if __name__ == "__main__":
                     sc = data_keys[k]["conv"]
                     vals = [f1 / float(f2) * sc for f1, f2 in zip(summary_data[k]["vec"][1], summary_data[k]["vec"][2])]
                     mean_val = sum(vals) / float(len(vals))
-                    summary_data[k]["mean"] = mean_val
+                    summary_data[k]["mean"] = mean_of_list(vals)
                     summary_data[k]["max"] = max(vals)
                     summary_data[k]["min"] = min(vals)
-                    summary_data[k]["std"] = (sum([(v - mean_val) ** 2 for v in vals]) / float(len(vals)) ) ** 0.5
+                    summary_data[k]["std"] = std_of_list(vals)
 
         _fl = 20
         print "\n\n{}".format("-"*(_fl+1)*5)

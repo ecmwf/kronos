@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 # (C) Copyright 1996-2017 ECMWF.
 #
 # This software is licensed under the terms of the Apache Licence Version 2.0
@@ -11,11 +12,54 @@ show info of a KSF file
 """
 
 import argparse
-import numpy as np
+from collections import OrderedDict
 
-from kronos.core.time_signal import time_signal_names, signal_types
+from kronos.executor.tools import mean_of_list, std_of_list
 from kronos.io.profile_format import ProfileFormat
 from kronos.io.schedule_format import ScheduleFormat
+
+
+# TODO: any shared config should go into a global place, signal_types is repeated here
+# TODO: to avoid loading a module from "core" library
+
+# The availably types of time-series (or summed/averaged totals) data that we can use
+signal_types = OrderedDict([
+
+    # # CPU
+    ('flops',    {'type': int,   'category': 'cpu',        'behaviour': 'sum'}),
+
+    # (file) I/O
+    ('kb_read',  {'type': float, 'category': 'file-read',  'behaviour': 'sum'}),
+    ('kb_write', {'type': float, 'category': 'file-write', 'behaviour': 'sum'}),
+    ('n_read',   {'type': int,   'category': 'file-read',  'behaviour': 'sum'}),
+    ('n_write',  {'type': int,   'category': 'file-write', 'behaviour': 'sum'}),
+
+    # MPI activity
+    ('n_pairwise',    {'type': int,   'category': 'mpi',  'behaviour': 'sum'}),
+    ('kb_pairwise',   {'type': float, 'category': 'mpi',  'behaviour': 'sum'}),
+    ('n_collective',  {'type': int,   'category': 'mpi',  'behaviour': 'sum'}),
+    ('kb_collective', {'type': float, 'category': 'mpi',  'behaviour': 'sum'})
+])
+
+
+# add print info
+float_format_print = '%16.3f'
+int_format_print = '%16.0f'
+
+signal_types['flops']["print_info"] = {"unit": "Gflops", "format": int_format_print, "conv": 1.0/(1024.0**3)}
+
+signal_types['kb_read']["print_info"] = {"unit": "Gbytes", "format": float_format_print, "conv": 1.0/(1024.0**2)}
+signal_types['kb_write']["print_info"] = {"unit": "Gbytes", "format": float_format_print, "conv": 1.0/(1024.0**2)}
+signal_types['n_read']["print_info"] = {"unit": "times ", "format": int_format_print, "conv": 1.0}
+signal_types['n_write']["print_info"] = {"unit": "times ", "format": int_format_print, "conv": 1.0}
+
+signal_types['n_pairwise']["print_info"] = {"unit": "times ", "format": int_format_print, "conv": 1.0}
+signal_types['kb_pairwise']["print_info"] = {"unit": "Gbytes", "format": float_format_print, "conv": 1.0/(1024.0**2)}
+signal_types['n_collective']["print_info"] = {"unit": "times ", "format": int_format_print, "conv": 1.0}
+signal_types['kb_collective']["print_info"] = {"unit": "Gbytes", "format": float_format_print, "conv": 1.0/(1024.0**2)}
+
+
+time_signal_names = signal_types.keys()
 
 
 def factory(args):
@@ -44,7 +88,7 @@ class file_info(object):
     def __init__(self, jobs_data):
 
         # Collect all the metrics names to display..
-        self.tot_metrics = {k: np.asarray([]) for k in self.metrics_names}
+        self.tot_metrics = {k: [] for k in self.metrics_names}
 
         self.jobs_data = jobs_data
 
@@ -64,10 +108,10 @@ class ksf_info(file_info):
         super(ksf_info, self).__init__(jobs_data)
 
     def n_procs(self):
-        return np.asarray([app["num_procs"] for app in self.jobs_data])
+        return [app["num_procs"] for app in self.jobs_data]
 
     def start_delay(self):
-        return np.asarray([app["start_delay"] for app in self.jobs_data])
+        return [app["start_delay"] for app in self.jobs_data]
 
     def get_tot_metrics(self):
         """
@@ -75,50 +119,43 @@ class ksf_info(file_info):
         :return:
         """
 
+        print self.metrics_names
+
         for synth_app in self.jobs_data:
 
-            app_metrics = {k: np.asarray([]) for k in self.metrics_names}
+            app_metrics = {k: [] for k in self.metrics_names}
 
             for frame in synth_app["frames"]:
 
                 for ker in frame:
 
                     if ker["name"] == "cpu":
-                        app_metrics["flops"] = np.append(app_metrics["flops"],
-                                                              signal_types["flops"]["type"](ker["flops"]))
+                        app_metrics["flops"].append(signal_types["flops"]["type"](ker["flops"]))
 
                     elif ker["name"] == "file-read":
-                        app_metrics["kb_read"] = np.append(app_metrics["kb_read"],
-                                                                signal_types["kb_read"]["type"](ker["kb_read"]))
-                        app_metrics["n_read"] = np.append(app_metrics["n_read"],
-                                                               signal_types["n_read"]["type"](ker["n_read"]))
+                        app_metrics["kb_read"].append(signal_types["kb_read"]["type"](ker["kb_read"]))
+                        app_metrics["n_read"].append(signal_types["n_read"]["type"](ker["n_read"]))
 
                     elif ker["name"] == "file-write":
-                        app_metrics["kb_write"] = np.append(app_metrics["kb_write"],
-                                                                 signal_types["kb_write"]["type"](ker["kb_write"]))
-                        app_metrics["n_write"] = np.append(app_metrics["n_write"],
-                                                                signal_types["n_write"]["type"](ker["n_write"]))
+                        app_metrics["kb_write"].append(signal_types["kb_write"]["type"](ker["kb_write"]))
+                        app_metrics["n_write"].append(signal_types["n_write"]["type"](ker["n_write"]))
 
                     elif ker["name"] == "mpi":
-                        app_metrics["n_pairwise"] = np.append(app_metrics["n_pairwise"],
-                                                                   signal_types["n_pairwise"]["type"](ker["n_pairwise"]))
-                        app_metrics["kb_pairwise"] = np.append(app_metrics["kb_pairwise"],
-                                                                    signal_types["kb_pairwise"]["type"](ker["kb_pairwise"]))
-                        app_metrics["n_collective"] = np.append(app_metrics["n_collective"],
-                                                                     signal_types["n_collective"]["type"](ker["n_collective"]))
-                        app_metrics["kb_collective"] = np.append(app_metrics["kb_collective"],
-                                                                      signal_types["kb_collective"]["type"](ker["kb_collective"]))
+                        app_metrics["n_pairwise"].append(signal_types["n_pairwise"]["type"](ker["n_pairwise"]))
+                        app_metrics["kb_pairwise"].append(signal_types["kb_pairwise"]["type"](ker["kb_pairwise"]))
+                        app_metrics["n_collective"].append(signal_types["n_collective"]["type"](ker["n_collective"]))
+                        app_metrics["kb_collective"].append(signal_types["kb_collective"]["type"](ker["kb_collective"]))
 
                     # ------------ additional kernels --------
                     elif ker["name"] == "fs_metadata":
-                        app_metrics["n_mkdir"] = np.append(app_metrics["n_mkdir"], int(ker["n_mkdir"]))
+                        app_metrics["n_mkdir"].append(int(ker["n_mkdir"]))
 
                     else:
                         raise ("kernel name {} not recognized!".format(ker["name"]))
 
             # append synth app sums into totats
             for k in app_metrics.keys():
-                self.tot_metrics[k] = np.append(self.tot_metrics[k], sum(app_metrics[k]))
+                self.tot_metrics[k].append(sum(app_metrics[k]))
 
         return self.tot_metrics
 
@@ -130,10 +167,10 @@ class kpf_info(file_info):
         super(kpf_info, self).__init__(jobs_data)
 
     def n_procs(self):
-        return np.asarray([app["ncpus"] for app in self.jobs_data if app.get("ncpus")])
+        return [app["ncpus"] for app in self.jobs_data if app.get("ncpus")]
 
     def start_delay(self):
-        delay_vec = np.asarray([app["time_start"] for app in self.jobs_data])
+        delay_vec = [app["time_start"] for app in self.jobs_data]
         delay_vec = delay_vec - min(delay_vec)
         return delay_vec
 
@@ -148,9 +185,10 @@ class kpf_info(file_info):
             for ts in signal_types:
                 if job.get("time_series"):
                     if ts in job["time_series"].keys():
-                        self.tot_metrics[ts] = np.append(self.tot_metrics[ts], sum(job["time_series"][ts]["values"]))
+                        self.tot_metrics[ts].append(sum(job["time_series"][ts]["values"]))
 
         return self.tot_metrics
+
 
 def print_qty_header():
     """
@@ -180,13 +218,13 @@ def print_one_liner_qty(qty_vec, qty_name):
     """
     _str = ""
 
-    if qty_vec.size:
+    if qty_vec:
         _str += "{:17s}:{:>25s}{:>25.2f}{:>25.0f}{:>25.0f}{:>25.2f}".format(qty_name,
                                                                             "N/A",
-                                                                            np.mean(qty_vec),
-                                                                            np.min(qty_vec),
-                                                                            np.max(qty_vec),
-                                                                            np.std(qty_vec)
+                                                                            mean_of_list(qty_vec),
+                                                                            min(qty_vec),
+                                                                            max(qty_vec),
+                                                                            std_of_list(qty_vec)
                                                                             )
     else:
         _str += "{:17s}:{:>25s}{:>25s}{:>25s}{:>25s}{:>25s}".format(qty_name,
@@ -210,7 +248,7 @@ def print_metrics(tot_metrics):
 
     for name in time_signal_names:
 
-        if tot_metrics[name].size:
+        if tot_metrics[name]:
             unit = signal_types[name]["print_info"]["unit"]
             form = signal_types[name]["print_info"]["format"]
             conv = signal_types[name]["print_info"]["conv"]
@@ -221,19 +259,19 @@ def print_metrics(tot_metrics):
             str_format += form + " [" + unit + "]"
             str_format += form + " [" + unit + "]"
             _str += str_format % (name,
-                                np.sum(tot_metrics[name]) * conv,
-                                np.mean(tot_metrics[name]) * conv,
-                                np.min(tot_metrics[name]) * conv,
-                                np.max(tot_metrics[name]) * conv,
-                                np.std(tot_metrics[name]) * conv)
+                                sum(tot_metrics[name]) * conv,
+                                mean_of_list(tot_metrics[name]) * conv,
+                                min(tot_metrics[name]) * conv,
+                                max(tot_metrics[name]) * conv,
+                                std_of_list(tot_metrics[name]) * conv)
         else:
             _str += "{:17s}:{:>25s}{:>25s}{:>25s}{:>25s}{:>25s}".format(name,
-                                                                      "vector empty!",
-                                                                      "vector empty!",
-                                                                      "vector empty!",
-                                                                      "vector empty!",
-                                                                      "vector empty!"
-                                                                      )
+                                                                        "vector empty!",
+                                                                        "vector empty!",
+                                                                        "vector empty!",
+                                                                        "vector empty!",
+                                                                        "vector empty!"
+                                                                        )
         _str += "\n"
 
     return _str
@@ -266,5 +304,3 @@ if __name__ == "__main__":
     print print_metrics(tot_metrics)
 
     print "\n..done"
-
-
