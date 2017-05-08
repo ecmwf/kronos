@@ -48,6 +48,26 @@ static StatisticsLogger* stats_instance() {
     return logger;
 }
 
+static TimeSeriesLogger* reads_time_series() {
+
+    static TimeSeriesLogger* logger = 0;
+
+    if (logger == 0)
+        logger = register_time_series("n_read");
+
+    return logger;
+}
+
+static TimeSeriesLogger* bytes_read_time_series() {
+
+    static TimeSeriesLogger* logger = 0;
+
+    if (logger == 0)
+        logger = register_time_series("bytes_read");
+
+    return logger;
+}
+
 FileReadParamsInternal get_read_params(const FileReadConfig* config) {
 
 
@@ -244,8 +264,11 @@ int execute_file_read(const void* data) {
             fprintf(stderr, "A read error occurred on file %s\n", file_path);
             error = -1;
         }
+
+        log_time_series_add_chunk_data(bytes_read_time_series(), size);
     }
 
+    log_time_series_add_chunk_data(reads_time_series(), params.num_reads);
     log_time_series_chunk();
 
     free(read_buffer);

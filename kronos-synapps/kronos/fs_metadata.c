@@ -42,6 +42,16 @@ static StatisticsLogger* mkdir_stats_instance() {
     return logger;
 }
 
+static TimeSeriesLogger* mkdir_time_series() {
+
+    static TimeSeriesLogger* logger = 0;
+
+    if (logger == 0)
+        logger = register_time_series("mkdir");
+
+    return logger;
+}
+
 
 static StatisticsLogger* rmdir_stats_instance() {
 
@@ -52,6 +62,17 @@ static StatisticsLogger* rmdir_stats_instance() {
 
     return logger;
 }
+
+static TimeSeriesLogger* rmdir_time_series() {
+
+    static TimeSeriesLogger* logger = 0;
+
+    if (logger == 0)
+        logger = register_time_series("rmdir");
+
+    return logger;
+}
+
 
 FsMetadataParamsInternal get_fsmetadata_params(const FsMetadataConfig* config) {
 
@@ -163,6 +184,8 @@ static int execute_fsmetadata(const void* data) {
         }
     }
 
+    log_time_series_add_chunk_data(mkdir_time_series(), params.node_n_mkdirs);
+    log_time_series_add_chunk_data(rmdir_time_series(), params.node_n_mkdirs);
     log_time_series_chunk();
 
     return error;

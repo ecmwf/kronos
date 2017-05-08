@@ -46,6 +46,26 @@ static StatisticsLogger* stats_instance() {
     return logger;
 }
 
+static TimeSeriesLogger* writes_time_series() {
+
+    static TimeSeriesLogger* logger = 0;
+
+    if (logger == 0)
+        logger = register_time_series("n_write");
+
+    return logger;
+}
+
+static TimeSeriesLogger* bytes_written_time_series() {
+
+    static TimeSeriesLogger* logger = 0;
+
+    if (logger == 0)
+        logger = register_time_series("bytes_write");
+
+    return logger;
+}
+
 FileWriteParamsInternal get_write_params(const FileWriteConfig* config) {
 
     FileWriteParamsInternal params;
@@ -263,6 +283,8 @@ static int execute_file_write(const void* data) {
         }
     }
 
+    log_time_series_add_chunk_data(bytes_written_time_series(), params.num_writes * params.write_size);
+    log_time_series_add_chunk_data(writes_time_series(), params.num_writes);
     log_time_series_chunk();
 
     return error;

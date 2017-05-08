@@ -74,6 +74,7 @@ static StatisticsRegistry* stats_instance() {
 
     if (!initialised) {
         registry.loggers = 0;
+        registry.timeSeriesLoggers = 0;
         registry.first = 0;
         registry.last = 0;
         registry.frameCount = 0;
@@ -584,7 +585,7 @@ static void write_krf(const char* filename) {
     time_t t;
     struct tm * tm;
 
-    const int buff_size = 4096;
+    const int buff_size = 1024 * 100;
 
     int send_size;
     int i, err, total_count;

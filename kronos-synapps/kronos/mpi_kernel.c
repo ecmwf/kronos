@@ -49,6 +49,46 @@ static StatisticsLogger* pairwise_stats_instance() {
     return logger;
 }
 
+static TimeSeriesLogger* collective_time_series() {
+
+    static TimeSeriesLogger* logger = 0;
+
+    if (logger == 0)
+        logger = register_time_series("n_collective");
+
+    return logger;
+}
+
+static TimeSeriesLogger* bytes_collective_time_series() {
+
+    static TimeSeriesLogger* logger = 0;
+
+    if (logger == 0)
+        logger = register_time_series("bytes_collective");
+
+    return logger;
+}
+
+static TimeSeriesLogger* pairwise_time_series() {
+
+    static TimeSeriesLogger* logger = 0;
+
+    if (logger == 0)
+        logger = register_time_series("n_pairwise");
+
+    return logger;
+}
+
+static TimeSeriesLogger* bytes_pairwise_time_series() {
+
+    static TimeSeriesLogger* logger = 0;
+
+    if (logger == 0)
+        logger = register_time_series("bytes_pairwise");
+
+    return logger;
+}
+
 
 MPIParamsInternal get_mpi_params(const MPIConfig* config) {
 
@@ -132,6 +172,9 @@ static int execute_mpi(const void* data) {
         free(buffer);
     }
 
+    log_time_series_add_chunk_data(collective_time_series(), params.nbroadcast);
+    log_time_series_add_chunk_data(bytes_collective_time_series(), params.nbroadcast * params.broadcast_size);
+    log_time_series_chunk();
 
     /* For a triangular mapping:
      *
@@ -181,6 +224,8 @@ static int execute_mpi(const void* data) {
     /* Ignore MPI errors */
     (void) err;
 
+    log_time_series_add_chunk_data(pairwise_time_series(), params.npairwise);
+    log_time_series_add_chunk_data(bytes_pairwise_time_series(), params.npairwise * params.pairwise_size);
     log_time_series_chunk();
 
     return 0;
