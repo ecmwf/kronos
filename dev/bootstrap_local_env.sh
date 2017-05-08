@@ -51,3 +51,7 @@ fi
 source activate test_env
 find ./depends -maxdepth 1 -mindepth 1 -type d -exec pip install -e {} \;
 source deactivate
+
+source activate test_env_exe
+find ./depends -maxdepth 1 -mindepth 1 -type d -exec pip install -e {} \;
+source deactivate
