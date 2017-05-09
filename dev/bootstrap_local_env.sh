@@ -59,5 +59,8 @@ fi
 
 # Make python packages cloned into the depends directory available to pip
 source activate test_env_exe
+
+# manually add pytest package
+conda install pytest
 find ./depends -maxdepth 1 -mindepth 1 -type d -exec pip install -e {} \;
 source deactivate
