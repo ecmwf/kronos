@@ -119,8 +119,6 @@ class ksf_info(file_info):
         :return:
         """
 
-        print self.metrics_names
-
         for synth_app in self.jobs_data:
 
             app_metrics = {k: [] for k in self.metrics_names}
