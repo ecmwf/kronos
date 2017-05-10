@@ -32,6 +32,7 @@ class ResultsFormat(JSONIoFormat):
         assert(ranks is not None)
 
         self.ranks = ranks
+        # self.time_series = time_series
 
     def __eq__(self, other):
         """
@@ -69,8 +70,9 @@ class ResultsFormat(JSONIoFormat):
         """
         output_dict = super(ResultsFormat, self).output_dict()
         output_dict.update({
-            "statistics": self.statistics,
+            # "statistics": self.statistics,
+            "ranks": self.ranks,
         })
 
-        raise NotImplementedError("Currently ResultsFormat is only used for reading coordinator output")
-        # return output_dict
+        # raise NotImplementedError("Currently ResultsFormat is only used for reading coordinator output")
+        return output_dict

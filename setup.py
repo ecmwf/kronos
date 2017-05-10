@@ -47,6 +47,7 @@ setup(
         'bin/kronos-plot-kpf',
         'bin/kronos-map-2-kpf',
         'bin/kronos-dsh-2-kpf',
+        'bin/kronos-krf-2-kpf',
 
         'bin/kronos-run-perf',
         'bin/kronos-run-collect',

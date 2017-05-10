@@ -135,6 +135,20 @@
                             }
 
                         }
+                    },
+                    "time_series": {
+                        "type": "object",
+                        "description": "Time data from the kernels of the synthetic apps (per-process)",
+                        "additionalProperties": false,
+                        "patternProperties": {
+                            "(n_write|n_read|bytes_write|bytes_read|n_pairwise|bytes_pairwise|n_collective|bytes_collective|flops|durations)": {
+                                "type": "array",
+                                "description": "data per kernel",
+                                "items": {
+                                    "type": "number"
+                                }
+                            }
+                        }
                     }
                 }
             }

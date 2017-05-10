@@ -147,11 +147,9 @@ class MPIKernel(KernelBase):
 
             if d['kb_collective'] >= 0:
                 d['n_collective'] = max(1, int(d['n_collective']))
-                # d['kb_collective'] = d['kb_collective']
 
             if d['kb_pairwise'] >= 0:
                 d['n_pairwise'] = max(1, int(d['n_pairwise']))
-                # d['kb_pairwise'] = d['kb_pairwise']
 
         return data
 
@@ -181,9 +179,13 @@ class FileReadKernel(KernelBase):
             if d['n_read'] < 0.:
                 raise ValueError('n_read is < 0!'.format(d['n_read']))
 
-            if d['kb_read'] >= 0:
+            if d['kb_read'] > 0:
                 d['n_read'] = max(1, int(d['n_read']))
-                # d['kb_read'] = d['kb_read']
+                d['kb_read'] = max(1.0, d['kb_read'])
+
+            if d['n_read'] > 0:
+                d['n_read'] = max(1, int(d['n_read']))
+                d['kb_read'] = max(1.0, d['kb_read'])
 
         return data
 
@@ -214,12 +216,12 @@ class FileWriteKernel(KernelBase):
                 raise ValueError('kb_write={} is < 0!'.format(d['kb_write']))
 
             if d['n_write'] > 0:
-                d['kb_write'] = max(1, d['kb_write'])
-                # d['n_write'] = int(d['n_write'])
+                d['n_write'] = max(1, int(d['n_write']))
+                d['kb_write'] = max(1.0, d['kb_write'])
 
             if d['kb_write'] > 0:
                 d['n_write'] = max(1, int(d['n_write']))
-                # d['kb_write'] = d['kb_write']
+                d['kb_write'] = max(1.0, d['kb_write'])
 
         return data
 

@@ -1148,7 +1148,7 @@ static void write_json_internal(JSONOutput* out, const JSON* json) {
     case JSON_ARRAY:   print_json_array(out, json); break;
 
     default:
-        json_printf(out, "Unknown component");
+        json_printf(out, "\"Unknown component\"");
         break;
     }
 }
