@@ -199,6 +199,12 @@ class SyntheticApp(ModelJob):
             }
         }
 
+        # before exporting, make sure that ncpu>=2 if there are MPI instructions
+        for frame in frames:
+            for ker in frame:
+                if ker["name"] == "mpi":
+                    job_entry["num_procs"] = max(2, job_entry["num_procs"])
+
         # if job_entry_only, export dictionary data only
         if job_entry_only:
             return job_entry
