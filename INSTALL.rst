@@ -65,7 +65,7 @@ Kronos-Executor
 ~~~~~~~~~~~~~~~
 The python components of the Kronos Executor are largely shared with the Kronos Modeller. The installation steps
 for the Kronos-Modeller should be followed. If the modeller is not to be used on the same system the reduced set of
-dependencies in *conda_environment_exe.txt* may be used.
+dependencies in *conda_environment_exe.txt* may be used -> the "executor" conda environment should be created
 
 The synthetic applications make use of a binary executable called kronos-coordinator. Building this executable will require:
 
