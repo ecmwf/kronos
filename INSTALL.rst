@@ -2,16 +2,14 @@
 INSTALL
 =======
 
--------------
-Quick Install
--------------
 
-~~~~~~~~~~~~~~~
-Kronos Modeller
-~~~~~~~~~~~~~~~
-The Kronos Modeller is part of the Kronos package, and is formed of the Kronos python library and the Kronos-modeller executable. The easiest way to install the required dependencies is using the *conda* package management system. If this is not available through your package management system it may be installed in a local directory as follows:
+Kronos Executor
+---------------
 
-1. Get and install *conda* from sources:
+The Kronos Executor is part of the Kronos package. The easiest way to install the required python dependencies is using the *conda* package management system.
+If this is not available through your package management system it may be installed in a local directory as follows:
+
+1. **Get and install *conda* from sources (if not available on the system):**
 
   > wget https://repo.continuum.io/miniconda/Miniconda2-latest-Linux-x86_64.sh
 
@@ -21,61 +19,46 @@ The Kronos Modeller is part of the Kronos package, and is formed of the Kronos p
 
   > export PATH=${working_directory}/miniconda/bin:${PATH}
 
-Given conda, the Kronos package can now be made available:
-
-2. Extract Kronos “tarball” into your working directory:
+2. **Extract Kronos sources**
 
   > cd {working_directory}
 
-  > cp kronos_V0.1.0.tar.gz .
+  > cp kronos_v<version>.tar.gz .
 
-  > tar xzvf kronos_V0.1.0.tar.gz
+  > tar xzvf kronos_v<version>.tar.gz
 
-3. Create "kronos" environment from kronos-core/conda_environment.txt file as follows:
+3. **Create python environment for executor**
 
-  > conda env create -n kronos -f conda_environment.txt
+  > conda env create -n executor -f conda_environment_exe.txt
 
-4. Activate "kronos" environment in conda
+4. **Install Kronos Executor**
 
-  > source activate kronos
+  > source activate executor
 
-5. Install pip within the "kronos" environment in conda
-
-  > conda install pip
-
-6. Install Kronos
-
-  > cd {working_directory}/kronos-core
+  > cd {working_directory}
 
   > pip install .
 
-At this stage, Kronos-Modeller should be installed under the “kronos” *conda* environment and all the appropriate environment settings should be automatically detected.
+  At this stage, Kronos-Executor should be installed under the “executor” environment and all the
+  appropriate environment settings should be automatically detected. It is possible to verify the correct installation of the Kronos-Executor by running:
 
-It is possible to verify the correct installation of Kronos by running:
+    > source activate executor
 
-  > source activate kronos
+    > conda env export
 
-  > conda env export
+  The name of kronos=<version> should now appear in the list of packages available in the executor environment.
 
-The name of kronos=0.0.1 should now appear in the list of packages available in the kronos environment.
+5. **Install the Synthetic Apps**
 
+  Building this executable will require:
 
-~~~~~~~~~~~~~~~
-Kronos-Executor
-~~~~~~~~~~~~~~~
-The python components of the Kronos Executor are largely shared with the Kronos Modeller. The installation steps
-for the Kronos-Modeller should be followed. If the modeller is not to be used on the same system the reduced set of
-dependencies in *conda_environment_exe.txt* may be used -> the "executor" conda environment should be created
+    1. A working C compiler
 
-The synthetic applications make use of a binary executable called kronos-coordinator. Building this executable will require:
+    2. A working installation of MPI compatible with the C compiler
 
-1. A working C compiler
+    3. CMake (version 2.8.11 or higher).
 
-2. A working installation of MPI compatible with the C compiler
-
-3. CMake (version 2.8.11 or higher).
-
-To build kronos-coordinator, create a build directory outside the source tree:
+  To build kronos-coordinator, create a build directory outside the source tree:
 
   > mkdir {kronos-build}
 
@@ -84,3 +67,12 @@ To build kronos-coordinator, create a build directory outside the source tree:
   > cmake <path-to-kronos-source>
 
   > make
+
+If the synthetic apps are successfully installed, an executor called "kronos-coordinator" is generated in {kronos-build}/bin
+
+~~~~~~~~~~~~~~~
+Kronos-Modeller
+~~~~~~~~~~~~~~~
+The python components of the Kronos Modeller are largely shared with the Kronos Executor. The installation steps
+for the Kronos-Executor should be followed. If the modeller is not to be used on the same system the reduced set of
+dependencies in *conda_environment_exe.txt* may be used -> the "executor" conda environment should be created
