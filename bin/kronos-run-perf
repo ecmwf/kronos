@@ -77,11 +77,11 @@ if __name__ == "__main__":
 
         # -------- calculate relevant summary measures as needed.. ---------
         data_keys = {
-            "cpu": {"label": "GFLOPS/sec", "conv": 1.0/1024**3},
-            "read": {"label": "I/O read: [G/s]", "conv": 1.0/1024**3},
-            "write": {"label": "I/O write: [G/s]", "conv": 1.0/1024**3},
-            "mpi-pairwise": {"label": "MPI p2p: [G/s]", "conv": 1.0/1024**3},
-            "mpi-collective": {"label": "MPI col: [G/s]", "conv": 1.0/1024**3}
+            "cpu": {"label": "FLOPS:     [G/s]", "conv": 1.0/1024**3},
+            "read": {"label": "I/O read:  [GiB/s]", "conv": 1.0/1024**3},
+            "write": {"label": "I/O write: [GiB/s]", "conv": 1.0/1024**3},
+            "mpi-pairwise": {"label": "MPI p2p:   [GiB/s]", "conv": 1.0/1024**3},
+            "mpi-collective": {"label": "MPI col:   [GiB/s]", "conv": 1.0/1024**3}
         }
 
         perf_data = {}
@@ -96,7 +96,18 @@ if __name__ == "__main__":
         for k in data_keys.keys():
             summary_data[k] = {"vec": zip(*perf_data[k])}
 
-        for k in summary_data.keys():
+        # ------------- sorted keys --------------
+        sorted_keys = [
+            "cpu",
+            "read",
+            "write",
+            "mpi-pairwise",
+            "mpi-collective"
+        ]
+        #-----------------------------------------
+
+
+        for k in sorted_keys:
 
             if not summary_data[k]["vec"]:
 
@@ -141,7 +152,7 @@ if __name__ == "__main__":
                                                                      l=_fl)
         print "{}".format("-"*(_fl+1)*5)
 
-        for k in summary_data.keys():
+        for k in sorted_keys:
             if isinstance(summary_data[k]["mean"], str):
                 print "{:<{l}s}|{:>{l}}|{:>{l}}|{:>{l}}|{:>{l}}|".format(data_keys[k]["label"],
                                                                          summary_data[k]["mean"],
