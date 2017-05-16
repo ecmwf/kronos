@@ -139,21 +139,24 @@ class ksf_info(file_info):
                         app_metrics["n_write"].append(signal_types["n_write"]["type"](ker["n_write"]))
 
                     elif ker["name"] == "mpi":
-                        app_metrics["n_pairwise"].append(signal_types["n_pairwise"]["type"](ker["n_pairwise"]))
-                        app_metrics["kb_pairwise"].append(signal_types["kb_pairwise"]["type"](ker["kb_pairwise"]))
-                        app_metrics["n_collective"].append(signal_types["n_collective"]["type"](ker["n_collective"]))
-                        app_metrics["kb_collective"].append(signal_types["kb_collective"]["type"](ker["kb_collective"]))
+                        app_metrics["n_pairwise"].append(signal_types["n_pairwise"]["type"](ker["n_pairwise"])*synth_app["num_procs"])
+                        app_metrics["kb_pairwise"].append(signal_types["kb_pairwise"]["type"](ker["kb_pairwise"])*synth_app["num_procs"])
+                        app_metrics["n_collective"].append(signal_types["n_collective"]["type"](ker["n_collective"])*synth_app["num_procs"])
+                        app_metrics["kb_collective"].append(signal_types["kb_collective"]["type"](ker["kb_collective"])*synth_app["num_procs"])
 
-                    # ------------ additional kernels --------
+                    # --------- additional kernels --------
                     elif ker["name"] == "fs_metadata":
                         app_metrics["n_mkdir"].append(int(ker["n_mkdir"]))
 
                     else:
                         raise ("kernel name {} not recognized!".format(ker["name"]))
 
-            # append synth app sums into totats
+            # append synth app sums into totals
             for k in app_metrics.keys():
-                self.tot_metrics[k].append(sum(app_metrics[k]))
+
+                # append only non-empty metrics
+                if app_metrics[k]:
+                    self.tot_metrics[k].append(sum(app_metrics[k]))
 
         return self.tot_metrics
 
@@ -178,7 +181,7 @@ class kpf_info(file_info):
 
     def get_tot_metrics(self):
         """
-        Return the dictionary with the metrics totals..
+        Return the dictionary with the metrics totals - (NB: values grouped per synthetic app)
         :return:
         """
 
@@ -188,6 +191,8 @@ class kpf_info(file_info):
                 if job.get("time_series"):
                     if ts in job["time_series"].keys():
                         self.tot_metrics[ts].append(sum(job["time_series"][ts]["values"]))
+                else:
+                    print "job {} does not have time series!".format(job["job_name"])
 
         return self.tot_metrics
 
