@@ -44,6 +44,14 @@ kronos.executor.subprocess_callback module
     :undoc-members:
     :show-inheritance:
 
+kronos.executor.tools module
+----------------------------
+
+.. automodule:: kronos.executor.tools
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 
 Module contents
 ---------------

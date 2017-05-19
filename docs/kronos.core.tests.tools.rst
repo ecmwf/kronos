@@ -20,6 +20,14 @@ kronos.core.tests.tools.test_merge_tools module
     :undoc-members:
     :show-inheritance:
 
+kronos.core.tests.tools.test_rad_gyration module
+------------------------------------------------
+
+.. automodule:: kronos.core.tests.tools.test_rad_gyration
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 
 Module contents
 ---------------

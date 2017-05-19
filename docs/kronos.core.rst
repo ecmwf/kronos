@@ -9,6 +9,8 @@ Subpackages
     kronos.core.config
     kronos.core.data_analysis
     kronos.core.examples
+    kronos.core.framework
+    kronos.core.job_generation
     kronos.core.kronos_tools
     kronos.core.logreader
     kronos.core.postprocess
@@ -43,14 +45,6 @@ kronos.core.fill_in_functions module
     :undoc-members:
     :show-inheritance:
 
-kronos.core.generator module
-----------------------------
-
-.. automodule:: kronos.core.generator
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
 kronos.core.jobs module
 -----------------------
 
@@ -71,6 +65,14 @@ kronos.core.plot_handler module
 -------------------------------
 
 .. automodule:: kronos.core.plot_handler
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+kronos.core.report module
+-------------------------
+
+.. automodule:: kronos.core.report
     :members:
     :undoc-members:
     :show-inheritance:

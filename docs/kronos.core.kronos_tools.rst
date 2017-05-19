@@ -4,6 +4,14 @@ kronos.core.kronos_tools package
 Submodules
 ----------
 
+kronos.core.kronos_tools.gyration_radius module
+-----------------------------------------------
+
+.. automodule:: kronos.core.kronos_tools.gyration_radius
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 kronos.core.kronos_tools.merge module
 -------------------------------------
 
@@ -32,14 +40,6 @@ kronos.core.kronos_tools.time_format module
 -------------------------------------------
 
 .. automodule:: kronos.core.kronos_tools.time_format
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-kronos.core.kronos_tools.time_pdf module
-----------------------------------------
-
-.. automodule:: kronos.core.kronos_tools.time_pdf
     :members:
     :undoc-members:
     :show-inheritance:

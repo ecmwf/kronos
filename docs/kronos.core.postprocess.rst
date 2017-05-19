@@ -28,6 +28,14 @@ kronos.core.postprocess.run_plotter module
     :undoc-members:
     :show-inheritance:
 
+kronos.core.postprocess.run_summary module
+------------------------------------------
+
+.. automodule:: kronos.core.postprocess.run_summary
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 
 Module contents
 ---------------

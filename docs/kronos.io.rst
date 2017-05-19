@@ -27,6 +27,14 @@ kronos.io.profile_format module
     :undoc-members:
     :show-inheritance:
 
+kronos.io.results_format module
+-------------------------------
+
+.. automodule:: kronos.io.results_format
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 kronos.io.schedule_format module
 --------------------------------
 
