@@ -45,7 +45,7 @@ execute_process(COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/bin/kronos-config-enquire re
                 OUTPUT_VARIABLE KRONOS_READ_SIZE_MAX )
 execute_process(COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/bin/kronos-config-enquire write_file_max_chunk
                 OUTPUT_VARIABLE KRONOS_WRITE_FILE_MAX_CHUNK )
-                
+
 # And build the C components
 
 ecbuild_declare_project()
@@ -65,107 +65,8 @@ add_subdirectory( kronos-synapps )
 
 ### finalize project
 
-### Choice between Modeller+executor or executor only
-
-# copy README and HISTORY to the build folder
-file( COPY README.rst DESTINATION . )
-file( COPY HISTORY.rst DESTINATION . )
-file( COPY MANIFEST.in DESTINATION . )
-
-# if building both the executor and the modeller:
-if( EXE_AND_MODELLER )
-
-file( COPY conda_environment_exe.txt DESTINATION . )
-file( COPY conda_environment.txt DESTINATION . )
-
-set( PYTHON_SCRIPTS 
-"
-        'bin/kronos-ingest',
-        'bin/kronos-model',
-        'bin/kronos-view-json',
-        'bin/kronos-show-info',
-        'bin/kronos-config',
-        'bin/kronos-config-exe',
-        'bin/kronos-kpf',
-        'bin/kronos-krf',
-        'bin/kronos-ksf',
-        'bin/kronos-config-enquire',
-        'bin/kronos-dummy-workload',
-        'bin/kronos-generate-read-files',
-        'bin/kronos-executor',
-        'bin/kronos-raw-to-kpf',
-        'bin/kronos-plot-kpf',
-        'bin/kronos-map-2-kpf',
-        'bin/kronos-dsh-2-kpf',
-        'bin/kronos-krf-2-kpf',
-        'bin/kronos-run-perf',
-        'bin/kronos-run-collect',
-        'bin/kronos-run-analysis',
-"
-)
-
-else()
-
-file( COPY conda_environment_exe.txt DESTINATION . )
-
-file( COPY
-     bin/kronos-view-json
-     bin/kronos-show-info
-     bin/kronos-config-exe
-     bin/kronos-kpf
-     bin/kronos-krf
-     bin/kronos-ksf
-     bin/kronos-config-enquire
-     bin/kronos-generate-read-files
-     bin/kronos-executor
-     bin/kronos-run-perf
-     bin/kronos-run-collect
-     DESTINATION bin )
-
-ecbuild_add_resources( TARGET top_files_1
-                       SOURCES_DONT_PACK 
-                       docs 
-                       dev
-                       kronos/core 
-                       conda_environment.txt
-                       "bin/kronos-config$"
-                       bin/kronos-dummy-workload                                             
-                       bin/kronos-dsh-2-kpf
-                       bin/kronos-krf-2-kpf
-                       bin/kronos-ingest
-                       bin/kronos-map-2-kpf 
-                       bin/kronos-model                       
-                       bin/kronos-background-load
-                       bin/kronos-ksf-info
-                       bin/kronos-plot-kpf
-                       bin/kronos-raw-to-kpf
-                       bin/kronos-run-analysis
-                    )
-                    
-set( PYTHON_SCRIPTS 
-"
-        'bin/kronos-view-json',
-        'bin/kronos-show-info',        
-        'bin/kronos-config-exe',
-        'bin/kronos-kpf',
-        'bin/kronos-krf',
-        'bin/kronos-ksf',
-        'bin/kronos-config-enquire',        
-        'bin/kronos-generate-read-files',
-        'bin/kronos-executor',               
-        'bin/kronos-run-perf',
-        'bin/kronos-run-collect',
-"
-)
-
-endif()
-
-
-### configure the setup.py
-file( COPY kronos DESTINATION . )
-
-configure_file( setup.py.in setup.py )
-
+ecbuild_add_resources( TARGET top_files SOURCES_DONT_PACK AUTHORS )
+#ecbuild_add_resources( TARGET top_files SOURCES TODO AUTHORS README.md NOTICE LICENSE INSTALL ChangeLog COPYING )
 
 ecbuild_pkgconfig(NAME kronos-synapps
                   DESCRIPTION "Execute synthetic workloads on HPC systems using synthetic applications" )

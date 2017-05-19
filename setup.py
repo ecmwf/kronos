@@ -17,10 +17,8 @@ test_requirements = [
     # TODO: put package test requirements here
 ]
 
-
-
 setup(
-    name='kronos-executor',
+    name='kronos',
     version='0.1.1',
     description="Workload extraction, modelling and duplication for HPC systems",
     long_description=readme + '\n\n' + history,
@@ -29,8 +27,33 @@ setup(
     packages=find_packages(),
     package_dir={
         'kronos': 'kronos'
-    },    
-    scripts=[@PYTHON_SCRIPTS@],
+    },
+    scripts=[
+        'bin/kronos-ingest',
+        'bin/kronos-model',
+
+        'bin/kronos-view-json',
+        'bin/kronos-show-info',
+        'bin/kronos-config',
+        'bin/kronos-config-exe',
+        'bin/kronos-kpf',
+        'bin/kronos-ksf',
+        'bin/kronos-config-enquire',
+        'bin/kronos-dummy-workload',
+
+        'bin/kronos-generate-read-files',
+        'bin/kronos-executor',
+        'bin/kronos-raw-to-kpf',
+
+        'bin/kronos-plot-kpf',
+        'bin/kronos-map-2-kpf',
+        'bin/kronos-dsh-2-kpf',
+        'bin/kronos-krf-2-kpf',
+
+        'bin/kronos-run-perf',
+        'bin/kronos-run-collect',
+        'bin/kronos-run-analysis',
+    ],
     include_package_data=True,
     install_requires=requirements,
     license="Apache Software License 2.0",
