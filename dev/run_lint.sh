@@ -24,6 +24,6 @@ cd ${bamboo_working_directory}
 find . -path ./.git -prune -o \
        -path ./miniconda -prune -o \
        -path ./depends -prune -o \
-       -type f -name "*.py" -print0 | xargs -0 -n1 pyflakes;
+       -type f -name "*.py" ! -name "__init__.py" -print0 | xargs -0 -n1 pyflakes;
 
 source deactivate
