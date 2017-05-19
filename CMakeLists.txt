@@ -66,6 +66,7 @@ add_subdirectory( kronos-synapps )
 ### finalize project
 
 ecbuild_add_resources( TARGET top_files SOURCES_DONT_PACK AUTHORS )
+ecbuild_add_resources( TARGET top_files_1 SOURCES_DONT_PACK dev )
 #ecbuild_add_resources( TARGET top_files SOURCES TODO AUTHORS README.md NOTICE LICENSE INSTALL ChangeLog COPYING )
 
 ecbuild_pkgconfig(NAME kronos-synapps
