@@ -48,7 +48,7 @@ Run the executor
     - <src-dir>/kronos/executor/job_classes
 
 - run the executor
-  > kronos-executor <executor-config-file> <path-to-ksf-file>
+  > kronos-executor <path-to-ksf-file> --config=<executor-config-file>
 
 Check results:
 ~~~~~~~~~~~~~~
