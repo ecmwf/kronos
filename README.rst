@@ -4,15 +4,15 @@ README
 
 1. Description
 --------------
-Kronos is a HPC workload simulator that generates a model workload starting from workload data collected on a real HPC
-system and then translates the worklaod model into a set of applications+schedule usable to benchmark HPC prototypes.
+Kronos is a HPC workload simulator that generates a workload model starting from workload data collected on a real HPC
+system and then translates the worklaod model into a set of applications (+schedule) usable to benchmark HPC prototypes.
 The software is mainly split into two components:
-  - Kronos Modellder: ingests HPC workload data and generate a workload model and schedule
-  - Kronos Executor: reads the workload model and deploys it on a real HPC system (through a set of "synthetic applications")
+  - Kronos Modellder: ingests HPC workload data and generate a workload model (and schedule)
+  - Kronos Executor: reads the workload model and deploys it on a real HPC system (through a set of portable "synthetic applications")
 
 2. Licence
 ----------
-Please read LICENCE file
+Please read the LICENCE file
 
 2. Usage
 --------
@@ -21,12 +21,12 @@ Kronos Executor reads a synthetic schedule (KSF format) and executes it on a HPC
 
 3. Kronos File formats
 ----------------------
-Kronos files formats are listed below. For each format an executable ("kronos-<format>) in the /bin directory will provide description of the field
+Kronos file formats are listed below. For each format an executable ("kronos-<format>) in the /bin directory will provide a description of each field
 
 - Kronos Executor configuration format (for info: > kronos-config-exe)
-- Kronos Profile Format (for info: > kronos-kpf)
-- Kronos Schedule Format (for info: > kronos-ksf)
-- Kronos Results Format (for info: > kronos-krf)
+- Kronos Profile Format ".KPF" (for info: > kronos-kpf)
+- Kronos Schedule Format ".KSF" (for info: > kronos-ksf)
+- Kronos Results Format ".KRF" (for info: > kronos-krf)
 
 4. Executor
 -----------
@@ -36,15 +36,15 @@ run an a HPC system. Installation instructions of the executor are in INSTALL.rs
 Run the executor
 ~~~~~~~~~~~~~~~~
 
-- load the executor conda environment
+- load the executor conda environment (read INSTALL.rst for how to create the executor conda environment)
   > source activate executor
 
 - Setup the executor configuration file
-  - A detailad description of the fields is shown by executing 
+  - A detailad description of the fields of the configuration file is shown by executing
     > kronos-config-exe
 
-- Setup the submit job template 
-  - Examples of job submit templates can be found in (e.g. slurm.py and pbs.py):
+- Setup the submit job template
+  - Examples of job submit templates (e.g. slurm.py and pbs.py) can be found in:
     - <src-dir>/kronos/executor/job_classes
 
 - run the executor
@@ -64,4 +64,4 @@ Collect results:
 
   > kronos-run-collect <path-to-output-dir>
 
-  The tarball will be placed into <path-to-output-dir>
+  The tarball with the relevant data will be placed into <path-to-output-dir>

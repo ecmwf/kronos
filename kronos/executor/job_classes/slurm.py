@@ -1,6 +1,18 @@
 from kronos.executor.job_classes.hpc import HPCJob
 
 #####################################################################################################
+# This file is an example of a job submit template needed to run the executor on a HPC system. This template is
+# called "slurm.py" and is an example template that can be used to submit jobs to a slurm scheduler. In order to
+# instruct the executor to use this template, the following entry should be set in the executor configuration file:
+#
+# - "job_class": "slurm"
+#
+# Below, the details of how to setup the script are provided. This script can also be used as reference to generate user
+# defined submit scripts (e.g. "user_job_script.py") that will then be invoked by setting the following entry in the
+# executor config file:
+#
+# - "job_class": "user_job_script"
+#
 #
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # Template fields automatically set by Kronos
@@ -31,9 +43,9 @@ from kronos.executor.job_classes.hpc import HPCJob
 #
 #     job_dir: "job output directory"
 #
-# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-# Variables to be manually set
-# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# Variables to be manually set by the user
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 #
 # 2) In addition to the main template of the submit scripts, the following variables need to be MANUALLY set
 #    in the template class below
