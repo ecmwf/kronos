@@ -7,6 +7,10 @@
 # granted to it by virtue of its status as an intergovernmental organisation nor
 # does it submit to any jurisdiction.
 
+"""
+Simple script to show a json file in a nice and readable format
+"""
+
 import argparse
 import json
 

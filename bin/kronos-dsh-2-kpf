@@ -8,8 +8,8 @@
 # does it submit to any jurisdiction.
 
 """
-Utility to go through the kronos run folder that has been profiled with Allinea,
-and generates a KPF file from the Allinea jsons (requires the map2json tool from Allinea to convert MAP to JSON format)
+Utility to go through the kronos run folder that has been profiled with Darshan,
+and generates a KPF file (requires the darshan-parser tool to parse the Darshan raw files)
 """
 
 import os
