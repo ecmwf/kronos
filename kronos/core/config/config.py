@@ -8,7 +8,6 @@
 import logging
 import os
 import json
-import sys
 
 from config_format import ConfigFormat
 from kronos.core.exceptions_iows import ConfigurationError
@@ -110,7 +109,5 @@ class Config(object):
             logging.basicConfig(filename=self.kronos_log_file,
                                 filemode='w',
                                 level=logging.INFO)
-
-        logging.getLogger().addHandler(logging.StreamHandler(sys.stdout))
         # -----------------------------------------------------
 

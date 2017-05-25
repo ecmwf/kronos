@@ -7,15 +7,27 @@
 # does it submit to any jurisdiction.
 import logging
 # import sys
-
+import sys
 
 log_level_map = {
-    "debug": logging.debug,
-    "info": logging.info,
-    "warning": logging.warning,
-    "error": logging.error,
-    "critical": logging.critical
+    "debug": (logging.debug, 0),
+    "info": (logging.info, 1),
+    "warning": (logging.warning, 2),
+    "error": (logging.error, 3),
+    "critical": (logging.critical, 4)
 }
+
+
+def print_and_flush(txt, flush):
+    """
+    Pritn and flush
+    :param txt:
+    :param flush:
+    :return:
+    """
+    sys.stdout.write(txt)
+    if flush:
+        sys.stdout.flush()
 
 
 def print_colour(col, text, end="\n", flush=False, log_level=None):
@@ -46,14 +58,10 @@ def print_colour(col, text, end="\n", flush=False, log_level=None):
     colour_str = "\033[{}m".format(colour_map.get(col, "0"))
     reset_str = "\033[0m"
 
-    # sys.stdout.write("{}{}{}{}".format(colour_str, text, reset_str, end))
-    # if flush:
-    #     sys.stdout.flush()
-
     # if a log level is passed, use it..
     if log_level:
         try:
-            log_function = log_level_map[log_level.lower()]
+            log_function = log_level_map[log_level.lower()][0]
         except KeyError:
             print "log level not found, set to [info]"
             log_function = logging.info
@@ -61,4 +69,13 @@ def print_colour(col, text, end="\n", flush=False, log_level=None):
         log_function = logging.info
 
     # pass the message to log..
-    log_function("{}".format("{}{}{}".format(colour_str, text, reset_str)))
+    log_function("{}".format("{}".format(text)))
+
+    # Explicitly decide whether or not to print to STDOUT
+    log_level_user = logging.getLogger().getEffectiveLevel()
+    if log_level:
+
+        if log_level_map[log_level.lower()][1] > log_level_user:
+            print_and_flush("{}{}{}{}".format(colour_str, text, reset_str, end), flush)
+    else:
+        print_and_flush("{}{}{}{}".format(colour_str, text, reset_str, end), flush)
