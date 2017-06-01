@@ -51,9 +51,17 @@
                         "type": "number",
                         "description": "job start delay (in sec) relative to the first job"
                     },
-                    "num_procs":{
+                    "num_procs": {
                         "type": "number",
                         "description": "number of processes that the job will run on"
+                    },
+                    "depends": {
+                        "type": "array",
+                        "description": "A list of job IDs that must be completed before this job runs",
+                        "items": {
+                            "type": "integer",
+                            "minimum": 0
+                        }
                     },
                     "frames": {
                         "type": "array",
