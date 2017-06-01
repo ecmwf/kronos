@@ -18,7 +18,7 @@ class ScheduleFormat(JSONIoFormat):
     """
     A standardised format for schedule information.
     """
-    format_version = 1
+    format_version = 2
     format_magic = "KRONOS-KSF-MAGIC"
     schema_json = os.path.join(os.path.dirname(__file__), "schedule_schema.json")
 
