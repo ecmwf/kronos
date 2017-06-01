@@ -7,7 +7,7 @@
     "properties": {
         "version" : {
             "type": "number",
-            "enum": [%(kronos-version)s],
+            "enum": [1, %(kronos-version)],
             "description": "Version number of the KSF format"
         },
         "tag": {
