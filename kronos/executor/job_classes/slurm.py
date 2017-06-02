@@ -138,6 +138,8 @@ class SLURMMixin(object):
     allinea_lic_file_template = allinea_lic_file_template
         
     submit_command = "sbatch"
+    depend_parameter = "--dependency=afterany:"
+    depend_separator = ":"
     launcher_command = 'mpirun'
     allinea_launcher_command = "map --profile mpirun"
 

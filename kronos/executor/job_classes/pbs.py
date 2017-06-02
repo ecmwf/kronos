@@ -138,6 +138,8 @@ class PBSMixin(object):
     darshan_template = darshan_template
     allinea_template = allinea_template
     submit_command = "qsub"
+    depend_parameter = "-W depend=afterany:"
+    depend_separator = ":"
     launcher_command = 'aprun'
     allinea_launcher_command = "map --profile aprun"
     allinea_lic_file_template = allinea_lic_file_template

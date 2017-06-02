@@ -12,6 +12,8 @@ class HPCJob(BaseJob):
     darshan_template = None
     allinea_template = None
     submit_command = None
+    depend_parameter = None
+    depend_separator = None
     launcher_command = None
     allinea_launcher_command = None
 
@@ -42,8 +44,8 @@ class HPCJob(BaseJob):
             'input_file': self.input_file,
             'job_dir': self.path,
             'profiling_code': "",
-            'experiment_id': 'synthApp_{}_{}_{}'.format(nprocs, nnodes, self.jobno),
-            'job_num': self.jobno,
+            'experiment_id': 'synthApp_{}_{}_{}'.format(nprocs, nnodes, self.id),
+            'job_num': self.id,
             'job_output_file': os.path.join(self.path, "output"),
             'job_error_file': os.path.join(self.path, "error"),
             'launcher_command': self.launcher_command
@@ -89,7 +91,9 @@ class HPCJob(BaseJob):
         HPCJob.cancel_file.write(self.cancel_file_line.format(sequence_id=sequence_id_job))
         HPCJob.cancel_file.flush()
 
-    def run(self):
+        self.executor.set_job_submitted(self.id, sequence_id_job)
+
+    def run(self, depend_job_ids):
         """
         'Run' this job
 
@@ -102,5 +106,15 @@ class HPCJob(BaseJob):
 
         self.executor.wait_until(self.start_delay)
 
-        print "Submitting job {}".format(self.jobno)
-        self.executor.thread_manager.subprocess_callback(self.submission_callback, self.submit_command, self.submit_script)
+        subprocess_args = []
+        subprocess_args.append(self.submit_command)
+
+        if depend_job_ids:
+            assert isinstance(depend_job_ids, list)
+            depend_string = "{}{}".format(self.depend_parameter, self.depend_separator.join(depend_job_ids))
+            subprocess_args.append(depend_string)
+
+        subprocess_args.append(self.submit_script)
+
+        print "Submitting job {}".format(self.id)
+        self.executor.thread_manager.subprocess_callback(self.submission_callback, *subprocess_args)

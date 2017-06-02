@@ -9,11 +9,25 @@ class BaseJob(object):
         self.path = path
         self.executor = executor
         self.input_file = os.path.join(self.path, 'input.json')
-        self.jobno = job_config.get('job_num', 0)
+        self._job_num = job_config.get('job_num', 0)
 
         self.start_delay = job_config.get('start_delay', 0)
         if not (isinstance(self.start_delay, int) or isinstance(self.start_delay, float)):
             raise TypeError("Start delay must be a number")
+
+    @property
+    def id(self):
+        return self._job_num
+
+    @property
+    def depends(self):
+        """
+        Return a list of the job numbers that are depended on
+        """
+        dependencies = self.job_config.get('depends', [])
+
+        assert all(self.id > d for d in dependencies)
+        return dependencies
 
     def generate(self):
 
@@ -32,9 +46,13 @@ class BaseJob(object):
     def generate_internal(self):
         raise NotImplementedError
 
-    def run(self):
+    def run(self, depend_job_ids):
         """
         'Run' this job
+
+        depend_jobs_ids: The job ids of jobs this depends on.
+
+        n.b. This class is responsible for calling set_job_submitted on the executor.
 
         This has a flexible meaning, depending on the setup. There can be many strategies here.
 

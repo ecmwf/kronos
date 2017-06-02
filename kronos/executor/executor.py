@@ -97,6 +97,8 @@ class Executor(object):
 
         self.thread_manager = SubprocessManager(config.get('submission_workers', 5))
 
+        self._submitted_jobs = {}
+
     def run(self):
 
         # Test the read cache
@@ -108,7 +110,9 @@ class Executor(object):
         else:
             print "OK."
 
-        # And execute the jobs
+        # Launched jobs, matched with their job-ids
+
+        jobs = []
 
         for job_num, job_config in enumerate(self.job_iterator()):
             job_dir = os.path.join(self.job_dir, "job-{}".format(job_num))
@@ -117,9 +121,47 @@ class Executor(object):
             j = self.job_class(job_config, self, job_dir)
 
             j.generate()
-            j.run()
+            jobs.append(j)
+
+        # Work through the list of jobs. Launch the first job that is not blocked by any other
+        # job.
+        # n.b. job.run does not just simply return the ID, as it may be asynchronous. The job
+        # handler is responsible for calling back set_job_submitted
+
+        while len(jobs) != 0:
+            nqueueing = self.thread_manager.num_running
+
+            found_job = None
+            depend_ids = None
+            for j in jobs:
+
+                try:
+                    depends = j.depends
+                    depend_ids = [self._submitted_jobs[d] for d in depends]
+
+                    # We have found a job. Break out of the search
+                    found_job = j
+                    break
+
+                except KeyError:
+                    # Go on to the next job in the list
+                    pass
+
+            if found_job:
+                found_job.run(depend_ids)
+                jobs.remove(found_job)
+
+            else:
+                # If there are no unblocked jobs, but there are still jobs in the submit queue,
+                # wait until something happens
+                self.thread_manager.wait_until(nqueueing-1)
+
+        # Wait until we are done
 
         self.thread_manager.wait()
+
+    def set_job_submitted(self, job_num, submitted_id):
+        self._submitted_jobs[job_num] = submitted_id
 
     def wait_until(self, seconds):
         """
@@ -151,4 +193,3 @@ class Executor(object):
             job_repeats = job.get("repeat", 1)
             for i in range(job_repeats):
                 yield job
-

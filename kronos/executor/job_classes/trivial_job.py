@@ -67,10 +67,11 @@ class Job(BaseJob):
 
         os.chmod(self.run_script, stat.S_IRWXU | stat.S_IROTH | stat.S_IXOTH | stat.S_IRGRP | stat.S_IXGRP)
 
-
-    def run(self):
+    def run(self, depend_jobs_ids):
         """
         'Run' this job
+
+        depend_jobs_ids: The job ids of jobs this depends on. Ignored for trivial executor.
 
         This has a flexible meaning, depending on the setup. There can be many strategies here.
 
@@ -85,3 +86,5 @@ class Job(BaseJob):
         with open('output', 'w') as fout, open('error', 'w') as ferror :
             subprocess.call(self.run_script, stdout=fout, stderr=ferror, stdin=None, shell=True)
         os.chdir(cwd)
+
+        self.executor.set_job_submitted(self.id, )

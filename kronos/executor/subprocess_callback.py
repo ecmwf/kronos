@@ -49,14 +49,23 @@ class SubprocessManager(object):
 
         self.threads_cv.release()
 
+    @property
+    def num_running(self):
+        return len(self.threads)
+
+    def wait_until(self, nthreads):
+        """
+        Wait until there are nthreads, or fewer, threads running
+        """
+        self.threads_cv.acquire()
+        while len(self.threads) > nthreads:
+            self.threads_cv.wait()
+        self.threads_cv.release()
+
     def wait(self):
         """
         Wait until all of the threads (that have been started at this point) have returned
         """
-        self.threads_cv.acquire()
-        while len(self.threads) > 0:
-            print "Waiting for {} worker threads to complete".format(len(self.threads))
-
-            self.threads_cv.wait()
-        self.threads_cv.release()
+        print "Waiting for {} worker threads to complete".format(len(self.threads))
+        self.wait_until(0)
 
