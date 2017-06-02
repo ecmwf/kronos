@@ -19,15 +19,18 @@ def human_readable_bytes(num):
     return "{:.3f} {}B".format(num, unit)
 
 
-def enumerate_cache_files(path):
+def enumerate_cache_files(path, multiplicity=None, size_min=None, size_max=None):
     """
     Enumerate the read cache files below the specified path
 
     :return: A generator of (file_name, file_size) tuples
     """
-    multiplicity = global_config['read_file_multiplicity']
-    size_min = global_config['read_file_size_min']
-    size_max = global_config['read_file_size_max']
+    if not multiplicity:
+        multiplicity = global_config['read_file_multiplicity']
+    if not size_min:
+        size_min = global_config['read_file_size_min']
+    if not size_max:
+        size_max = global_config['read_file_size_max']
 
     print "Multiplicity of read files: {}".format(global_config['read_file_multiplicity'])
     print "Minimum file size: 2^{} B, {}".format(size_min, human_readable_bytes(2 ** size_min))
@@ -43,13 +46,13 @@ def enumerate_cache_files(path):
             yield (file, size)
 
 
-def test_read_cache(path):
+def test_read_cache(path, multiplicity=None, min_size=None, max_size=None):
     """
     Test that the directory 'path' is initialised properly
 
     :return: True if correct, else False
     """
-    for filename, size in enumerate_cache_files(path):
+    for filename, size in enumerate_cache_files(path, multiplicity, min_size, max_size):
 
         if not (os.path.exists(filename) and os.path.isfile(filename)):
             print "File missing: {}".format(filename)
@@ -63,14 +66,14 @@ def test_read_cache(path):
     return True
 
 
-def generate_read_cache(path):
+def generate_read_cache(path, multiplicity=None, size_min=None, size_max=None):
     """
     In the directory 'path', generate the read cache files
     """
     if not os.path.exists(path):
         os.makedirs(path)
 
-    for filename, size in enumerate_cache_files(path):
+    for filename, size in enumerate_cache_files(path, multiplicity, size_min, size_max):
 
         with open(filename, 'w') as f:
 

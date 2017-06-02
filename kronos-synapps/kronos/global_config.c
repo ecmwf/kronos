@@ -20,6 +20,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 
+#include "kronos/configure_read_files.h"
 #include "kronos/global_config.h"
 #include "kronos/mpi_kernel.h"
 #include "kronos/utility.h"
@@ -115,6 +116,43 @@ int init_global_config(const JSON* json, int argc, char** argv) {
     env_ptr = getenv("KRONOS_STATS_FILE");
     if (env_ptr != NULL)
         strncpy(global_config.statistics_file, env_ptr, PATH_MAX);
+
+    /*
+     * Behaviour of the write kernel
+     */
+
+    global_config.file_read_multiplicity = file_read_multiplicity;
+    if ((tmp_json = json_object_get(json, "file_read_multiplicity")) != NULL) {
+        if (json_as_integer(tmp_json, &global_config.file_read_multiplicity) != 0) {
+            error = -1;
+            fprintf(stderr, "Error reading file_read_multiplicity as integer from global configuration\nGot:");
+            print_json(stderr, tmp_json);
+            fprintf(stderr, "\n");
+        }
+    }
+
+    global_config.file_read_size_min_pow = file_read_size_min_pow;
+    if ((tmp_json = json_object_get(json, "file_read_size_min_pow")) != NULL) {
+        if (json_as_integer(tmp_json, &global_config.file_read_size_min_pow) != 0) {
+            error = -1;
+            fprintf(stderr, "Error reading file_read_size_min_pow as integer from global configuration\nGot:");
+            print_json(stderr, tmp_json);
+            fprintf(stderr, "\n");
+        }
+    }
+
+    global_config.file_read_size_max_pow = file_read_size_max_pow;
+    if ((tmp_json = json_object_get(json, "file_read_size_max_pow")) != NULL) {
+        if (json_as_integer(tmp_json, &global_config.file_read_size_max_pow) != 0) {
+            error = -1;
+            fprintf(stderr, "Error reading file_read_size_max_pow as integer from global configuration\nGot:");
+            print_json(stderr, tmp_json);
+            fprintf(stderr, "\n");
+        }
+    }
+
+    global_config.file_read_size_min = 1 << global_config.file_read_size_min_pow;
+    global_config.file_read_size_max = 1 << global_config.file_read_size_max_pow;
 
     /*
      * Control statistics output

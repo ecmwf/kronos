@@ -50,6 +50,13 @@ typedef struct GlobalConfig {
     bool write_statistics_file;
     char statistics_file[PATH_MAX];
 
+    int file_read_multiplicity;
+    int file_read_size_min_pow;
+    int file_read_size_max_pow;
+
+    long file_read_size_min;
+    long file_read_size_max;
+
 } GlobalConfig;
 
 

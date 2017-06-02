@@ -26,7 +26,8 @@ class Executor(object):
     available_parameters = [
         'coordinator_binary', 'enable_ipm', 'job_class', 'job_dir', 'job_dir_shared',
         'procs_per_node', 'read_cache', 'allinea_path', 'allinea_ld_library_path', 'allinea_licence_file',
-        'local_tmpdir', 'submission_workers', 'enable_darshan', 'darshan_lib_path']
+        'local_tmpdir', 'submission_workers', 'enable_darshan', 'darshan_lib_path',
+        'file_read_multiplicity', 'file_read_min_size_pow', 'file_read_max_size_pow']
 
     def __init__(self, config, schedule, ksf_file=None):
         """
@@ -99,13 +100,29 @@ class Executor(object):
 
         self._submitted_jobs = {}
 
+        # n.b.
+        self._file_read_multiplicity = config.get('file_read_multiplicity', None)
+        self._file_read_size_min_pow = config.get('file_read_size_min_pow', None)
+        self._file_read_size_max_pow = config.get('file_read_size_max_pow', None)
+
     def run(self):
 
         # Test the read cache
         print "Testing read cache ..."
-        if not generate_read_files.test_read_cache(self.read_cache_path):
+        if not generate_read_files.test_read_cache(
+                self.read_cache_path,
+                self._file_read_multiplicity,
+                self._file_read_size_min_pow,
+                self._file_read_size_max_pow):
+
             print "Read cache not filled, generating ..."
-            generate_read_files.generate_read_cache(self.read_cache_path)
+
+            generate_read_files.generate_read_cache(
+                self.read_cache_path,
+                self._file_read_multiplicity,
+                self._file_read_size_min_pow,
+                self._file_read_size_max_pow
+            )
             print "Generated."
         else:
             print "OK."
@@ -117,6 +134,13 @@ class Executor(object):
         for job_num, job_config in enumerate(self.job_iterator()):
             job_dir = os.path.join(self.job_dir, "job-{}".format(job_num))
             job_config['job_num'] = job_num
+
+            if self._file_read_multiplicity:
+                job_config['file_read_multiplicity'] = self._file_read_multiplicity
+            if self._file_read_size_min_pow:
+                job_config['file_read_size_min_pow'] = self._file_read_size_min_pow
+            if self._file_read_size_max_pow:
+                job_config['file_read_size_max_pow'] = self._file_read_size_max_pow
 
             j = self.job_class(job_config, self, job_dir)
 

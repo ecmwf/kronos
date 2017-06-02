@@ -23,7 +23,6 @@
 
 #include <errno.h>
 
-#include "kronos/configure_read_files.h"
 #include "kronos/file_read.h"
 #include "kronos/global_config.h"
 #include "kronos/json.h"
@@ -70,6 +69,7 @@ static TimeSeriesLogger* bytes_read_time_series() {
 
 FileReadParamsInternal get_read_params(const FileReadConfig* config) {
 
+    const GlobalConfig* global_conf = global_config_instance();
 
     long read_size, total_size;
     FileReadParamsInternal params;
@@ -97,20 +97,20 @@ FileReadParamsInternal get_read_params(const FileReadConfig* config) {
 
     /* Deal with edge cases! */
 
-    if (params.smaller_size < file_read_size_min) {
-        params.smaller_size = file_read_size_min;
-        params.larger_size = file_read_size_min;
+    if (params.smaller_size < global_conf->file_read_size_min) {
+        params.smaller_size = global_conf->file_read_size_min;
+        params.larger_size = global_conf->file_read_size_min;
         params.power_of_2 = true;
     }
 
-    if (params.larger_size > file_read_size_max) {
+    if (params.larger_size > global_conf->file_read_size_max) {
         params.power_of_2 = true;
 
         total_size = params.num_reads * read_size;
-        params.num_reads = 1 + ((total_size - 1) / file_read_size_max);
+        params.num_reads = 1 + ((total_size - 1) / global_conf->file_read_size_max);
 
-        params.larger_size = file_read_size_max;
-        params.smaller_size = file_read_size_max;
+        params.larger_size = global_conf->file_read_size_max;
+        params.smaller_size = global_conf->file_read_size_max;
     }
 
     return params;
@@ -240,7 +240,7 @@ int execute_file_read(const void* data) {
         }
 
         /* Pick a random file of the correct size */
-        file_index = rand() % file_read_multiplicity;
+        file_index = rand() % global_conf->file_read_multiplicity;
 
         success = false;
         written = snprintf(file_path, PATH_MAX, "%s/read-cache-%li-%d", global_conf->file_read_path, size, file_index);
