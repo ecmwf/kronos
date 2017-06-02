@@ -197,7 +197,7 @@ class ExecutorTests(unittest.TestCase):
             config_minimal = {
                 'procs_per_node': 666,
                 'read_cache': self.base_config['read_cache'],
-                'job_class': 'remote_pbs',
+                'job_class': 'slurm',
                 'job_dir': tmpdir2,
                 'coordinator_binary': 'a-binary',
                 'enable_ipm': True
@@ -206,7 +206,7 @@ class ExecutorTests(unittest.TestCase):
             # And initialise an executor. See what happens!
             e = executor.Executor(config_minimal, global_config)
 
-            expected_mod = "job_classes/remote_pbs.py"
+            expected_mod = "job_classes/slurm.py"
             self.assertEqual(e.job_class_module_file[-len(expected_mod):], expected_mod)
 
             self.assertIsInstance(e.job_class_module, types.ModuleType)
