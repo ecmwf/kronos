@@ -32,7 +32,7 @@ def enumerate_cache_files(path, multiplicity=None, size_min=None, size_max=None)
     if not size_max:
         size_max = global_config['read_file_size_max']
 
-    print "Multiplicity of read files: {}".format(global_config['read_file_multiplicity'])
+    print "Multiplicity of read files: {}".format(multiplicity)
     print "Minimum file size: 2^{} B, {}".format(size_min, human_readable_bytes(2 ** size_min))
     print "Maximum file size: 2^{} B, {}".format(size_max, human_readable_bytes(2 ** size_max))
 

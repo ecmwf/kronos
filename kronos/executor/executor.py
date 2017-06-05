@@ -27,7 +27,7 @@ class Executor(object):
         'coordinator_binary', 'enable_ipm', 'job_class', 'job_dir', 'job_dir_shared',
         'procs_per_node', 'read_cache', 'allinea_path', 'allinea_ld_library_path', 'allinea_licence_file',
         'local_tmpdir', 'submission_workers', 'enable_darshan', 'darshan_lib_path',
-        'file_read_multiplicity', 'file_read_min_size_pow', 'file_read_max_size_pow']
+        'file_read_multiplicity', 'file_read_size_min_pow', 'file_read_size_max_pow']
 
     def __init__(self, config, schedule, ksf_file=None):
         """
@@ -104,6 +104,12 @@ class Executor(object):
         self._file_read_multiplicity = config.get('file_read_multiplicity', None)
         self._file_read_size_min_pow = config.get('file_read_size_min_pow', None)
         self._file_read_size_max_pow = config.get('file_read_size_max_pow', None)
+
+        if self._file_read_multiplicity or self._file_read_size_min_pow or self._file_read_size_max_pow:
+            print "Using customised read cache parameters: "
+            print "Read cache multiplicity: {}".format(self._file_read_multiplicity)
+            print "File read min size (2 ^ {}) bytes".format(self._file_read_size_min_pow)
+            print "File read max size (2 ^ {}) bytes".format(self._file_read_size_max_pow)
 
     def run(self):
 
