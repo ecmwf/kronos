@@ -263,6 +263,9 @@ int init_global_config(const JSON* json, int argc, char** argv) {
         printf("File read cache: %s\n", global_config.file_read_path);
         printf("File write cache: %s\n", global_config.file_write_path);
         printf("File shared path: %s\n", global_config.file_shared_path);
+        printf("Read cache multiplicity: %ld\n", global_config.file_read_multiplicity);
+        printf("Read cache minimum file size: %ld bytes\n", global_config.file_read_size_min);
+        printf("Read cache maximum file size: %ld bytes\n", global_config.file_read_size_max);
         if (global_config.write_statistics_file)
             printf("Statistics output file: %s\n", global_config.statistics_file);
         printf("Hostname: %s\n", global_config.hostname);
