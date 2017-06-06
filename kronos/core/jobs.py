@@ -46,8 +46,7 @@ class ModelJob(object):
     required_fields = [
         'time_start',
         'duration',
-        'ncpus',
-        'nnodes'
+        'ncpus'
     ]
 
     def __init__(self, timesignals=None, **kwargs):

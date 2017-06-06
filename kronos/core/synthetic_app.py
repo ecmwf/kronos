@@ -132,7 +132,7 @@ class SyntheticWorkload(object):
         this file can be given directly to the executor
         :return:
         """
-        n_bins = self.config.model["classification"]["clustering"]["num_timesignal_bins"]
+        n_bins = self.config.model["generator"]["synth_apps_n_bins"]
 
         print_colour("green", "Exporting {} synth-apps to KSF schedule: {}".format(len(self.app_list), filename))
 

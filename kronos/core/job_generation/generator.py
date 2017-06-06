@@ -145,7 +145,6 @@ class SyntheticWorkloadGenerator(object):
                 job_name="RS-appID-{}".format(cc),
                 time_signals=job.timesignals,
                 ncpus=job.ncpus,
-                nnodes=job.nnodes,
                 time_start=job.time_start,
                 metrics_hard_limits=metrics_hard_limits,
                 label=label

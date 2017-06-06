@@ -17,8 +17,9 @@ from exceptions_iows import ConfigurationError
 from kronos.core.job_generation import generator
 from kronos.core.kronos_tools.gyration_radius import r_gyration
 from kronos.core.report import Report, ModelMeasure
+from kronos.core.time_signal import time_signal_names
 from kronos_tools.print_colour import print_colour
-from synthetic_app import SyntheticWorkload
+from synthetic_app import SyntheticWorkload, SyntheticApp
 from workload_fill_in import WorkloadFiller
 
 
@@ -109,9 +110,14 @@ class KronosModel(object):
             self._apply_classification()
 
         # 3) apply generation
-        if self.config_generator:
+        if self.config_classification and self.config_generator:
             self._apply_generation()
             self.generate_synthetic_workload()
+
+        # in the case neither the classification nor the generation entries are specified in the config file,
+        # just translate the KPF file into the KSF file in a one-to-one relationship
+        if not self.config_classification:
+            self._ksf_from_kpf_one_to_one()
 
     def _apply_workload_fillin(self):
         """
@@ -154,22 +160,26 @@ class KronosModel(object):
 
     def export_synthetic_workload(self):
         """
-        Export the synthetic workload generated from the model
+        Export the synthetic workload generated from the model (or from the one-to-one translation
+        of the KPF into the KSF)
         :return:
         """
 
         ksf_path = os.path.join(self.config.dir_output, self.config.ksf_filename)
         self.sa_workload.export_ksf(ksf_path)
 
-    def _check_jobs(self):
+    def _check_jobs(self, workloads_to_check=None):
         """
         Check that all jobs have the minimum required fields..
         :return:
         """
-        print_colour("green", "Checking all jobs before classification..")
+        print_colour("green", "Checking all jobs..")
+
+        # check only the workloads specified (if passed to the function) otherwise check all the jobs
+        workloads_to_check = workloads_to_check if workloads_to_check else [wl.tag for wl in self.workloads]
 
         # check only the jobs to be used for classification..
-        for wl_name in self.config_classification['clustering']['apply_to']:
+        for wl_name in workloads_to_check:
 
             try:
                 wl = next(wl for wl in self.workloads if wl.tag == wl_name)
@@ -228,7 +238,7 @@ class KronosModel(object):
         # check validity of jobs before doing the actual modelling..
         # NB: the preliminary phase of workload manipulation (defaults, lookup tables and recommender sys
         # should have produced a set of "complete" and therefore valid jobs)
-        self._check_jobs()
+        self._check_jobs(self.config_classification['clustering']['apply_to'])
 
         # loop over all the workloads used to create the synthetic workload
         clustering_config = self.config_classification['clustering']
@@ -312,4 +322,34 @@ class KronosModel(object):
             r_gyr_all_pc[cluster["source-workload"]] = np.abs(r_gyr_modeljobs-r_gyr_wl)/r_gyr_wl*100
 
         Report.add_measure(ModelMeasure("r_gyration error [%]", r_gyr_all_pc, __name__))
+
+    def _ksf_from_kpf_one_to_one(self):
+        """
+        This function very simply translates model_jobs into synthetic applications with a one-to-one relationship
+        :return:
+        """
+
+        print_colour("green", "generating the KSF from the KPF in a one-to-one relationship")
+
+        # check that all the model jobs contain all the metrics
+        self._check_jobs()
+
+        # initialize the modelled synthetic apps
+        self.modelled_sa_jobs = []
+
+        for wl in self.workloads:
+
+            for cc, job in enumerate(wl.jobs):
+                app = SyntheticApp(
+                    job_name="appID-{}".format(cc),
+                    time_signals=job.timesignals,
+                    ncpus=job.ncpus,
+                    time_start=job.time_start,
+                    label=job.label
+                )
+
+                self.modelled_sa_jobs.append(app)
+
+        self.sa_workload = SyntheticWorkload(self.config, self.modelled_sa_jobs)
+        self.sa_workload.scaling_factors = {k: 1.0 for k in time_signal_names}
 

@@ -432,6 +432,10 @@
               "type": "integer",
               "description": "Seed for random number generation"
             },
+            "synth_apps_n_bins": {
+              "type": "integer",
+              "description": "Number of bins that are used to discretise the time-signals into synthetic apps kernels"
+            },
             "global_scaling_factor": {
               "type": "number",
               "description": "Global scaling factor"
