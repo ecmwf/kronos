@@ -10,6 +10,7 @@
 
 import os
 import sys
+import copy
 
 sys.path.append(os.path.dirname(os.path.dirname(__file__)))
 
@@ -24,9 +25,9 @@ if __name__ == '__main__':
 
     # ----------------------------------------------------------------------
 
-    procs_per_node = 32
-    nnodes = 150
-    repetitions = 10000
+    procs_per_node = 36
+    nnodes = 2
+    repetitions = 1
 
     # Read and write 1 GiB in 100 chunks
     kb_read = 1 * 1024 * 1024
@@ -34,13 +35,12 @@ if __name__ == '__main__':
     nreads = 100
     nwrites = 100
 
-
     flops = 12345678
-    ndirs = 5000
+    ndirs = 100
 
     # ----------------------------------------------------------------------
 
-    joblist = [{
+    job_template = {
         "frames": [[
             {
                 "name": "cpu",
@@ -61,27 +61,31 @@ if __name__ == '__main__':
                 "n_mkdir": ndirs
             }
         ]] * repetitions,
-        "repeat": nnodes,
         "num_procs": procs_per_node,
-        "start_delay": 0,
+        "start_delay": 0.0,
         "metadata": {
             "job_name": "kronos-bg",
             "workload_name": "kronos-bg"
         }
-    }]
-
-    json = {
-        "sa_data_json": joblist,
-        "created": None,
-        "uid": None,
-        "unscaled_metrics_sums": {s: 1.0 for s in signal_types},
-        "scaling_factors": {s: 1.0 for s in signal_types}
     }
+
+    # Create 10 dummy jobs
+    job_list = []
+    for jj in range(10):
+        jtc = copy.deepcopy(job_template)
+        jtc["metadata"]["job_name"] = "job-" + str(jj)
+        jtc["metadata"]["workload_name"] = "/dir_root/sub_dir_1d/sub_dir_2d/dir_"+str(jj)
+        jtc["depends"] = [jjp for jjp in range(jj) if jjp != 4 and jjp !=5]
+        job_list.append(jtc)
+
+    # now manually stop job 4 and job 5 until job
+    job_list[4]["depends"] = [8]
+    job_list[5]["depends"] = [9]
 
     print "Writing KSF: {}".format(ksf_filename)
 
     sf = ScheduleFormat(
-        sa_data_json=joblist,
+        sa_data_json=job_list,
         scaling_factors={s: 1.0 for s in signal_types},
         unscaled_metrics_sums={s: 1.0 for s in signal_types})
 
