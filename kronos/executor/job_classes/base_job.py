@@ -26,7 +26,7 @@ class BaseJob(object):
         """
         dependencies = self.job_config.get('depends', [])
 
-        assert all(self.id > d for d in dependencies)
+        # assert all(self.id > d for d in dependencies) or len(dependencies) == 0
         return dependencies
 
     def generate(self):
