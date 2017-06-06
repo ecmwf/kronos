@@ -351,5 +351,9 @@ class KronosModel(object):
                 self.modelled_sa_jobs.append(app)
 
         self.sa_workload = SyntheticWorkload(self.config, self.modelled_sa_jobs)
-        self.sa_workload.scaling_factors = {k: 1.0 for k in time_signal_names}
+
+        # set up the scaling factors as individual sc * global sc
+        scaling_facts = self.config_generator['scaling_factors']
+        scaling_global = self.config_generator['global_scaling_factor']
+        self.sa_workload.scaling_factors = {k: v*scaling_global for k, v in scaling_facts.iteritems()}
 
