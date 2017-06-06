@@ -121,6 +121,9 @@ class DarshanIngestedJob(IngestedJob):
             for file_detail in other.file_details.values():
                 file_detail.adjust_times(time_difference)
 
+        # update the time end
+        self.time_end = max(self.time_end, other.time_end)
+
         for filename, file_detail in other.file_details.iteritems():
             if filename in self.file_details:
                 self.file_details[filename].aggregate(file_detail)
