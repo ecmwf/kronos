@@ -234,7 +234,7 @@ static void test_logger_json() {
 static void assert_ts_logger_count(int count, int nframes) {
 
     JSON* report = report_stats_json();
-    JSON* component;
+    const JSON* component;
     const JSON* ts;
     int i;
 
@@ -263,12 +263,12 @@ static void assert_ts_logger_count(int count, int nframes) {
 
 static void test_create_ts_loggers() {
 
-    assert_ts_logger_count(0, 0);
-
     TimeSeriesLogger* logger1;
     TimeSeriesLogger* logger2;
 
     int test_val; /* Avoid warnings with GNU + pedantic */
+
+    assert_ts_logger_count(0, 0);
 
     logger1 = register_time_series("ts-1");
 
@@ -299,8 +299,6 @@ static void test_create_ts_loggers() {
 
 static void test_ts_logging() {
 
-    assert_ts_logger_count(0, 0);
-
     TimeSeriesLogger* logger1;
     TimeSeriesLogger* logger2;
     JSON* report;
@@ -310,6 +308,8 @@ static void test_ts_logging() {
     double d;
 
     int test_val; /* Avoid warnings with GNU + pedantic */
+
+    assert_ts_logger_count(0, 0);
 
     /* Create the loggers */
 

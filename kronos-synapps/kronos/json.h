@@ -121,7 +121,7 @@ bool json_object_has(const JSON* json, const char* key);
 const JSON* json_object_get(const JSON* json, const char* key);
 
 /** Return the first json in the chain of jsons that form an object. */
-const JSON* json_object_first(JSON* json);
+const JSON* json_object_first(const JSON* json);
 
 int json_object_get_integer(const JSON* json, const char* key, long* value);
 int json_object_get_boolean(const JSON* json, const char* key, bool* value);
