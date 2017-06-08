@@ -576,6 +576,8 @@ JSON* report_stats_json() {
     return json;
 }
 
+#define SEND_BUFFER_SIZE (1024 * 100)
+
 
 static void write_krf(const char* filename) {
 
@@ -588,7 +590,7 @@ static void write_krf(const char* filename) {
     time_t t;
     struct tm * tm;
 
-    const int buff_size = 1024 * 100;
+    const int buff_size = SEND_BUFFER_SIZE;
 
     int send_size;
     int i, err, total_count, err_len;
@@ -596,7 +598,7 @@ static void write_krf(const char* filename) {
     int* recvcounts = 0;
     int* offsets = 0;
 
-    char send_buffer[buff_size];
+    char send_buffer[SEND_BUFFER_SIZE];
     char error_string[MPI_MAX_ERROR_STRING];
     char date_buffer[50];
     char* recv_buffer = 0;
