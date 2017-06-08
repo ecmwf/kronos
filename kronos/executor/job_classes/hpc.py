@@ -87,7 +87,8 @@ class HPCJob(BaseJob):
             HPCJob.cancel_file.write(self.cancel_file_head)
             os.chmod(cancel_file_path, stat.S_IRWXU | stat.S_IROTH | stat.S_IXOTH | stat.S_IRGRP | stat.S_IXGRP)
 
-        sequence_id_job = filter(str.isdigit, output)
+        # sequence_id_job = filter(str.isdigit, output)
+        sequence_id_job = output.strip()
         HPCJob.cancel_file.write(self.cancel_file_line.format(sequence_id=sequence_id_job))
         HPCJob.cancel_file.flush()
 
@@ -115,6 +116,9 @@ class HPCJob(BaseJob):
             subprocess_args.append(depend_string)
 
         subprocess_args.append(self.submit_script)
+
+        # Ensure that any spaces in the depend_string are handled correctly
+        subprocess_args = ' '.join(subprocess_args).split(' ')
 
         print "Submitting job {}".format(self.id)
         self.executor.thread_manager.subprocess_callback(self.submission_callback, *subprocess_args)
