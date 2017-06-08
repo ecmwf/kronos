@@ -96,11 +96,13 @@ static void free_stats_logger(StatisticsLogger *logger) {
 
 static void free_ts_logger(TimeSeriesLogger *logger) {
 
+    TimeSeriesChunk* chunk = logger->chunks;
+    TimeSeriesChunk* next;
+
     assert(logger->name != 0);
     free(logger->name);
 
-    TimeSeriesChunk* chunk = logger->chunks;
-    TimeSeriesChunk* next;
+    chunk = logger->chunks;
     while (chunk != 0) {
         next = chunk->next;
         free(chunk);
@@ -336,10 +338,11 @@ void log_time_series_chunk() {
 void log_time_series_add_chunk_data(TimeSeriesLogger* logger, double value) {
 
     StatisticsRegistry* registry = stats_instance();
+    TimeSeriesChunk* chunk;
 
     assert(logger != 0);
 
-    TimeSeriesChunk* chunk = malloc(sizeof(TimeSeriesChunk));
+    chunk = malloc(sizeof(TimeSeriesChunk));
 
     chunk->chunkNumber = registry->frameCount;
     chunk->value = value;
@@ -588,12 +591,13 @@ static void write_krf(const char* filename) {
     const int buff_size = 1024 * 100;
 
     int send_size;
-    int i, err, total_count;
+    int i, err, total_count, err_len;
 
     int* recvcounts = 0;
     int* offsets = 0;
 
     char send_buffer[buff_size];
+    char error_string[MPI_MAX_ERROR_STRING];
     char date_buffer[50];
     char* recv_buffer = 0;
     bool success = true;
@@ -620,7 +624,7 @@ static void write_krf(const char* filename) {
         send_size = 0;
         err = MPI_Gather(&send_size, 1, MPI_INT, recvcounts, 1, MPI_INT, 0, MPI_COMM_WORLD);
         if (err != MPI_SUCCESS) {
-            MPI_Error_string(err, send_buffer, buff_size);
+            MPI_Error_string(err, error_string, &err_len);
             fprintf(stderr, "An error occurred in MPI_Gather: %s (%d)\n", send_buffer, err);
             success = false;
         }
@@ -639,7 +643,7 @@ static void write_krf(const char* filename) {
 
             err = MPI_Gatherv(send_buffer, send_size, MPI_CHAR, recv_buffer, recvcounts, offsets, MPI_CHAR, 0, MPI_COMM_WORLD);
             if (err != MPI_SUCCESS) {
-                MPI_Error_string(err, send_buffer, buff_size);
+                MPI_Error_string(err, error_string, &err_len);
                 fprintf(stderr, "An error occurred in MPI_Gatherv: %s (%d)\n", send_buffer, err);
                 success = false;
             }
@@ -708,12 +712,12 @@ static void write_krf(const char* filename) {
         /* NOTE: recvtype specified to avoid segfault in MPICH. Should be ignored according to MPI standard */
         err = MPI_Gather(&send_size, 1, MPI_INT, 0, 0, MPI_INT, 0, MPI_COMM_WORLD);
         if (err != MPI_SUCCESS) {
-            MPI_Error_string(err, send_buffer, buff_size);
+            MPI_Error_string(err, error_string, &err_len);
             fprintf(stderr, "An error occurred in MPI_Gather: %s (%d)\n", send_buffer, err);
         } else {
             err = MPI_Gatherv(send_buffer, send_size, MPI_CHAR, 0, 0, 0, MPI_CHAR, 0, MPI_COMM_WORLD);
             if (err != MPI_SUCCESS) {
-                MPI_Error_string(err, send_buffer, buff_size);
+                MPI_Error_string(err, error_string, &err_len);
                 fprintf(stderr, "An error occurred in MPI_Gatherv: %s (%d)\n", send_buffer, err);
             }
         }
