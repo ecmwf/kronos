@@ -17,7 +17,6 @@ from exceptions_iows import ConfigurationError
 from kronos.core.job_generation import generator
 from kronos.core.kronos_tools.gyration_radius import r_gyration
 from kronos.core.report import Report, ModelMeasure
-from kronos.core.time_signal import time_signal_names
 from kronos_tools.print_colour import print_colour
 from synthetic_app import SyntheticWorkload, SyntheticApp
 from workload_fill_in import WorkloadFiller
