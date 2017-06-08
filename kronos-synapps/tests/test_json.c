@@ -675,7 +675,7 @@ void test_array_from_array() {
     double arr[4];
     JSON* json;
 
-    int i;
+    long i;
     double d;
 
     arr[0] = 123.;
@@ -795,10 +795,10 @@ void test_object_iterate() {
 
     JSON* json = json_from_string("{ \"elem1\": 123.45, \"elem2\": \"hi there\", \"elem3\": 666 }");
 
-    JSON* elem;
+    const JSON* elem;
     int test_val;
 
-    int i;
+    long i;
     double d;
     const char* c;
 
