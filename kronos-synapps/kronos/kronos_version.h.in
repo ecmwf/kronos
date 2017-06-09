@@ -16,4 +16,4 @@ const char * kronos_version_str();
 
 const char * kronos_git_sha1();
 
-#endif // kronos_version_h
+#endif /* kronos_version_h */
