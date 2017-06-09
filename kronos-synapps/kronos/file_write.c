@@ -156,8 +156,8 @@ static bool file_write_mmap(const char* file_path, long write_size) {
                     aligned_remainder = aligned_size % pagesize;
                     if (aligned_remainder != 0)
                         aligned_size += pagesize - aligned_remainder;
-                    aligned = (pmapped + offset) - ((unsigned long)(pmapped + offset) % pagesize);
-                    msync(aligned, chunk_size, MS_SYNC);
+                    aligned = ((unsigned long)pmapped + offset) - ((unsigned long)(pmapped + offset) % pagesize);
+                    msync((void*)aligned, chunk_size, MS_SYNC);
 
                     stats_stop_log_bytes(stats_instance(), chunk_size);
 

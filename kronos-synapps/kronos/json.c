@@ -41,6 +41,7 @@ typedef struct JSONOutput {
 
 static JSON* parse_json_internal(JSONInput* input);
 static void write_json_internal(JSONOutput* out, const JSON* json);
+static void destruct_json(JSON* json);
 
 
 /* ------------------------------------------------------------------------------------------------------------------ */
@@ -140,7 +141,7 @@ static int json_printf(JSONOutput* out, const char* fmt, ...) {
     va_start(args, fmt);
 
     if (out->file) {
-        vfprintf(out->file, fmt, args);
+        delta = vfprintf(out->file, fmt, args);
     } else {
 
         /* n.b. delta excludes the null terminator, as does len (which is cumulative). */
@@ -150,13 +151,16 @@ static int json_printf(JSONOutput* out, const char* fmt, ...) {
     }
 
     va_end(args);
+    return delta;
 }
 
 
 static int json_putc(JSONOutput* out, int c) {
 
+    int ret;
+
     if (out->file) {
-        putc(c, out->file);
+        ret = putc(c, out->file);
     } else {
         assert(out->string);
         assert(out->alloc_size != 0);
@@ -166,7 +170,10 @@ static int json_putc(JSONOutput* out, int c) {
         if (out->len < out->alloc_size)
             out->string[out->len] = c;
         out->len++;
+        ret = c;
     }
+
+    return ret;
 }
 
 
@@ -627,6 +634,7 @@ JSON* json_array_new() {
     JSON* json = new_json();
 
     json->type = JSON_ARRAY;
+    return json;
 }
 
 
@@ -681,6 +689,7 @@ JSON* json_object_new() {
 
     JSON* json = new_json();
     json->type = JSON_OBJECT;
+    return json;
 }
 
 void json_object_insert(JSON* json, const char* key, JSON* value) {
@@ -702,7 +711,7 @@ void json_object_insert(JSON* json, const char* key, JSON* value) {
 }
 
 
-void destruct_json(JSON* json) {
+static void destruct_json(JSON* json) {
 
     int i;
     JSON *elem, *next_elem;
@@ -934,7 +943,7 @@ bool json_object_has(const JSON* json, const char* key) {
 /** Iterate through the key/value pairs in the JSON if you don't know what they are
  *  @note On first call value must equal 0. */
 
-const JSON* json_object_first(JSON* json) {
+const JSON* json_object_first(const JSON* json) {
 
     assert(json);
     if (json_is_object(json)) {

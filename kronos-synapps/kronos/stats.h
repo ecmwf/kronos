@@ -59,7 +59,7 @@ typedef struct TimeSeriesLogger {
 
     struct TimeSeriesChunk* chunks;
 
-    struct StatisticsLogger* next;
+    struct TimeSeriesLogger* next;
 
 } TimeSeriesLogger;
 
