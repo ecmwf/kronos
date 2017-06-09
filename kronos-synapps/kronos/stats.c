@@ -599,7 +599,9 @@ static void write_krf(const char* filename) {
     int* offsets = 0;
 
     char send_buffer[SEND_BUFFER_SIZE];
+#ifdef HAVE_MPI
     char error_string[MPI_MAX_ERROR_STRING];
+#endif
     char date_buffer[50];
     char* recv_buffer = 0;
     bool success = true;
