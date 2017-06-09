@@ -3,6 +3,9 @@ if( HAVE_MPI )
     set(MPI_DEFINITIONS "HAVE_MPI")
 endif()
 
+configure_file( kronos_version.h.in kronos_version.h )
+configure_file( kronos_version.c.in kronos_version.c )
+
 ecbuild_add_library (
 
     TARGET kronos
@@ -11,6 +14,8 @@ ecbuild_add_library (
         bool.h
         configure_read_files.h
         configure_write_files.h
+        kronos_version.h
+        kronos_version.c
         cpu.c
         cpu.h
         file_read.c
@@ -37,6 +42,10 @@ ecbuild_add_library (
         utility.h
 
     DEFINITIONS "${MPI_DEFINITIONS}"
+
+    GENERATED
+        kronos_version.h
+        kronos_version.c
 
     INCLUDES "${MPI_C_INCLUDE_PATH}"
 
