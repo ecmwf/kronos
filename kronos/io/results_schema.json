@@ -23,6 +23,14 @@
             "type": "integer",
             "description": "The UID of the user who created this file"
         },
+        "kronosVersion": {
+            "type": "string",
+            "description": "The version string for kronos"
+        },
+        "kronosSHA1": {
+            "type": "string",
+            "description": "The git SHA1 tag for the current build of kronos"
+        },
         "ranks": {
             "type": "array",
             "description": "Data is generated on each (MPI) process independently. The output from each rank is aggregated here.",
@@ -154,5 +162,5 @@
             }
         }
     },
-    "required": ["version", "tag", "created", "ranks"]
+    "required": ["version", "tag", "created", "ranks", "kronosVersion", "kronosSHA1"]
 }

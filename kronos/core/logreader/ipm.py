@@ -1,12 +1,11 @@
 # (C) Copyright 1996-2017 ECMWF.
-#
+# 
 # This software is licensed under the terms of the Apache Licence Version 2.0
-# which can be obtained at http://www.apache.org/licenses/LICENSE-2.0.
-# In applying this licence, ECMWF does not waive the privileges and immunities
+# which can be obtained at http://www.apache.org/licenses/LICENSE-2.0. 
+# In applying this licence, ECMWF does not waive the privileges and immunities 
 # granted to it by virtue of its status as an intergovernmental organisation nor
 # does it submit to any jurisdiction.
 
-import numpy as np
 import xml.etree.ElementTree as ET
 
 from kronos.core.exceptions_iows import IngestionError
@@ -100,7 +99,6 @@ class IPMIngestedJob(IngestedJob):
         """
         Return a ModelJob from the supplied information
         """
-
         assert len(self.tasks) > 0
 
         # Combine the task metadata. We take the first observed task time as the start time, and the last observed
@@ -140,9 +138,6 @@ class IPMIngestedJob(IngestedJob):
 
     def model_time_series(self):
 
-        n_reps = 10
-        time_end = max([t.time_end for t in self.tasks])
-
         total_mpi_pairwise_count_send = 0
         total_mpi_pairwise_bytes_send = 0
         total_mpi_pairwise_count_recv = 0
@@ -175,44 +170,30 @@ class IPMIngestedJob(IngestedJob):
         #      from _all_ tasks we would double count the transfers.
 
         return {
-            'n_collective': TimeSignal.from_values('n_collective',
-                                                   np.linspace(0, time_end-self.time_start, n_reps),
-                                                   [total_mpi_collective_count/float(n_reps)]*n_reps,
+            'n_collective': TimeSignal.from_values('n_collective', [0.0], [total_mpi_collective_count],
                                                    priority=ipm_signal_priorities['n_collective']),
 
-            'kb_collective': TimeSignal.from_values('kb_collective',
-                                                    np.linspace(0, time_end - self.time_start, n_reps),
-                                                    [float(total_mpi_collective_bytes) / 1024.0/float(n_reps)]*n_reps,
+            'kb_collective': TimeSignal.from_values('kb_collective', [0.0],
+                                                    [float(total_mpi_collective_bytes) / 1024.0],
                                                     priority=ipm_signal_priorities['kb_collective']),
 
-            'n_pairwise': TimeSignal.from_values('n_pairwise',
-                                                 np.linspace(0, time_end - self.time_start, n_reps),
-                                                 [total_mpi_pairwise_count_send/float(n_reps)]*n_reps,
+            'n_pairwise': TimeSignal.from_values('n_pairwise', [0.0], [total_mpi_pairwise_count_send],
                                                  priority=ipm_signal_priorities['n_pairwise']),
 
-            'kb_pairwise': TimeSignal.from_values('kb_pairwise',
-                                                  np.linspace(0, time_end - self.time_start, n_reps),
-                                                  [float(total_mpi_pairwise_bytes_send) / 1024.0/float(n_reps)]*n_reps,
+            'kb_pairwise': TimeSignal.from_values('kb_pairwise', [0.0],
+                                                  [float(total_mpi_pairwise_bytes_send) / 1024.0],
                                                   priority=ipm_signal_priorities['kb_pairwise']),
 
-            'kb_read': TimeSignal.from_values('kb_read',
-                                              np.linspace(0, time_end - self.time_start, n_reps),
-                                              [float(total_bytes_read) / 1024.0/float(n_reps)]*n_reps,
+            'kb_read': TimeSignal.from_values('kb_read', [0.0], [float(total_bytes_read) / 1024.0],
                                               priority=ipm_signal_priorities['kb_read']),
 
-            'kb_write': TimeSignal.from_values('kb_write',
-                                               np.linspace(0, time_end - self.time_start, n_reps),
-                                               [float(total_bytes_written) / 1024.0/float(n_reps)]*n_reps,
+            'kb_write': TimeSignal.from_values('kb_write', [0.0], [float(total_bytes_written) / 1024.0],
                                                priority=ipm_signal_priorities['kb_write']),
 
-            'n_read': TimeSignal.from_values('n_read',
-                                             np.linspace(0, time_end - self.time_start, n_reps),
-                                             [float(total_read_count)/float(n_reps)]*n_reps,
+            'n_read': TimeSignal.from_values('n_read', [0.0], [float(total_read_count)],
                                              priority=ipm_signal_priorities['n_read']),
 
-            'n_write': TimeSignal.from_values('n_write',
-                                              np.linspace(0, time_end - self.time_start, n_reps),
-                                              [float(total_write_count)/float(n_reps)]*n_reps,
+            'n_write': TimeSignal.from_values('n_write', [0.0], [float(total_write_count)],
                                               priority=ipm_signal_priorities['n_write'])
         }
 

@@ -13,12 +13,13 @@
  * @author Simon Smart
  */
 
-#include "kronos/stats.h"
 #include "kronos/bool.h"
 #include "kronos/global_config.h"
-#include "kronos/utility.h"
-#include "kronos/trace.h"
+#include "kronos/kronos_version.h"
 #include "kronos/mpi_kernel.h"
+#include "kronos/stats.h"
+#include "kronos/trace.h"
+#include "kronos/utility.h"
 
 #include <string.h>
 #include <stdlib.h>
@@ -599,7 +600,9 @@ static void write_krf(const char* filename) {
     int* offsets = 0;
 
     char send_buffer[SEND_BUFFER_SIZE];
+#ifdef HAVE_MPI
     char error_string[MPI_MAX_ERROR_STRING];
+#endif
     char date_buffer[50];
     char* recv_buffer = 0;
     bool success = true;
@@ -677,6 +680,8 @@ static void write_krf(const char* filename) {
         json_object_insert(json, "uid", json_number_new(global_conf->uid));
         json_object_insert(json, "tag", json_string_new("KRONOS-KRF-MAGIC"));
         json_object_insert(json, "version", json_number_new(1));
+        json_object_insert(json, "kronosVersion", json_string_new(kronos_version_str()));
+        json_object_insert(json, "kronosSHA1", json_string_new(kronos_git_sha1()));
         json_object_insert(json, "ranks", aggregated_stats);
 
         /* Output the time according to rfc3339 */
