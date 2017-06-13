@@ -88,7 +88,7 @@ FileReadParamsInternal get_read_params(const FileReadConfig* config) {
     if (!params.power_of_2) {
         params.larger_size = next_power_of_2(read_size);
         params.smaller_size = params.larger_size >> 1;
-        params.prob_small = ((double)(read_size - params.smaller_size))
+        params.prob_small = ((double)(params.larger_size - read_size))
                           / ((double)(params.larger_size - params.smaller_size));;
     } else {
         params.smaller_size = read_size;
