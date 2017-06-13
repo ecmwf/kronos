@@ -1,0 +1,19 @@
+#ifndef kronos_version_h
+#define kronos_version_h
+
+#define KRONOS_VERSION_STR "@KRONOS_VERSION_STR@"
+#define KRONOS_VERSION     "@KRONOS_VERSION@"
+
+#define KRONOS_MAJOR_VERSION @KRONOS_MAJOR_VERSION@
+#define KRONOS_MINOR_VERSION @KRONOS_MINOR_VERSION@
+#define KRONOS_PATCH_VERSION @KRONOS_PATCH_VERSION@
+
+const char * kronos_version();
+
+unsigned int kronos_version_int();
+
+const char * kronos_version_str();
+
+const char * kronos_git_sha1();
+
+#endif /* kronos_version_h */

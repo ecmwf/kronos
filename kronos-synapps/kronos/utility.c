@@ -68,8 +68,10 @@ void dummy_deoptimise(void * array) {
 double take_time() {
 
     struct timeval t;
+    int ret;
 
-    assert(gettimeofday(&t, 0) == 0);
+    ret = gettimeofday(&t, 0);
+    assert(ret == 0);
 
     return (double)t.tv_sec + ((double)t.tv_usec / 1000000.);
 }

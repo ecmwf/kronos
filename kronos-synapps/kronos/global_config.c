@@ -22,6 +22,7 @@
 
 #include "kronos/configure_read_files.h"
 #include "kronos/global_config.h"
+#include "kronos/kronos_version.h"
 #include "kronos/mpi_kernel.h"
 #include "kronos/utility.h"
 
@@ -260,6 +261,8 @@ int init_global_config(const JSON* json, int argc, char** argv) {
     if (error == 0) {
         printf("Global configuration\n");
         printf("--------------------\n");
+        printf("Kronos version: %s\n", kronos_version_str());
+        printf("Kronos git SHA1: %s\n", kronos_git_sha1());
         printf("File read cache: %s\n", global_config.file_read_path);
         printf("File write cache: %s\n", global_config.file_write_path);
         printf("File shared path: %s\n", global_config.file_shared_path);
