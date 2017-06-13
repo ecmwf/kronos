@@ -117,7 +117,7 @@ static void test_read_params_rounding() {
     assert(params.larger_size == 0x2000000);
     assert(!params.power_of_2);
     assert(params.num_reads == 1);
-    assert(fabs(params.prob_small - 0.220703125) < 1e-8);
+    assert(fabs(params.prob_small - 0.779296875) < 1e-8);
 }
 
 
