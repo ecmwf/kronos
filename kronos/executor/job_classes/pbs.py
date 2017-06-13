@@ -98,7 +98,7 @@ export EC_experiment_id="{experiment_id}"
 
 {profiling_code}
 
-{launcher_command} -e LD_LIBRARY_PATH="${{LD_LIBRARY_PATH}}" -N {num_procs} -n {num_procs} {coordinator_binary} {input_file}
+{launcher_command} -e LD_LIBRARY_PATH="${{LD_LIBRARY_PATH}}" -N {procs_per_node} -n {num_procs} {coordinator_binary} {input_file}
 """
 
 
