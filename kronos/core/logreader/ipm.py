@@ -126,8 +126,6 @@ class IPMIngestedJob(IngestedJob):
             timesignals=self.model_time_series(),
         )
 
-
-
     def aggregate(self, rhs):
 
         # We want to include all of the tasks that have been IPM'd
@@ -165,6 +163,13 @@ class IPMIngestedJob(IngestedJob):
             total_bytes_read += task.bytes_read
             total_bytes_written += task.bytes_written
 
+        # divide the totals of MPI ops by the number of nprocs
+        ntasks = max([t.ntasks for t in self.tasks])
+        total_mpi_collective_count = int(total_mpi_collective_count/float(ntasks))
+        total_mpi_collective_bytes /= float(ntasks)
+        total_mpi_pairwise_count_send = int(total_mpi_pairwise_count_send/float(ntasks))
+        total_mpi_pairwise_bytes_send /= float(ntasks)
+
         # n.b. only using the pairwise send data. Recv should be largely a duplicate, but slightly smaller
         #      as MPI_Sendrecv is only being counted under send for now. If we used both send and recv data
         #      from _all_ tasks we would double count the transfers.
@@ -196,7 +201,6 @@ class IPMIngestedJob(IngestedJob):
             'n_write': TimeSignal.from_values('n_write', [0.0], [float(total_write_count)],
                                               priority=ipm_signal_priorities['n_write'])
         }
-
 
 
 class IPMLogReader(LogReader):
