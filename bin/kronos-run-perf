@@ -100,9 +100,11 @@ if __name__ == "__main__":
     print "N successful jobs: {:20d}".format(tot_successful_jobs)
 
     # overall runtime
-    # TODO: to be corrected..
-    run_times = [strict_rfc3339.rfc3339_to_timestamp(j["created"]) for jobs in jobs_data_dict.values() for j in jobs]
-    overall_runtime = max(run_times) - min(run_times)
+    job_end_times = [strict_rfc3339.rfc3339_to_timestamp(j["created"]) for jobs in jobs_data_dict.values() for j in jobs]
+    job_start_times_rel = [max([sum(r["time_series"]["durations"]) for r in j["ranks"]]) for jobs in jobs_data_dict.values() for j in jobs]
+    job_start_times = [t - job_start_times_rel[tt] for tt, t in enumerate(job_end_times)]
+
+    overall_runtime = max(job_end_times) - min(job_start_times)
     print "Total Runtime [s]: {:20.2f}".format(overall_runtime)
 
     # Show rates per class
@@ -186,9 +188,9 @@ if __name__ == "__main__":
         print "{}".format("-"*(_fl+1)*5)
 
         # write TOTALS per class
-        print "{}".format("Totals")
+        # print "{}".format("Totals")
         print "{}".format("-" * (_fl + 1) * 2)
-        print "{:<{l}s}|{:^{l}s}|".format("Name", "total", l=_fl)
+        print "{:<{l}s}|{:^{l}s}|".format("Name", "Total", l=_fl)
         print "{}".format("-" * (_fl + 1) * 2)
         for k in sorted_keys:
             if isinstance(summary_data[k]["mean"], str):
@@ -198,13 +200,13 @@ if __name__ == "__main__":
 
         # write RATES per class
         print "{}".format("-" * (_fl + 1) * 2)
-        print "{}".format("Rates")
+        # print "{}".format("Rates")
         print "{}".format("-" * (_fl + 1) * 5)
         print "{:<{l}s}|{:^{l}s}|{:^{l}s}|{:^{l}s}|{:^{l}s}|".format("Name",
-                                                                     "avg",
-                                                                     "max",
-                                                                     "min",
-                                                                     "std",
+                                                                     "rate avg",
+                                                                     "rate max",
+                                                                     "rate min",
+                                                                     "rate std",
                                                                      "latency (est)",
                                                                      "bandwidth (est)",
                                                                      l=_fl)
