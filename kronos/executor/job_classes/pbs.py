@@ -82,6 +82,7 @@ job_template = """#!/bin/sh
 #PBS -l EC_hyperthreads={num_hyperthreads}
 #PBS -o {job_output_file}
 #PBS -e {job_error_file}
+#PBS -h
 
 # Configure the locations for the synthetic app to dump/load files in the i/o kernels
 export KRONOS_WRITE_DIR="{write_dir}"
