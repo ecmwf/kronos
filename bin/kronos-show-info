@@ -13,7 +13,7 @@ show info of a KSF file
 
 import argparse
 
-from kronos.core.time_signal import time_signal_names, signal_types
+from kronos.core.time_signal.definitions import time_signal_names, signal_types
 from kronos.executor.tools import mean_of_list, std_of_list
 from kronos.io.profile_format import ProfileFormat
 from kronos.io.schedule_format import ScheduleFormat

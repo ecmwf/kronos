@@ -11,7 +11,7 @@ import subprocess
 from kronos.core.jobs import IngestedJob, ModelJob
 from kronos.core.logreader.base import LogReader
 from kronos.core.logreader.dataset import IngestedDataSet
-from kronos.core.time_signal import TimeSignal
+from kronos.core.time_signal.time_signal import TimeSignal
 from kronos.core.kronos_tools.merge import min_not_none, max_not_none
 from kronos.core.kronos_tools.print_colour import print_colour
 
@@ -163,7 +163,18 @@ class DarshanIngestedJob(IngestedJob):
         write_data = []
         write_counts = []
 
+        if self.time_end and self.time_start:
+            duration = self.time_end - self.time_start
+        else:
+            duration = None
+
         for model_file in self.file_details.values():
+
+            if duration:
+                if model_file.read_time_start > duration:
+                    model_file.read_time_start = duration - 1
+                if model_file.read_time_end > duration:
+                    model_file.read_time_end = duration
 
             if model_file.read_time_start is not None and (model_file.read_count != 0 or model_file.bytes_read != 0):
                 read_data.append((model_file.read_time_start, model_file.bytes_read / 1024.0,

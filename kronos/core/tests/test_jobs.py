@@ -11,7 +11,9 @@ import json
 import unittest
 from StringIO import StringIO
 
-from kronos.core import time_signal
+from kronos.core.time_signal.time_signal import TimeSignal
+from kronos.core.time_signal.definitions import signal_types, time_signal_names
+
 from kronos.core.exceptions_iows import ModellingError
 from kronos.core.jobs import ModelJob, IngestedJob
 
@@ -29,15 +31,15 @@ class ModelJobTest(unittest.TestCase):
             self.assertTrue(hasattr(job, attr))
             self.assertIsNone(getattr(job, attr))
 
-        for ts_name in time_signal.signal_types:
+        for ts_name in signal_types:
             self.assertIn(ts_name, job.timesignals)
             self.assertIsNone(job.timesignals[ts_name])
 
         # Test that we can override specified fields
         job = ModelJob(
             timesignals={
-                'kb_read': time_signal.TimeSignal.from_values('kb_read', [0.0], [0.0]),
-                'kb_write': time_signal.TimeSignal.from_values('kb_write', [0.0], [0.0]),
+                'kb_read': TimeSignal.from_values('kb_read', [0.0], [0.0]),
+                'kb_write': TimeSignal.from_values('kb_write', [0.0], [0.0]),
             },
             time_start=123,
             ncpus=4,
@@ -50,10 +52,10 @@ class ModelJobTest(unittest.TestCase):
         self.assertEqual(job.nnodes, 5)
         self.assertEqual(job.duration, 678)
         self.assertEqual(job.label, "a-label")
-        self.assertIsInstance(job.timesignals['kb_read'], time_signal.TimeSignal)
-        self.assertIsInstance(job.timesignals['kb_write'], time_signal.TimeSignal)
+        self.assertIsInstance(job.timesignals['kb_read'], TimeSignal)
+        self.assertIsInstance(job.timesignals['kb_write'], TimeSignal)
 
-        for ts_name in time_signal.signal_types:
+        for ts_name in signal_types:
             if ts_name in ['kb_read', 'kb_write']:
                 continue
             self.assertIn(ts_name, job.timesignals)
@@ -70,7 +72,7 @@ class ModelJobTest(unittest.TestCase):
             ModellingError,
             lambda: ModelJob(
                 timesignals={
-                    'kb_write': time_signal.TimeSignal.from_values('kb_read', [0.0], [0.0]),
+                    'kb_write': TimeSignal.from_values('kb_read', [0.0], [0.0]),
                 }))
 
     def test_merge_fails_different_label(self):
@@ -88,8 +90,8 @@ class ModelJobTest(unittest.TestCase):
         should be ignored for merging purposes.
         :return:
         """
-        kb_read = time_signal.TimeSignal.from_values('kb_read', [0.0], [1.0])
-        kb_write = time_signal.TimeSignal.from_values('kb_write', [0.0], [0.0])  # n.b. zero data
+        kb_read = TimeSignal.from_values('kb_read', [0.0], [1.0])
+        kb_write = TimeSignal.from_values('kb_write', [0.0], [0.0])  # n.b. zero data
 
         job1 = ModelJob(label="label1", timesignals={'kb_read': kb_read})
         job2 = ModelJob(label="label1", timesignals={'kb_write': kb_write})
@@ -104,8 +106,8 @@ class ModelJobTest(unittest.TestCase):
         Test that the merging routine checks the labelling validity. Both ways around.
         :return:
         """
-        kb_read = time_signal.TimeSignal.from_values('kb_read', [0.0], [1.0])
-        kb_write = time_signal.TimeSignal.from_values('kb_read', [0.0], [1.0])  # n.b. mislabelled
+        kb_read = TimeSignal.from_values('kb_read', [0.0], [1.0])
+        kb_write = TimeSignal.from_values('kb_read', [0.0], [1.0])  # n.b. mislabelled
 
         job1 = ModelJob(label="label1", timesignals={'kb_read': kb_read})
         job2 = ModelJob(label="label1")
@@ -128,21 +130,21 @@ class ModelJobTest(unittest.TestCase):
         TODO: Merge the non-time-signal data.
         """
         # n.b. non-zero values. Zero time signals are ignored.
-        kb_read1 = time_signal.TimeSignal.from_values('kb_read', [0.0], [1.0], priority=8)
-        kb_read2 = time_signal.TimeSignal.from_values('kb_read', [0.0], [1.0], priority=10)
-        kb_write1 = time_signal.TimeSignal.from_values('kb_write', [0.0], [1.0], priority=8)
+        kb_read1 = TimeSignal.from_values('kb_read', [0.0], [1.0], priority=8)
+        kb_read2 = TimeSignal.from_values('kb_read', [0.0], [1.0], priority=10)
+        kb_write1 = TimeSignal.from_values('kb_write', [0.0], [1.0], priority=8)
 
         # Test that we take the union of the available time series
         job1 = ModelJob(label="label1", timesignals={'kb_read': kb_read1})
         job2 = ModelJob(label="label1", timesignals={'kb_write': kb_write1})
         job1.merge(job2)
 
-        self.assertEqual(len(job1.timesignals), len(time_signal.signal_types))
+        self.assertEqual(len(job1.timesignals), len(signal_types))
         self.assertEqual(job1.timesignals['kb_read'], kb_read1)
         self.assertEqual(job1.timesignals['kb_write'], kb_write1)
 
         # (The other time signals should still be None)
-        for ts_name in time_signal.signal_types:
+        for ts_name in signal_types:
             if ts_name in ['kb_read', 'kb_write']:
                 continue
             self.assertIn(ts_name, job1.timesignals)
@@ -162,8 +164,8 @@ class ModelJobTest(unittest.TestCase):
         self.assertFalse(job.is_valid())
 
         # If all of the required arguments are supplied, this should result in a valid job
-        ts_complete_set = {tsk: time_signal.TimeSignal.from_values(tsk, [0., 0.1], [1., 999.])
-                           for tsk in time_signal.time_signal_names}
+        ts_complete_set = {tsk: TimeSignal.from_values(tsk, [0., 0.1], [1., 999.])
+                           for tsk in time_signal_names}
 
         valid_args = {
             'time_start': 0,
@@ -219,11 +221,11 @@ class ModelJobTest(unittest.TestCase):
         self.assertEqual(jobs[0].ncpus, 72)
         self.assertEqual(jobs[0].nnodes, 2)
 
-        self.assertEquals(len(jobs[0].timesignals), len(time_signal.signal_types))
+        self.assertEquals(len(jobs[0].timesignals), len(signal_types))
         self.assertIn('kb_read', jobs[0].timesignals)
         for name, signal in jobs[0].timesignals.iteritems():
             if name == 'kb_read':
-                self.assertIsInstance(signal, time_signal.TimeSignal)
+                self.assertIsInstance(signal, TimeSignal)
                 self.assertTrue(all(x1 == x2 for x1, x2 in zip(signal.xvalues, [0.01, 0.02, 0.03, 0.04])))
                 self.assertTrue(all(y1 == y2 for y1, y2 in zip(signal.yvalues, [15, 16, 17, 18])))
             else:

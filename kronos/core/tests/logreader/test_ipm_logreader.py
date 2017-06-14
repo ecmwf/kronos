@@ -187,8 +187,8 @@ class IPMIngestedJobTest(unittest.TestCase):
             self.assertIsNotNone(m.timesignals.get(s, None))
             self.assertEqual(len(m.timesignals[s].xvalues), 1)
             self.assertEqual(len(m.timesignals[s].yvalues), 1)
-        self.assertEqual(m.timesignals['kb_pairwise'].sum, 123)
-        self.assertEqual(m.timesignals['n_pairwise'].sum, 12)
+        self.assertEqual(m.timesignals['kb_pairwise'].sum, 123/float(99))
+        self.assertEqual(m.timesignals['n_pairwise'].sum, int(12/float(99)))
 
         self.assertEqual(m.duration, 11)
         self.assertEqual(m.time_start, 55)
@@ -272,10 +272,10 @@ class IPMIngestedJobTest(unittest.TestCase):
         series = job.model_time_series()
 
         totals = {
-            'n_collective': 79,
-            'kb_collective': 1690,
-            'n_pairwise': 101,
-            'kb_pairwise': 468,
+            'n_collective': int(79/float(99)),
+            'kb_collective': 1690/float(99),
+            'n_pairwise': int(101/float(99)),
+            'kb_pairwise': 468/float(99),
             'kb_read': 246,
             'kb_write': 912,
             'n_read': 157,

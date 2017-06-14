@@ -12,7 +12,9 @@ import unittest
 from StringIO import StringIO
 
 import numpy as np
-from kronos.core import time_signal
+
+from kronos.core.time_signal.time_signal import TimeSignal
+from kronos.core.time_signal.definitions import time_signal_names, signal_types
 from kronos.core.jobs import ModelJob
 from kronos.core.workload_data import WorkloadData
 
@@ -24,8 +26,8 @@ class WorkloadTests(unittest.TestCase):
     def test_workload_data(self):
 
         # If all of the required arguments are supplied, this should result in a valid job
-        ts_complete_set = {tsk: time_signal.TimeSignal.from_values(tsk, [0., 0.1], [1., 999.])
-                           for tsk in time_signal.time_signal_names}
+        ts_complete_set = {tsk: TimeSignal.from_values(tsk, [0., 0.1], [1., 999.])
+                           for tsk in time_signal_names}
 
         valid_args = {
             'time_start': 0.1,
@@ -61,7 +63,7 @@ class WorkloadTests(unittest.TestCase):
         self.assertTrue(all(job is input_jobs[jj] for jj, job in enumerate(test_workload.jobs)))
 
         # ------------ verify sums of timesignals -------------------
-        for ts_name in time_signal.signal_types:
+        for ts_name in signal_types:
             ts_sum = 0
             for j in input_jobs:
                 ts_sum += sum(j.timesignals[ts_name].yvalues)
@@ -75,8 +77,8 @@ class WorkloadTests(unittest.TestCase):
             'duration': 0.222,
             'ncpus': 1,
             'nnodes': 1,
-            'timesignals': {tsk: time_signal.TimeSignal.from_values(tsk, np.random.rand(10), np.random.rand(10))
-                           for tsk in time_signal.time_signal_names}
+            'timesignals': {tsk: TimeSignal.from_values(tsk, np.random.rand(10), np.random.rand(10))
+                           for tsk in time_signal_names}
         }
         job1 = ModelJob(**valid_args_1)
 
@@ -85,15 +87,15 @@ class WorkloadTests(unittest.TestCase):
             'duration': 0.333,
             'ncpus': 1,
             'nnodes': 1,
-            'timesignals': {tsk: time_signal.TimeSignal.from_values(tsk, np.random.rand(10), np.random.rand(10))
-                           for tsk in time_signal.time_signal_names}
+            'timesignals': {tsk: TimeSignal.from_values(tsk, np.random.rand(10), np.random.rand(10))
+                           for tsk in time_signal_names}
         }
         job2 = ModelJob(**valid_args_2)
 
         test_workload = WorkloadData(jobs=[job1, job2], tag='wl_2jobs')
 
         for job in [job1, job2]:
-            for ts in time_signal.signal_types:
+            for ts in signal_types:
                 self.assertTrue(all(v+job.time_start in test_workload.total_metrics_timesignals[ts].xvalues for v in job.timesignals[ts].xvalues))
                 self.assertTrue(all(v in test_workload.total_metrics_timesignals[ts].yvalues for v in job.timesignals[ts].yvalues))
         # -----------------------------------------------------------
@@ -106,8 +108,8 @@ class WorkloadTests(unittest.TestCase):
             'duration': 0.2,
             'ncpus': 1,
             'nnodes': 1,
-            'timesignals': {tsk: time_signal.TimeSignal.from_values(tsk, np.random.rand(10), np.random.rand(10))
-                            for tsk in time_signal.time_signal_names}
+            'timesignals': {tsk: TimeSignal.from_values(tsk, np.random.rand(10), np.random.rand(10))
+                            for tsk in time_signal_names}
         }
         job1 = ModelJob(**valid_args_1)
 
@@ -116,8 +118,8 @@ class WorkloadTests(unittest.TestCase):
             'duration': 0.2,
             'ncpus': 1,
             'nnodes': 1,
-            'timesignals': {tsk: time_signal.TimeSignal.from_values(tsk, np.random.rand(10), np.random.rand(10))
-                            for tsk in time_signal.time_signal_names}
+            'timesignals': {tsk: TimeSignal.from_values(tsk, np.random.rand(10), np.random.rand(10))
+                            for tsk in time_signal_names}
         }
         job2 = ModelJob(**valid_args_2)
 
@@ -198,8 +200,8 @@ class WorkloadTests(unittest.TestCase):
             'duration': 0.222,
             'ncpus': 1,
             'nnodes': 1,
-            'timesignals': {tsk: time_signal.TimeSignal.from_values(tsk, np.random.rand(10), np.arange(10)*2)
-                            for tsk in time_signal.time_signal_names}
+            'timesignals': {tsk: TimeSignal.from_values(tsk, np.random.rand(10), np.arange(10) * 2)
+                            for tsk in time_signal_names}
         }
         job1 = ModelJob(**valid_args_1)
 
@@ -209,8 +211,8 @@ class WorkloadTests(unittest.TestCase):
             'duration': 0.333,
             'ncpus': 1,
             'nnodes': 1,
-            'timesignals': {tsk: time_signal.TimeSignal.from_values(tsk, np.random.rand(10), np.random.rand(10))
-                            for tsk in time_signal.time_signal_names}
+            'timesignals': {tsk: TimeSignal.from_values(tsk, np.random.rand(10), np.random.rand(10))
+                            for tsk in time_signal_names}
         }
         job2 = ModelJob(**valid_args_2)
 
@@ -220,8 +222,8 @@ class WorkloadTests(unittest.TestCase):
             'duration': 0.333,
             'ncpus': 1,
             'nnodes': 1,
-            'timesignals': {tsk: time_signal.TimeSignal.from_values(tsk, np.arange(10), np.arange(10))
-                            for tsk in time_signal.time_signal_names}
+            'timesignals': {tsk: TimeSignal.from_values(tsk, np.arange(10), np.arange(10))
+                            for tsk in time_signal_names}
         }
 
         job3 = ModelJob(**valid_args_3)
@@ -234,12 +236,12 @@ class WorkloadTests(unittest.TestCase):
         # not match with job 1
         self.assertFalse(all(np.array_equal(test_wl.jobs[0].timesignals[ts].yvalues,
                                            source_wl.jobs[0].timesignals[ts].yvalues)
-                            for ts in time_signal.time_signal_names))
+                            for ts in time_signal_names))
 
         # match with job 2
         self.assertTrue(all(np.array_equal(test_wl.jobs[1].timesignals[ts].yvalues,
                                            source_wl.jobs[0].timesignals[ts].yvalues)
-                            for ts in time_signal.time_signal_names))
+                            for ts in time_signal_names))
 
     def test_reanimate_kpf(self):
         """
@@ -283,21 +285,19 @@ class WorkloadTests(unittest.TestCase):
         self.assertEqual(jobs[0].ncpus, 72)
         self.assertEqual(jobs[0].nnodes, 2)
 
-        self.assertEquals(len(jobs[0].timesignals), len(time_signal.signal_types))
+        self.assertEquals(len(jobs[0].timesignals), len(signal_types))
         self.assertIn('kb_read', jobs[0].timesignals)
         for name, signal in jobs[0].timesignals.iteritems():
             if name == 'kb_read':
-                self.assertIsInstance(signal, time_signal.TimeSignal)
+                self.assertIsInstance(signal, TimeSignal)
                 self.assertTrue(all(x1 == x2 for x1, x2 in zip(signal.xvalues, [0.01, 0.02, 0.03, 0.04])))
                 self.assertTrue(all(y1 == y2 for y1, y2 in zip(signal.yvalues, [15, 16, 17, 18])))
             else:
                 self.assertIsNone(signal)
 
-
     def test_workload_fillin_RS(self):
         # TODO: to write..
         pass
-
 
 if __name__ == "__main__":
     unittest.main()

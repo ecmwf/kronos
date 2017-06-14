@@ -12,7 +12,7 @@ from kronos.core.exceptions_iows import IngestionError
 from kronos.core.jobs import IngestedJob, ModelJob
 from kronos.core.logreader.base import LogReader
 from kronos.core.logreader.dataset import IngestedDataSet
-from kronos.core.time_signal import TimeSignal
+from kronos.core.time_signal.time_signal import TimeSignal
 
 ipm_signal_priorities = {
     'n_collective': 7,
@@ -163,12 +163,14 @@ class IPMIngestedJob(IngestedJob):
             total_bytes_read += task.bytes_read
             total_bytes_written += task.bytes_written
 
-        # divide the totals of MPI ops by the number of nprocs
-        ntasks = max([t.ntasks for t in self.tasks])
-        total_mpi_collective_count = int(total_mpi_collective_count/float(ntasks))
-        total_mpi_collective_bytes /= float(ntasks)
-        total_mpi_pairwise_count_send = int(total_mpi_pairwise_count_send/float(ntasks))
-        total_mpi_pairwise_bytes_send /= float(ntasks)
+        # divide the totals of MPI ops by the number of nprocs (if specified..)
+        tasks_list = [t.ntasks for t in self.tasks]
+        if tasks_list:
+            ntasks = max([t.ntasks for t in self.tasks])
+            total_mpi_collective_count = int(total_mpi_collective_count/float(ntasks))
+            total_mpi_collective_bytes /= float(ntasks)
+            total_mpi_pairwise_count_send = int(total_mpi_pairwise_count_send/float(ntasks))
+            total_mpi_pairwise_bytes_send /= float(ntasks)
 
         # n.b. only using the pairwise send data. Recv should be largely a duplicate, but slightly smaller
         #      as MPI_Sendrecv is only being counted under send for now. If we used both send and recv data

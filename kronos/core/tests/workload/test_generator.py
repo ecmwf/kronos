@@ -8,11 +8,11 @@
 # does it submit to any jurisdiction.
 
 import unittest
-# import tempfile
-# import os
 import numpy as np
 
-from kronos.core import time_signal
+from kronos.core.time_signal.definitions import time_signal_names
+from kronos.core.time_signal.time_signal import TimeSignal
+
 from kronos.core.job_generation import generator
 from kronos.core.jobs import ModelJob
 from kronos.core.workload_data import WorkloadData
@@ -26,8 +26,8 @@ class GeneratorTests(unittest.TestCase):
         """
 
         # If all of the required arguments are supplied, this should result in a valid job
-        ts_complete_set = {tsk: time_signal.TimeSignal.from_values(tsk, [0., 0.1], [1., 999.])
-                           for tsk in time_signal.time_signal_names}
+        ts_complete_set = {tsk: TimeSignal.from_values(tsk, [0., 0.1], [1., 999.])
+                           for tsk in time_signal_names}
 
         valid_args = {
             'time_start': 0.1,
@@ -98,7 +98,7 @@ class GeneratorTests(unittest.TestCase):
         # check that the produced sapps are produced from one of the clusters in the matrix..
         self.assertTrue(any(np.equal(input_jobs_matrix, job.timesignals[ts].yvalues).all(1))
                         for job in modelled_sa_jobs
-                        for ts in time_signal.time_signal_names
+                        for ts in time_signal_names
                         )
 
     def test_generator_job_schedule(self):
@@ -108,8 +108,8 @@ class GeneratorTests(unittest.TestCase):
         """
 
         # If all of the required arguments are supplied, this should result in a valid job
-        ts_complete_set = {tsk: time_signal.TimeSignal.from_values(tsk, [0., 0.1, 0.3], [1., 999., 666.])
-                           for tsk in time_signal.time_signal_names}
+        ts_complete_set = {tsk: TimeSignal.from_values(tsk, [0., 0.1, 0.3], [1., 999., 666.])
+                           for tsk in time_signal_names}
 
         valid_args = {
             'time_start': 0.1,
@@ -191,7 +191,7 @@ class GeneratorTests(unittest.TestCase):
         # check that the produced sapps are produced from one of the clusters in the matrix..
         self.assertTrue(any(np.equal(input_jobs_matrix, job.timesignals[ts].yvalues).all(1))
                         for job in modelled_sa_jobs
-                        for ts in time_signal.time_signal_names
+                        for ts in time_signal_names
                         )
 
 

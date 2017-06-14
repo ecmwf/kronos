@@ -11,7 +11,9 @@ import numpy as np
 from kronos.core.kronos_tools.print_colour import print_colour
 from kronos.core.job_generation.strategy_base import StrategyBase
 from kronos.core.jobs import ModelJob
-from kronos.core.time_signal import time_signal_names, TimeSignal
+
+from kronos.core.time_signal.definitions import time_signal_names
+from kronos.core.time_signal.time_signal import TimeSignal
 
 
 class StrategySpawn(StrategyBase):

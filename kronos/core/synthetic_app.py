@@ -14,7 +14,7 @@ from collections import Counter
 import app_kernels
 from exceptions_iows import ConfigurationError
 from jobs import ModelJob
-from kronos.core.time_signal import time_signal_names, signal_types
+from kronos.core.time_signal.definitions import time_signal_names, signal_types
 from kronos.io.schedule_format import ScheduleFormat
 from kronos_tools.print_colour import print_colour
 

@@ -15,10 +15,11 @@ import numpy as np
 
 from kronos.core.jobs import IngestedJob, ModelJob
 from kronos.core.kronos_tools.print_colour import print_colour
-from kronos.core.time_signal import TimeSignal
+from kronos.core.time_signal.time_signal import TimeSignal
+from kronos.core.time_signal.definitions import signal_types
+
 from kronos.core.exceptions_iows import ConfigurationError
 from kronos.core.logreader.dataset import IngestedDataSet
-from kronos.core import time_signal
 
 allinea_signal_priorities = {
     'flops': 10,
@@ -77,7 +78,7 @@ def read_allinea_log(filename, jobs_n_bins=None, cfg=None):
 
     # A quick sanity check
     for value in allinea_time_signal_map.values():
-        assert value['name'] in time_signal.signal_types
+        assert value['name'] in signal_types
 
     with open(filename) as json_file:
         json_data = json.load(json_file)
