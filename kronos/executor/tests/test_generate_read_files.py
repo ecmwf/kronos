@@ -45,6 +45,8 @@ class ReadFileGenerationTests(unittest.TestCase):
 
         self.assertEqual(len(output), 6)
 
+        # Only generate files for he biggest size since NEX-113
+        #for (fn, sz), expected_sz in zip(output, [16, 16, 32, 32, 64, 64]):
         for (fn, sz), expected_sz in zip(output, [16, 16, 32, 32, 64, 64]):
             self.assertEqual(sz, expected_sz)
             self.assertEqual(fn[:-2], "test-path/read-cache-{}".format(sz))
@@ -64,7 +66,9 @@ class ReadFileGenerationTests(unittest.TestCase):
 
             self.assertTrue(os.path.exists(path) and os.path.isdir(path))
 
-            for sz in [8, 16, 32]:
+            # Only generate files for he biggest size since NEX-113
+            #for sz in [8, 16, 32]:
+            for sz in [32]:
                 for cnt in range(3):
                     fn = os.path.join(path, "read-cache-{}-{}".format(sz, cnt))
                     print fn
@@ -97,7 +101,10 @@ class ReadFileGenerationTests(unittest.TestCase):
             # Move in a file of the wrong size, and check that also fails. Then return it and
             # check that everything passes.
             tmpfile = os.path.join(path, "tmpfile")
-            for sz in [8, 16, 32]:
+
+            # Only generate files for he biggest size since NEX-113
+            # for sz in [8, 16, 32]:
+            for sz in [32]:
                 for cnt in range(3):
                     fn = os.path.join(path, "read-cache-{}-{}".format(sz, cnt))
 
