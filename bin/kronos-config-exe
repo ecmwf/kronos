@@ -22,7 +22,7 @@ exe_config_schema = {
       "type": "string",
       "description": "Path to the synthetic apps executable (kronos-coordinator)"
     },
-    "dir_output": {
+    "job_dir": {
       "type": "string",
       "description": "Working output folder"
     },
@@ -60,11 +60,7 @@ exe_config_schema = {
     "read_file_size_max": {
       "type": "string",
       "description": "Maximum read size (to be interpreted as 2^<read_file_size_min>)"
-    },
-    "write_file_max_chunk": {
-      "type": "string",
-      "description": "Maximum write size (bytes)"
-    },
+    }
   }
 }
 
