@@ -103,7 +103,7 @@ static void test_valid_size_limits() {
 }
 
 
-static void test_read_params_rounding() {
+static void test_read_params_distribution() {
 
     FileReadConfig config;
     FileReadParamsInternal params;
@@ -113,28 +113,8 @@ static void test_read_params_rounding() {
 
     params = get_read_params(&config);
 
-    assert(params.smaller_size == 0x1000000);
-    assert(params.larger_size == 0x2000000);
-    assert(!params.power_of_2);
     assert(params.num_reads == 1);
-    assert(fabs(params.prob_small - 0.779296875) < 1e-8);
-}
-
-
-static void test_read_params_power_of_2() {
-
-    FileReadConfig config;
-    FileReadParamsInternal params;
-
-    config.reads = 1;
-    config.kilobytes = 16384;
-
-    params = get_read_params(&config);
-
-    assert(params.smaller_size == 0x1000000);
-    assert(params.larger_size == 0x1000000);
-    assert(params.power_of_2);
-    assert(params.num_reads == 1);
+    assert(params.read_size == 20480000);
 }
 
 
@@ -148,19 +128,14 @@ static void test_read_params_too_small() {
 
     params = get_read_params(&config);
 
-    assert(params.smaller_size == file_read_size_min);
-    assert(params.larger_size == file_read_size_min);
-    assert(params.power_of_2);
+    assert(params.read_size == file_read_size_min);
     assert(params.num_reads == 1);
-
 
     config.reads = 3;
     config.kilobytes = file_read_size_min/1024;
     params = get_read_params(&config);
 
-    assert(params.smaller_size == file_read_size_min);
-    assert(params.larger_size == file_read_size_min);
-    assert(params.power_of_2);
+    assert(params.read_size == file_read_size_min);
     assert(params.num_reads == 3);
 }
 
@@ -175,9 +150,7 @@ static void test_read_params_too_big() {
 
     params = get_read_params(&config);
 
-    assert(params.smaller_size == file_read_size_max);
-    assert(params.larger_size == file_read_size_max);
-    assert(params.power_of_2);
+    assert(params.read_size == file_read_size_max);
     assert(params.num_reads == 3);
 }
 
@@ -194,34 +167,28 @@ static void test_read_params_num_reads() {
     params = get_read_params(&config);
 
     assert(params.num_reads == 1);
-    assert(params.larger_size == 0x4000000);
-    assert(params.power_of_2);
+    assert(params.read_size == 0x4000000);
 
     config.reads = 2;
     reset_global_distribute();
     params = get_read_params(&config);
 
     assert(params.num_reads == 2);
-    assert(params.larger_size == 0x2000000);
-    assert(params.power_of_2);
+    assert(params.read_size == 0x2000000);
 
     config.reads = 3;
     reset_global_distribute();
     params = get_read_params(&config);
 
     assert(params.num_reads == 3);
-    assert(params.larger_size == 0x2000000);
-    assert(params.smaller_size == 0x1000000);
-    assert(!params.power_of_2);
+    assert(params.read_size == 0x1555555);
 
     config.reads = 7;
     reset_global_distribute();
     params = get_read_params(&config);
 
     assert(params.num_reads == 7);
-    assert(params.larger_size == 0x1000000);
-    assert(params.smaller_size == 0x800000);
-    assert(!params.power_of_2);
+    assert(params.read_size == 0x924924);
 }
 
 
@@ -240,8 +207,7 @@ static void test_read_params_mpi_threads() {
     params = get_read_params(&config);
 
     assert(params.num_reads == 8);
-    assert(params.larger_size == 0x2000000);
-    assert(params.power_of_2);
+    assert(params.read_size == 0x2000000);
 
     /* Reads split between the ranks. N.b. Test that non-uniform splitting is done correctly */
 
@@ -251,8 +217,7 @@ static void test_read_params_mpi_threads() {
     params = get_read_params(&config);
 
     assert(params.num_reads == 3);
-    assert(params.larger_size == 0x2000000);
-    assert(params.power_of_2);
+    assert(params.read_size == 0x2000000);
 
     gconfig->nprocs = 3;
     gconfig->mpi_rank = 2;
@@ -260,8 +225,7 @@ static void test_read_params_mpi_threads() {
     params = get_read_params(&config);
 
     assert(params.num_reads == 2);
-    assert(params.larger_size == 0x2000000);
-    assert(params.power_of_2);
+    assert(params.read_size == 0x2000000);
 
     /* Test that this works correctly with the larger/smaller partitioning */
 
@@ -272,9 +236,7 @@ static void test_read_params_mpi_threads() {
     params = get_read_params(&config);
 
     assert(params.num_reads == 2);
-    assert(params.larger_size == 0x4000000);
-    assert(params.smaller_size == 0x2000000);
-    assert(!params.power_of_2);
+    assert(params.read_size == 0x2492492);
 
     /* Test that we still catch the too-small case */
 
@@ -286,14 +248,11 @@ static void test_read_params_mpi_threads() {
     params = get_read_params(&config);
 
     assert(params.num_reads == 2);
-    assert(params.larger_size == file_read_size_min);
-    assert(params.smaller_size == file_read_size_min);
-    assert(params.power_of_2);
+    assert(params.read_size == file_read_size_min);
 
     /* Safely restore the global config */
     gconfig->nprocs = 1;
     gconfig->mpi_rank = 0;
-
 }
 
 
@@ -390,8 +349,6 @@ int main() {
 
     test_global_distribute();
     test_valid_size_limits();
-    test_read_params_rounding();
-    test_read_params_power_of_2();
     test_read_params_too_small();
     test_read_params_too_big();
     test_read_params_num_reads();

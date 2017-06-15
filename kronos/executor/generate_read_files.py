@@ -33,17 +33,15 @@ def enumerate_cache_files(path, multiplicity=None, size_min=None, size_max=None)
         size_max = global_config['read_file_size_max']
 
     print "Multiplicity of read files: {}".format(multiplicity)
-    print "Minimum file size: 2^{} B, {}".format(size_min, human_readable_bytes(2 ** size_min))
-    print "Maximum file size: 2^{} B, {}".format(size_max, human_readable_bytes(2 ** size_max))
+    print "Read file size: 2^{} B, {}".format(size_max, human_readable_bytes(2 ** size_max))
 
-    for size_pow in range(size_min, size_max+1):
-        size = 2 ** size_pow
+    size = 2 ** size_max
 
-        for count in range(multiplicity):
-            fn = "read-cache-{}-{}".format(size, count)
-            file = os.path.join(path, fn)
+    for count in range(multiplicity):
+        fn = "read-cache-{}".format(count)
+        file = os.path.join(path, fn)
 
-            yield (file, size)
+        yield (file, size)
 
 
 def test_read_cache(path, multiplicity=None, min_size=None, max_size=None):

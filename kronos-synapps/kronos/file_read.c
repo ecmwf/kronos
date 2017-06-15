@@ -71,46 +71,24 @@ FileReadParamsInternal get_read_params(const FileReadConfig* config) {
 
     const GlobalConfig* global_conf = global_config_instance();
 
-    long read_size, total_size;
+    long total_size;
     FileReadParamsInternal params;
 
     assert(config->reads > 0);
 
-    params.num_reads = global_distribute_work(config->reads);
-
-    /* The average read size, which is then stochastically rounded up/down for each of the actual reads to get the
-     * correct overall behaviour */
-
     /* n.b. Convert kb to bytes */
-    read_size = 1024 * config->kilobytes / config->reads;
-    params.power_of_2 = is_power_of_2(read_size);
+    params.num_reads = global_distribute_work(config->reads);
+    params.read_size = 1024 * config->kilobytes / config->reads;
 
-    if (!params.power_of_2) {
-        params.larger_size = next_power_of_2(read_size);
-        params.smaller_size = params.larger_size >> 1;
-        params.prob_small = ((double)(params.larger_size - read_size))
-                          / ((double)(params.larger_size - params.smaller_size));;
-    } else {
-        params.smaller_size = read_size;
-        params.larger_size = read_size;
+    if (params.read_size < global_conf->file_read_size_min) {
+        params.read_size = global_conf->file_read_size_min;
     }
 
-    /* Deal with edge cases! */
+    if (params.read_size > global_conf->file_read_size_max) {
+        total_size = params.num_reads * params.read_size;
 
-    if (params.smaller_size < global_conf->file_read_size_min) {
-        params.smaller_size = global_conf->file_read_size_min;
-        params.larger_size = global_conf->file_read_size_min;
-        params.power_of_2 = true;
-    }
-
-    if (params.larger_size > global_conf->file_read_size_max) {
-        params.power_of_2 = true;
-
-        total_size = params.num_reads * read_size;
         params.num_reads = 1 + ((total_size - 1) / global_conf->file_read_size_max);
-
-        params.larger_size = global_conf->file_read_size_max;
-        params.smaller_size = global_conf->file_read_size_max;
+        params.read_size = global_conf->file_read_size_max;
     }
 
     return params;
@@ -121,12 +99,14 @@ FileReadParamsInternal get_read_params(const FileReadConfig* config) {
  * @brief file_read_mmap Given a specified filename, size and an appropriate buffer, open and read
  *        the data into a buffer using the mmap procedure
  */
-static bool file_read_mmap(const char* file_path, long read_size, char* buffer, bool invalidate) {
+static bool file_read_mmap(const char* file_path, long offset, long read_size, char* buffer, bool invalidate) {
 
     int fd;
     char* pmapped;
     bool success;
     int err;
+
+    const GlobalConfig* global_conf = global_config_instance();
 
     TRACE();
 
@@ -137,26 +117,27 @@ static bool file_read_mmap(const char* file_path, long read_size, char* buffer, 
     fd = open(file_path, O_RDONLY);
     if (fd != -1) {
 
-        pmapped = mmap(NULL, read_size, PROT_READ, MAP_PRIVATE, fd, 0);
+        /* Map the whole file. Avoids working out page-aligned offsets. Reading is lazy anyway */
+        pmapped = mmap(NULL, global_conf->file_read_size_max, PROT_READ, MAP_PRIVATE, fd, 0);
         /* pmapped = mmap(NULL, size, PROT_READ, MAP_PRIVATE | MAP_FILE, fd, 0); */
 
         if (pmapped != MAP_FAILED) {
             success = true;
-            memcpy(buffer, pmapped, read_size);
+            memcpy(buffer, pmapped + offset, read_size);
 
             if (invalidate) {
 #if defined(__linux__) || defined(__hpux)
-                if ((err = posix_fadvise(fd, 0, read_size, POSIX_FADV_DONTNEED)) != 0)
+                if ((err = posix_fadvise(fd, pmapped+offset, read_size, POSIX_FADV_DONTNEED)) != 0)
                     fprintf(stderr, "Cache invalidation with posix_fadvise failed: %s\n", strerror(err));
 #elif defined(__FreeBSD__) || defined(__sun__) || defined(__APPLE__)
-                if (msync(buffer, read_size, MS_INVALIDATE) != 0)
+                if (msync(pmapped+offset, read_size, MS_INVALIDATE) != 0)
                     fprintf(stderr, "Cache invalidation with msync failed: %s\n", strerror(errno));
 #else
                 fprintf(stderr, "File page mapping invalidation not supported on this platform");
 #endif
             }
 
-            munmap(pmapped, read_size);
+            munmap(pmapped, global_conf->file_read_size_max);
         } else {
             fprintf(stderr, "mmap error: (%d) %s\n", errno, strerror(errno));
         }
@@ -174,11 +155,12 @@ static bool file_read_mmap(const char* file_path, long read_size, char* buffer, 
  *        the data into a buffer using the standard C api
  * @return
  */
-static bool file_read_c_api(const char* file_path, long read_size, char* buffer) {
+static bool file_read_c_api(const char* file_path, long offset, long read_size, char* buffer) {
 
     FILE* file;
     bool success;
     long result;
+    int ret;
 
     TRACE();
 
@@ -191,12 +173,19 @@ static bool file_read_c_api(const char* file_path, long read_size, char* buffer)
     file = fopen(file_path, "rb");
     if (file != NULL) {
 
-        result = fread(buffer, 1, read_size, file);
+        ret = fseek(file, offset, SEEK_SET);
 
-        if (result != read_size) {
-            fprintf(stderr, "A read error occurred reading file: %s (%d) %s\n", file_path, errno, strerror(errno));
+        if (ret == -1) {
+            fprintf(stderr, "A error occurred seeking in file: %s (%d) %s\n", file_path, errno, strerror(errno));
         } else {
-            success = true;
+
+            result = fread(buffer, 1, read_size, file);
+
+            if (result != read_size) {
+                fprintf(stderr, "A read error occurred reading file: %s (%d) %s\n", file_path, errno, strerror(errno));
+            } else {
+                success = true;
+            }
         }
         fclose(file);
     }
@@ -213,46 +202,39 @@ int execute_file_read(const void* data) {
     const FileReadConfig* config = data;
     const GlobalConfig* global_conf = global_config_instance();
 
-    long size;
-    int count, file_index, written, error;
+    int count, file_index, written, error, offset;
     bool success;
     char file_path[PATH_MAX];
     char * read_buffer;
 
     FileReadParamsInternal params = get_read_params(config);
 
-    if (params.power_of_2)
-        TRACE3("Read %li files, %li bytes each.", params.num_reads, params.larger_size);
-    else
-        TRACE4("Read %li files, %li - %li bytes each.", params.num_reads, params.smaller_size, params.larger_size);
+    TRACE3("Read %li files, %li bytes each.", params.num_reads, params.read_size);
 
     /* And do the actual reading!!! */
 
-    read_buffer = malloc(params.larger_size);
+    read_buffer = malloc(params.read_size);
 
     error = 0;
     for (count = 0; count < params.num_reads; count++) {
 
-        if (!params.power_of_2 && (double)rand() / (double)RAND_MAX < params.prob_small) {
-            size = params.smaller_size;
-        } else {
-            size = params.larger_size;
-        }
-
-        /* Pick a random file of the correct size */
+        /* Pick a random file to read from */
         file_index = rand() % global_conf->file_read_multiplicity;
 
+        /* Pick a random offset to read from within the file */
+        offset = rand() % (global_conf->file_read_size_max - params.read_size);
+
         success = false;
-        written = snprintf(file_path, PATH_MAX, "%s/read-cache-%li-%d", global_conf->file_read_path, size, file_index);
+        written = snprintf(file_path, PATH_MAX, "%s/read-cache-%d", global_conf->file_read_path, file_index);
         if (written > 0 && written < PATH_MAX) {
 
-            TRACE2("Reading from file %s ...", file_path);
+            TRACE4("Reading %ld bytes from file %s, offset %ld ...", params.read_size, file_path, offset);
 
             if (config->mmap) {
-                success = file_read_mmap(file_path, size, read_buffer, config->invalidate);
+                success = file_read_mmap(file_path, offset, params.read_size, read_buffer, config->invalidate);
             } else {
                 assert(!config->invalidate);
-                success = file_read_c_api(file_path, size, read_buffer);
+                success = file_read_c_api(file_path, offset, params.read_size, read_buffer);
             }
 
             TRACE1("... done");
@@ -265,7 +247,7 @@ int execute_file_read(const void* data) {
             error = -1;
         }
 
-        log_time_series_add_chunk_data(bytes_read_time_series(), size);
+        log_time_series_add_chunk_data(bytes_read_time_series(), params.read_size);
     }
 
     log_time_series_add_chunk_data(reads_time_series(), params.num_reads);
