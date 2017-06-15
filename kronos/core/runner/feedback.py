@@ -16,7 +16,7 @@ import time
 from kronos.core import run_control
 from kronos.core import time_signal
 from kronos.core.exceptions_iows import ConfigurationError
-from kronos.core.time_signal import signal_types
+from kronos.core.time_signal.definitions import signal_types
 from kronos.core.workload_data import WorkloadData
 
 from kronos.io.schedule_format import ScheduleFormat
