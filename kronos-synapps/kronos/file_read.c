@@ -106,6 +106,8 @@ static bool file_read_mmap(const char* file_path, long offset, long read_size, c
     bool success;
     int err;
 
+    const GlobalConfig* global_conf = global_config_instance();
+
     TRACE();
 
     success = false;
@@ -115,26 +117,27 @@ static bool file_read_mmap(const char* file_path, long offset, long read_size, c
     fd = open(file_path, O_RDONLY);
     if (fd != -1) {
 
-        pmapped = mmap(NULL, read_size, PROT_READ, MAP_PRIVATE, fd, offset);
+        /* Map the whole file. Avoids working out page-aligned offsets. Reading is lazy anyway */
+        pmapped = mmap(NULL, global_conf->file_read_size_max, PROT_READ, MAP_PRIVATE, fd, 0);
         /* pmapped = mmap(NULL, size, PROT_READ, MAP_PRIVATE | MAP_FILE, fd, 0); */
 
         if (pmapped != MAP_FAILED) {
             success = true;
-            memcpy(buffer, pmapped, read_size);
+            memcpy(buffer, pmapped + offset, read_size);
 
             if (invalidate) {
 #if defined(__linux__) || defined(__hpux)
-                if ((err = posix_fadvise(fd, offset, read_size, POSIX_FADV_DONTNEED)) != 0)
+                if ((err = posix_fadvise(fd, pmapped+offset, read_size, POSIX_FADV_DONTNEED)) != 0)
                     fprintf(stderr, "Cache invalidation with posix_fadvise failed: %s\n", strerror(err));
 #elif defined(__FreeBSD__) || defined(__sun__) || defined(__APPLE__)
-                if (msync(pmapped, read_size, MS_INVALIDATE) != 0)
+                if (msync(pmapped+offset, read_size, MS_INVALIDATE) != 0)
                     fprintf(stderr, "Cache invalidation with msync failed: %s\n", strerror(errno));
 #else
                 fprintf(stderr, "File page mapping invalidation not supported on this platform");
 #endif
             }
 
-            munmap(pmapped, read_size);
+            munmap(pmapped, global_conf->file_read_size_max);
         } else {
             fprintf(stderr, "mmap error: (%d) %s\n", errno, strerror(errno));
         }
@@ -225,7 +228,7 @@ int execute_file_read(const void* data) {
         written = snprintf(file_path, PATH_MAX, "%s/read-cache-%d", global_conf->file_read_path, file_index);
         if (written > 0 && written < PATH_MAX) {
 
-            TRACE3("Reading from file %s, offset %ld ...", file_path, offset);
+            TRACE4("Reading %ld bytes from file %s, offset %ld ...", params.read_size, file_path, offset);
 
             if (config->mmap) {
                 success = file_read_mmap(file_path, offset, params.read_size, read_buffer, config->invalidate);
