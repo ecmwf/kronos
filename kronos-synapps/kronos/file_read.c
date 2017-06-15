@@ -127,7 +127,7 @@ static bool file_read_mmap(const char* file_path, long offset, long read_size, c
 
             if (invalidate) {
 #if defined(__linux__) || defined(__hpux)
-                if ((err = posix_fadvise(fd, (void*)((unsigned long)pmapped + offset), read_size, POSIX_FADV_DONTNEED)) != 0)
+                if ((err = posix_fadvise(fd, offset, read_size, POSIX_FADV_DONTNEED)) != 0)
                     fprintf(stderr, "Cache invalidation with posix_fadvise failed: %s\n", strerror(err));
 #elif defined(__FreeBSD__) || defined(__sun__) || defined(__APPLE__)
                 if (msync((void*)((unsigned long)pmapped+offset), read_size, MS_INVALIDATE) != 0)
