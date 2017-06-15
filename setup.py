@@ -54,6 +54,7 @@ setup(
         'bin/kronos-run-perf',
         'bin/kronos-run-collect',
         'bin/kronos-run-analysis',
+        'bin/kronos-show-job',
     ],
     include_package_data=True,
     install_requires=requirements,
