@@ -179,20 +179,24 @@
                                                 "type": "number",
                                                 "description": "Number of Kb to write"
                                             },
-                                            "mmap": {
-                                                "type": "boolean",
-                                                "description": "Whether or not write to mmap files"
+                                            "n_files": {
+                                                "type": "integer",
+                                                "description": "The number of files to wirite to"
                                             },
                                             "n_write": {
                                                 "type": "integer",
                                                 "description": "Number of writes"
+                                            },
+                                            "continue_files": {
+                                                "type": "boolean",
+                                                "description": "If true, close files at end of write kernel, and create new ones for later write kernels"
                                             }
                                         },
                                         "required": [
                                             "name",
                                             "kb_write",
-                                            "mmap",
-                                            "n_write"
+                                            "n_write",
+                                            "n_files"
                                         ]
                                     },
 
