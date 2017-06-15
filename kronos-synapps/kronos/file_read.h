@@ -42,11 +42,7 @@ KernelFunctor* init_file_read(const JSON* config_json);
 
 typedef struct FileReadParamsInternal {
 
-    long smaller_size;
-    long larger_size;
-    double prob_small;
-
-    bool power_of_2;
+    long read_size;
 
     long num_reads;
 
