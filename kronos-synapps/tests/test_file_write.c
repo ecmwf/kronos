@@ -40,6 +40,7 @@ static void test_write_params() {
 
     config.writes = 7;
     config.kilobytes = 0x70000;
+    config.files = 3;
 
     reset_global_distribute();
     params = get_write_params(&config);
@@ -48,6 +49,7 @@ static void test_write_params() {
 
     assert(params.num_writes == 7);
     assert(params.write_size == 0x4000000);
+    assert(params.num_files == 3);
 
     /* If we change the number of processes, the work should be appropriately distributed. */
 
@@ -58,6 +60,7 @@ static void test_write_params() {
 
     assert(params.num_writes == 2);
     assert(params.write_size == 0x4000000);
+    assert(params.num_files == 1);
 
     gconfig->nprocs = 4;
     gconfig->mpi_rank = 2;
@@ -74,6 +77,7 @@ static void test_write_params() {
 
     assert(params.num_writes == 1);
     assert(params.write_size == 0x4000000);
+    assert(params.num_files == 1); /* Minimum of 1 file per rank */
 
     /* Restore the global config */
     gconfig->nprocs = 1;
@@ -122,7 +126,7 @@ static void test_write_kernel_init() {
     const FileWriteConfig* config;
     KernelFunctor *kernel, *kernel2;
 
-    JSON* json = json_from_string("{\"name\": \"file-write\", \"kb_write\": 1234, \"n_write\": 3}");
+    JSON* json = json_from_string("{\"name\": \"file-write\", \"kb_write\": 1234, \"n_write\": 3, \"n_files\": 3}");
     assert(json);
     kernel = init_file_write(json);
 
@@ -134,6 +138,8 @@ static void test_write_kernel_init() {
     assert(config->kilobytes == 1234);
     assert(config->writes == 3);
     assert(config->mmap == false);
+    assert(config->files == 3);
+    assert(config->continue_files == true);
 
     /* Test that the global kernel factory gives the correct kernel! */
 
@@ -146,23 +152,30 @@ static void test_write_kernel_init() {
 
     /* Test that we can modify the optional fields */
 
-    json = json_from_string("{\"name\": \"file-write\", \"kb_write\": 1234, \"n_write\": 3, \"mmap\": true}");
+    json = json_from_string("{\"name\": \"file-write\", \"kb_write\": 1234, \"n_write\": 3, \"n_files\": 3, \"continue_files\": false}");
     assert(json);
     kernel = init_file_write(json);
     assert(kernel != NULL);
     config = (const FileWriteConfig*)kernel->data;
-    assert(config->mmap == true);
+    assert(config->mmap == false);
+    assert(config->continue_files == false);
     free_json(json);
 
     /* Test what happens if we don't provide the required fields */
 
-    json = json_from_string("{\"name\": \"file-write\", \"n_write\": 3}");
+    json = json_from_string("{\"name\": \"file-write\", \"n_write\": 3, \"n_files\": 3}");
     assert(json);
     kernel = init_file_write(json);
     assert(kernel == NULL);
     free_json(json);
 
-    json = json_from_string("{\"name\": \"file-write\", \"kb_write\": 1234}");
+    json = json_from_string("{\"name\": \"file-write\", \"kb_write\": 1234, \"n_files\": 3}");
+    assert(json);
+    kernel = init_file_write(json);
+    assert(kernel == NULL);
+    free_json(json);
+
+    json = json_from_string("{\"name\": \"file-write\", \"kb_write\": 1234, \"n_write\": 3}");
     assert(json);
     kernel = init_file_write(json);
     assert(kernel == NULL);
@@ -170,32 +183,41 @@ static void test_write_kernel_init() {
 
     /* And invalid parameters? */
 
-    json = json_from_string("{\"name\": \"file-write\", \"kb_write\": \"invalid\", \"n_write\": 3}");
+    json = json_from_string("{\"name\": \"file-write\", \"kb_write\": 1234, \"n_write\": 3, \"mmap\": true, \"n_files\": 3}");
     assert(json);
     kernel = init_file_write(json);
     assert(kernel == NULL);
     free_json(json);
 
-    json = json_from_string("{\"name\": \"file-write\", \"kb_write\": 1234, \"n_write\": \"invalid\"}");
+    json = json_from_string("{\"name\": \"file-write\", \"kb_write\": \"invalid\", \"n_write\": 3, \"n_files\": 3}");
     assert(json);
     kernel = init_file_write(json);
     assert(kernel == NULL);
     free_json(json);
 
-    json = json_from_string("{\"name\": \"file-write\", \"kb_write\": -1234, \"n_write\": 3}");
+    json = json_from_string("{\"name\": \"file-write\", \"kb_write\": 1234, \"n_write\": \"invalid\", \"n_files\": 3}");
     assert(json);
     kernel = init_file_write(json);
     assert(kernel == NULL);
     free_json(json);
 
-    json = json_from_string("{\"name\": \"file-write\", \"kb_write\": 1234, \"n_write\": -3}");
+    json = json_from_string("{\"name\": \"file-write\", \"kb_write\": -1234, \"n_write\": 3, \"n_files\": 3}");
     assert(json);
     kernel = init_file_write(json);
     assert(kernel == NULL);
     free_json(json);
 
+    json = json_from_string("{\"name\": \"file-write\", \"kb_write\": 1234, \"n_write\": -3, \"n_files\": 3}");
+    assert(json);
+    kernel = init_file_write(json);
+    assert(kernel == NULL);
+    free_json(json);
 
-
+    json = json_from_string("{\"name\": \"file-write\", \"kb_write\": 1234, \"n_write\": 3, \"n_files\": -3}");
+    assert(json);
+    kernel = init_file_write(json);
+    assert(kernel == NULL);
+    free_json(json);
 }
 
 static void test_write_file() {
@@ -221,7 +243,7 @@ static void test_write_file() {
 
     /* Initialise a kernel to do some writing, and execute it */
 
-    json = json_from_string("{\"name\": \"file-write\", \"kb_write\": 1000, \"n_write\": 2, \"mmap\": false}");
+    json = json_from_string("{\"name\": \"file-write\", \"kb_write\": 1000, \"n_write\": 4, \"mmap\": false, \"n_files\": 2}");
     assert(json);
 
     kernel = kernel_factory(json);
@@ -262,71 +284,6 @@ static void test_write_file() {
     strncpy(gconfig->hostname, host_storage, sizeof(gconfig->hostname));
 }
 
-
-static void test_write_file_mmap() {
-
-    /* Const cast, so we can manipulate the global config and make it look like we have multiple procs. */
-    GlobalConfig* gconfig = (GlobalConfig*)global_config_instance();
-    KernelFunctor* kernel;
-    JSON* json;
-    FILE* file;
-
-    char path_storage[PATH_MAX], host_storage[PATH_MAX], path_tmp[PATH_MAX];
-    const char* tmpdir;
-
-    tmpdir = getenv("TMPDIR");
-    assert(tmpdir != NULL);
-
-    /* Switch our own path into place */
-    strncpy(path_storage, gconfig->file_write_path, sizeof(gconfig->file_write_path));
-    strncpy(gconfig->file_write_path, tmpdir, sizeof(gconfig->file_write_path));
-
-    strncpy(host_storage, gconfig->hostname, sizeof(gconfig->hostname));
-    strncpy(gconfig->hostname, "HOST", 5);
-
-    /* Initialise a kernel to do some writing, and execute it */
-
-    json = json_from_string("{\"name\": \"file-write\", \"kb_write\": 1000, \"n_write\": 2, \"mmap\": true}");
-    assert(json);
-
-    kernel = kernel_factory(json);
-    assert(kernel);
-
-    kernel->execute(kernel->data);
-
-    free_kernel(kernel);
-    free_json(json);
-
-    /* Test that the appropriate files have been created (and clean them up)
-     * n.b. the file number sequence continues from the other tests */
-
-    snprintf(path_tmp, PATH_MAX, "%s/%s-%li-4", tmpdir, gconfig->hostname, (long)getpid());
-
-    assert(access(path_tmp, F_OK) != -1);
-    file = fopen(path_tmp, "r");
-    assert(file != NULL);
-    fseek(file, 0L, SEEK_END);
-    assert(ftell(file) == 500 * 1024);
-    fclose(file);
-
-    remove(path_tmp);
-
-    snprintf(path_tmp, PATH_MAX, "%s/%s-%li-5", tmpdir, gconfig->hostname, (long)getpid());
-
-    assert(access(path_tmp, F_OK) != -1);
-    file = fopen(path_tmp, "r");
-    assert(file != NULL);
-    fseek(file, 0L, SEEK_END);
-    assert(ftell(file) == 500 * 1024);
-    fclose(file);
-
-    remove(path_tmp);
-
-    /* Restore the global config */
-    strcpy(gconfig->file_write_path, path_storage);
-    strncpy(gconfig->hostname, host_storage, sizeof(gconfig->hostname));
-}
-
 /* ------------------------------------------------------------------------------------------------------------------ */
 
 int main() {
@@ -341,7 +298,6 @@ int main() {
     test_write_filename();
     test_write_kernel_init();
     test_write_file();
-    test_write_file_mmap();
 
     clean_global_config();
     return 0;

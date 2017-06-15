@@ -502,7 +502,8 @@ KernelFunctor* init_file_write(const JSON* config_json) {
         json_object_get_integer(config_json, "n_write", &config->writes) != 0 ||
         json_object_get_integer(config_json, "n_files", &config->files) != 0 ||
         config->kilobytes < 0 ||
-        config->writes <= 0) {
+        config->writes <= 0 ||
+        config->files <= 0) {
 
         fprintf(stderr, "Invalid parameters specified in file-write config\n");
         free(config);
