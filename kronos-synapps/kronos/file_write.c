@@ -66,9 +66,14 @@ static TimeSeriesLogger* bytes_written_time_series() {
     return logger;
 }
 
+/* Kernel configuration */
+
+
 FileWriteParamsInternal get_write_params(const FileWriteConfig* config) {
 
+    const GlobalConfig* global_conf = global_config_instance();
     FileWriteParamsInternal params;
+    long nfiles;
 
     /* The writes are shared out as uniformly as possible across the processors */
 
@@ -76,8 +81,8 @@ FileWriteParamsInternal get_write_params(const FileWriteConfig* config) {
 
     params.num_writes = global_distribute_work(config->writes);
 
-    /* Unlike for the reads, we can write arbitrary sizes, so we can just divide the amount to write
-     * by the number of writes */
+    nfiles = (global_conf->nprocs > config->files) ? global_conf->nprocs : config->files;
+    params.num_files = global_distribute_work(nfiles);
 
     /* n.b. Convert kb to bytes */
     params.write_size = 1024 * config->kilobytes / config->writes;
@@ -105,6 +110,132 @@ int get_file_write_name(char* path_out, size_t max_len) {
 }
 
 
+/*
+ * Track the currently open files
+ */
+
+typedef struct WriteFileInfo {
+
+    char filename[PATH_MAX];
+    int fd;
+
+    struct WriteFileInfo* next;
+
+} WriteFileInfo;
+
+
+static WriteFileInfo* global_file_list = 0;
+static int global_file_count = 0;
+
+
+void close_write_files() {
+
+    WriteFileInfo* file_info = global_file_list;
+    WriteFileInfo* next;
+    int count = 0;
+
+    while(file_info) {
+
+        count++;
+
+        TRACE2("Closing file: %s", file_info->filename);
+        close(file_info->fd);
+
+        next = file_info->next;
+        free(file_info);
+        file_info = next;
+    }
+
+    if (count != global_file_count) {
+        fprintf(stderr, "non-fatal ERROR: Incorrect number of files closed: %d, expected %d\n",
+                count, global_file_count);
+    }
+
+    global_file_count = 0;
+    global_file_list = 0;
+}
+
+
+bool open_write_file(bool o_direct) {
+
+    int flags;
+
+    WriteFileInfo* file_info = malloc(sizeof(WriteFileInfo));
+
+    if (get_file_write_name(file_info->filename, sizeof(file_info->filename)) == 0) {
+
+        flags = O_WRONLY | O_CREAT;
+        assert(!o_direct);
+        /*if (o_direct)
+            flags |= O_DIRECT;*/
+
+        TRACE2("Creating and opening file: %s", file_info->filename);
+        file_info->fd = open(file_info->filename, flags);
+
+        if (file_info->fd == -1) {
+            fprintf(stderr, "An error occurred opening the file %s for write: %d (%s)\n",
+                    file_info->filename, errno, strerror(errno));
+            free(file_info);
+            return false;
+        }
+
+        file_info->next = global_file_list;
+        global_file_list = file_info;
+
+        global_file_count++;
+
+    } else {
+        fprintf(stderr, "An error occurred getting the write filename\n");
+        free(file_info);
+        return false;
+    }
+
+    return true;
+}
+
+bool write_to_file(int fd, long size) {
+
+    long remaining;
+    long chunk_size;
+    int result;
+    bool success;
+    char* buffer = 0;
+
+    /* Loop over chunks of the maximum chunk size, until all written */
+
+    success = true;
+    remaining = size;
+    while (remaining > 0) {
+
+        chunk_size = remaining < file_write_max_chunk_size ? remaining : file_write_max_chunk_size;
+        assert(chunk_size > 0);
+        TRACE2("Writing chunk of: %li bytes ", chunk_size);
+
+        buffer = malloc(chunk_size);
+
+        stats_start(stats_instance());
+
+        result = write(fd, buffer, chunk_size);
+
+        stats_stop_log_bytes(stats_instance(), chunk_size);
+
+        free(buffer);
+        buffer = 0;
+
+        if (result == -1) {
+            fprintf(stderr, "A write error occurred: %d (%s)\n", errno, strerror(errno));
+            success = false;
+        }
+
+        remaining -= chunk_size;
+    }
+
+    return success;
+}
+
+
+/* Disabled to implement new write behaivour. This should be fixed */
+#if 0
 /**
  * @brief file_read_mmap Given a specified filename, size and an appropriate buffer, open and write
  *        the data from the buffer using the mmap procedure
@@ -289,6 +420,73 @@ static int execute_file_write(const void* data) {
 
     return error;
 }
+#endif
+
+static int execute_file_write(const void* data) {
+
+    const FileWriteConfig* config = data;
+
+    FileWriteParamsInternal params = get_write_params(config);
+    const WriteFileInfo* file_info;
+
+    int i, file_cnt, error;
+    char* buffer;
+
+    assert(!config->mmap);
+
+    error = 0;
+
+    TRACE4("Writing to %li files, %li writes of %li bytes each", params.num_files, params.num_writes, params.write_size);
+
+    /* If we don't have enough open files, open more files! */
+
+    while (global_file_count < params.num_files) {
+        if (!open_write_file(config->o_direct)) {
+            fprintf(stderr, "An error occurred in the file write kernel");
+            error = -1;
+            return;
+        }
+    }
+
+    /* Do the writes! */
+
+    file_info = global_file_list;
+    for (file_cnt = 0; file_cnt < params.num_writes; file_cnt++) {
+
+        TRACE3("Writing %li bytes to %s", params.write_size, file_info->filename);
+        if (!write_to_file(file_info->fd, params.write_size)) {
+            fprintf(stderr, "A write error occurred on file: %s\n", file_info->filename);
+            error = -1;
+        }
+
+        /* Loop around the available files */
+        if ((file_cnt + 1) % params.num_files == 0) {
+            file_info = global_file_list;
+        } else {
+            file_info = file_info->next;
+        }
+    }
+
+    /* Flush everything */
+
+    file_info = global_file_list;
+    for (file_cnt = 0; file_cnt < params.num_files; file_cnt++) {
+        TRACE2("Syncing file: %s\n", file_info->filename);
+        fsync(file_info->fd);
+        file_info = file_info->next;
+    }
+
+    /* If configured to do so, close the relevant files */
+
+    if (!config->continue_files)
+        close_write_files();
+
+    log_time_series_add_chunk_data(bytes_written_time_series(), params.num_writes * params.write_size);
+    log_time_series_add_chunk_data(writes_time_series(), params.num_writes);
+    log_time_series_chunk();
+
+    return error;
+}
 
 
 KernelFunctor* init_file_write(const JSON* config_json) {
@@ -302,6 +500,7 @@ KernelFunctor* init_file_write(const JSON* config_json) {
 
     if (json_object_get_integer(config_json, "kb_write", &config->kilobytes) != 0 ||
         json_object_get_integer(config_json, "n_write", &config->writes) != 0 ||
+        json_object_get_integer(config_json, "n_files", &config->files) != 0 ||
         config->kilobytes < 0 ||
         config->writes <= 0) {
 
@@ -312,6 +511,20 @@ KernelFunctor* init_file_write(const JSON* config_json) {
 
     if (json_object_get_boolean(config_json, "mmap", &config->mmap) != 0) {
         config->mmap = false;
+    }
+
+    /*if (json_object_get_boolean(config_json, "o_direct", &config->o_direct) != 0) {*/
+        config->o_direct = false;
+    /*}*/
+
+    if (json_object_get_boolean(config_json, "continue_files", &config->continue_files) != 0) {
+        config->continue_files = true;
+    }
+
+    if (config->mmap) {
+        fprintf(stderr, "mmap currently not supported for file-tracking behaviour. See NEX-114");
+        free(config);
+        return NULL;
     }
 
     functor = malloc(sizeof(KernelFunctor));

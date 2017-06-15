@@ -75,6 +75,7 @@ int main(int argc, char** argv)
             report_stats();
             free_stats_registry();
             clean_global_config();
+            close_write_files();
             free_json(json);
         } else {
             fprintf(stderr, "Error parsing json...\n");

@@ -27,7 +27,10 @@ typedef struct FileWriteConfig {
 
     long kilobytes;
     long writes;
+    long files;
     bool mmap;
+    bool o_direct;
+    bool continue_files;
 
 } FileWriteConfig;
 
@@ -41,6 +44,7 @@ KernelFunctor* init_file_write(const JSON* config_json);
 typedef struct FileWriteParamsInternal {
 
     long write_size;
+    long num_files;
     long num_writes;
 
 } FileWriteParamsInternal;
@@ -49,5 +53,7 @@ typedef struct FileWriteParamsInternal {
 FileWriteParamsInternal get_write_params(const FileWriteConfig* config);
 
 int get_file_write_name(char* path_out, size_t max_len);
+
+void close_write_files();
 
 #endif /* kronos_file_write_H */
