@@ -163,7 +163,7 @@ class FileReadKernel(KernelBase):
     )
 
     def extra_data(self):
-        return super(FileReadKernel, self).extra_data(mmap=False, invalidate=False)
+        return super(FileReadKernel, self).extra_data(mmap=True, invalidate=True)
 
     def synapp_config(self, n_bins=None):
         """
