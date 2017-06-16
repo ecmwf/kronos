@@ -29,12 +29,12 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     # check that the run path exists
-    if not os.path.exists(args.path_run):
-        print "Specified run path does not exist: {}".format(args.path_run)
+    if not os.path.exists(args.job_dir):
+        print "Specified run path does not exist: {}".format(args.job_dir)
         sys.exit(-1)
 
     # check that the run path contains the job sub-folders
-    job_dirs = [x for x in os.listdir(args.path_run) if os.path.isdir(os.path.join(args.path_run, x)) and "job-" in x]
+    job_dirs = [x for x in os.listdir(args.job_dir) if os.path.isdir(os.path.join(args.job_dir, x)) and "job-" in x]
     if not job_dirs:
         print "Specified path does not contain any job folder (<job-ID>..)!"
         sys.exit(-1)
@@ -47,7 +47,7 @@ if __name__ == "__main__":
     jobs_data_dict = {}
     for job_dir in job_dirs:
 
-        sub_dir_path_abs = os.path.join(args.path_run, job_dir)
+        sub_dir_path_abs = os.path.join(args.job_dir, job_dir)
         sub_dir_files = os.listdir(sub_dir_path_abs)
         krf_file = [f for f in sub_dir_files if f.endswith('.krf')]
 
