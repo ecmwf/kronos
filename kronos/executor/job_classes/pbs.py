@@ -52,6 +52,12 @@ from kronos.executor.job_classes.hpc import HPCJob
 #
 #    submit_command: "submit command of the scheduler (e.g. "qsub" for PBS)"
 #
+#    depend_parameter: command used by the scheduler to express job dependencies. A jobs should start only after the
+#                      jobs that it depends on have run (e.g. for pbs use "-W depend=afterany:")
+#
+#    depend_separator = separator used by the scheduler to separate the job-ID's in the lost of dependencies
+#                       (e.g. for pbs use ":")
+#
 #    launcher_command: "launcher command of the HPC system"
 #
 #    cancel_file_head: "header of the "killjobs" bash script that Kronos automatically generates in the output folder"
