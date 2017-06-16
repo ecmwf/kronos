@@ -43,13 +43,13 @@ class ReadFileGenerationTests(unittest.TestCase):
 
         output = list(generate_read_files.enumerate_cache_files(path))
 
-        self.assertEqual(len(output), 6)
+        self.assertEqual(len(output), 2)
 
         # Only generate files for he biggest size since NEX-113
         #for (fn, sz), expected_sz in zip(output, [16, 16, 32, 32, 64, 64]):
-        for (fn, sz), expected_sz in zip(output, [16, 16, 32, 32, 64, 64]):
+        for (fn, sz), expected_sz in zip(output, [64, 64]):
             self.assertEqual(sz, expected_sz)
-            self.assertEqual(fn[:-2], "test-path/read-cache-{}".format(sz))
+            self.assertEqual(fn[:-1], "test-path/read-cache-")
 
     def test_generate_read_cache(self):
         """
@@ -70,7 +70,7 @@ class ReadFileGenerationTests(unittest.TestCase):
             #for sz in [8, 16, 32]:
             for sz in [32]:
                 for cnt in range(3):
-                    fn = os.path.join(path, "read-cache-{}-{}".format(sz, cnt))
+                    fn = os.path.join(path, "read-cache-{}".format(cnt))
                     print fn
                     self.assertTrue(os.path.exists(fn))
                     self.assertTrue(os.path.isfile(fn))
@@ -106,7 +106,7 @@ class ReadFileGenerationTests(unittest.TestCase):
             # for sz in [8, 16, 32]:
             for sz in [32]:
                 for cnt in range(3):
-                    fn = os.path.join(path, "read-cache-{}-{}".format(sz, cnt))
+                    fn = os.path.join(path, "read-cache-{}".format(cnt))
 
                     os.rename(fn, tmpfile)
                     self.assertFalse(generate_read_files.test_read_cache(path))

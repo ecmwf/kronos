@@ -444,7 +444,7 @@ static int execute_file_write(const void* data) {
         if (!open_write_file(config->o_direct)) {
             fprintf(stderr, "An error occurred in the file write kernel");
             error = -1;
-            return;
+            return error;
         }
     }
 
