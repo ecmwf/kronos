@@ -55,9 +55,18 @@ class Executor(object):
         # job dir
         self.local_tmpdir = config.get("local_tmpdir", None)
         self.job_dir = config.get("job_dir", os.path.join(os.getcwd(), "run"))
+
         print "Job executing dir: {}".format(self.job_dir)
+
+        # take the timestamp to be used to archive run folders (if existing)
+        time_stamp_now = datetime.datetime.now().strftime('%Y_%m_%d_%H_%M_%S')
+        time_stamped_dir = os.path.join(os.getcwd(), time_stamp_now)
+
         if os.path.exists(self.job_dir):
-            raise IOError("Path {} already exists".format(self.job_dir))
+            print "Path {} already exists, moving it into: {}".format(self.job_dir, time_stamped_dir)
+            os.makedirs(time_stamped_dir)
+            os.rename(self.job_dir, os.path.join(time_stamped_dir, os.path.basename(self.job_dir)))
+
         os.makedirs(self.job_dir)
 
         if ksf_file:
@@ -66,8 +75,16 @@ class Executor(object):
         # shared dir
         self.job_dir_shared = config.get("job_dir_shared", os.path.join(os.getcwd(), "run/shared"))
         print "Shared output directory: {}".format(self.job_dir_shared)
+
         if os.path.exists(self.job_dir_shared):
-            raise IOError("Path {} already exists".format(self.job_dir_shared))
+            print "Path {} already exists, moving it into: {}".format(self.job_dir_shared, time_stamped_dir)
+
+            # create the times-stamped path only if not previously created..
+            if not os.path.exists(time_stamped_dir):
+                os.makedirs(time_stamped_dir)
+
+            os.rename(self.job_dir_shared, os.path.join(time_stamped_dir, os.path.basename(self.job_dir_shared)))
+
         os.makedirs(self.job_dir_shared)
 
         # The binary to use can be overridden in the config file
