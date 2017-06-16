@@ -199,7 +199,7 @@ class FileWriteKernel(KernelBase):
     )
 
     def extra_data(self):
-        return super(FileWriteKernel, self).extra_data(mmap=False)
+        return super(FileWriteKernel, self).extra_data()
 
     def synapp_config(self, n_bins=None):
         """
@@ -222,6 +222,9 @@ class FileWriteKernel(KernelBase):
             if d['kb_write'] > 0:
                 d['n_write'] = max(1, int(d['n_write']))
                 d['kb_write'] = max(1.0, d['kb_write'])
+
+            # set the number of files
+            d['n_files'] = max(1, int(d['n_write']/100.0))
 
         return data
 
