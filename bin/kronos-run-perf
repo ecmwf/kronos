@@ -25,7 +25,7 @@ if __name__ == "__main__":
 
     # Parser for the required arguments
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("path_run", type=str, help="Path of the kronos run folder (contains the job-<ID> sub-folders)")
+    parser.add_argument("job_dir", type=str, help="Path of the kronos output folder 'job_dir' (contains the job-<ID> sub-folders)")
     args = parser.parse_args()
 
     # check that the run path exists
