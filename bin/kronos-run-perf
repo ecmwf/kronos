@@ -15,8 +15,8 @@ import strict_rfc3339
 
 list_classes = [
     "main/fc/inigroup",
-    "main/fc/ensemble/pf",
     "main/fc/ensemble/cf",
+    "main/fc/ensemble/pf",
     "main/fc/ensemble/logfiles",
     "main/fc/lag",
 ]
@@ -92,7 +92,7 @@ if __name__ == "__main__":
 
     # check if there is some of the classes for which no jobs have been found
     for class_name in list_classes:
-        if class_name+"/serial" not in jobs_data_dict.keys() and class_name+"/serial" not in jobs_data_dict.keys():
+        if class_name+"/serial" not in jobs_data_dict.keys() and class_name+"/parallel" not in jobs_data_dict.keys():
             print "warning: no jobs found for class {}".format(class_name)
 
     # ///////////////////// print summary ////////////////////////
