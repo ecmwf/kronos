@@ -7,18 +7,11 @@
 # granted to it by virtue of its status as an intergovernmental organisation nor
 # does it submit to any jurisdiction.
 
-"""
-script to generate a summary from the KRF files in the run folder
-"""
-
 import os
 import json
 import argparse
 import sys
 import strict_rfc3339
-
-from kronos.executor.tools import std_of_list, mean_of_list
-
 
 list_classes = [
     "main/fc/inigroup",
@@ -82,17 +75,25 @@ if __name__ == "__main__":
 
             if json_data_input['metadata'].get('workload_name'):
 
-                class_name_root = [name for name in list_classes if name in json_data_input['metadata']['workload_name']][0]
+                class_name_root = [name for name in list_classes if name in json_data_input['metadata']['workload_name']]
 
-                if "serial" in json_data_input['metadata']['workload_name']:
-                    class_name = class_name_root+"/serial"
+                if class_name_root:
+                    class_name_root_0 = class_name_root[0]
 
-                elif "parallel" in json_data_input['metadata']['workload_name']:
-                    class_name = class_name_root+"/parallel"
-                else:
-                    class_name = "unknown tag"
+                    if "serial" in json_data_input['metadata']['workload_name']:
+                        class_name = class_name_root_0 + "/serial"
 
-                jobs_data_dict.setdefault(class_name, []).append(json_data_stats)
+                    elif "parallel" in json_data_input['metadata']['workload_name']:
+                        class_name = class_name_root_0 + "/parallel"
+                    else:
+                        class_name = "unknown tag"
+
+                    jobs_data_dict.setdefault(class_name, []).append(json_data_stats)
+
+    # check if there is some of the classes for which no jobs have been found
+    for class_name in list_classes:
+        if class_name+"/serial" not in jobs_data_dict.keys() and class_name+"/serial" not in jobs_data_dict.keys():
+            print "warning: no jobs found for class {}".format(class_name)
 
     # ///////////////////// print summary ////////////////////////
     print "{:<52s}".format("\n\nPERFORMANCE SUMMARY:\n")
@@ -103,24 +104,25 @@ if __name__ == "__main__":
     job_end_times = [strict_rfc3339.rfc3339_to_timestamp(j["created"]) for jobs in jobs_data_dict.values() for j in jobs]
     job_start_times_rel = [max([sum(r["time_series"]["durations"]) for r in j["ranks"]]) for jobs in jobs_data_dict.values() for j in jobs]
     job_start_times = [t - job_start_times_rel[tt] for tt, t in enumerate(job_end_times)]
-
     overall_runtime = max(job_end_times) - min(job_start_times)
     print "Total Runtime [s]: {:20.2f}".format(overall_runtime)
 
-    # Show rates per class
+    # Show summary per class
     ordered_classe_names = jobs_data_dict.keys()
     ordered_classe_names.sort()
     for wl_name in ordered_classe_names:
 
         jobs_in_wl = jobs_data_dict[wl_name]
 
+        # print "jobs in wl {}".format(jobs_in_wl)
+
         # -------- calculate relevant summary measures as needed.. ---------
         data_keys = {
-            "cpu": {"label": "FLOPS:     [G/s]", "conv": 1.0/1024**3, "label_sum": "FLOPS:     [G]"},
-            "read": {"label": "I/O read:  [GiB/s]", "conv": 1.0/1024**3, "label_sum": "I/O read:  [GiB]"},
-            "write": {"label": "I/O write: [GiB/s]", "conv": 1.0/1024**3, "label_sum": "I/O write: [GiB]"},
-            "mpi-pairwise": {"label": "MPI p2p:   [GiB/s]", "conv": 1.0/1024**3, "label_sum": "MPI p2p:   [GiB]"},
-            "mpi-collective": {"label": "MPI col:   [GiB/s]", "conv": 1.0/1024**3, "label_sum": "MPI col:   [GiB]"}
+            "cpu": {"conv": 1.0/1000.0**3, "label_sum": "FLOPS:        "},
+            "read": {"conv": 1.0/1024.0**3, "label_sum": "I/O read:       "},
+            "write": {"conv": 1.0/1024.0**3, "label_sum": "I/O write:      "},
+            "mpi-pairwise": {"conv": 1.0/1024.0**3, "label_sum": "MPI p2p:        "},
+            "mpi-collective": {"conv": 1.0/1024.0**3, "label_sum": "MPI col:        "}
         }
 
         perf_data = {}
@@ -149,83 +151,56 @@ if __name__ == "__main__":
 
             if not summary_data[k]["vec"]:
 
-                summary_data[k]["mean"] = "N/A"
-                summary_data[k]["max"] = "N/A"
-                summary_data[k]["min"] = "N/A"
-                summary_data[k]["std"] = "N/A"
-                summary_data[k]["sum"] = "N/A"
+                summary_data[k]["sum_bytes"] = "N/A"
+                summary_data[k]["elapsed_sum"] = "N/A"
 
             else:
                 # counter per sec
                 if k == "cpu":
 
                     sc = data_keys[k]["conv"]
-                    vals = [f0/float(f2)*sc for f0, f2 in zip(summary_data[k]["vec"][0], summary_data[k]["vec"][2])]
-                    summary_data[k]["mean"] = mean_of_list(vals)
-                    summary_data[k]["max"] = max(vals)
-                    summary_data[k]["min"] = min(vals)
-                    summary_data[k]["std"] = std_of_list(vals)
-                    summary_data[k]["sum"] = sum(vals)
+                    vals_rates = [f0/float(f2)*sc for f0, f2 in zip(summary_data[k]["vec"][0], summary_data[k]["vec"][2])]
+
+                    # Total ops/bytes counter
+                    counts = [val * sc for val in summary_data[k]["vec"][0]]
+                    summary_data[k]["sum_bytes"] = int(sum(counts))
+
+                    # total elapsed time
+                    elapsed_vals = [val for val in summary_data[k]["vec"][2]]
+                    summary_data[k]["elapsed_sum"] = sum(elapsed_vals)
 
                 # bytes per sec..
                 else:
 
                     sc = data_keys[k]["conv"]
-                    vals = [f1 / float(f2) * sc for f1, f2 in zip(summary_data[k]["vec"][1], summary_data[k]["vec"][2])]
-                    mean_val = sum(vals) / float(len(vals))
-                    summary_data[k]["mean"] = mean_of_list(vals)
-                    summary_data[k]["max"] = max(vals)
-                    summary_data[k]["min"] = min(vals)
-                    summary_data[k]["std"] = std_of_list(vals)
-                    summary_data[k]["sum"] = sum(vals)
+                    vals_rates = [f1 / float(f2) * sc for f1, f2 in zip(summary_data[k]["vec"][1], summary_data[k]["vec"][2])]
+
+                    # Total ops/bytes counter
+                    counts_bytes = [val * sc for val in summary_data[k]["vec"][1]]
+                    summary_data[k]["sum_bytes"] = sum(counts_bytes)
+
+                    # total elapsed time
+                    elapsed_vals = [val for val in summary_data[k]["vec"][2]]
+                    summary_data[k]["elapsed_sum"] = sum(elapsed_vals)
 
         # /////////////////////////////// PRINT SUMMARY DATA ///////////////////////////////////
         _fl = 20
+        n_fields = 3
 
-        # write names
-        print "\n\n{}".format("-"*(_fl+1)*5)
-        print "{:^{l}s}|".format(wl_name, l=(_fl + 1) * 5-1)
-        print "{}".format("-"*(_fl+1)*5)
+        # Class name
+        print "\n\n{}".format("-"*(_fl+1)*n_fields)
+        print "{:^{l}s}|".format(" - ".join([os.path.dirname(wl_name), "("+os.path.basename(wl_name)+" jobs)"]), l=(_fl + 1) * n_fields-1)
+        print "{}".format("-" * (_fl + 1) * n_fields)
 
-        # write TOTALS per class
-        # print "{}".format("Totals")
-        print "{}".format("-" * (_fl + 1) * 2)
-        print "{:<{l}s}|{:^{l}s}|".format("Name", "Total", l=_fl)
-        print "{}".format("-" * (_fl + 1) * 2)
+        # Header
+        print "{:<{l}s}|{:^{l}s}|{:^{l}s}|".format("Name", "Total [G/GiB]", "Total Time", l=_fl)
+        print "{}".format("-" * (_fl + 1) * n_fields)
+
+        # Print the metrics
         for k in sorted_keys:
-            if isinstance(summary_data[k]["mean"], str):
-                print "{:<{l}s}|{:>{l}}|".format(data_keys[k]["label_sum"], summary_data[k]["sum"], l=_fl)
-            else:
-                print "{:<{l}s}|{:>{l}f}|".format(data_keys[k]["label_sum"], summary_data[k]["sum"], l=_fl)
+            print "{:<{l}s}|{:>{l}}|{:>{l}}|".format(data_keys[k]["label_sum"],
+                                                     summary_data[k]["sum_bytes"],
+                                                     summary_data[k]["elapsed_sum"], l=_fl)
 
-        # write RATES per class
-        print "{}".format("-" * (_fl + 1) * 2)
-        # print "{}".format("Rates")
-        print "{}".format("-" * (_fl + 1) * 5)
-        print "{:<{l}s}|{:^{l}s}|{:^{l}s}|{:^{l}s}|{:^{l}s}|".format("Name",
-                                                                     "rate avg",
-                                                                     "rate max",
-                                                                     "rate min",
-                                                                     "rate std",
-                                                                     "latency (est)",
-                                                                     "bandwidth (est)",
-                                                                     l=_fl)
-        print "{}".format("-" * (_fl + 1) * 5)
-
-        for k in sorted_keys:
-            if isinstance(summary_data[k]["mean"], str):
-                print "{:<{l}s}|{:>{l}}|{:>{l}}|{:>{l}}|{:>{l}}|".format(data_keys[k]["label"],
-                                                                         summary_data[k]["mean"],
-                                                                         summary_data[k]["max"],
-                                                                         summary_data[k]["min"],
-                                                                         summary_data[k]["std"],
-                                                                         l=_fl)
-            else:
-                print "{:<{l}s}|{:>{l}f}|{:>{l}f}|{:>{l}f}|{:>{l}f}|".format(data_keys[k]["label"],
-                                                                             summary_data[k]["mean"],
-                                                                             summary_data[k]["max"],
-                                                                             summary_data[k]["min"],
-                                                                             summary_data[k]["std"],
-                                                                             l=_fl)
-        print "{}".format("-" * (_fl + 1) * 5)
+        print "{}".format("-" * (_fl + 1) * n_fields)
 
