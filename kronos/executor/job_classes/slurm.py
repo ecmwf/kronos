@@ -24,11 +24,11 @@ from kronos.executor.job_classes.hpc import HPCJob
 #
 #     experiment_id: "job-ID"
 #
-#     num_nodes: "N of nodes requested from the system. The Executor requests a number of nodes that is
+#     num_nodes: "Number of nodes requested from the system. The Executor requests a number of nodes that is
 #                 equal to N_processes (as specified in the KSF for each synthetic app) divided by the
 #                 number of processors per node as specified in the executor config file"
 #
-#     num_procs: "N of processes requested
+#     num_procs: "Number of MPI ranks requested
 #
 #     job_output_file: "job stdout file in the job folder"
 #
@@ -50,15 +50,15 @@ from kronos.executor.job_classes.hpc import HPCJob
 # 2) In addition to the main template of the submit scripts, the following variables need to be MANUALLY set
 #    in the template class below
 #
-#    submit_command: "submit command of the scheduler (e.g. "sbatch" for slurm)"
+#    submit_command: "The command used to submit jobs to the scheduler (e.g. "qsub" for PBS)"
 #
-#    depend_parameter: command used by the scheduler to express job dependencies. A jobs should start only after the
-#                      jobs that it depends on have run (e.g. for slurm use "--dependency=afterany:")
+#    depend_parameter: "The argument used to specify job dependencies to the scheduler on the command line.
+#                      (e.g. "-W depend=afterany:" for PBS)."
 #
-#    depend_separator = separator used by the scheduler to separate the job-ID's in the lost of dependencies
-#                       (e.g. for slurm use ":")
+#    depend_separator = "separator used when constructing the job dependency list for submission to the
+#                       scheduler (e.g. for pbs use ":")"
 #
-#    launcher_command: "launcher command of the HPC system"
+#    launcher_command: "Command to begin the parallel part of the job (e.g. "aprun" for PBS on cray systems)"
 #
 #    cancel_file_head: "header of the "killjobs" bash script that Kronos automatically generates in the output folder"
 #
