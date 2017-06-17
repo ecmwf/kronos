@@ -221,8 +221,13 @@ int execute_file_read(const void* data) {
         /* Pick a random file to read from */
         file_index = rand() % global_conf->file_read_multiplicity;
 
-        /* Pick a random offset to read from within the file */
-        offset = rand() % (global_conf->file_read_size_max - params.read_size);
+        /* Pick a random offset to read from within the file
+         * but only if the read_size is smaller than max file read size
+         */
+        if(global_conf->file_read_size_max == params.read_size)
+            offset = 0;
+        else
+            offset = rand() % (global_conf->file_read_size_max - params.read_size);
 
         success = false;
         written = snprintf(file_path, PATH_MAX, "%s/read-cache-%d", global_conf->file_read_path, file_index);
