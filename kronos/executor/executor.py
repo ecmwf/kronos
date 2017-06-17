@@ -59,13 +59,12 @@ class Executor(object):
         print "Job executing dir: {}".format(self.job_dir)
 
         # take the timestamp to be used to archive run folders (if existing)
-        time_stamp_now = datetime.datetime.now().strftime('%Y_%m_%d_%H_%M_%S')
-        time_stamped_dir = os.path.join(os.getcwd(), time_stamp_now)
+        time_stamp_now = datetime.datetime.now().strftime('%Y%m%d%H%M%S')
 
         if os.path.exists(self.job_dir):
-            print "Path {} already exists, moving it into: {}".format(self.job_dir, time_stamped_dir)
-            os.makedirs(time_stamped_dir)
-            os.rename(self.job_dir, os.path.join(time_stamped_dir, os.path.basename(self.job_dir)))
+            time_stamped_output = self.job_dir+"."+time_stamp_now
+            print "Path {} already exists, moving it into: {}".format(self.job_dir, time_stamped_output)
+            os.rename(self.job_dir, time_stamped_output)
 
         os.makedirs(self.job_dir)
 
@@ -77,13 +76,9 @@ class Executor(object):
         print "Shared output directory: {}".format(self.job_dir_shared)
 
         if os.path.exists(self.job_dir_shared):
-            print "Path {} already exists, moving it into: {}".format(self.job_dir_shared, time_stamped_dir)
-
-            # create the times-stamped path only if not previously created..
-            if not os.path.exists(time_stamped_dir):
-                os.makedirs(time_stamped_dir)
-
-            os.rename(self.job_dir_shared, os.path.join(time_stamped_dir, os.path.basename(self.job_dir_shared)))
+            time_stamped_shared = self.job_dir_shared + "." + time_stamp_now
+            print "Path {} already exists, moving it into: {}".format(self.job_dir_shared, time_stamped_shared)
+            os.rename(self.job_dir_shared, time_stamped_shared)
 
         os.makedirs(self.job_dir_shared)
 
