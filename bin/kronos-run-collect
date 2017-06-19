@@ -20,25 +20,25 @@ if __name__ == "__main__":
 
     # Parser for the required arguments
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("path_run", type=str, help="Path of the kronos run folder (contains the job-<ID> sub-folders)")
+    parser.add_argument("tarball_path", type=str, help="Path of the kronos tarball")
+    parser.add_argument("path_run", type=str, help="Path of the kronos output folder (contains the job-<ID> sub-folders)")
     args = parser.parse_args()
 
     if not os.path.exists(args.path_run):
-        print "Specified run path does not exist: {}".format(args.path_run)
+        print "Specified Kronos output path does not exist: {}".format(args.path_run)
         sys.exit(-1)
 
-    if os.path.exists(os.path.join(args.path_run, 'kronos-run-data.tar.gz')):
-        print "kronos-run-data.tar.gz already exist in: {}".format(args.path_run)
+    if os.path.exists(args.tarball_path):
+        print "File {} already exists".format(args.tarball_path)
         sys.exit(-1)
     else:
-        tar_file = tarfile.open(os.path.join(args.path_run, 'kronos-run-data.tar.gz'), "w:gz")
+        tar_file = tarfile.open(args.tarball_path, "w:gz")
 
     files_to_be_collected = [
         'submit_script',
         'input.json',
         'error',
         'output',
-        'error',
         'statistics.krf',
         '.darshan',
         '.map',
