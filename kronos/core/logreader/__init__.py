@@ -37,7 +37,7 @@ def ingest_data(ingest_type, ingest_path, ingest_config=None, global_config=None
 
     try:
 
-        return simple_ingest_mapping[ingest_type](ingest_path, cfg=ingest_config if ingest_config else None)
+        ingester = simple_ingest_mapping[ingest_type]
 
     except KeyError:
 
@@ -46,15 +46,13 @@ def ingest_data(ingest_type, ingest_path, ingest_config=None, global_config=None
 
         try:
 
-            dataset_class = class_ingest_mapping[ingest_type]
+            ingester = class_ingest_mapping[ingest_type].from_logs_path
 
             # Did we supply any custom configuration?
-            if ingest_config is not None:
-                cfg = ingest_config
-            else:
-                cfg = global_config.ingestion.get(ingest_type, {}) if global_config else {}
-
-            return dataset_class.from_logs_path(ingest_path, cfg)
+            if ingest_config is None:
+                ingest_config = global_config.ingestion.get(ingest_type, {}) if global_config else {}
 
         except KeyError:
             raise ValueError("Ingestion type unknown in config: {}".format(ingest_type))
+
+    return ingester(ingest_path, ingest_config)

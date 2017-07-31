@@ -19,6 +19,8 @@
 #include <string.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <sys/types.h>
+#include <sys/stat.h>
 
 #include "kronos/configure_read_files.h"
 #include "kronos/global_config.h"
@@ -121,6 +123,10 @@ int init_global_config(const JSON* json, int argc, char** argv) {
     /*
      * Behaviour of the write kernel
      */
+
+    /* Set up the umask */
+
+    umask(0027);
 
     global_config.file_read_multiplicity = file_read_multiplicity;
     if ((tmp_json = json_object_get(json, "file_read_multiplicity")) != NULL) {
