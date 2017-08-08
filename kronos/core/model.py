@@ -343,7 +343,7 @@ class KronosModel(object):
                     job_name="appID-{}".format(cc),
                     time_signals=job.timesignals,
                     ncpus=job.ncpus,
-                    time_start=job.time_start,
+                    time_start=0.0,
                     label=job.label
                 )
 

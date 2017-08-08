@@ -30,9 +30,13 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     dataset = IngestedDataSet.from_pickled(args.path_pickled)
-
+    
     tag = args.tag if args.tag else "unknown"
     pf = ProfileFormat(model_jobs=dataset.model_jobs(), workload_tag=tag)
+    
+    for job in pf.profiled_jobs:
+        if not job.get("label"):
+            job["label"] = "unknown"
 
     with open(args.path_output, 'w') as f:
         pf.write(f)
