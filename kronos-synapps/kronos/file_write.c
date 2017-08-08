@@ -164,13 +164,14 @@ bool open_write_file(bool o_direct) {
 
     if (get_file_write_name(file_info->filename, sizeof(file_info->filename)) == 0) {
 
-        flags = O_WRONLY | O_CREAT;
+        flags = O_WRONLY | O_CREAT | O_EXCL;
         assert(!o_direct);
         /*if (o_direct)
             flags |= O_DIRECT;*/
 
+        /* n.b. umask set to 0027 in global_config.c */
         TRACE2("Creating and opening file: %s", file_info->filename);
-        file_info->fd = open(file_info->filename, flags);
+        file_info->fd = open(file_info->filename, flags, S_IRUSR | S_IWUSR | S_IRGRP); /* S_IWGRP */
 
         if (file_info->fd == -1) {
             fprintf(stderr, "An error occurred opening the file %s for write: %d (%s)\n",
