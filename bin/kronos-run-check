@@ -198,12 +198,14 @@ if __name__ == "__main__":
 
     # if the metrics is zero (both in the KRF's and in the KSF) => check is PASS
     if abs(krf_metrics_sums[args.metric_name] == 0 and tot_ksf_metrics[args.metric_name]) == 0:
+        print "Result for metric {}: PASS".format(args.metric_name)
         sys.exit(0)
 
     # fails if the requested metrics differ from the measured one
     if abs(krf_metrics_sums[args.metric_name] - tot_ksf_metrics[args.metric_name])/tot_ksf_metrics[args.metric_name] > 0.01:
         sys.exit(-1)
     else:
+        print "Result for metric {}: PASS".format(args.metric_name)
         sys.exit(0)
 
 
