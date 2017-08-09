@@ -196,13 +196,14 @@ if __name__ == "__main__":
                 else:
                     raise ("kernel name {} not recognized!".format(ker["name"]))
 
+    # if the metrics is zero (both in the KRF's and in the KSF) => check is PASS
+    if abs(krf_metrics_sums[args.metric_name] == 0 and tot_ksf_metrics[args.metric_name]) == 0:
+        sys.exit(0)
+
     # fails if the requested metrics differ from the measured one
     if abs(krf_metrics_sums[args.metric_name] - tot_ksf_metrics[args.metric_name])/tot_ksf_metrics[args.metric_name] > 0.01:
         sys.exit(-1)
     else:
-
-        # print "krf_metrics_sums: ", krf_metrics_sums[args.metric_name]
-        # print "tot_ksf_metrics: ", tot_ksf_metrics[args.metric_name]
         sys.exit(0)
 
 
