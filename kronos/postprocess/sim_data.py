@@ -10,9 +10,8 @@ import os
 import sys
 import json
 
-from kronos.postprocess.definitions import class_names_complete
 from kronos.postprocess.definitions import get_class_name
-from kronos.postprocess.krf_data import KRFJob, sorted_krf_stats_names, krf_stats_info
+from kronos.postprocess.krf_data import KRFJob, krf_stats_info
 from kronos.postprocess.krf_decorator import KRFDecorator
 
 

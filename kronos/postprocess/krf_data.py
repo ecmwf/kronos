@@ -6,9 +6,6 @@
 # granted to it by virtue of its status as an intergovernmental organisation nor
 # does it submit to any jurisdiction.
 from collections import OrderedDict
-
-import datetime
-
 from kronos.io.results_format import ResultsFormat
 from kronos.postprocess.definitions import cumsum, datetime2epochs
 
