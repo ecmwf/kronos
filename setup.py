@@ -55,6 +55,7 @@ setup(
         'bin/kronos-run-collect',
         'bin/kronos-run-analysis',
         'bin/kronos-run-check',
+        'bin/kronos-run-export',
         'bin/kronos-show-job',
     ],
     include_package_data=True,

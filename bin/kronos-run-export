@@ -1,0 +1,37 @@
+#!/usr/bin/env python
+# (C) Copyright 1996-2017 ECMWF.
+#
+# This software is licensed under the terms of the Apache Licence Version 2.0
+# which can be obtained at http://www.apache.org/licenses/LICENSE-2.0.
+# In applying this licence, ECMWF does not waive the privileges and immunities
+# granted to it by virtue of its status as an intergovernmental organisation nor
+# does it submit to any jurisdiction.
+import json
+import argparse
+
+from kronos.postprocess.sim_data import SimulationData
+from kronos.postprocess import writer_map
+from kronos.postprocess.sim_set import SimulationSet
+
+if __name__ == "__main__":
+
+    # Read other arguments if present..
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('export_config', help="Export configuration file (.kef)")
+    args = parser.parse_args()
+
+    # Read the config file
+    with open(args.export_config, "r") as f:
+        config_options = json.load(f)
+
+    # Labelled list of simulations
+    labelled_kronos_sims = [SimulationData.read_from_sim_paths(path, tag)
+                            for tag, path in zip(config_options["experiment_list"], config_options["experiment_paths"])]
+
+    # Pre-calculate data ready for export
+    sim_set = SimulationSet(labelled_kronos_sims)
+
+    # Export results as per user requests
+    for export_config in config_options["exports"]:
+        data_writer = writer_map[export_config["type"]](sim_set=sim_set)
+        data_writer.export(export_config=export_config)
