@@ -32,6 +32,7 @@ class ResultsFormat(JSONIoFormat):
         assert(ranks is not None)
 
         self.ranks = ranks
+        self.uid = uid
         # self.time_series = time_series
 
     def __eq__(self, other):
@@ -68,11 +69,13 @@ class ResultsFormat(JSONIoFormat):
         Obtain the data to be written into the file. Extends the base class implementation
         (which includes headers, etc.)
         """
-        output_dict = super(ResultsFormat, self).output_dict()
-        output_dict.update({
-            # "statistics": self.statistics,
-            "ranks": self.ranks,
-        })
 
-        # raise NotImplementedError("Currently ResultsFormat is only used for reading coordinator output")
+        output_dict = {
+            "version": self.format_version,
+            "tag": self.format_magic,
+            "created": self.created,
+            "uid": self.uid,
+            "ranks": self.ranks,
+        }
+
         return output_dict
