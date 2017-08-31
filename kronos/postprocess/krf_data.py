@@ -143,7 +143,7 @@ class KRFJob(object):
         """
 
         return cls(
-            ResultsFormat.from_filename(krf_filename).output_dict(),
+            ResultsFormat.from_filename(krf_filename, validate_json=False).output_dict(),
             decorator_data=decorator
         )
 
