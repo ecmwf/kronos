@@ -5,9 +5,10 @@
 # In applying this licence, ECMWF does not waive the privileges and immunities 
 # granted to it by virtue of its status as an intergovernmental organisation nor
 # does it submit to any jurisdiction.
+
 from collections import OrderedDict
 from kronos.io.results_format import ResultsFormat
-from kronos.postprocess.definitions import cumsum, datetime2epochs
+from kronos.post_process.definitions import cumsum, datetime2epochs
 
 ts_names_map = {
     "n_write": ("n_write", 1.0),
@@ -76,28 +77,17 @@ class KRFJob(object):
         # Decorating data (if available)
         self.decorating_data = decorator_data
 
-        # Calculate time series time, value, rate
-        self._series_tvr = self._calc_series_time_val_rate()
-
         # Calculate time series of this job
         self.time_series = self.calc_time_series()
 
-    def _calc_series_time_val_rate(self):
-        """
-        Calculate krf_job time series of (time-stamp, value, rate)
-        :return:
-        """
+    def calc_time_series(self):
 
+        # group time series from krf data..
         _series_tvr = {}
-
         for rank_data in self._json_data["ranks"]:
 
             delta_t = rank_data["time_series"]['durations']
             tends = cumsum(delta_t)
-
-            if not rank_data["time_series"]['durations']:
-                # in case the durations are empty!
-                return None
 
             for ts_name, ts_vals in rank_data["time_series"].iteritems():
 
@@ -105,17 +95,13 @@ class KRFJob(object):
                     ts_all = [(t, v, v / dt) for t, dt, v in zip(tends, delta_t, ts_vals) if (v != 0 and dt != 0)]
                     _series_tvr.setdefault(ts_name, []).extend(ts_all)
 
-        # sort the time-series
+        # sort the time-series with ascending time..
         for ts in _series_tvr.values():
             ts.sort(key=lambda _x: _x[0])
 
-        return _series_tvr
-
-    def calc_time_series(self):
-
         # Append any time series data that is present
         time_series = {}
-        for name, values in self._series_tvr.iteritems():
+        for name, values in _series_tvr.iteritems():
 
             # assert name in time_signal.signal_types
             assert name in ts_names_map.keys()
@@ -190,9 +176,6 @@ class KRFJob(object):
         """
         return self.decorating_data.name
 
-    def time_series(self):
-        pass
-
     @property
     def t_start(self):
 
@@ -203,7 +186,7 @@ class KRFJob(object):
 
     @property
     def duration(self):
-        return max([v[0] for ts in self._series_tvr.values() for v in ts])
+        return max([v for ts in self.time_series.values() for v in ts["times"]])
 
     @property
     def t_end(self):

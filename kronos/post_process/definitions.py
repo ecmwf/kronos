@@ -1,3 +1,11 @@
+# (C) Copyright 1996-2017 ECMWF.
+#
+# This software is licensed under the terms of the Apache Licence Version 2.0
+# which can be obtained at http://www.apache.org/licenses/LICENSE-2.0.
+# In applying this licence, ECMWF does not waive the privileges and immunities
+# granted to it by virtue of its status as an intergovernmental organisation nor
+# does it submit to any jurisdiction.
+
 import math
 import datetime
 import numpy as np
@@ -72,6 +80,10 @@ def cumsum(input_list):
     return [sum(input_list[:ii+1]) for ii,i in enumerate(input_list)]
 
 
+def linspace(x0, x1, count):
+    return [x0+(x1-x0)*i/float(count-1) for i in range(count)]
+
+
 def running_series(jobs, times, t0_epoch_wl, class_name_root=None, serial_or_par=None):
 
     bin_width = times[1] - times[0]
@@ -83,13 +95,13 @@ def running_series(jobs, times, t0_epoch_wl, class_name_root=None, serial_or_par
         
         if ((class_name_root
                  and serial_or_par
-                     and class_name_root in job['label']
-                         and serial_or_par in job['label']) or 
+                     and class_name_root in job.label
+                         and serial_or_par in job.label) or
            (not class_name_root and not serial_or_par)):
             
             found += 1
-            first = int(math.ceil((job["time_start"]-t0_epoch_wl - times[0]) / bin_width))
-            last = int(math.floor((job["time_end"]-t0_epoch_wl - times[0]) / bin_width))        
+            first = int(math.ceil((job.t_start-t0_epoch_wl - times[0]) / bin_width))
+            last = int(math.floor((job.t_end-t0_epoch_wl - times[0]) / bin_width))
             running[first:last] += 1
 
     return found, running

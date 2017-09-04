@@ -1,0 +1,106 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema",
+  "type": "object",
+  "title": "Kronos post-processing configuration file format",
+  "description": "The post-processing configuration file format controls the post-processing of Kronos runs",
+  "additionalProperties": false,
+  "properties": {
+    "verbose": {
+      "type": "boolean",
+      "description": "verbose flag"
+    },
+    "experiment_list": {
+      "type": "array",
+      "description": "Tags of simulation list (used to label plots and/or tabular data)",
+      "items": {
+        "type": "string"
+      }
+    },
+    "experiment_paths": {
+      "type": "array",
+      "description": "Paths of simulations (path containing the job-<jobID> sub-folders. They corresponds to the experiment_list tags)",
+      "items": {
+        "type": "string"
+      }
+    },
+    "output_path": {
+      "type": "string",
+      "description": "Path where the output will be exported into"
+    },
+    "exports": {
+      "type": "array",
+      "description": "List of exports to do with the data collected from the set of simulations",
+      "items": {
+        "type": "object",
+        "oneOf": [
+
+          {
+            "type": "object",
+            "description": "Export tabulated data",
+            "properties":{
+              "type":{
+                "type":"string",
+                "description": "Export identification string",
+                "enum": ["rates_table"]
+              },
+              "format":{
+                "type": "string",
+                "description": "specific format which tabulated data will be written into",
+                "enum": ["csv"]
+              }
+            },
+            "required": ["type"]
+          },
+
+          {
+            "type": "object",
+            "description": "Export plots",
+            "properties":{
+              "type":{
+                "type":"string",
+                "description": "Export identification string",
+                "enum": ["rates_plot"]
+              },
+              "format":{
+                "type": "string",
+                "description": "specific format which tabulated data will be written into",
+                "enum": ["png"]
+              },
+              "plot_ylims":{
+                "type": "array",
+                "description": "y-limits of the axis specified by user"
+              }
+            },
+            "required": ["type"]
+          },
+
+          {
+            "type": "object",
+            "description": "Export plots of time-series",
+            "properties":{
+              "type":{
+                "type":"string",
+                "description": "Export identification string",
+                "enum": ["time_series"]
+              },
+              "format":{
+                "type": "string",
+                "description": "specific format which tabulated data will be written into",
+                "enum": ["png"]
+              },
+              "plot_ylims":{
+                "type": "array",
+                "description": "y-limits of the axis specified by user"
+              }
+            },
+            "required": ["type"]
+          }
+
+
+        ]
+      }
+    }
+
+
+  }
+}

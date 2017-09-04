@@ -5,14 +5,18 @@
 # In applying this licence, ECMWF does not waive the privileges and immunities 
 # granted to it by virtue of its status as an intergovernmental organisation nor
 # does it submit to any jurisdiction.
+
 import os
 import csv
 
 from kronos.core.exceptions_iows import ConfigurationError
-from kronos.postprocess.definitions import class_names_complete
+from kronos.core.time_signal.definitions import signal_types
+from kronos.post_process.definitions import class_names_complete, linspace, list_classes, running_series, class_colors, \
+    labels_map
 import matplotlib.pyplot as plt
 
-from kronos.postprocess.krf_data import sorted_krf_stats_names, krf_stats_info
+from kronos.post_process.krf_data import sorted_krf_stats_names, krf_stats_info
+import numpy as np
 
 
 class ExporterBase(object):
@@ -26,13 +30,12 @@ class ExporterBase(object):
         # simulations data
         self.sim_set = sim_set
 
-    def export(self, export_config, **kwargs):
+    def export(self, export_config, output_path, **kwargs):
 
-        self.check_export_config(export_config)
+        self.check_export_config(export_config, output_path, **kwargs)
 
-        # Get output format and output path from config
+        # Get output format from config (to choose appropriate method from the exporter..)
         export_format = export_config.get("format", self.default_export_format)
-        output_path = export_config.get("output_path")
 
         # call the export function as appropriate
         if export_format:
@@ -40,11 +43,11 @@ class ExporterBase(object):
         else:
             self.export_function_map(self.default_export_format)(output_path, **kwargs)
 
-    def check_export_config(self, export_config, **kwargs):
+    def check_export_config(self, export_config, out_path, **kwargs):
 
         # create output dir if it does not exists..
-        if not os.path.isdir(export_config["output_path"]):
-            os.mkdir(export_config["output_path"])
+        if not os.path.isdir(out_path):
+            os.mkdir(out_path)
 
         # check that export type is consistent with the class type
         if export_config["type"] != self.class_export_type:
@@ -70,7 +73,7 @@ class ExporterBase(object):
 
 class ExporterTable(ExporterBase):
 
-    class_export_type = "table"
+    class_export_type = "rates_table"
     default_export_format = "csv"
     optional_configs = []
 
@@ -138,7 +141,7 @@ class ExporterTable(ExporterBase):
 # ///////////////////// plotting class ///////////////////
 class ExporterPlot(ExporterBase):
 
-    class_export_type = "plot"
+    class_export_type = "rates_plot"
     default_export_format = "png"
     optional_configs = ["plot_ylim"]
 
@@ -158,7 +161,6 @@ class ExporterPlot(ExporterBase):
         plot_ylim = kwargs.get("plot_ylim")
 
         plot_id = 1
-        exp_class_ratio_data = {}
 
         # ------------ find max and min rates for scaling all the plots accordingly ------------
         max_norm_value = None
@@ -181,7 +183,11 @@ class ExporterPlot(ExporterBase):
                     min_norm_value = min(min_norm_value, min(normalized_rates)) if min_norm_value else min(normalized_rates)
 
         # ------------ plot the rates per job class ------------
-        for class_name in exp_class_ratio_data:
+        for class_name in class_names_complete:
+
+            print "plotting class {}".format(class_name)
+            print "output_path", output_path
+
             fig = plt.figure(plot_id)
             plt.title('Rates class: {}'.format(class_name.replace("/", "_")))
             ax = fig.add_subplot(111)
@@ -208,7 +214,9 @@ class ExporterPlot(ExporterBase):
 
             plt.ylabel("Normalized Rates")
             if output_path:
-                plt.savefig(os.path.join(output_path, 'rates_class_{}.png'.format(class_name.replace("/", "_"))))
+                png_name = os.path.join(output_path, 'rates_class_{}.png'.format(class_name.replace("/", "_")))
+                print "saving file {}".format(png_name)
+                plt.savefig(png_name)
             plot_id += 1
 
         # ------------ Plot for ALL the classes ---------
@@ -241,27 +249,98 @@ class ExporterPlot(ExporterBase):
         plot_id += 1
 
 
-# # ///////////////////// plotting class ///////////////////
-# class ExporterTimeSeries(ExporterBase):
-#
-#     class_export_type = "_series_tvr"
-#     default_export_format = "png"
-#
-#     def export_function_map(self, key):
-#         function_map = {
-#             "png": self._export_png
-#         }
-#         return function_map.get(key, None)
-#
-#     def _export_png(self, output_path):
-#         """
-#         plot time series of jobs and metrics
-#         :return:
-#         """
-#
-#         print "Exporting _series_tvr plots in {}".format(output_path)
-#
-#         for sim_name, sim in self.sim_set.iteritems():
-#
-#             times_plot = np.linspace(0, sim.runtime(), 1000)
-#             sim.plot_running_series(times_plot, output_path=output_path)
+# ///////////////////// plotting class ///////////////////
+class ExporterTimeSeries(ExporterBase):
+
+    class_export_type = "time_series"
+    default_export_format = "png"
+
+    def export_function_map(self, key):
+        function_map = {
+            "png": self._export_png
+        }
+        return function_map.get(key, None)
+
+    def _export_png(self, output_path):
+        """
+        plot time series of jobs and metrics
+        :return:
+        """
+
+        print "Exporting _series_tvr plots in {}".format(output_path)
+
+        for sim in self.sim_set.sims:
+
+            times_plot = linspace(0, sim.runtime(), 1000)
+            # sim.plot_running_series(times_plot, output_path=output_path)
+            self._make_plots(sim, times_plot, "png", output_path=output_path)
+
+    @staticmethod
+    def _make_plots(sim, times_plot, fig_format, output_path=None):
+        """
+        Plot time series of the simulations
+        :param sim:
+        :param times_plot:
+        :param fig_format:
+        :param output_path:
+        :return:
+        """
+
+        # make sure times are a numpy
+        times_plot = np.asarray(times_plot)
+
+        global_time_series = {}
+        for cl in list_classes:
+            for ser_par in ["serial", "parallel"]:
+
+                found, series = sim.create_global_time_series(times_plot, class_name_root=cl, serial_or_par=ser_par)
+
+                if found:
+                    global_time_series[cl + "/" + ser_par] = series
+
+        found, global_time_series["all"] = sim.create_global_time_series(times_plot)
+
+        # Finally plot all the time-series
+        plt.figure(figsize=(32, 32))
+        plt.title("Time series - experiment: {}".format(sim.name))
+
+        # N of metrics + n of running jobs
+        n_plots = len(global_time_series.keys()) + 1
+
+        # Plot of n of *Running jobs*
+        ax = plt.subplot(n_plots, 1, 1)
+
+        for cc, cl in enumerate(list_classes):
+
+            found, series = running_series(sim.jobs, times_plot, sim.tmin_epochs, cl, "parallel")
+            if found:
+                plt.plot(times_plot, series, color=class_colors[cc], linestyle="-", label=cl + "/parallel")
+
+            found, series = running_series(sim.jobs, times_plot, sim.tmin_epochs, cl, "serial")
+            if found:
+                plt.plot(times_plot, series, color=class_colors[cc], linestyle="--", label=cl + "/serial")
+
+            plt.ylabel("# running jobs")
+        ax.legend(loc='center left', bbox_to_anchor=(1, 0.5))
+
+        pp = 1
+        all_time_series = global_time_series["all"]
+        for ts_name in signal_types:
+            pp += 1
+
+            times_g, values_g = zip(*all_time_series[ts_name])
+            times_g_diff = np.diff(np.asarray(list(times_g)))
+            ratios_g = np.asarray(values_g[1:]) / times_g_diff
+
+            plt.subplot(n_plots, 1, pp)
+            plt.plot(times_g[1:], ratios_g, "b")
+            plt.ylabel(ts_name + " [" + labels_map[ts_name] + "]")
+
+            if pp == n_plots - 1:
+                plt.xlabel("time [s]")
+
+        if output_path:
+            plt.savefig(os.path.join(output_path, sim.name + '_time_series' + fig_format))
+
+        plt.close()
+

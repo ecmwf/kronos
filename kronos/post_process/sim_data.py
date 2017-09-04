@@ -7,12 +7,17 @@
 # does it submit to any jurisdiction.
 
 import os
+
+import math
 import sys
 import json
 
-from kronos.postprocess.definitions import get_class_name
-from kronos.postprocess.krf_data import KRFJob, krf_stats_info
-from kronos.postprocess.krf_decorator import KRFDecorator
+from kronos.core.time_signal.definitions import signal_types
+from kronos.post_process.definitions import get_class_name
+from kronos.post_process.krf_data import KRFJob, krf_stats_info
+from kronos.post_process.krf_decorator import KRFDecorator
+
+import numpy as np
 
 
 class SimulationData(object):
@@ -201,53 +206,56 @@ class SimulationData(object):
 
         return per_class_stats_sums
 
-    # def create_global_time_series(self, times, class_name_root=None, serial_or_par=None):
-    #     """
-    #     Calculate time series over a specified times vector
-    #     :param times:
-    #     :param class_name_root:
-    #     :param serial_or_par:
-    #     :return:
-    #     """
-    #
-    #     global_time_series = {}
-    #     bin_width = times[1] - times[0]
-    #     found = 0
-    #
-    #     class_name_all = class_name_root+" "+serial_or_par if serial_or_par else "all"
-    #     print "create time series for class {}".format(class_name_all)
-    #
-    #     for ts_name in signal_types:
-    #
-    #         running_tsvalue = np.zeros(len(times))
-    #
-    #         for jj, job in enumerate(self.jobs):
-    #
-    #             if job.get('label'):
-    #
-    #                 if ((class_name_root
-    #                      and serial_or_par
-    #                      and class_name_root in job['label']
-    #                      and serial_or_par in job['label']) or (not class_name_root and not serial_or_par)):
-    #
-    #                     found += 1
-    #
-    #                     if job["_series_tvr"].get(ts_name):
-    #                         job_ts_timestamps = [0] + job["_series_tvr"][ts_name]["times"]
-    #
-    #                         for tt in range(len(job_ts_timestamps[1:])):
-    #                             first = int(math.ceil(
-    #                                 (job_ts_timestamps[tt - 1] + job["time_start"] - self.tmin_epochs) / bin_width))
-    #                             last = int(math.floor((job_ts_timestamps[tt] + job["time_start"] - self.tmin_epochs) / bin_width))
-    #                             last = first + 1 if last <= first else last
-    #                             running_tsvalue[first:last] += job["_series_tvr"][ts_name]["values"][tt]
-    #
-    #         global_time_series[ts_name] = zip(times, running_tsvalue)
-    #
-    #     return found, global_time_series
+    def create_global_time_series(self, times, class_name_root=None, serial_or_par=None):
+        """
+        Calculate time series over a specified times vector
+        :param times:
+        :param class_name_root:
+        :param serial_or_par:
+        :return:
+        """
+    
+        global_time_series = {}
+        bin_width = times[1] - times[0]
+        found = 0
+
+        class_name_all = class_name_root+" "+serial_or_par if serial_or_par else "all"
+        print "create time series for class {}".format(class_name_all)
+
+        for ts_name in signal_types:
+
+            running_tsvalue = np.zeros(len(times))
+
+            for jj, job in enumerate(self.jobs):
+
+                if job.label:
+
+                    if ((class_name_root
+                         and serial_or_par
+                         and class_name_root in job.label
+                         and serial_or_par in job.label) or (not class_name_root and not serial_or_par)):
+
+                        found += 1
+
+                        if job.time_series.get(ts_name):
+                            job_ts_timestamps = [0] + job.time_series[ts_name]["times"]
+
+                            for tt in range(len(job_ts_timestamps[1:])):
+                                first = int(math.ceil(
+                                    (job_ts_timestamps[tt - 1] + job.t_start - self.tmin_epochs) / bin_width))
+                                last = int(math.floor((job_ts_timestamps[tt] + job.t_start - self.tmin_epochs) / bin_width))
+                                last = first + 1 if last <= first else last
+                                running_tsvalue[first:last] += job.time_series[ts_name]["values"][tt]
+
+            global_time_series[ts_name] = zip(times, running_tsvalue)
+
+        return found, global_time_series
 
     # # ///////////////////////////////// PLOT RUNNING SERIES /////////////////////////////////////////
     # def plot_running_series(self, times_plot, output_path=None):
+    #
+    #     # make sure times are a numpy
+    #     times_plot = np.asarray(times_plot)
     #
     #     global_time_series = {}
     #     for cl in list_classes:

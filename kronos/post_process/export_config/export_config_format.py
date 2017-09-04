@@ -6,6 +6,12 @@
 # granted to it by virtue of its status as an intergovernmental organisation nor
 # does it submit to any jurisdiction.
 
+import os
+from kronos.core.config.config_format import ConfigFormat
 
 
-
+class ExportConfigFormat(ConfigFormat):
+    """
+    A standardised format for profiling information.
+    """
+    schema_json = os.path.join(os.path.dirname(__file__), "export_config_schema.json")

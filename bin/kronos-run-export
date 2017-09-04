@@ -6,12 +6,13 @@
 # In applying this licence, ECMWF does not waive the privileges and immunities
 # granted to it by virtue of its status as an intergovernmental organisation nor
 # does it submit to any jurisdiction.
-import json
-import argparse
 
-from kronos.postprocess.sim_data import SimulationData
-from kronos.postprocess import writer_map
-from kronos.postprocess.sim_set import SimulationSet
+import argparse
+from kronos.post_process.export_config.export_config import ExportConfig
+from kronos.post_process.sim_data import SimulationData
+from kronos.post_process import writer_map
+from kronos.post_process.sim_set import SimulationSet
+
 
 if __name__ == "__main__":
 
@@ -20,18 +21,17 @@ if __name__ == "__main__":
     parser.add_argument('export_config', help="Export configuration file (.kef)")
     args = parser.parse_args()
 
-    # Read the config file
-    with open(args.export_config, "r") as f:
-        config_options = json.load(f)
+    # Read the export config
+    config = ExportConfig.from_json_file(args.export_config)
 
     # Labelled list of simulations
     labelled_kronos_sims = [SimulationData.read_from_sim_paths(path, tag)
-                            for tag, path in zip(config_options["experiment_list"], config_options["experiment_paths"])]
+                            for tag, path in zip(config.experiment_list, config.experiment_paths)]
 
     # Pre-calculate data ready for export
     sim_set = SimulationSet(labelled_kronos_sims)
 
     # Export results as per user requests
-    for export_config in config_options["exports"]:
+    for export_config in config.exports:
         data_writer = writer_map[export_config["type"]](sim_set=sim_set)
-        data_writer.export(export_config=export_config)
+        data_writer.export(export_config=export_config, output_path=config.output_path)
