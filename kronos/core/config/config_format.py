@@ -5,42 +5,15 @@
 # In applying this licence, ECMWF does not waive the privileges and immunities 
 # granted to it by virtue of its status as an intergovernmental organisation nor
 # does it submit to any jurisdiction.
-import json
+
 import os
 
-from kronos.io.json_io_format import JSONIoFormat
+from kronos.core.config_format_base import ConfigFormatBase
 
 
-class ConfigFormat(JSONIoFormat):
+class ConfigFormat(ConfigFormatBase):
     """
-    A standardised format for profiling information.
+    This class represents the format used for kronos model configuration file
     """
     schema_json = os.path.join(os.path.dirname(__file__), "config_schema.json")
 
-    def __init__(self, data=None):
-        super(ConfigFormat, self).__init__()
-        self.data = data
-
-    @classmethod
-    def schema(cls):
-        """
-        Obtain the json schema for the given format
-        """
-        with open(cls.schema_json, 'r') as fschema:
-            return json.load(fschema)
-
-    @classmethod
-    def from_json_data(cls, data):
-        """
-        Given loaded and validated JSON data, actually do something with it
-        """
-        return cls(data)
-
-    def output_dict(self):
-        """
-        Obtain the data to be written into the file. Extends the base class implementation
-        (which includes headers, etc.)
-        """
-        output_dict = {"config_data": self.data}
-
-        return output_dict

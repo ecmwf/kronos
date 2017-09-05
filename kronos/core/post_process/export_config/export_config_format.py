@@ -7,11 +7,11 @@
 # does it submit to any jurisdiction.
 
 import os
-from kronos.core.config.config_format import ConfigFormat
+from kronos.core.config_format_base import ConfigFormatBase
 
 
-class ExportConfigFormat(ConfigFormat):
+class ExportConfigFormat(ConfigFormatBase):
     """
-    A standardised format for profiling information.
+    This class represents the format used for kronos export configuration file
     """
     schema_json = os.path.join(os.path.dirname(__file__), "export_config_schema.json")
