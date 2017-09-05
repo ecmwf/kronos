@@ -6,17 +6,24 @@
 # granted to it by virtue of its status as an intergovernmental organisation nor
 # does it submit to any jurisdiction.
 
-import os
 import csv
+import os
 
-from kronos.core.exceptions_iows import ConfigurationError
-from kronos.core.time_signal.definitions import signal_types
-from kronos.post_process.definitions import class_names_complete, linspace, list_classes, running_series, class_colors, \
-    labels_map
 import matplotlib.pyplot as plt
-
-from kronos.post_process.krf_data import sorted_krf_stats_names, krf_stats_info
 import numpy as np
+
+from kronos.core.time_signal.definitions import signal_types
+from kronos.core.exceptions_iows import ConfigurationError
+
+from kronos.core.post_process.krf_data import sorted_krf_stats_names
+from kronos.core.post_process.krf_data import krf_stats_info
+
+from kronos.core.post_process.definitions import class_names_complete
+from kronos.core.post_process.definitions import linspace
+from kronos.core.post_process.definitions import list_classes
+from kronos.core.post_process.definitions import running_series
+from kronos.core.post_process.definitions import class_colors
+from kronos.core.post_process.definitions import labels_map
 
 
 class ExporterBase(object):

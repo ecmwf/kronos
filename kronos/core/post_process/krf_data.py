@@ -7,8 +7,9 @@
 # does it submit to any jurisdiction.
 
 from collections import OrderedDict
+
+from kronos.core.post_process.definitions import cumsum, datetime2epochs
 from kronos.io.results_format import ResultsFormat
-from kronos.post_process.definitions import cumsum, datetime2epochs
 
 ts_names_map = {
     "n_write": ("n_write", 1.0),
@@ -117,7 +118,7 @@ class KRFJob(object):
         return time_series
 
     @classmethod
-    def from_krf_file(cls, krf_filename, decorator):
+    def from_krf_file(cls, krf_filename, decorator=None):
         """
         instantiate a KRFJob object from name of KRF file
         :param krf_filename:

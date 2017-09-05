@@ -6,9 +6,9 @@
 # granted to it by virtue of its status as an intergovernmental organisation nor
 # does it submit to any jurisdiction.
 
-from kronos.post_process.exporters import ExporterTable
-from kronos.post_process.exporters import ExporterPlot
-from kronos.post_process.exporters import ExporterTimeSeries
+from kronos.core.post_process.exporters import ExporterPlot
+from kronos.core.post_process.exporters import ExporterTable
+from kronos.core.post_process.exporters import ExporterTimeSeries
 
 writer_map = {
     "rates_table": ExporterTable,

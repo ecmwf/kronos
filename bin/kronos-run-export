@@ -8,11 +8,11 @@
 # does it submit to any jurisdiction.
 
 import argparse
-from kronos.post_process.export_config.export_config import ExportConfig
-from kronos.post_process.sim_data import SimulationData
-from kronos.post_process import writer_map
-from kronos.post_process.sim_set import SimulationSet
 
+from kronos.core.post_process.sim_set import SimulationSet
+from kronos.core.post_process import writer_map
+from kronos.core.post_process.export_config.export_config import ExportConfig
+from kronos.core.post_process.sim_data import SimulationData
 
 if __name__ == "__main__":
 

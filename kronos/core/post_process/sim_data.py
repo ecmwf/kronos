@@ -6,18 +6,16 @@
 # granted to it by virtue of its status as an intergovernmental organisation nor
 # does it submit to any jurisdiction.
 
+import json
 import os
 
 import math
-import sys
-import json
-
-from kronos.core.time_signal.definitions import signal_types
-from kronos.post_process.definitions import get_class_name
-from kronos.post_process.krf_data import KRFJob, krf_stats_info
-from kronos.post_process.krf_decorator import KRFDecorator
-
 import numpy as np
+import sys
+from kronos.core.post_process.definitions import get_class_name
+from kronos.core.time_signal.definitions import signal_types
+from kronos.core.post_process.krf_data import KRFJob, krf_stats_info
+from kronos.core.post_process.krf_decorator import KRFDecorator
 
 
 class SimulationData(object):

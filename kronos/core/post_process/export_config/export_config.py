@@ -8,7 +8,7 @@
 import json
 
 from kronos.core.exceptions_iows import ConfigurationError
-from kronos.post_process.export_config.export_config_format import ExportConfigFormat
+from kronos.core.post_process.export_config.export_config_format import ExportConfigFormat
 
 
 class ExportConfig(object):
