@@ -216,9 +216,9 @@ class SimulationData(object):
         global_time_series = {}
         bin_width = times[1] - times[0]
         found = 0
+        tmin_epochs = self.tmin_epochs
 
         class_name_all = class_name_root+" "+serial_or_par if serial_or_par else "all"
-        print "create time series for class {}".format(class_name_all)
 
         for ts_name in signal_types:
 
@@ -240,8 +240,8 @@ class SimulationData(object):
 
                             for tt in range(len(job_ts_timestamps[1:])):
                                 first = int(math.ceil(
-                                    (job_ts_timestamps[tt - 1] + job.t_start - self.tmin_epochs) / bin_width))
-                                last = int(math.floor((job_ts_timestamps[tt] + job.t_start - self.tmin_epochs) / bin_width))
+                                    (job_ts_timestamps[tt - 1] + job.t_start - tmin_epochs) / bin_width))
+                                last = int(math.floor((job_ts_timestamps[tt] + job.t_start - tmin_epochs) / bin_width))
                                 last = first + 1 if last <= first else last
                                 running_tsvalue[first:last] += job.time_series[ts_name]["values"][tt]
 
