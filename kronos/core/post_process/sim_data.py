@@ -218,11 +218,9 @@ class SimulationData(object):
         found = 0
         tmin_epochs = self.tmin_epochs
 
-        class_name_all = class_name_root+" "+serial_or_par if serial_or_par else "all"
-
         for ts_name in signal_types:
 
-            running_tsvalue = np.zeros(len(times))
+            binned_values = np.zeros(len(times))
 
             for jj, job in enumerate(self.jobs):
 
@@ -237,77 +235,17 @@ class SimulationData(object):
 
                         if job.time_series.get(ts_name):
                             job_ts_timestamps = [0] + job.time_series[ts_name]["times"]
+                            t_start = job.t_start
 
                             for tt in range(len(job_ts_timestamps[1:])):
-                                first = int(math.ceil(
-                                    (job_ts_timestamps[tt - 1] + job.t_start - tmin_epochs) / bin_width))
-                                last = int(math.floor((job_ts_timestamps[tt] + job.t_start - tmin_epochs) / bin_width))
-                                last = first + 1 if last <= first else last
-                                running_tsvalue[first:last] += job.time_series[ts_name]["values"][tt]
 
-            global_time_series[ts_name] = zip(times, running_tsvalue)
+                                first = int(math.ceil((job_ts_timestamps[tt-1] + t_start-tmin_epochs) / bin_width))
+                                last = int(math.floor((job_ts_timestamps[tt] + t_start-tmin_epochs) / bin_width))
+
+                                last = last if last >= first else first + 1
+                                n_span_bin = max(1, last-first)
+                                binned_values[first:last] += job.time_series[ts_name]["values"][tt]/float(n_span_bin)
+
+            global_time_series[ts_name] = zip(times, binned_values)
 
         return found, global_time_series
-
-    # # ///////////////////////////////// PLOT RUNNING SERIES /////////////////////////////////////////
-    # def plot_running_series(self, times_plot, output_path=None):
-    #
-    #     # make sure times are a numpy
-    #     times_plot = np.asarray(times_plot)
-    #
-    #     global_time_series = {}
-    #     for cl in list_classes:
-    #         for ser_par in ["serial", "parallel"]:
-    #
-    #             found, series = self.create_global_time_series(times_plot,
-    #                                                            class_name_root=cl,
-    #                                                            serial_or_par=ser_par)
-    #
-    #             if found:
-    #                 global_time_series[cl + "/" + ser_par] = series
-    #
-    #     found, global_time_series["all"] = self.create_global_time_series(times_plot)
-    #
-    #     # Finally plot all the time-series
-    #     plt.figure(figsize=(32, 32))
-    #     plt.title("Time series - experiment: {}".format(self.name))
-    #
-    #     # N of metrics + n of running jobs
-    #     n_plots = len(global_time_series.keys()) + 1
-    #
-    #     # Plot of n of *Running jobs*
-    #     ax = plt.subplot(n_plots, 1, 1)
-    #
-    #     for cc, cl in enumerate(list_classes):
-    #
-    #         found, series = running_series(self.jobs, times_plot, self.tmin_epochs, cl, "parallel")
-    #         if found:
-    #             plt.plot(times_plot, series, color=class_colors[cc], linestyle="-", label=cl + "/parallel")
-    #
-    #         found, series = running_series(self.jobs, times_plot, self.tmin_epochs, cl, "serial")
-    #         if found:
-    #             plt.plot(times_plot, series, color=class_colors[cc], linestyle="--", label=cl + "/serial")
-    #
-    #         plt.ylabel("# running jobs")
-    #     ax.legend(loc='center left', bbox_to_anchor=(1, 0.5))
-    #
-    #     pp = 1
-    #     all_time_series = global_time_series["all"]
-    #     for ts_name in signal_types:
-    #         pp += 1
-    #
-    #         times_g, values_g = zip(*all_time_series[ts_name])
-    #         times_g_diff = np.diff(np.asarray(list(times_g)))
-    #         ratios_g = np.asarray(values_g[1:]) / times_g_diff
-    #
-    #         plt.subplot(n_plots, 1, pp)
-    #         plt.plot(times_g[1:], ratios_g, "b")
-    #         plt.ylabel(ts_name + " [" + labels_map[ts_name] + "]")
-    #
-    #         if pp == n_plots - 1:
-    #             plt.xlabel("time [s]")
-    #
-    #     if output_path:
-    #         plt.savefig(os.path.join(output_path, self.name + '_time_series.png'))
-    #
-    #     plt.close()

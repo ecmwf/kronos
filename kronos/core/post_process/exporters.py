@@ -274,12 +274,11 @@ class ExporterTimeSeries(ExporterBase):
         :return:
         """
 
-        print "Exporting _series_tvr plots in {}".format(output_path)
+        print "Exporting time-series plots in {}".format(output_path)
 
         for sim in self.sim_set.sims:
 
             times_plot = linspace(0, sim.runtime(), 1000)
-            # sim.plot_running_series(times_plot, output_path=output_path)
             self._make_plots(sim, times_plot, "png", output_path=output_path)
 
     @staticmethod
@@ -295,7 +294,6 @@ class ExporterTimeSeries(ExporterBase):
 
         # make sure times are a numpy
         times_plot = np.asarray(times_plot)
-
         global_time_series = {}
         for cl in list_classes:
             for ser_par in ["serial", "parallel"]:
@@ -347,7 +345,7 @@ class ExporterTimeSeries(ExporterBase):
                 plt.xlabel("time [s]")
 
         if output_path:
-            plt.savefig(os.path.join(output_path, sim.name + '_time_series' + fig_format))
+            plt.savefig(os.path.join(output_path, sim.name + '_time_series') + "."+fig_format)
 
         plt.close()
 
