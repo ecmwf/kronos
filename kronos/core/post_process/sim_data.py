@@ -12,7 +12,7 @@ import os
 import math
 import numpy as np
 import sys
-from kronos.core.post_process.definitions import get_class_name
+
 from kronos.core.time_signal.definitions import signal_types
 from kronos.core.post_process.krf_data import KRFJob, krf_stats_info
 from kronos.core.post_process.krf_decorator import KRFDecorator
@@ -116,7 +116,7 @@ class SimulationData(object):
 
         per_class_stats = {}
         for job in self.jobs:
-            class_name = get_class_name(job.label)
+            class_name = job.get_class_name()
             per_class_stats.setdefault(class_name, []).extend(job.get_stats())
 
         return per_class_stats
@@ -204,12 +204,11 @@ class SimulationData(object):
 
         return per_class_stats_sums
 
-    def create_global_time_series(self, times, class_name_root=None, serial_or_par=None):
+    def create_global_time_series(self, times, job_class=None):
         """
         Calculate time series over a specified times vector
         :param times:
-        :param class_name_root:
-        :param serial_or_par:
+        :param job_class:
         :return:
         """
     
@@ -225,11 +224,7 @@ class SimulationData(object):
             for jj, job in enumerate(self.jobs):
 
                 if job.label:
-
-                    if ((class_name_root
-                         and serial_or_par
-                         and class_name_root in job.label
-                         and serial_or_par in job.label) or (not class_name_root and not serial_or_par)):
+                    if job.is_in_class(job_class):
 
                         found += 1
 

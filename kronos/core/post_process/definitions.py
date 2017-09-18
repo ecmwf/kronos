@@ -25,53 +25,22 @@ labels_map = {
     'n_pairwise': "#/sec"
 }
 
-
-list_classes = [
-    "main/fc/inigroup",
-    "main/fc/ensemble/cf",
-    "main/fc/ensemble/pf",
-    "main/fc/ensemble/logfiles",
-    "main/fc/lag",
-]
-
+# (root name, job identifier) ["serial", "parallel"]
 class_names_complete = [
-                        'main/fc/inigroup/serial',
-                        'main/fc/inigroup/parallel',
-
-                        'main/fc/ensemble/cf/serial',
-                        'main/fc/ensemble/cf/parallel',
-
-                        'main/fc/ensemble/pf/serial',
-                        'main/fc/ensemble/pf/parallel',
-
-                        'main/fc/ensemble/logfiles/serial',
-                        'main/fc/lag/serial',
-                       ]
+    ('main/fc/inigroup', 'serial'),
+    ('main/fc/inigroup', 'parallel'),
+    ('main/fc/ensemble/cf', 'serial'),
+    ('main/fc/ensemble/cf', 'parallel'),
+    ('main/fc/ensemble/pf', 'serial'),
+    ('main/fc/ensemble/pf', 'parallel'),
+    ('main/fc/ensemble/logfiles', 'serial'),
+    ('main/fc/lag', 'serial'),
+]
 
 class_colors = ["b", "r", "g", "m", "c"]
 
 
 # ///////////////////////////////// UTILITIES /////////////////////////////////////////
-
-def get_class_name(job_name):
-
-    class_name_root = [name for name in list_classes if name in job_name]
-    if class_name_root:
-        class_name_root_0 = class_name_root[0]
-
-        if "serial" in job_name:
-            class_name = class_name_root_0 + "/serial"
-
-        elif "parallel" in job_name:
-            class_name = class_name_root_0 + "/parallel"
-        else:
-            class_name = "unknown tag"
-
-        return class_name
-    else:
-        raise ValueError("class of job {} not found".format(job_name))
-
-
 def datetime2epochs(t_in):
     return (t_in - datetime.datetime(1970,1,1)).total_seconds()
 
@@ -84,7 +53,7 @@ def linspace(x0, x1, count):
     return [x0+(x1-x0)*i/float(count-1) for i in range(count)]
 
 
-def running_series(jobs, times, t0_epoch_wl, class_name_root=None, serial_or_par=None):
+def running_series(jobs, times, t0_epoch_wl, job_class=None):
 
     bin_width = times[1] - times[0]
 
@@ -92,12 +61,8 @@ def running_series(jobs, times, t0_epoch_wl, class_name_root=None, serial_or_par
     found = 0
 
     for job in jobs:
-        
-        if ((class_name_root
-                 and serial_or_par
-                     and class_name_root in job.label
-                         and serial_or_par in job.label) or
-           (not class_name_root and not serial_or_par)):
+
+        if job.is_in_class(job_class):
             
             found += 1
             first = int(math.ceil((job.t_start-t0_epoch_wl - times[0]) / bin_width))

@@ -20,7 +20,6 @@ from kronos.core.post_process.krf_data import krf_stats_info
 
 from kronos.core.post_process.definitions import class_names_complete
 from kronos.core.post_process.definitions import linspace
-from kronos.core.post_process.definitions import list_classes
 from kronos.core.post_process.definitions import running_series
 from kronos.core.post_process.definitions import class_colors
 from kronos.core.post_process.definitions import labels_map
@@ -109,7 +108,8 @@ class ExporterTable(ExporterBase):
         # ------- write a stat file for each job class --------
         for class_name in class_names_complete:
 
-            csvfile = open(os.path.join(output_path, 'rates_class_{}.csv'.format(class_name.replace("/", "_"))), 'wb')
+            class_name_ser_par = class_name[0] + "/" + class_name[1]
+            csvfile = open(os.path.join(output_path, 'rates_class_{}.csv'.format(class_name_ser_par.replace("/", "_"))), 'wb')
             csvwriter = csv.writer(csvfile, delimiter=',')
             csvwriter.writerow(["metric"] + self.sim_set.ordered_sims().keys())
 
@@ -117,8 +117,8 @@ class ExporterTable(ExporterBase):
             for stat_name in sorted_krf_stats_names:
 
                 # take list of rates if the metric is defined for this class otherwise get "-1" flag
-                metric_rate_list = [self.sim_set.class_stats_sums[sim_name][class_name][stat_name]["rate"]
-                                    if self.sim_set.class_stats_sums[sim_name][class_name].get(stat_name)
+                metric_rate_list = [self.sim_set.class_stats_sums[sim_name][class_name_ser_par][stat_name]["rate"]
+                                    if self.sim_set.class_stats_sums[sim_name][class_name_ser_par].get(stat_name)
                                     else None for sim_name in self.sim_set.ordered_sims().keys()]
 
                 # write the metrics only if actually present for this class..
@@ -173,11 +173,13 @@ class ExporterPlot(ExporterBase):
         max_norm_value = None
         min_norm_value = None
         for class_name in class_names_complete:
+
+            class_name_ser_par = class_name[0] + "/" + class_name[1]
             for stat_name in sorted_krf_stats_names:
 
                 # take list of rates if the metric is defined for this class otherwise get "-1" flag
-                metric_rate_list = [self.sim_set.class_stats_sums[sim_name][class_name][stat_name]["rate"]
-                                    if self.sim_set.class_stats_sums[sim_name][class_name].get(stat_name)
+                metric_rate_list = [self.sim_set.class_stats_sums[sim_name][class_name_ser_par][stat_name]["rate"]
+                                    if self.sim_set.class_stats_sums[sim_name][class_name_ser_par].get(stat_name)
                                     else None for sim_name in self.sim_set.ordered_sims().keys()]
 
                 # write the metrics only if actually present for this class..
@@ -192,17 +194,16 @@ class ExporterPlot(ExporterBase):
         # ------------ plot the rates per job class ------------
         for class_name in class_names_complete:
 
-            print "plotting class {}".format(class_name)
-            print "output_path", output_path
+            class_name_ser_par = class_name[0] + "/" + class_name[1]
 
             fig = plt.figure(plot_id)
-            plt.title('Rates class: {}'.format(class_name.replace("/", "_")))
+            plt.title('Rates class: {}'.format(class_name_ser_par.replace("/", "_")))
             ax = fig.add_subplot(111)
             for stat_name in sorted_krf_stats_names:
 
                 # take list of rates if the metric is defined for this class otherwise get "-1" flag
-                metric_rate_list = [self.sim_set.class_stats_sums[sim_name][class_name][stat_name]["rate"]
-                                    if self.sim_set.class_stats_sums[sim_name][class_name].get(stat_name)
+                metric_rate_list = [self.sim_set.class_stats_sums[sim_name][class_name_ser_par][stat_name]["rate"]
+                                    if self.sim_set.class_stats_sums[sim_name][class_name_ser_par].get(stat_name)
                                     else None for sim_name in self.sim_set.ordered_sims().keys()]
 
                 # write the metrics only if actually present for this class..
@@ -221,7 +222,7 @@ class ExporterPlot(ExporterBase):
 
             plt.ylabel("Normalized Rates")
             if output_path:
-                png_name = os.path.join(output_path, 'rates_class_{}.png'.format(class_name.replace("/", "_")))
+                png_name = os.path.join(output_path, 'rates_class_{}.png'.format(class_name_ser_par.replace("/", "_")))
                 print "saving file {}".format(png_name)
                 plt.savefig(png_name)
             plot_id += 1
@@ -295,15 +296,12 @@ class ExporterTimeSeries(ExporterBase):
         # make sure times are a numpy
         times_plot = np.asarray(times_plot)
         global_time_series = {}
-        for cl in list_classes:
-            for ser_par in ["serial", "parallel"]:
+        for cl in class_names_complete:
+            found, series = sim.create_global_time_series(times_plot, job_class=cl)
+            if found:
+                global_time_series[cl] = series
 
-                found, series = sim.create_global_time_series(times_plot, class_name_root=cl, serial_or_par=ser_par)
-
-                if found:
-                    global_time_series[cl + "/" + ser_par] = series
-
-        found, global_time_series["all"] = sim.create_global_time_series(times_plot)
+        _, global_time_series["all"] = sim.create_global_time_series(times_plot)
 
         # Finally plot all the time-series
         plt.figure(figsize=(32, 32))
@@ -315,15 +313,11 @@ class ExporterTimeSeries(ExporterBase):
         # Plot of n of *Running jobs*
         ax = plt.subplot(n_plots, 1, 1)
 
-        for cc, cl in enumerate(list_classes):
+        for cc, cl in enumerate(class_names_complete):
 
-            found, series = running_series(sim.jobs, times_plot, sim.tmin_epochs, cl, "parallel")
+            found, series = running_series(sim.jobs, times_plot, sim.tmin_epochs, cl)
             if found:
-                plt.plot(times_plot, series, color=class_colors[cc], linestyle="-", label=cl + "/parallel")
-
-            found, series = running_series(sim.jobs, times_plot, sim.tmin_epochs, cl, "serial")
-            if found:
-                plt.plot(times_plot, series, color=class_colors[cc], linestyle="--", label=cl + "/serial")
+                plt.plot(times_plot, series, color=class_colors[cc % len(class_colors)], linestyle="-", label=cl)
 
             plt.ylabel("# running jobs")
         ax.legend(loc='center left', bbox_to_anchor=(1, 0.5))

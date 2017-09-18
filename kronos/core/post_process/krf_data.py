@@ -8,7 +8,7 @@
 
 from collections import OrderedDict
 
-from kronos.core.post_process.definitions import cumsum, datetime2epochs
+from kronos.core.post_process.definitions import cumsum, datetime2epochs, class_names_complete
 from kronos.io.results_format import ResultsFormat
 
 ts_names_map = {
@@ -193,4 +193,33 @@ class KRFJob(object):
     def t_end(self):
         return self.t_start + self.duration
 
+    def is_in_class(self, class_name_idx=None):
+        """
+        Check if this job belongs to a specified class
+        :param class_name_idx:
+        :return:
+        """
 
+        # if the class name is not provided, job is set to belong to class by default
+        if not class_name_idx:
+            return True
+
+        # otherwise check if job.label matches the class name
+        else:
+            class_name = class_name_idx[0]
+            class_idx = class_name_idx[0]
+            return class_name in self.label and class_idx in self.label
+
+    def get_class_name(self):
+        """
+        Return a string of the class name
+        :return:
+        """
+
+        class_name = [class_name for class_name in class_names_complete
+                      if class_name[0] in self.label and class_name[1] in self.label]
+
+        if class_name:
+            return class_name[0][0] + "/" + class_name[0][1]
+        else:
+            raise ValueError("class of job {} not found".format(self.label))

@@ -13,6 +13,8 @@ import argparse
 import sys
 import strict_rfc3339
 
+from kronos.core.post_process.definitions import class_names_complete
+
 list_classes = [
     "main/fc/inigroup",
     "main/fc/ensemble/cf",
@@ -75,7 +77,7 @@ if __name__ == "__main__":
 
             if json_data_input['metadata'].get('workload_name'):
 
-                class_name_root = [name for name in list_classes if name in json_data_input['metadata']['workload_name']]
+                class_name_root = [name for name in set(class_names_complete) if name in json_data_input['metadata']['workload_name']]
 
                 if class_name_root:
                     class_name_root_0 = class_name_root[0]
@@ -91,7 +93,7 @@ if __name__ == "__main__":
                     jobs_data_dict.setdefault(class_name, []).append(json_data_stats)
 
     # check if there is some of the classes for which no jobs have been found
-    for class_name in list_classes:
+    for class_name in set(class_names_complete):
         if class_name+"/serial" not in jobs_data_dict.keys() and class_name+"/parallel" not in jobs_data_dict.keys():
             print "warning: no jobs found for class {}".format(class_name)
 
