@@ -11,6 +11,7 @@ import os
 
 import matplotlib.pyplot as plt
 import numpy as np
+from matplotlib.ticker import FormatStrFormatter
 
 from kronos.core.time_signal.definitions import signal_types
 from kronos.core.exceptions_iows import ConfigurationError
@@ -19,9 +20,12 @@ from kronos.core.post_process.krf_data import sorted_krf_stats_names
 from kronos.core.post_process.krf_data import krf_stats_info
 
 from kronos.core.post_process.definitions import class_names_complete
+from kronos.core.post_process.definitions import plot_linestyle_sp
+from kronos.core.post_process.definitions import job_class_string
+from kronos.core.post_process.definitions import job_class_color
+from kronos.core.post_process.definitions import fig_name_from_class
 from kronos.core.post_process.definitions import linspace
 from kronos.core.post_process.definitions import running_series
-from kronos.core.post_process.definitions import class_colors
 from kronos.core.post_process.definitions import labels_map
 
 
@@ -107,9 +111,9 @@ class ExporterTable(ExporterBase):
 
         # ------- write a stat file for each job class --------
         for class_name in class_names_complete:
-
-            class_name_ser_par = class_name[0] + "/" + class_name[1]
-            csvfile = open(os.path.join(output_path, 'rates_class_{}.csv'.format(class_name_ser_par.replace("/", "_"))), 'wb')
+            class_name_ser_par = job_class_string(class_name)
+            csv_name = os.path.join(output_path, 'rates_class_{}.csv'.format(fig_name_from_class(class_name_ser_par)))
+            csvfile = open(csv_name, 'wb')
             csvwriter = csv.writer(csvfile, delimiter=',')
             csvwriter.writerow(["metric"] + self.sim_set.ordered_sims().keys())
 
@@ -174,7 +178,7 @@ class ExporterPlot(ExporterBase):
         min_norm_value = None
         for class_name in class_names_complete:
 
-            class_name_ser_par = class_name[0] + "/" + class_name[1]
+            class_name_ser_par = job_class_string(class_name)
             for stat_name in sorted_krf_stats_names:
 
                 # take list of rates if the metric is defined for this class otherwise get "-1" flag
@@ -194,10 +198,10 @@ class ExporterPlot(ExporterBase):
         # ------------ plot the rates per job class ------------
         for class_name in class_names_complete:
 
-            class_name_ser_par = class_name[0] + "/" + class_name[1]
+            class_name_ser_par = job_class_string(class_name)
 
             fig = plt.figure(plot_id)
-            plt.title('Rates class: {}'.format(class_name_ser_par.replace("/", "_")))
+            plt.title('Rates class: {}'.format(fig_name_from_class(class_name_ser_par)))
             ax = fig.add_subplot(111)
             for stat_name in sorted_krf_stats_names:
 
@@ -222,7 +226,7 @@ class ExporterPlot(ExporterBase):
 
             plt.ylabel("Normalized Rates")
             if output_path:
-                png_name = os.path.join(output_path, 'rates_class_{}.png'.format(class_name_ser_par.replace("/", "_")))
+                png_name = os.path.join(output_path, 'rates_class_{}.png'.format( fig_name_from_class(class_name_ser_par) ))
                 print "saving file {}".format(png_name)
                 plt.savefig(png_name)
             plot_id += 1
@@ -303,26 +307,57 @@ class ExporterTimeSeries(ExporterBase):
 
         _, global_time_series["all"] = sim.create_global_time_series(times_plot)
 
-        # Finally plot all the time-series
-        plt.figure(figsize=(32, 32))
-        plt.title("Time series - experiment: {}".format(sim.name))
-
-        # N of metrics + n of running jobs
-        n_plots = len(global_time_series.keys()) + 1
-
-        # Plot of n of *Running jobs*
-        ax = plt.subplot(n_plots, 1, 1)
-
+        # ================= Plot job and processes time-series ==================
+        plt.figure(figsize=(20, 12))
         for cc, cl in enumerate(class_names_complete):
 
-            found, series = running_series(sim.jobs, times_plot, sim.tmin_epochs, cl)
+            # print "////////////// plotting class: {}, color: {}".format(cl[0], job_class_color(cl))
+
+            cl_sp = cl[1]
+
+            found, series_jp = running_series(sim.jobs, times_plot, sim.tmin_epochs, cl)
             if found:
-                plt.plot(times_plot, series, color=class_colors[cc % len(class_colors)], linestyle="-", label=cl)
+                ax = plt.subplot(2, 1, 1)
+                plt.plot(times_plot, series_jp[:, 0],
+                         color=job_class_color(cl),
+                         linestyle=plot_linestyle_sp[cl_sp],
+                         label=job_class_string(cl))
+                plt.ylabel("# jobs")
+                ax.yaxis.set_major_formatter(FormatStrFormatter('%d'))
 
-            plt.ylabel("# running jobs")
-        ax.legend(loc='center left', bbox_to_anchor=(1, 0.5))
+                ax = plt.subplot(2, 1, 2)
+                plt.plot(times_plot, series_jp[:, 1],
+                         color=job_class_color(cl),
+                         linestyle=plot_linestyle_sp[cl_sp],
+                         label=job_class_string(cl))
+                plt.ylabel("# procs")
+                plt.yscale('log')
+                ax.yaxis.set_major_formatter(FormatStrFormatter('%d'))
 
-        pp = 1
+        ax = plt.subplot(2, 1, 1)
+        plt.title("Time series - experiment: {}".format(sim.name))
+        # ax.legend(loc='center left', bbox_to_anchor=(1, 0.8))
+        ax.legend()
+
+        ax = plt.subplot(2, 1, 2)
+        plt.xlabel("time [s]")
+        if output_path:
+            plt.savefig(os.path.join(output_path, sim.name + '_time_series_jobs_procs') + "."+fig_format)
+
+        plt.close()
+        # =============================================================================
+
+        # ================= Finally plot all the time-series metrics ==================
+        plt.figure(figsize=(32, 32))
+
+        # N of metrics + n of running jobs
+        n_plots = len(global_time_series.keys())
+
+        # Plot of n of *Running jobs*
+        plt.subplot(n_plots, 1, 1)
+        plt.title("Time series - experiment: {}".format(sim.name))
+
+        pp = 0
         all_time_series = global_time_series["all"]
         for ts_name in signal_types:
             pp += 1

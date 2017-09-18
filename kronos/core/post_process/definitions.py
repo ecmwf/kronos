@@ -27,22 +27,59 @@ labels_map = {
 
 # (root name, job identifier) ["serial", "parallel"]
 class_names_complete = [
-    ('main/fc/inigroup', 'serial'),
-    ('main/fc/inigroup', 'parallel'),
-    ('main/fc/ensemble/cf', 'serial'),
-    ('main/fc/ensemble/cf', 'parallel'),
-    ('main/fc/ensemble/pf', 'serial'),
-    ('main/fc/ensemble/pf', 'parallel'),
-    ('main/fc/ensemble/logfiles', 'serial'),
-    ('main/fc/lag', 'serial'),
+    ('main/fc/inigroup/*', 'serial'),
+    ('main/fc/inigroup/*', 'parallel'),
+
+    ('main/fc/ensemble/cf/control/legA/getiniLeg/*', 'parallel'),
+    ('main/fc/ensemble/cf/control/legA/chunk0/*', 'parallel'),
+    ('main/fc/ensemble/cf/*', 'serial'),
+
+    ('main/fc/ensemble/pf/*', 'serial'),
+    ('main/fc/ensemble/pf/*/legA/getiniLeg/*', 'parallel'),
+    ('main/fc/ensemble/pf/*/legA/chunk0/modeleps_nemo/*', 'parallel'),
+
+    ('main/fc/ensemble/logfiles/*', 'serial'),
+    ('main/fc/lag/*', 'serial'),
 ]
 
-class_colors = ["b", "r", "g", "m", "c"]
+class_colors = [(0, 0, 1),
+                (1, 0, 0),
+
+                (0, 1, 0),
+                (0, 1, 1),
+                (1, 0, 1),
+
+                (0.3, 0.3, 0),
+                (0, 0.2, 0.5),
+                (0.5, 0., 0.2),
+
+                (0.2, 0.5, 0),
+                (0.2, 0.5, 0.6),
+                ]
+
+plot_linestyle_sp = {
+    "parallel": "-",
+    "serial": "--",
+}
 
 
 # ///////////////////////////////// UTILITIES /////////////////////////////////////////
 def datetime2epochs(t_in):
     return (t_in - datetime.datetime(1970,1,1)).total_seconds()
+
+
+def job_class_string(cl):
+    return cl[0]+"/"+cl[1]
+
+
+def job_class_color(cl_in):
+    cl_set_idx = [cc for cc, cl_n in enumerate(set([n[0] for n in class_names_complete])) if cl_n == cl_in[0]]
+    assert len(cl_set_idx) == 1
+    return class_colors[cl_set_idx[0] % len(class_colors)]
+
+
+def fig_name_from_class(class_name):
+    return class_name.replace("/", "_").replace("*", "ANY")
 
 
 def cumsum(input_list):
@@ -57,7 +94,8 @@ def running_series(jobs, times, t0_epoch_wl, job_class=None):
 
     bin_width = times[1] - times[0]
 
-    running = np.zeros(len(times))
+    # logs number of concurrently running jobs, processes
+    running_jnp = np.zeros((len(times), 2))
     found = 0
 
     for job in jobs:
@@ -67,6 +105,14 @@ def running_series(jobs, times, t0_epoch_wl, job_class=None):
             found += 1
             first = int(math.ceil((job.t_start-t0_epoch_wl - times[0]) / bin_width))
             last = int(math.floor((job.t_end-t0_epoch_wl - times[0]) / bin_width))
-            running[first:last] += 1
 
-    return found, running
+            # last index should always be >= first+1
+            last = last if last > first else first+1
+
+            # #jobs
+            running_jnp[first:last, 0] += 1
+
+            # #cpus
+            running_jnp[first:last, 1] += job.n_cpu
+
+    return found, running_jnp

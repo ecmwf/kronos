@@ -31,6 +31,9 @@ if __name__ == "__main__":
     # Pre-calculate data ready for export
     sim_set = SimulationSet(labelled_kronos_sims)
 
+    for sim in sim_set.sims:
+        sim.print_job_classes_info()
+
     # Export results as per user requests
     for export_config in config.exports:
         data_writer = writer_map[export_config["type"]](sim_set=sim_set)

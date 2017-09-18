@@ -5,7 +5,8 @@
 # In applying this licence, ECMWF does not waive the privileges and immunities 
 # granted to it by virtue of its status as an intergovernmental organisation nor
 # does it submit to any jurisdiction.
-
+import fnmatch
+import re
 from collections import OrderedDict
 
 from kronos.core.post_process.definitions import cumsum, datetime2epochs, class_names_complete
@@ -151,13 +152,15 @@ class KRFJob(object):
     def get_metric(self, metric_name):
         pass
 
+    @property
     def n_cpu(self):
         """
         retrieve n cpu from the number of ranks
         :return:
         """
         if self.decorating_data:
-            assert self.decorating_data.ncpus == len(self._json_data["ranks"]), "N CPU mismatch: check job data!"
+            if hasattr(self.decorating_data, "ncpus"):
+                assert self.decorating_data.ncpus == len(self._json_data["ranks"]), "N CPU mismatch: check job data!"
 
         return len(self._json_data["ranks"])
 
@@ -207,8 +210,21 @@ class KRFJob(object):
         # otherwise check if job.label matches the class name
         else:
             class_name = class_name_idx[0]
-            class_idx = class_name_idx[0]
-            return class_name in self.label and class_idx in self.label
+            class_sp = class_name_idx[1]
+
+            # print "------------------"
+            # print "self.label ", self.label
+            # print "class_name ", class_name
+            # print "class_sp ", class_sp
+
+            name_match = re.match(fnmatch.translate(class_name), self.label)
+            sp_match = class_sp in self.label
+
+            # return class_name in self.label and class_sp in self.label
+            found_match = (name_match and sp_match) if (name_match and sp_match) else False
+            # print found_match
+            # print "------------------"
+            return found_match
 
     def get_class_name(self):
         """
@@ -216,8 +232,7 @@ class KRFJob(object):
         :return:
         """
 
-        class_name = [class_name for class_name in class_names_complete
-                      if class_name[0] in self.label and class_name[1] in self.label]
+        class_name = [class_name for class_name in class_names_complete if self.is_in_class(class_name)]
 
         if class_name:
             return class_name[0][0] + "/" + class_name[0][1]
