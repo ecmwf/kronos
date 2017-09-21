@@ -17,6 +17,7 @@ class ExportConfig(object):
     experiment_list = None
     experiment_paths = None
     exports = None
+    n_procs_node = None
 
     def __init__(self, conf_dict):
 

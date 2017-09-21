@@ -27,6 +27,10 @@
       "type": "string",
       "description": "Path where the output will be exported into"
     },
+    "n_procs_node": {
+      "type": "integer",
+      "description": "N procs per node used to run the cases (TODO: this info needs to be removed..)"
+    },
     "exports": {
       "type": "array",
       "description": "List of exports to do with the data collected from the set of simulations",
@@ -88,19 +92,56 @@
                 "description": "specific format which tabulated data will be written into",
                 "enum": ["png"]
               },
-              "plot_ylims":{
-                "type": "array",
-                "description": "y-limits of the axis specified by user"
+
+              "plot_ylims": {
+                "type": "object",
+                "description": "Upper and lower limits of the y-axis specified by user",
+                "patternProperties": {
+                  "(jobs|procs|nodes|n_write|n_read|kb_write|kb_read|n_pairwise|kb_pairwise|n_collective|kb_collective|flops)": {
+                    "type": "array",
+                    "description": "y-limits for the #jobs time-series plot"
+                  }
+                }
+              },
+
+              "plot_xlims":{
+                "type": "object",
+                "description": "Upper and lower limits of the x-axis specified by user",
+                "properties": {
+                  "jobs_proc_nodes":{
+                    "type":"array",
+                    "description": "x-limits for the #jobs/#procs/#nodes time-series plot"
+                  },
+                  "metrics":{
+                    "type":"array",
+                    "description": "x-limits for the metrics time-series plot"
+                  }
+                }
+              }
+
+            },
+            "required": ["type"]
+          },
+
+          {
+            "type": "object",
+            "description": "Export scattered type of plots",
+            "properties":{
+              "type":{
+                "type":"string",
+                "description": "Export identification string",
+                "enum": ["scattered_plots"]
+              },
+              "format":{
+                "type": "string",
+                "description": "specific format which tabulated data will be written into",
+                "enum": ["png"]
               }
             },
             "required": ["type"]
           }
-
-
         ]
       }
     }
-
-
   }
 }

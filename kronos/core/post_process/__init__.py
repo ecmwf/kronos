@@ -9,9 +9,11 @@
 from kronos.core.post_process.exporters import ExporterPlot
 from kronos.core.post_process.exporters import ExporterTable
 from kronos.core.post_process.exporters import ExporterTimeSeries
+from kronos.core.post_process.exporters import ExporterScatteredData
 
 writer_map = {
     "rates_table": ExporterTable,
     "rates_plot": ExporterPlot,
     "time_series": ExporterTimeSeries,
+    "scattered_plot": ExporterScatteredData,
 }

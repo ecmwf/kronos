@@ -39,8 +39,11 @@ class ExporterBase(object):
 
         # simulations data
         self.sim_set = sim_set
+        self.export_config = None
 
     def export(self, export_config, output_path, **kwargs):
+
+        self.export_config = export_config
 
         self.check_export_config(export_config, output_path, **kwargs)
 
@@ -154,7 +157,7 @@ class ExporterPlot(ExporterBase):
 
     class_export_type = "rates_plot"
     default_export_format = "png"
-    optional_configs = ["plot_ylim"]
+    optional_configs = ["plot_ylims"]
 
     def export_function_map(self, key):
 
@@ -169,9 +172,7 @@ class ExporterPlot(ExporterBase):
         print "Exporting PNG tables in {}".format(output_path)
 
         # use ylims if user has provided them
-        plot_ylim = kwargs.get("plot_ylim")
-
-        plot_id = 1
+        plot_ylim = self.export_config.get("plot_ylims")
 
         # ------------ find max and min rates for scaling all the plots accordingly ------------
         max_norm_value = None
@@ -196,6 +197,7 @@ class ExporterPlot(ExporterBase):
                     min_norm_value = min(min_norm_value, min(normalized_rates)) if min_norm_value else min(normalized_rates)
 
         # ------------ plot the rates per job class ------------
+        plot_id = 1
         for class_name in class_names_complete:
 
             class_name_ser_par = job_class_string(class_name)
@@ -286,8 +288,7 @@ class ExporterTimeSeries(ExporterBase):
             times_plot = linspace(0, sim.runtime(), 1000)
             self._make_plots(sim, times_plot, "png", output_path=output_path)
 
-    @staticmethod
-    def _make_plots(sim, times_plot, fig_format, output_path=None):
+    def _make_plots(self, sim, times_plot, fig_format, output_path=None):
         """
         Plot time series of the simulations
         :param sim:
@@ -308,24 +309,32 @@ class ExporterTimeSeries(ExporterBase):
         _, global_time_series["all"] = sim.create_global_time_series(times_plot)
 
         # ================= Plot job and processes time-series ==================
-        plt.figure(figsize=(20, 12))
+        plt.figure(figsize=(20, 16))
         for cc, cl in enumerate(class_names_complete):
 
             # print "////////////// plotting class: {}, color: {}".format(cl[0], job_class_color(cl))
 
             cl_sp = cl[1]
 
-            found, series_jp = running_series(sim.jobs, times_plot, sim.tmin_epochs, cl)
+            found, series_jp = running_series(sim.jobs, times_plot, sim.tmin_epochs,
+                                              n_procs_node=sim.n_procs_node, job_class=cl)
             if found:
-                ax = plt.subplot(2, 1, 1)
+                ax = plt.subplot(3, 1, 1)
                 plt.plot(times_plot, series_jp[:, 0],
                          color=job_class_color(cl),
                          linestyle=plot_linestyle_sp[cl_sp],
                          label=job_class_string(cl))
                 plt.ylabel("# jobs")
                 ax.yaxis.set_major_formatter(FormatStrFormatter('%d'))
+                if self.export_config.get("plot_ylims"):
+                    if self.export_config["plot_ylims"].get("jobs"):
+                        plt.ylim(self.export_config["plot_ylims"]["jobs"])
 
-                ax = plt.subplot(2, 1, 2)
+                if self.export_config.get("plot_xlims"):
+                    if self.export_config["plot_xlims"].get("jobs_proc_nodes"):
+                        plt.xlim(self.export_config["plot_xlims"]["jobs_proc_nodes"])
+
+                ax = plt.subplot(3, 1, 2)
                 plt.plot(times_plot, series_jp[:, 1],
                          color=job_class_color(cl),
                          linestyle=plot_linestyle_sp[cl_sp],
@@ -333,13 +342,38 @@ class ExporterTimeSeries(ExporterBase):
                 plt.ylabel("# procs")
                 plt.yscale('log')
                 ax.yaxis.set_major_formatter(FormatStrFormatter('%d'))
+                if self.export_config.get("plot_ylims"):
+                    if self.export_config["plot_ylims"].get("procs"):
+                        plt.ylim(self.export_config["plot_ylims"]["procs"])
 
-        ax = plt.subplot(2, 1, 1)
+                if self.export_config.get("plot_xlims"):
+                    if self.export_config["plot_xlims"].get("jobs_proc_nodes"):
+                        plt.xlim(self.export_config["plot_xlims"]["jobs_proc_nodes"])
+
+                ax = plt.subplot(3, 1, 3)
+                # print "series_jp[:, 2]", series_jp[:, 2]
+                # print "series_jp.shape", series_jp.shape
+                plt.plot(times_plot, series_jp[:, 2],
+                         color=job_class_color(cl),
+                         linestyle=plot_linestyle_sp[cl_sp],
+                         label=job_class_string(cl))
+                plt.ylabel("# nodes")
+                plt.yscale('log')
+                ax.yaxis.set_major_formatter(FormatStrFormatter('%d'))
+                if self.export_config.get("plot_ylims"):
+                    if self.export_config["plot_ylims"].get("nodes"):
+                        plt.ylim(self.export_config["plot_ylims"]["nodes"])
+
+                if self.export_config.get("plot_xlims"):
+                    if self.export_config["plot_xlims"].get("jobs_proc_nodes"):
+                        plt.xlim(self.export_config["plot_xlims"]["jobs_proc_nodes"])
+
+        ax = plt.subplot(3, 1, 1)
         plt.title("Time series - experiment: {}".format(sim.name))
         # ax.legend(loc='center left', bbox_to_anchor=(1, 0.8))
         ax.legend()
 
-        ax = plt.subplot(2, 1, 2)
+        ax = plt.subplot(3, 1, 2)
         plt.xlabel("time [s]")
         if output_path:
             plt.savefig(os.path.join(output_path, sim.name + '_time_series_jobs_procs') + "."+fig_format)
@@ -348,12 +382,12 @@ class ExporterTimeSeries(ExporterBase):
         # =============================================================================
 
         # ================= Finally plot all the time-series metrics ==================
-        plt.figure(figsize=(32, 32))
 
         # N of metrics + n of running jobs
-        n_plots = len(global_time_series.keys())
+        n_plots = len(signal_types)
 
         # Plot of n of *Running jobs*
+        plt.figure(figsize=(20, 32))
         plt.subplot(n_plots, 1, 1)
         plt.title("Time series - experiment: {}".format(sim.name))
 
@@ -370,7 +404,15 @@ class ExporterTimeSeries(ExporterBase):
             plt.plot(times_g[1:], ratios_g, "b")
             plt.ylabel(ts_name + " [" + labels_map[ts_name] + "]")
 
-            if pp == n_plots - 1:
+            if self.export_config.get("plot_ylims"):
+                if self.export_config["plot_ylims"].get(ts_name):
+                    plt.ylim(self.export_config["plot_ylims"][ts_name])
+
+            if self.export_config.get("plot_xlims"):
+                if self.export_config["plot_xlims"].get("metrics"):
+                    plt.xlim(self.export_config["plot_xlims"]["metrics"])
+
+            if pp == n_plots:
                 plt.xlabel("time [s]")
 
         if output_path:
@@ -378,3 +420,17 @@ class ExporterTimeSeries(ExporterBase):
 
         plt.close()
 
+
+class ExporterScatteredData(ExporterBase):
+
+    class_export_type = "scattered"
+    default_export_format = "png"
+
+    def export_function_map(self, key):
+        function_map = {
+            "png": self._export_png
+        }
+        return function_map.get(key, None)
+
+    def _export_png(self, output_path):
+        pass

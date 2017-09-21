@@ -90,14 +90,17 @@ def linspace(x0, x1, count):
     return [x0+(x1-x0)*i/float(count-1) for i in range(count)]
 
 
-def running_series(jobs, times, t0_epoch_wl, job_class=None):
+def running_series(jobs, times, t0_epoch_wl, n_procs_node=None, job_class=None):
 
     bin_width = times[1] - times[0]
 
     # logs number of concurrently running jobs, processes
-    running_jnp = np.zeros((len(times), 2))
-    found = 0
+    if n_procs_node:
+        running_jpn = np.zeros((len(times), 3))
+    else:
+        running_jpn = np.zeros((len(times), 2))
 
+    found = 0
     for job in jobs:
 
         if job.is_in_class(job_class):
@@ -110,9 +113,15 @@ def running_series(jobs, times, t0_epoch_wl, job_class=None):
             last = last if last > first else first+1
 
             # #jobs
-            running_jnp[first:last, 0] += 1
+            running_jpn[first:last, 0] += 1
 
             # #cpus
-            running_jnp[first:last, 1] += job.n_cpu
+            running_jpn[first:last, 1] += job.n_cpu
 
-    return found, running_jnp
+            if n_procs_node:
+
+                # #nodes
+                n_nodes = job.n_cpu/int(n_procs_node) if not job.n_cpu%int(n_procs_node) else job.n_cpu/int(n_procs_node)+1
+                running_jpn[first:last, 2] += n_nodes
+
+    return found, running_jpn

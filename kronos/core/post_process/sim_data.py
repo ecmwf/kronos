@@ -23,7 +23,7 @@ class SimulationData(object):
     Data relative to a Kronos simulation
     """
 
-    def __init__(self, jobs=None, sim_name=None, sim_path=None):
+    def __init__(self, jobs=None, sim_name=None, sim_path=None, n_procs_node=None):
 
         # KRF jobs
         self.jobs = jobs
@@ -33,6 +33,9 @@ class SimulationData(object):
 
         # Sim-path
         self.path = sim_path
+
+        # n CPU per node used for this sim
+        self.n_procs_node = n_procs_node
 
     @classmethod
     def check_n_successful_jobs(cls, sim_path, sim_name):
@@ -49,7 +52,7 @@ class SimulationData(object):
                 sys.exit(-1)
 
     @classmethod
-    def read_from_sim_paths(cls, sim_path, sim_name):
+    def read_from_sim_paths(cls, sim_path, sim_name, n_procs_node=None):
 
         print "processing simulation: {}".format(sim_name)
 
@@ -89,7 +92,7 @@ class SimulationData(object):
         if jobs_data:
             print "n successful jobs {}".format(len(jobs_data))
 
-        return cls(jobs=jobs_data, sim_name=sim_name, sim_path=sim_path)
+        return cls(jobs=jobs_data, sim_name=sim_name, sim_path=sim_path, n_procs_node=n_procs_node)
 
     def runtime(self):
         """
