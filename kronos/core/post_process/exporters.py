@@ -13,6 +13,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.ticker import FormatStrFormatter
 
+from kronos.core.kronos_tools.utils import lin_reg
 from kronos.core.time_signal.definitions import signal_types
 from kronos.core.exceptions_iows import ConfigurationError
 
@@ -237,6 +238,7 @@ class ExporterPlot(ExporterBase):
         fig = plt.figure(plot_id)
         plt.title('Rates all classes')
         ax = fig.add_subplot(111)
+
         for stat_name in sorted_krf_stats_names:
 
             # take list of rates if the metric is defined for this class otherwise get "-1" flag
@@ -285,7 +287,7 @@ class ExporterTimeSeries(ExporterBase):
 
         for sim in self.sim_set.sims:
 
-            times_plot = linspace(0, sim.runtime(), 1000)
+            times_plot = linspace(0, sim.runtime(), 6000)
             self._make_plots(sim, times_plot, "png", output_path=output_path)
 
     def _make_plots(self, sim, times_plot, fig_format, output_path=None):
@@ -298,7 +300,7 @@ class ExporterTimeSeries(ExporterBase):
         :return:
         """
 
-        # make sure times are a numpy
+        # =====================  calculate all time-series =====================
         times_plot = np.asarray(times_plot)
         global_time_series = {}
         for cl in class_names_complete:
@@ -307,12 +309,11 @@ class ExporterTimeSeries(ExporterBase):
                 global_time_series[cl] = series
 
         _, global_time_series["all"] = sim.create_global_time_series(times_plot)
+        # =======================================================================
 
         # ================= Plot job and processes time-series ==================
         plt.figure(figsize=(20, 16))
         for cc, cl in enumerate(class_names_complete):
-
-            # print "////////////// plotting class: {}, color: {}".format(cl[0], job_class_color(cl))
 
             cl_sp = cl[1]
 
@@ -340,7 +341,7 @@ class ExporterTimeSeries(ExporterBase):
                          linestyle=plot_linestyle_sp[cl_sp],
                          label=job_class_string(cl))
                 plt.ylabel("# procs")
-                plt.yscale('log')
+                # plt.yscale('log')
                 ax.yaxis.set_major_formatter(FormatStrFormatter('%d'))
                 if self.export_config.get("plot_ylims"):
                     if self.export_config["plot_ylims"].get("procs"):
@@ -358,7 +359,7 @@ class ExporterTimeSeries(ExporterBase):
                          linestyle=plot_linestyle_sp[cl_sp],
                          label=job_class_string(cl))
                 plt.ylabel("# nodes")
-                plt.yscale('log')
+                # plt.yscale('log')
                 ax.yaxis.set_major_formatter(FormatStrFormatter('%d'))
                 if self.export_config.get("plot_ylims"):
                     if self.export_config["plot_ylims"].get("nodes"):
@@ -370,7 +371,6 @@ class ExporterTimeSeries(ExporterBase):
 
         ax = plt.subplot(3, 1, 1)
         plt.title("Time series - experiment: {}".format(sim.name))
-        # ax.legend(loc='center left', bbox_to_anchor=(1, 0.8))
         ax.legend()
 
         ax = plt.subplot(3, 1, 2)
@@ -381,8 +381,7 @@ class ExporterTimeSeries(ExporterBase):
         plt.close()
         # =============================================================================
 
-        # ================= Finally plot all the time-series metrics ==================
-
+        # =============== Plot all the time-series aggregated metrics =================
         # N of metrics + n of running jobs
         n_plots = len(signal_types)
 
@@ -396,7 +395,7 @@ class ExporterTimeSeries(ExporterBase):
         for ts_name in signal_types:
             pp += 1
 
-            times_g, values_g = zip(*all_time_series[ts_name])
+            times_g, values_g, _, values_p = zip(*all_time_series[ts_name])
             times_g_diff = np.diff(np.asarray(list(times_g)))
             ratios_g = np.asarray(values_g[1:]) / times_g_diff
 
@@ -419,11 +418,53 @@ class ExporterTimeSeries(ExporterBase):
             plt.savefig(os.path.join(output_path, sim.name + '_time_series') + "."+fig_format)
 
         plt.close()
+        # =============================================================================
+
+        # =============== Plot time-series aggregated metrics =================
+
+        # -------- IO write
+        n_t, n_v, n_e, n_p = zip(*all_time_series["n_write"])
+        b_t, b_v, b_e, b_p = zip(*all_time_series["kb_write"])
+        t_vals = np.asarray(n_t)
+        # n_vals = np.asarray(n_v)
+        b_vals = np.asarray(b_v)
+        e_vals = np.asarray(b_e)
+        p_vals = np.asarray(b_p)
+        rates = np.asarray([b / e if e else 0.0 for b, e in zip(b_vals, e_vals)])
+
+        plt.figure(figsize=(12, 6))
+        plt.subplot(3, 1, 1)
+        plt.plot(t_vals - t_vals[0], b_vals, "k")
+        plt.ylabel("KiB written")
+        if self.export_config.get("plot_xlims"):
+            if self.export_config["plot_xlims"].get("volume_rates"):
+                plt.xlim(self.export_config["plot_xlims"]["volume_rates"])
+
+        plt.subplot(3, 1, 2)
+        plt.plot(t_vals - t_vals[0], rates, "b")
+        plt.ylabel("KiB/sec")
+        if self.export_config.get("plot_xlims"):
+            if self.export_config["plot_xlims"].get("volume_rates"):
+                plt.xlim(self.export_config["plot_xlims"]["volume_rates"])
+
+        plt.subplot(3, 1, 3)
+        plt.plot(t_vals - t_vals[0], p_vals, "r")
+        plt.ylabel("# writing procs")
+        plt.xlabel("time [s]")
+        if self.export_config.get("plot_xlims"):
+            if self.export_config["plot_xlims"].get("volume_rates"):
+                plt.xlim(self.export_config["plot_xlims"]["volume_rates"])
+
+        if output_path:
+            plt.savefig(os.path.join(output_path, sim.name + '_time_series_io_rates') + "."+fig_format)
+
+        plt.close()
+        # =============================================================================
 
 
 class ExporterScatteredData(ExporterBase):
 
-    class_export_type = "scattered"
+    class_export_type = "scattered_plots"
     default_export_format = "png"
 
     def export_function_map(self, key):
@@ -433,4 +474,109 @@ class ExporterScatteredData(ExporterBase):
         return function_map.get(key, None)
 
     def _export_png(self, output_path):
-        pass
+        """
+        plot time series of jobs and metrics
+        :return:
+        """
+
+        print "Exporting scattered-plots plots in {}".format(output_path)
+        dt_sec = 0.1 # OK
+
+        for sim in self.sim_set.sims:
+            times_plot = linspace(0, sim.runtime(), int(sim.runtime()/dt_sec))
+            self._make_plots(sim, times_plot, "png", output_path=output_path)
+
+    def _make_plots(self, sim, times_plot, fig_format, output_path=None):
+        """
+        Scattered-plots metric-to-metric
+        :param sim:
+        :param times_plot:
+        :param fig_format:
+        :param output_path:
+        :return:
+        """
+
+        # global time-series for all the classes
+        global_time_series = {}
+        _, global_time_series["all"] = sim.create_global_time_series(times_plot)
+
+        # -------- IO write
+        n_t, n_v, n_e = zip(*global_time_series["all"]["n_write"])
+        b_t, b_v, b_e = zip(*global_time_series["all"]["kb_write"])
+        # t_vals = np.asarray(n_t)
+        n_vals = np.asarray(n_v)
+        b_vals = np.asarray(b_v)
+        e_vals = np.asarray(b_e)
+        iowrite_idxs = np.where(e_vals <> 0) # take only values for which total elapsed time > 0
+        n_vals_valid = n_vals[iowrite_idxs]
+        r_vals_valid = b_vals[iowrite_idxs]/e_vals[iowrite_idxs]
+
+        # -------- MPI collective
+        mpi_coll_t, mpi_coll_v, mpi_coll_e = zip(*global_time_series["all"]["kb_collective"])
+        coll_t = np.asarray(mpi_coll_t)
+        coll_v = np.asarray(mpi_coll_v)
+        coll_e = np.asarray(mpi_coll_e)
+
+        # coll_t_valid = coll_t[iowrite_idxs]
+        coll_v_valid = coll_v[iowrite_idxs]
+        # coll_e_valid = coll_e[iowrite_idxs]
+        highcoll_idxs = np.where(coll_v_valid > 0.5*max(coll_v_valid))
+        # high_coll_r = coll_v_valid[highcoll_idxs]/coll_e_valid[highcoll_idxs]
+        print "coll_v_valid", coll_v_valid
+        print "len(highcoll_idxs) ",len(highcoll_idxs)
+
+
+        # ------------------ bin values for average.. -----------------------
+        # eps = 1e-6
+        # n_bins = 10
+        # t = np.asarray(n_vals_valid)
+        # data = np.asarray(r_vals_valid)
+        # dn = (max(t) - min(t)) / (n_bins-1)
+        # bins = np.linspace(min(t)-dn/2., max(t)+dn/2., n_bins+1)
+        # t_bins = (bins[1:]+bins[:-1])/2.0
+        # digitized = np.digitize(t, bins)
+        # bin_values = np.asarray([data[digitized == i].mean() if data[digitized == i].size else 0 for i in range(1, len(bins))])
+        # -------------------------------------------------------------------
+
+        # ------- Attempt a calculation of the regression line (forced to be > 0) --------
+        sorted_vals = np.hstack( (n_vals_valid.reshape((-1,1)), r_vals_valid.reshape((-1,1)) ))
+        sorted_vals = sorted_vals[sorted_vals[:, 0].argsort()]
+        xraw = sorted_vals[:, 0]
+        yraw = sorted_vals[:, 1]
+        regression_cost, grad = lin_reg(xraw, yraw,
+                                        alpha=1e-4,
+                                        niter=50000,
+                                        theta_0=300000,
+                                        theta_1=0.0)
+        regress_line_x = np.linspace(xraw[0], xraw[-1], 1000)
+        regress_line_y = grad[0]*np.ones(regress_line_x.shape)+grad[1]*regress_line_x
+        regress_line_y[regress_line_y < 0.0] *= 0.0
+
+        plt.figure(figsize=(12, 6))
+        plt.title("write_rate(n_write) - experiment: {}".format(sim.name))
+        plt.plot(n_vals_valid, r_vals_valid, "+g",  label="Raw data")
+        # plt.plot(regress_line_x, regress_line_y, "b",
+        #          linestyle="-",
+        #          label="Linear regression")
+        plt.plot(n_vals_valid[highcoll_idxs], r_vals_valid[highcoll_idxs], "m.",
+                 marker="o",
+                 label="High MPI coll (>50% max)")
+        plt.xlabel("# n")
+        plt.ylabel("# write-rate [KiB/s]")
+        if self.export_config.get("plot_xlims"):
+            plt.xlim(self.export_config["plot_xlims"])
+        plt.legend()
+        if output_path:
+            plt.savefig(os.path.join(output_path, sim.name + '_scattered_plot_n_bw') + "."+fig_format)
+
+        # # IO rates vs MPI collective traffic
+        # plt.figure(figsize=(20, 10))
+        # plt.title("write_rate(MPI_collective) - experiment: {}".format(sim.name))
+        # plt.plot(n_vals_valid, r_vals_valid, "+g",  label="Raw data")
+        # plt.xlabel("# n")
+        # plt.ylabel("# write-rate [KiB/s]")
+        # if self.export_config.get("plot_xlims"):
+        #     plt.xlim(self.export_config["plot_xlims"])
+        # plt.legend()
+        # if output_path:
+        #     plt.savefig(os.path.join(output_path, sim.name + '_scattered_plot_n_bw') + "."+fig_format)
