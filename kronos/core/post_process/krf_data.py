@@ -86,7 +86,7 @@ class KRFJob(object):
 
         # group time series from krf data..
         _series_tvr = {}
-        for rank_data in self._json_data["ranks"]:
+        for rr,rank_data in enumerate(self._json_data["ranks"]):
 
             delta_t = rank_data["time_series"]['durations']
             tends = cumsum(delta_t)
@@ -94,7 +94,7 @@ class KRFJob(object):
             for ts_name, ts_vals in rank_data["time_series"].iteritems():
 
                 if ts_name != "durations":
-                    ts_all = [(t, v, v / dt) for t, dt, v in zip(tends, delta_t, ts_vals) if (v != 0 and dt != 0)]
+                    ts_all = [(t, v, v / dt, dt) for t, dt, v in zip(tends, delta_t, ts_vals) if (v != 0 and dt != 0)]
                     _series_tvr.setdefault(ts_name, []).extend(ts_all)
 
         # sort the time-series with ascending time..
@@ -109,11 +109,12 @@ class KRFJob(object):
             assert name in ts_names_map.keys()
 
             if values is not None:
-                ts_t, ts_v, ts_r = zip(*values)
+                ts_t, ts_v, ts_r, ts_e = zip(*values)
                 time_series[ts_names_map[name][0]] = {
                     'times': list(ts_t),
                     'values': [v * ts_names_map[name][1] for v in list(ts_v)],
-                    'ratios': [v * ts_names_map[name][1] for v in list(ts_r)]
+                    'ratios': [v * ts_names_map[name][1] for v in list(ts_r)],
+                    'elapsed': list(ts_e),
                 }
 
         return time_series

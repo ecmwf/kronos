@@ -49,7 +49,7 @@ class SimulationData(object):
             if not os.path.isfile(os.path.join(sim_path, job_dir, "statistics.krf")):
                 print "Simulation {}: 'statistics.krf' file not found in job folder {}".format(sim_name, job_dir)
                 print "Kronos Postprocessing stops here!"
-                # sys.exit(-1)
+                sys.exit(-1)
 
     @classmethod
     def read_from_sim_paths(cls, sim_path, sim_name, n_procs_node=None):

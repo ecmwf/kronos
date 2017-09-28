@@ -136,6 +136,11 @@
                 "type": "string",
                 "description": "specific format which tabulated data will be written into",
                 "enum": ["png"]
+              },
+
+              "plot_xlims":{
+                "type": "array",
+                "description": "x-limits for the scattered plot"
               }
             },
             "required": ["type"]
