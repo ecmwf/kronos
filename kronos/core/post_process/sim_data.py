@@ -49,7 +49,7 @@ class SimulationData(object):
             if not os.path.isfile(os.path.join(sim_path, job_dir, "statistics.krf")):
                 print "Simulation {}: 'statistics.krf' file not found in job folder {}".format(sim_name, job_dir)
                 print "Kronos Postprocessing stops here!"
-                sys.exit(-1)
+                # sys.exit(-1)
 
     @classmethod
     def read_from_sim_paths(cls, sim_path, sim_name, n_procs_node=None):
@@ -223,6 +223,8 @@ class SimulationData(object):
         for ts_name in signal_types:
 
             binned_values = np.zeros(len(times))
+            binned_elapsed = np.zeros(len(times))
+            binned_processes = np.zeros(len(times))
 
             for jj, job in enumerate(self.jobs):
 
@@ -237,14 +239,16 @@ class SimulationData(object):
 
                             for tt in range(len(job_ts_timestamps[1:])):
 
-                                first = int(math.ceil((job_ts_timestamps[tt-1] + t_start-tmin_epochs) / bin_width))
-                                last = int(math.floor((job_ts_timestamps[tt] + t_start-tmin_epochs) / bin_width))
+                                first = int(math.floor((job_ts_timestamps[tt-1] + t_start-tmin_epochs) / bin_width))
+                                last = int(math.ceil((job_ts_timestamps[tt] + t_start-tmin_epochs) / bin_width))
 
-                                last = last if last >= first else first + 1
+                                last = last if last > first else first + 1
                                 n_span_bin = max(1, last-first)
                                 binned_values[first:last] += job.time_series[ts_name]["values"][tt]/float(n_span_bin)
+                                binned_elapsed[first:last] += job.time_series[ts_name]["elapsed"][tt]/float(n_span_bin)
+                                binned_processes[first:last] += 1
 
-            global_time_series[ts_name] = zip(times, binned_values)
+            global_time_series[ts_name] = zip(times, binned_values, binned_elapsed, binned_processes)
 
         return found, global_time_series
 
