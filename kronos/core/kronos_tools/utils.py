@@ -173,16 +173,24 @@ def calculate_signals_similarity(t1, v1, t2, v2):
     return relative_time_err_pc, relative_corr_err_pc
 
 
-def lin_reg(x_in, y_in, alpha=1e-1, niter=10000):
+def lin_reg(x_in, y_in, alpha=1e-1, niter=10000, theta_0=0, theta_1=0):
 
     """ simple linear regression """
     theta = np.zeros((2, 1))
-    cost = 0
 
+    if theta_0:
+        theta[0] = theta_0
+
+    if theta_1:
+        theta[1] = theta_1
+
+    cost = 0
     for ii in range(niter):
         cost, grad = calc_grad(x_in, y_in, theta)
         theta = theta - alpha * grad
-        print "theta: {} ".format(theta)
+
+        if not ii%int(niter/10):
+            print "Regression costs iter=[{}]: {}".format(ii, cost)
 
     return cost, theta
 
