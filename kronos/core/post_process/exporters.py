@@ -513,9 +513,9 @@ class ExporterScatteredData(ExporterBase):
 
         # -------- MPI collective
         mpi_coll_t, mpi_coll_v, mpi_coll_e = zip(*global_time_series["all"]["kb_collective"])
-        coll_t = np.asarray(mpi_coll_t)
+        # coll_t = np.asarray(mpi_coll_t)
         coll_v = np.asarray(mpi_coll_v)
-        coll_e = np.asarray(mpi_coll_e)
+        # coll_e = np.asarray(mpi_coll_e)
 
         # coll_t_valid = coll_t[iowrite_idxs]
         coll_v_valid = coll_v[iowrite_idxs]
