@@ -14,15 +14,15 @@ import numpy as np
 # ///////////////////////////////// DEFINITIONS /////////////////////////////////////////
 
 labels_map = {
-    'n_write': "#/sec",
-    'kb_write': "Kb/sec",
-    'n_read': "#/sec",
-    'n_collective': "#/sec",
-    'kb_read': "Kb/sec",
-    'flops': "#/sec",
-    'kb_collective': "Kb/sec",
-    'kb_pairwise': "Kb/sec",
-    'n_pairwise': "#/sec"
+    'n_write': "[#]",
+    'kb_write': "[KiB]",
+    'n_read': "[#]",
+    'n_collective': "[#]",
+    'kb_read': "[KiB]",
+    'flops': "[#]",
+    'kb_collective': "[KiB]",
+    'kb_pairwise': "[KiB]",
+    'n_pairwise': "[#]"
 }
 
 # (root name, job identifier) ["serial", "parallel"]

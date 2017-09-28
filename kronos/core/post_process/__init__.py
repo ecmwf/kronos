@@ -15,5 +15,5 @@ writer_map = {
     "rates_table": ExporterTable,
     "rates_plot": ExporterPlot,
     "time_series": ExporterTimeSeries,
-    "scattered_plot": ExporterScatteredData,
+    "scattered_plots": ExporterScatteredData,
 }
