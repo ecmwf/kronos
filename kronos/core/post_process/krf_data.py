@@ -9,6 +9,8 @@ import fnmatch
 import re
 from collections import OrderedDict
 
+from datetime import datetime
+
 from kronos.core.post_process.definitions import cumsum, datetime2epochs, class_names_complete
 from kronos.io.results_format import ResultsFormat
 
@@ -186,7 +188,13 @@ class KRFJob(object):
 
         _ts = None
         if self._json_data.get("created"):
-            _ts = datetime2epochs(self._json_data["created"])
+
+            if isinstance(self._json_data["created"], datetime):
+                created_datetime = self._json_data["created"]
+            else:
+                created_datetime = datetime.strptime(self._json_data["created"], '%Y-%m-%dT%H:%M:%S+00:00')
+
+            _ts = datetime2epochs(created_datetime)
         return _ts
 
     @property

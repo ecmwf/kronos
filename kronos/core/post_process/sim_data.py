@@ -214,13 +214,15 @@ class SimulationData(object):
         :param job_class:
         :return:
         """
-    
+
         global_time_series = {}
         bin_width = times[1] - times[0]
         found = 0
         tmin_epochs = self.tmin_epochs
 
         for ts_name in signal_types:
+
+            # print "ts_name: ", ts_name
 
             binned_values = np.zeros(len(times))
             binned_elapsed = np.zeros(len(times))
@@ -234,19 +236,41 @@ class SimulationData(object):
                         found += 1
 
                         if job.time_series.get(ts_name):
+
+                            # print "job values: ", job.time_series[ts_name]["values"]
+
+                            # job_ts_timestamps includes the t_0 of each interval
                             job_ts_timestamps = [0] + job.time_series[ts_name]["times"]
                             t_start = job.t_start
 
-                            for tt in range(len(job_ts_timestamps[1:])):
+                            # print "---------> job_ts_timestamps ", job_ts_timestamps
+                            for tt in range(1, len(job_ts_timestamps)):
+
+                                # print "job kernel t_0: ", job_ts_timestamps[tt-1] + t_start-tmin_epochs
+                                # print "job kernel t_1: ", job_ts_timestamps[tt] + t_start-tmin_epochs
 
                                 first = int(math.floor((job_ts_timestamps[tt-1] + t_start-tmin_epochs) / bin_width))
                                 last = int(math.ceil((job_ts_timestamps[tt] + t_start-tmin_epochs) / bin_width))
 
+                                # make sure that last is always > first
                                 last = last if last > first else first + 1
+
+                                # print "global index first: ", first
+                                # print "global index last: ", last
+
+                                # make sure that n_span_bin is >= 1
                                 n_span_bin = max(1, last-first)
-                                binned_values[first:last] += job.time_series[ts_name]["values"][tt]/float(n_span_bin)
-                                binned_elapsed[first:last] += job.time_series[ts_name]["elapsed"][tt]/float(n_span_bin)
+
+                                # counter to get the value corresponding to the time interval
+                                value_count = tt-1
+
+                                binned_values[first:last] += job.time_series[ts_name]["values"][value_count]/float(n_span_bin)
+                                binned_elapsed[first:last] += job.time_series[ts_name]["elapsed"][value_count]/float(n_span_bin)
                                 binned_processes[first:last] += 1
+
+                                # print "Adding a total of: {}".format(job.time_series[ts_name]["values"][value_count])
+                                # print " --> Adding in each bin: {}".format(job.time_series[ts_name]["values"][value_count]/float(n_span_bin))
+                                # print "updated binned_values: ", binned_values
 
             global_time_series[ts_name] = zip(times, binned_values, binned_elapsed, binned_processes)
 
