@@ -14,6 +14,7 @@ from kronos.core.post_process.export_config.export_config_format import ExportCo
 class ExportConfig(object):
 
     output_path = None
+    job_classes = None
     experiment_list = None
     experiment_paths = None
     exports = None

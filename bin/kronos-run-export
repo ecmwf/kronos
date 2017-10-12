@@ -31,10 +31,19 @@ if __name__ == "__main__":
     # Pre-calculate data ready for export
     sim_set = SimulationSet(labelled_kronos_sims)
 
+    # Retrieve job classes common for all the simulation in the set
+    common_job_classes = sim_set.retrieve_common_job_classes(config.job_classes)
+    print "common_job_classes", common_job_classes
+
+    # calculate statistics on the common job classes
+    sim_set.calculate_class_stats_sums(common_job_classes)
+
     for sim in sim_set.sims:
-        sim.print_job_classes_info()
+        sim.print_job_classes_info(common_job_classes)
 
     # Export results as per user requests
     for export_config in config.exports:
         data_writer = writer_map[export_config["type"]](sim_set=sim_set)
-        data_writer.export(export_config=export_config, output_path=config.output_path)
+        data_writer.export(export_config=export_config,
+                           output_path=config.output_path,
+                           job_classes=common_job_classes)

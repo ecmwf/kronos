@@ -109,7 +109,7 @@ class SimulationData(object):
     def tmin_epochs(self):
         return min([j.t_start for j in self.jobs])
 
-    def class_stats(self):
+    def class_stats(self, class_list):
         """
         Calculate a class_stats of a simulations
         :return:
@@ -119,12 +119,12 @@ class SimulationData(object):
 
         per_class_stats = {}
         for job in self.jobs:
-            class_name = job.get_class_name()
+            class_name = job.get_class_name(class_list)
             per_class_stats.setdefault(class_name, []).extend(job.get_stats())
 
         return per_class_stats
 
-    def class_stats_sums(self):
+    def class_stats_sums(self, class_list):
         """
         Calculate sums of class_stats of a simulations
         :return:
@@ -133,7 +133,7 @@ class SimulationData(object):
         print "Summing class stats for sim : {}".format(self.name)
 
         # calculate all the stats for each job class
-        per_class_stats = self.class_stats()
+        per_class_stats = self.class_stats(class_list)
 
         # init class stats sum structure
         per_class_stats_sums = {}
@@ -276,7 +276,7 @@ class SimulationData(object):
 
         return found, global_time_series
 
-    def print_job_classes_info(self):
+    def print_job_classes_info(self, class_list):
         """
         Provides basic information on job classes
         :return:
@@ -284,7 +284,7 @@ class SimulationData(object):
 
         job_classes_dict = {}
         for job in self.jobs:
-            job_classes_dict.setdefault(job.get_class_name(), []).append(job)
+            job_classes_dict.setdefault(job.get_class_name(class_list), []).append(job)
 
         print "============ SIM: {} ===============".format(self.name)
         print "{:80s}{:10s}".format("job label", "N cpus")

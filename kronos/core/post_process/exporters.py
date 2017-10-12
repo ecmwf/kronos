@@ -20,7 +20,6 @@ from kronos.core.exceptions_iows import ConfigurationError
 from kronos.core.post_process.krf_data import sorted_krf_stats_names
 from kronos.core.post_process.krf_data import krf_stats_info
 
-from kronos.core.post_process.definitions import class_names_complete
 from kronos.core.post_process.definitions import plot_linestyle_sp
 from kronos.core.post_process.definitions import job_class_string
 from kronos.core.post_process.definitions import job_class_color
@@ -42,22 +41,22 @@ class ExporterBase(object):
         self.sim_set = sim_set
         self.export_config = None
 
-    def export(self, export_config, output_path, **kwargs):
+    def export(self, export_config, output_path, job_classes, **kwargs):
 
         self.export_config = export_config
 
-        self.check_export_config(export_config, output_path, **kwargs)
+        self.check_export_config(export_config, output_path, job_classes, **kwargs)
 
         # Get output format from config (to choose appropriate method from the exporter..)
         export_format = export_config.get("format", self.default_export_format)
 
         # call the export function as appropriate
         if export_format:
-            self.export_function_map(export_format)(output_path, **kwargs)
+            self.export_function_map(export_format)(output_path, job_classes, **kwargs)
         else:
-            self.export_function_map(self.default_export_format)(output_path, **kwargs)
+            self.export_function_map(self.default_export_format)(output_path, job_classes, **kwargs)
 
-    def check_export_config(self, export_config, out_path, **kwargs):
+    def check_export_config(self, export_config, out_path, job_classes, **kwargs):
 
         # create output dir if it does not exists..
         if not os.path.isdir(out_path):
@@ -99,7 +98,7 @@ class ExporterTable(ExporterBase):
 
         return function_map.get(key, None)
 
-    def _export_csv(self, output_path, **kwargs):
+    def _export_csv(self, output_path, job_classes, **kwargs):
         """
         export data into csv format
         :return:
@@ -114,15 +113,17 @@ class ExporterTable(ExporterBase):
                 csvwriter.writerow([sim_name, sim.runtime()])
 
         # ------- write a stat file for each job class --------
-        for class_name in class_names_complete:
+        for class_name in job_classes:
             class_name_ser_par = job_class_string(class_name)
             csv_name = os.path.join(output_path, 'rates_class_{}.csv'.format(fig_name_from_class(class_name_ser_par)))
             csvfile = open(csv_name, 'wb')
             csvwriter = csv.writer(csvfile, delimiter=',')
             csvwriter.writerow(["metric"] + self.sim_set.ordered_sims().keys())
 
-            # loop over the sorted metrics
+            # Loop over the sorted metrics
             for stat_name in sorted_krf_stats_names:
+
+                print "self.sim_set.ordered_sims().keys()", self.sim_set.ordered_sims().keys()
 
                 # take list of rates if the metric is defined for this class otherwise get "-1" flag
                 metric_rate_list = [self.sim_set.class_stats_sums[sim_name][class_name_ser_par][stat_name]["rate"]
@@ -168,7 +169,7 @@ class ExporterPlot(ExporterBase):
 
         return function_map.get(key, None)
 
-    def _export_png(self, output_path, **kwargs):
+    def _export_png(self, output_path, job_classes, **kwargs):
 
         print "Exporting PNG tables in {}".format(output_path)
 
@@ -178,7 +179,7 @@ class ExporterPlot(ExporterBase):
         # ------------ find max and min rates for scaling all the plots accordingly ------------
         max_norm_value = None
         min_norm_value = None
-        for class_name in class_names_complete:
+        for class_name in job_classes:
 
             class_name_ser_par = job_class_string(class_name)
             for stat_name in sorted_krf_stats_names:
@@ -199,7 +200,7 @@ class ExporterPlot(ExporterBase):
 
         # ------------ plot the rates per job class ------------
         plot_id = 1
-        for class_name in class_names_complete:
+        for class_name in job_classes:
 
             class_name_ser_par = job_class_string(class_name)
 
@@ -277,7 +278,7 @@ class ExporterTimeSeries(ExporterBase):
         }
         return function_map.get(key, None)
 
-    def _export_png(self, output_path):
+    def _export_png(self, output_path, job_classes):
         """
         plot time series of jobs and metrics
         :return:
@@ -288,9 +289,9 @@ class ExporterTimeSeries(ExporterBase):
         for sim in self.sim_set.sims:
 
             times_plot = linspace(0, sim.runtime(), 6000)
-            self._make_plots(sim, times_plot, "png", output_path=output_path)
+            self._make_plots(sim, times_plot, "png", job_classes, output_path=output_path)
 
-    def _make_plots(self, sim, times_plot, fig_format, output_path=None):
+    def _make_plots(self, sim, times_plot, fig_format, job_classes, output_path=None):
         """
         Plot time series of the simulations
         :param sim:
@@ -303,7 +304,7 @@ class ExporterTimeSeries(ExporterBase):
         # =====================  calculate all time-series =====================
         times_plot = np.asarray(times_plot)
         global_time_series = {}
-        for cl in class_names_complete:
+        for cl in job_classes:
             found, series = sim.create_global_time_series(times_plot, job_class=cl)
             if found:
                 global_time_series[cl] = series
@@ -313,7 +314,7 @@ class ExporterTimeSeries(ExporterBase):
 
         # ================= Plot job and processes time-series ==================
         plt.figure(figsize=(20, 16))
-        for cc, cl in enumerate(class_names_complete):
+        for cc, cl in enumerate(job_classes):
 
             cl_sp = cl[1]
 
@@ -322,7 +323,7 @@ class ExporterTimeSeries(ExporterBase):
             if found:
                 ax = plt.subplot(3, 1, 1)
                 plt.plot(times_plot, series_jp[:, 0],
-                         color=job_class_color(cl),
+                         color=job_class_color(cl, job_classes),
                          linestyle=plot_linestyle_sp[cl_sp],
                          label=job_class_string(cl))
                 plt.ylabel("# jobs")
@@ -337,7 +338,7 @@ class ExporterTimeSeries(ExporterBase):
 
                 ax = plt.subplot(3, 1, 2)
                 plt.plot(times_plot, series_jp[:, 1],
-                         color=job_class_color(cl),
+                         color=job_class_color(cl, job_classes),
                          linestyle=plot_linestyle_sp[cl_sp],
                          label=job_class_string(cl))
                 plt.ylabel("# procs")
@@ -355,7 +356,7 @@ class ExporterTimeSeries(ExporterBase):
                 # print "series_jp[:, 2]", series_jp[:, 2]
                 # print "series_jp.shape", series_jp.shape
                 plt.plot(times_plot, series_jp[:, 2],
-                         color=job_class_color(cl),
+                         color=job_class_color(cl, job_classes),
                          linestyle=plot_linestyle_sp[cl_sp],
                          label=job_class_string(cl))
                 plt.ylabel("# nodes")

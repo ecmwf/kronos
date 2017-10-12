@@ -25,22 +25,25 @@ labels_map = {
     'n_pairwise': "[#]"
 }
 
-# (root name, job identifier) ["serial", "parallel"]
-class_names_complete = [
-    ('main/fc/inigroup/*', 'serial'),
-    ('main/fc/inigroup/*', 'parallel'),
-
-    ('main/fc/ensemble/cf/control/legA/getiniLeg/*', 'parallel'),
-    ('main/fc/ensemble/cf/control/legA/chunk0/*', 'parallel'),
-    ('main/fc/ensemble/cf/*', 'serial'),
-
-    ('main/fc/ensemble/pf/*', 'serial'),
-    ('main/fc/ensemble/pf/*/legA/getiniLeg/*', 'parallel'),
-    ('main/fc/ensemble/pf/*/legA/chunk0/modeleps_nemo/*', 'parallel'),
-
-    ('main/fc/ensemble/logfiles/*', 'serial'),
-    ('main/fc/lag/*', 'serial'),
-]
+# # (root name, job identifier) ["serial", "parallel"]
+# class_names_complete = [
+#     ('main/fc/inigroup/*', 'serial'),
+#     ('main/fc/inigroup/*', 'parallel'),
+#
+#     ('main/fc/ensemble/cf/control/legA/getiniLeg/*', 'parallel'),
+#     ('main/fc/ensemble/cf/control/legA/chunk0/*', 'parallel'),
+#     ('main/fc/ensemble/cf/*', 'serial'),
+#
+#     ('main/fc/ensemble/pf/*', 'serial'),
+#     ('main/fc/ensemble/pf/*/legA/getiniLeg/*', 'parallel'),
+#     ('main/fc/ensemble/pf/*/legA/chunk0/modeleps_nemo/*', 'parallel'),
+#
+#     ('main/fc/ensemble/logfiles/*', 'serial'),
+#     ('main/fc/lag/*', 'serial'),
+#
+#     ('generic', 'parallel'),
+#     ('generic', 'serial')
+# ]
 
 class_colors = [(0, 0, 1),
                 (1, 0, 0),
@@ -72,10 +75,10 @@ def job_class_string(cl):
     return cl[0]+"/"+cl[1]
 
 
-def job_class_color(cl_in):
-    cl_set_idx = [cc for cc, cl_n in enumerate(set([n[0] for n in class_names_complete])) if cl_n == cl_in[0]]
-    assert len(cl_set_idx) == 1
-    return class_colors[cl_set_idx[0] % len(class_colors)]
+def job_class_color(cl_in, class_list):
+    class_list = list(class_list)
+    cl_idx = class_list.index(cl_in)
+    return class_colors[cl_idx % len(class_colors)]
 
 
 def fig_name_from_class(class_name):

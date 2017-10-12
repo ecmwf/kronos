@@ -11,7 +11,7 @@ from collections import OrderedDict
 
 from datetime import datetime
 
-from kronos.core.post_process.definitions import cumsum, datetime2epochs, class_names_complete
+from kronos.core.post_process.definitions import cumsum, datetime2epochs
 from kronos.io.results_format import ResultsFormat
 
 ts_names_map = {
@@ -235,15 +235,18 @@ class KRFJob(object):
             # print "------------------"
             return found_match
 
-    def get_class_name(self):
+    def get_class_name(self, class_list):
         """
         Return a string of the class name
         :return:
         """
 
-        class_name = [class_name for class_name in class_names_complete if self.is_in_class(class_name)]
+        class_name = [class_name for class_name in class_list if self.is_in_class(class_name)]
 
         if class_name:
             return class_name[0][0] + "/" + class_name[0][1]
         else:
-            raise ValueError("class of job {} not found".format(self.label))
+            # print "class_list ", class_list
+            # raise ValueError("class of job {} not found".format(self.label))
+            print "class of job {} not found, setting to unknown".format(self.label)
+            return "unknown"

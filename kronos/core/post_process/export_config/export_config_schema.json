@@ -31,13 +31,16 @@
       "type": "integer",
       "description": "N procs per node used to run the cases (TODO: this info needs to be removed..)"
     },
+    "job_classes": {
+      "type": "array",
+      "description": "List of classes that jobs will be grouped into for the post-processing"
+    },
     "exports": {
       "type": "array",
       "description": "List of exports to do with the data collected from the set of simulations",
       "items": {
         "type": "object",
         "oneOf": [
-
           {
             "type": "object",
             "description": "Export tabulated data",
