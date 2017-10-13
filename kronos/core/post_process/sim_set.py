@@ -57,7 +57,6 @@ class SimulationSet(object):
                     if job.is_in_class(class_tp):
                         sim_classes.append(tuple(class_tp))
 
-                print "sim: {}, classes: {}".format(sim.name, sim_classes)
                 sim_classes_all.append(set(sim_classes))
 
         common_classes = set.intersection(*sim_classes_all)
