@@ -5,11 +5,12 @@
 # In applying this licence, ECMWF does not waive the privileges and immunities
 # granted to it by virtue of its status as an intergovernmental organisation nor
 # does it submit to any jurisdiction.
+from kronos.core.post_process.exporters_tables import ExporterTable
 
-from kronos.core.post_process.exporters import ExporterPlot
-from kronos.core.post_process.exporters import ExporterTable
-from kronos.core.post_process.exporters import ExporterTimeSeries
-from kronos.core.post_process.exporters import ExporterScatteredData
+from kronos.core.post_process.exporters_plots import ExporterPlot
+from kronos.core.post_process.exporters_plots import ExporterTimeSeries
+from kronos.core.post_process.exporters_plots import ExporterScatteredData
+
 
 writer_map = {
     "rates_table": ExporterTable,
