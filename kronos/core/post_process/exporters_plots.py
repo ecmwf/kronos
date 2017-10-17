@@ -43,7 +43,6 @@ class ExporterPlot(ExporterBase):
 
         print "Exporting PNG tables in {}".format(output_path)
         import matplotlib.pyplot as plt
-        from matplotlib.ticker import FormatStrFormatter
 
         # use ylims if user has provided them
         plot_ylim = self.export_config.get("plot_ylims")
@@ -371,7 +370,6 @@ class ExporterScatteredData(ExporterBase):
         :return:
         """
         import matplotlib.pyplot as plt
-        from matplotlib.ticker import FormatStrFormatter
 
         # global time-series for all the classes
         global_time_series = {}
