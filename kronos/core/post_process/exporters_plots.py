@@ -7,10 +7,7 @@
 # does it submit to any jurisdiction.
 
 import os
-
-import matplotlib.pyplot as plt
 import numpy as np
-from matplotlib.ticker import FormatStrFormatter
 
 from kronos.core.kronos_tools.utils import lin_reg
 from kronos.core.post_process.exporter_base import ExporterBase
@@ -45,6 +42,8 @@ class ExporterPlot(ExporterBase):
     def _export_png(self, output_path, job_classes, **kwargs):
 
         print "Exporting PNG tables in {}".format(output_path)
+        import matplotlib.pyplot as plt
+        from matplotlib.ticker import FormatStrFormatter
 
         # use ylims if user has provided them
         plot_ylim = self.export_config.get("plot_ylims")
@@ -173,6 +172,8 @@ class ExporterTimeSeries(ExporterBase):
         :param output_path:
         :return:
         """
+        import matplotlib.pyplot as plt
+        from matplotlib.ticker import FormatStrFormatter
 
         # =====================  calculate all time-series =====================
         times_plot = np.asarray(times_plot)
@@ -369,6 +370,8 @@ class ExporterScatteredData(ExporterBase):
         :param output_path:
         :return:
         """
+        import matplotlib.pyplot as plt
+        from matplotlib.ticker import FormatStrFormatter
 
         # global time-series for all the classes
         global_time_series = {}
