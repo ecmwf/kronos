@@ -33,12 +33,13 @@ if __name__ == "__main__":
 
     # Retrieve job classes common for all the simulation in the set
     common_job_classes = sim_set.retrieve_common_job_classes(config.job_classes)
+    print "common_job_classes: {}".format(common_job_classes)
 
     # calculate statistics on the common job classes
     sim_set.calculate_class_stats_sums(common_job_classes)
 
-    for sim in sim_set.sims:
-        sim.print_job_classes_info(common_job_classes)
+    # for sim in sim_set.sims:
+    #     sim.print_job_classes_info(common_job_classes)
 
     # Export results as per user requests
     for export_config in config.exports:

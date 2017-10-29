@@ -11,13 +11,11 @@ import numpy as np
 
 from kronos.core.kronos_tools.utils import lin_reg
 from kronos.core.post_process.exporter_base import ExporterBase
-from kronos.core.time_signal.definitions import signal_types
 
 from kronos.core.post_process.krf_data import sorted_krf_stats_names
 from kronos.core.post_process.krf_data import krf_stats_info
 
 from kronos.core.post_process.definitions import plot_linestyle_sp
-from kronos.core.post_process.definitions import job_class_string
 from kronos.core.post_process.definitions import job_class_color
 from kronos.core.post_process.definitions import fig_name_from_class
 from kronos.core.post_process.definitions import linspace
@@ -29,7 +27,7 @@ class ExporterPlot(ExporterBase):
 
     class_export_type = "rates_plot"
     default_export_format = "png"
-    optional_configs = ["plot_ylims"]
+    optional_configs = ["y_lims"]
 
     def export_function_map(self, key):
 
@@ -45,19 +43,18 @@ class ExporterPlot(ExporterBase):
         import matplotlib.pyplot as plt
 
         # use ylims if user has provided them
-        plot_ylim = self.export_config.get("plot_ylims")
+        plot_ylim = self.export_config.get("y_lims")
 
         # ------------ find max and min rates for scaling all the plots accordingly ------------
         max_norm_value = None
         min_norm_value = None
-        for class_name in job_classes:
+        for class_name in job_classes.keys():
 
-            class_name_ser_par = job_class_string(class_name)
             for stat_name in sorted_krf_stats_names:
 
                 # take list of rates if the metric is defined for this class otherwise get "-1" flag
-                metric_rate_list = [self.sim_set.class_stats_sums[sim_name][class_name_ser_par][stat_name]["rate"]
-                                    if self.sim_set.class_stats_sums[sim_name][class_name_ser_par].get(stat_name)
+                metric_rate_list = [self.sim_set.class_stats_sums[sim_name][class_name][stat_name]["rate"]
+                                    if self.sim_set.class_stats_sums[sim_name][class_name].get(stat_name)
                                     else None for sim_name in self.sim_set.ordered_sims().keys()]
 
                 # write the metrics only if actually present for this class..
@@ -73,16 +70,14 @@ class ExporterPlot(ExporterBase):
         plot_id = 1
         for class_name in job_classes:
 
-            class_name_ser_par = job_class_string(class_name)
-
             fig = plt.figure(plot_id)
-            plt.title('Rates class: {}'.format(fig_name_from_class(class_name_ser_par)))
+            plt.title('Rates class: {}'.format(fig_name_from_class(class_name)))
             ax = fig.add_subplot(111)
             for stat_name in sorted_krf_stats_names:
 
                 # take list of rates if the metric is defined for this class otherwise get "-1" flag
-                metric_rate_list = [self.sim_set.class_stats_sums[sim_name][class_name_ser_par][stat_name]["rate"]
-                                    if self.sim_set.class_stats_sums[sim_name][class_name_ser_par].get(stat_name)
+                metric_rate_list = [self.sim_set.class_stats_sums[sim_name][class_name][stat_name]["rate"]
+                                    if self.sim_set.class_stats_sums[sim_name][class_name].get(stat_name)
                                     else None for sim_name in self.sim_set.ordered_sims().keys()]
 
                 # write the metrics only if actually present for this class..
@@ -101,7 +96,7 @@ class ExporterPlot(ExporterBase):
 
             plt.ylabel("Normalized Rates")
             if output_path:
-                png_name = os.path.join(output_path, 'rates_class_{}.png'.format( fig_name_from_class(class_name_ser_par) ))
+                png_name = os.path.join(output_path, 'rates_class_{}.png'.format( fig_name_from_class(class_name) ))
                 print "saving file {}".format(png_name)
                 plt.savefig(png_name)
             plot_id += 1
@@ -126,7 +121,10 @@ class ExporterPlot(ExporterBase):
         plt.legend()
         plt.xticks(range(len(self.sim_set.ordered_sims())))
         ax.set_xticklabels(self.sim_set.ordered_sims().keys())
-        if not plot_ylim:
+
+        # if y_lims are not specified by the user, take the max/min encountered during the per-class plots
+        # (if job-classes have been passes at all -> and therefore min_norm_value and max_norm_value are not None
+        if not plot_ylim and min_norm_value and max_norm_value:
             plt.ylim([0.9 * min_norm_value, max_norm_value * 1.1])
         else:
             plt.ylim(plot_ylim)
@@ -138,7 +136,165 @@ class ExporterPlot(ExporterBase):
 
 
 # ///////////////////// plotting class ///////////////////
-class ExporterTimeSeries(ExporterBase):
+class ExporterTimeSeriesMetrics(ExporterBase):
+    """
+    This class plots the time-series of the various CPU/MPI/IO metrics
+    """
+
+    class_export_type = "time_series_metrics"
+    default_export_format = "png"
+
+    def export_function_map(self, key):
+        function_map = {
+            "png": self._export_png
+        }
+        return function_map.get(key, None)
+
+    def _export_png(self, output_path, job_classes):
+        """
+        plot time series of metrics
+        :return:
+        """
+
+        print "Exporting time-series plots in {}".format(output_path)
+
+        for sim in self.sim_set.sims:
+
+            times_plot = linspace(0, sim.runtime(), 6000)
+            self._make_plots(sim, times_plot, "png", job_classes, output_path=output_path)
+
+    def _make_plots(self, sim, times_plot, fig_format, job_classes, output_path=None):
+        """
+        Plot time series of the simulations
+        :param sim:
+        :param times_plot:
+        :param fig_format:
+        :param output_path:
+        :return:
+        """
+        import matplotlib.pyplot as plt
+
+        # =====================  calculate all time-series =====================
+        times_plot = np.asarray(times_plot)
+        global_time_series = {}
+        for cl_name, cl_regex in job_classes.iteritems():
+            found, series = sim.create_global_time_series(times_plot, job_class_regex=cl_regex)
+            if found:
+                global_time_series[cl_name] = series
+
+        _, global_time_series["all"] = sim.create_global_time_series(times_plot)
+        # =======================================================================
+
+        # =============== Plot all the time-series aggregated metrics =================
+
+        # metrics to be plotted (each metric goes into a subplot)
+        plot_lines = self.export_config["lines"]
+
+        # N of metrics + n of running jobs
+        n_plots = len(plot_lines)
+
+        # Plot of n of *Running jobs*
+        plt.figure(figsize=(20, 32))
+        plt.subplot(n_plots, 1, 1)
+        plt.title("Time series - simulation: {}".format(sim.name))
+
+        pp = 0
+        all_time_series = global_time_series["all"]
+        for ts_name, ts_options in plot_lines.iteritems():
+            pp += 1
+
+            # get the values from the all-classes values
+            times_g, values_g, _, values_p = zip(*all_time_series[ts_name])
+            times_g_diff = np.diff(np.asarray(list(times_g)))
+            ratios_g = np.asarray(values_g[1:]) / times_g_diff
+
+            # plot the "all-classes" line first
+            plt.subplot(n_plots, 1, pp)
+            plt.plot(times_g[1:], ratios_g, "k", label="All jobs")
+            plt.ylabel(ts_name + " [" + labels_map[ts_name] + "]")
+
+            # Then plot all the other classes..
+            for cl_name, cl_regex in job_classes.iteritems():
+
+                # get the values from the all-classes values
+                class_series = global_time_series[cl_name]
+                times_g, values_g, _, values_p = zip(*class_series[ts_name])
+                times_g_diff = np.diff(np.asarray(list(times_g)))
+                ratios_g = np.asarray(values_g[1:]) / times_g_diff
+
+                # plot the "all-classes" line first
+                plt.subplot(n_plots, 1, pp)
+                plt.plot(times_g[1:], ratios_g,
+                         color=job_class_color(cl_name, job_classes.keys()),
+                         label=cl_name)
+
+                plt.ylabel(ts_name + " [" + labels_map[ts_name] + "]")
+
+            if ts_options.get("x_lims"):
+                plt.xlim(ts_options.get("x_lims"))
+
+            if ts_options.get("y_lims"):
+                plt.ylim(ts_options.get("y_lims"))
+
+            if pp == n_plots:
+                plt.xlabel("time [s]")
+
+            ax = plt.subplot(n_plots, 1, 1)
+            plt.title("Time series - experiment: {}".format(sim.name))
+            ax.legend()
+
+        if output_path:
+            plt.savefig(os.path.join(output_path, sim.name + '_time_series') + "."+fig_format)
+
+        plt.close()
+        # =============================================================================
+
+        # # =============== Plot time-series aggregated metrics =================
+        #
+        # # -------- IO write
+        # n_t, n_v, n_e, n_p = zip(*all_time_series["n_write"])
+        # b_t, b_v, b_e, b_p = zip(*all_time_series["kb_write"])
+        # t_vals = np.asarray(n_t)
+        # # n_vals = np.asarray(n_v)
+        # b_vals = np.asarray(b_v)
+        # e_vals = np.asarray(b_e)
+        # p_vals = np.asarray(b_p)
+        # rates = np.asarray([b / e if e else 0.0 for b, e in zip(b_vals, e_vals)])
+        #
+        # plt.figure(figsize=(12, 6))
+        # plt.subplot(3, 1, 1)
+        # plt.plot(t_vals - t_vals[0], b_vals, "k")
+        # plt.ylabel("KiB written")
+        # if self.export_config.get("plot_xlims"):
+        #     if self.export_config["plot_xlims"].get("volume_rates"):
+        #         plt.xlim(self.export_config["plot_xlims"]["volume_rates"])
+        #
+        # plt.subplot(3, 1, 2)
+        # plt.plot(t_vals - t_vals[0], rates, "b")
+        # plt.ylabel("KiB/sec")
+        # if self.export_config.get("plot_xlims"):
+        #     if self.export_config["plot_xlims"].get("volume_rates"):
+        #         plt.xlim(self.export_config["plot_xlims"]["volume_rates"])
+        #
+        # plt.subplot(3, 1, 3)
+        # plt.plot(t_vals - t_vals[0], p_vals, "r")
+        # plt.ylabel("# writing procs")
+        # plt.xlabel("time [s]")
+        # if self.export_config.get("plot_xlims"):
+        #     if self.export_config["plot_xlims"].get("volume_rates"):
+        #         plt.xlim(self.export_config["plot_xlims"]["volume_rates"])
+        #
+        # if output_path:
+        #     plt.savefig(os.path.join(output_path, sim.name + '_time_series_io_rates') + "."+fig_format)
+        #
+        # plt.close()
+        # # =============================================================================
+
+
+class ExporterTimeSeriesJNP(ExporterBase):
+    """
+    This class export a plot with jobs, nodes and processes per class
+    """
 
     class_export_type = "time_series"
     default_export_format = "png"
@@ -150,10 +306,6 @@ class ExporterTimeSeries(ExporterBase):
         return function_map.get(key, None)
 
     def _export_png(self, output_path, job_classes):
-        """
-        plot time series of jobs and metrics
-        :return:
-        """
 
         print "Exporting time-series plots in {}".format(output_path)
 
@@ -178,7 +330,7 @@ class ExporterTimeSeries(ExporterBase):
         times_plot = np.asarray(times_plot)
         global_time_series = {}
         for cl in job_classes:
-            found, series = sim.create_global_time_series(times_plot, job_class=cl)
+            found, series = sim.create_global_time_series(times_plot, job_class_regex=cl)
             if found:
                 global_time_series[cl] = series
 
@@ -187,18 +339,19 @@ class ExporterTimeSeries(ExporterBase):
 
         # ================= Plot job and processes time-series ==================
         plt.figure(figsize=(20, 16))
-        for cc, cl in enumerate(job_classes):
+        for cc, cl in enumerate(job_classes.keys()):
 
             cl_sp = cl[1]
 
             found, series_jp = running_series(sim.jobs, times_plot, sim.tmin_epochs,
-                                              n_procs_node=sim.n_procs_node, job_class=cl)
+                                              n_procs_node=sim.n_procs_node,
+                                              job_class=cl)
             if found:
                 ax = plt.subplot(3, 1, 1)
                 plt.plot(times_plot, series_jp[:, 0],
                          color=job_class_color(cl, job_classes),
                          linestyle=plot_linestyle_sp[cl_sp],
-                         label=job_class_string(cl))
+                         label=cl)
                 plt.ylabel("# jobs")
                 ax.yaxis.set_major_formatter(FormatStrFormatter('%d'))
                 if self.export_config.get("plot_ylims"):
@@ -213,7 +366,7 @@ class ExporterTimeSeries(ExporterBase):
                 plt.plot(times_plot, series_jp[:, 1],
                          color=job_class_color(cl, job_classes),
                          linestyle=plot_linestyle_sp[cl_sp],
-                         label=job_class_string(cl))
+                         label=cl)
                 plt.ylabel("# procs")
                 # plt.yscale('log')
                 ax.yaxis.set_major_formatter(FormatStrFormatter('%d'))
@@ -231,7 +384,7 @@ class ExporterTimeSeries(ExporterBase):
                 plt.plot(times_plot, series_jp[:, 2],
                          color=job_class_color(cl, job_classes),
                          linestyle=plot_linestyle_sp[cl_sp],
-                         label=job_class_string(cl))
+                         label=cl)
                 plt.ylabel("# nodes")
                 # plt.yscale('log')
                 ax.yaxis.set_major_formatter(FormatStrFormatter('%d'))
@@ -251,86 +404,6 @@ class ExporterTimeSeries(ExporterBase):
         plt.xlabel("time [s]")
         if output_path:
             plt.savefig(os.path.join(output_path, sim.name + '_time_series_jobs_procs') + "."+fig_format)
-
-        plt.close()
-        # =============================================================================
-
-        # =============== Plot all the time-series aggregated metrics =================
-        # N of metrics + n of running jobs
-        n_plots = len(signal_types)
-
-        # Plot of n of *Running jobs*
-        plt.figure(figsize=(20, 32))
-        plt.subplot(n_plots, 1, 1)
-        plt.title("Time series - experiment: {}".format(sim.name))
-
-        pp = 0
-        all_time_series = global_time_series["all"]
-        for ts_name in signal_types:
-            pp += 1
-
-            times_g, values_g, _, values_p = zip(*all_time_series[ts_name])
-            times_g_diff = np.diff(np.asarray(list(times_g)))
-            ratios_g = np.asarray(values_g[1:]) / times_g_diff
-
-            plt.subplot(n_plots, 1, pp)
-            plt.plot(times_g[1:], ratios_g, "b")
-            plt.ylabel(ts_name + " [" + labels_map[ts_name] + "]")
-
-            if self.export_config.get("plot_ylims"):
-                if self.export_config["plot_ylims"].get(ts_name):
-                    plt.ylim(self.export_config["plot_ylims"][ts_name])
-
-            if self.export_config.get("plot_xlims"):
-                if self.export_config["plot_xlims"].get("metrics"):
-                    plt.xlim(self.export_config["plot_xlims"]["metrics"])
-
-            if pp == n_plots:
-                plt.xlabel("time [s]")
-
-        if output_path:
-            plt.savefig(os.path.join(output_path, sim.name + '_time_series') + "."+fig_format)
-
-        plt.close()
-        # =============================================================================
-
-        # =============== Plot time-series aggregated metrics =================
-
-        # -------- IO write
-        n_t, n_v, n_e, n_p = zip(*all_time_series["n_write"])
-        b_t, b_v, b_e, b_p = zip(*all_time_series["kb_write"])
-        t_vals = np.asarray(n_t)
-        # n_vals = np.asarray(n_v)
-        b_vals = np.asarray(b_v)
-        e_vals = np.asarray(b_e)
-        p_vals = np.asarray(b_p)
-        rates = np.asarray([b / e if e else 0.0 for b, e in zip(b_vals, e_vals)])
-
-        plt.figure(figsize=(12, 6))
-        plt.subplot(3, 1, 1)
-        plt.plot(t_vals - t_vals[0], b_vals, "k")
-        plt.ylabel("KiB written")
-        if self.export_config.get("plot_xlims"):
-            if self.export_config["plot_xlims"].get("volume_rates"):
-                plt.xlim(self.export_config["plot_xlims"]["volume_rates"])
-
-        plt.subplot(3, 1, 2)
-        plt.plot(t_vals - t_vals[0], rates, "b")
-        plt.ylabel("KiB/sec")
-        if self.export_config.get("plot_xlims"):
-            if self.export_config["plot_xlims"].get("volume_rates"):
-                plt.xlim(self.export_config["plot_xlims"]["volume_rates"])
-
-        plt.subplot(3, 1, 3)
-        plt.plot(t_vals - t_vals[0], p_vals, "r")
-        plt.ylabel("# writing procs")
-        plt.xlabel("time [s]")
-        if self.export_config.get("plot_xlims"):
-            if self.export_config["plot_xlims"].get("volume_rates"):
-                plt.xlim(self.export_config["plot_xlims"]["volume_rates"])
-
-        if output_path:
-            plt.savefig(os.path.join(output_path, sim.name + '_time_series_io_rates') + "."+fig_format)
 
         plt.close()
         # =============================================================================

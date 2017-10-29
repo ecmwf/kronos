@@ -109,7 +109,7 @@ class SimulationData(object):
     def tmin_epochs(self):
         return min([j.t_start for j in self.jobs])
 
-    def class_stats(self, class_list):
+    def class_stats(self, job_classes):
         """
         Calculate a class_stats of a simulations
         :return:
@@ -119,12 +119,15 @@ class SimulationData(object):
 
         per_class_stats = {}
         for job in self.jobs:
-            class_name = job.get_class_name(class_list)
-            per_class_stats.setdefault(class_name, []).extend(job.get_stats())
+            job_owner_classes = job.get_class_name(job_classes)
+
+            # add this job to any class that the job belongs to..
+            for class_name in job_owner_classes:
+                per_class_stats.setdefault(class_name, []).extend(job.get_stats())
 
         return per_class_stats
 
-    def class_stats_sums(self, class_list):
+    def class_stats_sums(self, job_classes):
         """
         Calculate sums of class_stats of a simulations
         :return:
@@ -133,7 +136,7 @@ class SimulationData(object):
         print "Summing class stats for sim : {}".format(self.name)
 
         # calculate all the stats for each job class
-        per_class_stats = self.class_stats(class_list)
+        per_class_stats = self.class_stats(job_classes)
 
         # init class stats sum structure
         per_class_stats_sums = {}
@@ -207,11 +210,11 @@ class SimulationData(object):
 
         return per_class_stats_sums
 
-    def create_global_time_series(self, times, job_class=None):
+    def create_global_time_series(self, times, job_class_regex=None):
         """
         Calculate time series over a specified times vector
         :param times:
-        :param job_class:
+        :param job_class_regex:
         :return:
         """
 
@@ -231,7 +234,7 @@ class SimulationData(object):
             for jj, job in enumerate(self.jobs):
 
                 if job.label:
-                    if job.is_in_class(job_class):
+                    if job.is_in_class(job_class_regex):
 
                         found += 1
 

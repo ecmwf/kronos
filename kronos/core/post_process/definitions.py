@@ -11,74 +11,9 @@ import datetime
 import numpy as np
 
 
-# ///////////////////////////////// DEFINITIONS /////////////////////////////////////////
-
-labels_map = {
-    'n_write': "[#]",
-    'kb_write': "[KiB]",
-    'n_read': "[#]",
-    'n_collective': "[#]",
-    'kb_read': "[KiB]",
-    'flops': "[#]",
-    'kb_collective': "[KiB]",
-    'kb_pairwise': "[KiB]",
-    'n_pairwise': "[#]"
-}
-
-# # (root name, job identifier) ["serial", "parallel"]
-# class_names_complete = [
-#     ('main/fc/inigroup/*', 'serial'),
-#     ('main/fc/inigroup/*', 'parallel'),
-#
-#     ('main/fc/ensemble/cf/control/legA/getiniLeg/*', 'parallel'),
-#     ('main/fc/ensemble/cf/control/legA/chunk0/*', 'parallel'),
-#     ('main/fc/ensemble/cf/*', 'serial'),
-#
-#     ('main/fc/ensemble/pf/*', 'serial'),
-#     ('main/fc/ensemble/pf/*/legA/getiniLeg/*', 'parallel'),
-#     ('main/fc/ensemble/pf/*/legA/chunk0/modeleps_nemo/*', 'parallel'),
-#
-#     ('main/fc/ensemble/logfiles/*', 'serial'),
-#     ('main/fc/lag/*', 'serial'),
-#
-#     ('generic', 'parallel'),
-#     ('generic', 'serial')
-# ]
-
-class_colors = [(0, 0, 1),
-                (1, 0, 0),
-
-                (0, 1, 0),
-                (0, 1, 1),
-                (1, 0, 1),
-
-                (0.3, 0.3, 0),
-                (0, 0.2, 0.5),
-                (0.5, 0., 0.2),
-
-                (0.2, 0.5, 0),
-                (0.2, 0.5, 0.6),
-                ]
-
-plot_linestyle_sp = {
-    "parallel": "-",
-    "serial": "--",
-}
-
-
 # ///////////////////////////////// UTILITIES /////////////////////////////////////////
 def datetime2epochs(t_in):
     return (t_in - datetime.datetime(1970,1,1)).total_seconds()
-
-
-def job_class_string(cl):
-    return cl[0]+"/"+cl[1]
-
-
-def job_class_color(cl_in, class_list):
-    class_list = list(class_list)
-    cl_idx = class_list.index(cl_in)
-    return class_colors[cl_idx % len(class_colors)]
 
 
 def fig_name_from_class(class_name):
@@ -128,3 +63,48 @@ def running_series(jobs, times, t0_epoch_wl, n_procs_node=None, job_class=None):
                 running_jpn[first:last, 2] += n_nodes
 
     return found, running_jpn
+
+
+# ///////////////////////////////// DEFINITIONS /////////////////////////////////////////
+
+labels_map = {
+    'n_write': "[#]",
+    'kb_write': "[KiB]",
+    'n_read': "[#]",
+    'n_collective': "[#]",
+    'kb_read': "[KiB]",
+    'flops': "[#]",
+    'kb_collective': "[KiB]",
+    'kb_pairwise': "[KiB]",
+    'n_pairwise': "[#]"
+}
+
+# class_colors = [(0, 0, 1),
+#                 (1, 0, 0),
+#
+#                 (0, 1, 0),
+#                 (0, 1, 1),
+#                 (1, 0, 1),
+#
+#                 (0.3, 0.3, 0),
+#                 (0, 0.2, 0.5),
+#                 (0.5, 0., 0.2),
+#
+#                 (0.2, 0.5, 0),
+#                 (0.2, 0.5, 0.6),
+#                 ]
+
+class_colors = [(i, j, k) for i in linspace(0,1,3) for j in linspace(0,1,3) for k in linspace(0,1,3)]
+
+plot_linestyle_sp = {
+    "parallel": "-",
+    "serial": "--",
+}
+
+
+def job_class_color(cl_in, class_list):
+    class_list = list(class_list)
+    cl_idx = class_list.index(cl_in)
+
+    # return a rotated index (excluding 0, as black is reserved for all-classes plots)
+    return class_colors[1:][cl_idx % len(class_colors)]

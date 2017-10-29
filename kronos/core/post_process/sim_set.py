@@ -29,7 +29,7 @@ class SimulationSet(object):
     def ordered_sims(self):
         return OrderedDict([(sim.name, sim) for sim in self.sims])
 
-    def calculate_class_stats_sums(self, class_list):
+    def calculate_class_stats_sums(self, job_classes):
         """
         Calculate per class data of all the simulations in the set
         :return:
@@ -37,28 +37,31 @@ class SimulationSet(object):
 
         class_stats_sums = {}
         for sim in self.sims:
-            class_stats_sums[sim.name] = sim.class_stats_sums(class_list)
+            class_stats_sums[sim.name] = sim.class_stats_sums(job_classes)
 
         self.class_stats_sums = class_stats_sums
 
-    def retrieve_common_job_classes(self, class_list):
+    def retrieve_common_job_classes(self, class_dict):
         """
-        Retrieve the class names of the classes that are common among the simulations in the set
-        :param class_list:
+        Retrieve the names of the classes for which there is at least one job in each simulation of the set
+        :param class_dict:
         :return:
         """
 
-        sim_classes_all = []
-        for class_tp in class_list:
+        class_common_dict = {}
+        for class_name, class_regex in class_dict.iteritems():
 
-            sim_classes = []
+            print "checking job class {}".format(class_name)
+            found_in_all_sims = True
             for sim in self.sims:
+                found_in_sim = False
                 for job in sim.jobs:
-                    if job.is_in_class(class_tp):
-                        sim_classes.append(tuple(class_tp))
+                    if job.is_in_class(class_regex):
+                        found_in_sim = True
+                if not found_in_sim:
+                    found_in_all_sims = False
 
-                sim_classes_all.append(set(sim_classes))
+            if found_in_all_sims:
+                class_common_dict[class_name] = class_regex
 
-        common_classes = set.intersection(*sim_classes_all)
-
-        return common_classes
+        return class_common_dict

@@ -205,34 +205,32 @@ class KRFJob(object):
     def t_end(self):
         return self.t_start + self.duration
 
-    def is_in_class(self, class_name_idx=None):
+    def is_in_class(self, class_regex=None):
         """
         Check if this job belongs to a specified class
-        :param class_name_idx:
+        :param class_regex:
         :return:
         """
 
         # if the class name is not provided, job is set to belong to class by default
-        if not class_name_idx:
+        if not class_regex:
             return True
 
         # otherwise check if job.label matches the class name
         else:
-            class_name = class_name_idx[0]
-            class_sp = class_name_idx[1]
 
-            # print "------------------"
-            # print "self.label ", self.label
-            # print "class_name ", class_name
-            # print "class_sp ", class_sp
-
-            name_match = re.match(fnmatch.translate(class_name), self.label)
-            sp_match = class_sp in self.label
+            name_match = re.match(fnmatch.translate(class_regex), self.label)
 
             # return class_name in self.label and class_sp in self.label
-            found_match = (name_match and sp_match) if (name_match and sp_match) else False
-            # print found_match
-            # print "------------------"
+            found_match = True if name_match else False
+
+            # if found_match:
+            #     print "------------------"
+            #     print "self.label ", self.label
+            #     print "class_regex ", class_regex
+            #     print found_match
+            #     print "------------------"
+
             return found_match
 
     def get_class_name(self, class_list):
@@ -241,12 +239,13 @@ class KRFJob(object):
         :return:
         """
 
-        class_name = [class_name for class_name in class_list if self.is_in_class(class_name)]
+        # NOTE: a job can be in multiple classes
+        job_classes = [cl_k for cl_k, cl_v in class_list.iteritems() if self.is_in_class(cl_v)]
 
-        if class_name:
-            return class_name[0][0] + "/" + class_name[0][1]
+        if job_classes:
+            return job_classes
         else:
             # print "class_list ", class_list
             # raise ValueError("class of job {} not found".format(self.label))
-            print "class of job {} not found, setting to unknown".format(self.label)
+            # print "class of job {} not found, setting to unknown".format(self.label)
             return "unknown"

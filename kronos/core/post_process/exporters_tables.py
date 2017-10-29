@@ -14,7 +14,6 @@ from kronos.core.post_process.exporter_base import ExporterBase
 from kronos.core.post_process.krf_data import sorted_krf_stats_names
 from kronos.core.post_process.krf_data import krf_stats_info
 
-from kronos.core.post_process.definitions import job_class_string
 from kronos.core.post_process.definitions import fig_name_from_class
 
 
@@ -47,9 +46,9 @@ class ExporterTable(ExporterBase):
                 csvwriter.writerow([sim_name, sim.runtime()])
 
         # ------- write a stat file for each job class --------
-        for class_name in job_classes:
-            class_name_ser_par = job_class_string(class_name)
-            csv_name = os.path.join(output_path, 'rates_class_{}.csv'.format(fig_name_from_class(class_name_ser_par)))
+        for class_name in job_classes.keys():
+
+            csv_name = os.path.join(output_path, 'rates_class_{}.csv'.format(fig_name_from_class(class_name)))
             csvfile = open(csv_name, 'wb')
             csvwriter = csv.writer(csvfile, delimiter=',')
             csvwriter.writerow(["metric"] + self.sim_set.ordered_sims().keys())
@@ -57,11 +56,9 @@ class ExporterTable(ExporterBase):
             # Loop over the sorted metrics
             for stat_name in sorted_krf_stats_names:
 
-                print "self.sim_set.ordered_sims().keys()", self.sim_set.ordered_sims().keys()
-
                 # take list of rates if the metric is defined for this class otherwise get "-1" flag
-                metric_rate_list = [self.sim_set.class_stats_sums[sim_name][class_name_ser_par][stat_name]["rate"]
-                                    if self.sim_set.class_stats_sums[sim_name][class_name_ser_par].get(stat_name)
+                metric_rate_list = [self.sim_set.class_stats_sums[sim_name][class_name][stat_name]["rate"]
+                                    if self.sim_set.class_stats_sums[sim_name][class_name].get(stat_name)
                                     else None for sim_name in self.sim_set.ordered_sims().keys()]
 
                 # write the metrics only if actually present for this class..
