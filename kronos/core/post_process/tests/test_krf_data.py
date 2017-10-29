@@ -64,7 +64,7 @@ class KRFJobTest(unittest.TestCase):
         self.assertEqual(krf_data.n_cpu, len(krf_json_data["ranks"]))
 
         # is in class
-        self.assertTrue( krf_data.is_in_class(("workload_1/*", "parallel")) )
+        self.assertTrue( krf_data.is_in_class("workload_1/*/parallel"))
 
     def test_krf_time_series(self):
         """
