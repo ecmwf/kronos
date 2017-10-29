@@ -28,7 +28,7 @@ def linspace(x0, x1, count):
     return [x0+(x1-x0)*i/float(count-1) for i in range(count)]
 
 
-def running_series(jobs, times, t0_epoch_wl, n_procs_node=None, job_class=None):
+def running_series(jobs, times, t0_epoch_wl, n_procs_node=None, job_class_regex=None):
 
     bin_width = times[1] - times[0]
 
@@ -41,7 +41,7 @@ def running_series(jobs, times, t0_epoch_wl, n_procs_node=None, job_class=None):
     found = 0
     for job in jobs:
 
-        if job.is_in_class(job_class):
+        if job.is_in_class(job_class_regex):
             
             found += 1
             first = int(math.ceil((job.t_start-t0_epoch_wl - times[0]) / bin_width))

@@ -296,7 +296,7 @@ class ExporterTimeSeriesJNP(ExporterBase):
     This class export a plot with jobs, nodes and processes per class
     """
 
-    class_export_type = "time_series"
+    class_export_type = "time_series_jobs_nodes_procs"
     default_export_format = "png"
 
     def export_function_map(self, key):
@@ -326,84 +326,73 @@ class ExporterTimeSeriesJNP(ExporterBase):
         import matplotlib.pyplot as plt
         from matplotlib.ticker import FormatStrFormatter
 
-        # =====================  calculate all time-series =====================
-        times_plot = np.asarray(times_plot)
-        global_time_series = {}
-        for cl in job_classes:
-            found, series = sim.create_global_time_series(times_plot, job_class_regex=cl)
-            if found:
-                global_time_series[cl] = series
-
-        _, global_time_series["all"] = sim.create_global_time_series(times_plot)
-        # =======================================================================
-
         # ================= Plot job and processes time-series ==================
+        plot_lines = self.export_config["lines"]
         plt.figure(figsize=(20, 16))
-        for cc, cl in enumerate(job_classes.keys()):
 
-            cl_sp = cl[1]
+        # n plots is 2 (jobs and procs) if procs_per_nodes info not available in sim data
+        # else is 3 (jobs, procs and nodes)
+        n_subplots = 3 if sim.n_procs_node else 2
+        for cc, (cl_name, cl_regex) in enumerate(job_classes.iteritems()):
 
             found, series_jp = running_series(sim.jobs, times_plot, sim.tmin_epochs,
                                               n_procs_node=sim.n_procs_node,
-                                              job_class=cl)
+                                              job_class_regex=cl_regex)
+
             if found:
-                ax = plt.subplot(3, 1, 1)
+                ax = plt.subplot(n_subplots, 1, 1)
                 plt.plot(times_plot, series_jp[:, 0],
-                         color=job_class_color(cl, job_classes),
-                         linestyle=plot_linestyle_sp[cl_sp],
-                         label=cl)
+                         color=job_class_color(cl_name, job_classes.keys()),
+                         label=cl_name)
                 plt.ylabel("# jobs")
+                plt.yscale('log')
                 ax.yaxis.set_major_formatter(FormatStrFormatter('%d'))
-                if self.export_config.get("plot_ylims"):
-                    if self.export_config["plot_ylims"].get("jobs"):
-                        plt.ylim(self.export_config["plot_ylims"]["jobs"])
 
-                if self.export_config.get("plot_xlims"):
-                    if self.export_config["plot_xlims"].get("jobs_proc_nodes"):
-                        plt.xlim(self.export_config["plot_xlims"]["jobs_proc_nodes"])
+                # Set plot limits if specified by the user..
+                if plot_lines.get("jobs"):
+                    if plot_lines["jobs"].get("y_lims"):
+                        plt.ylim(plot_lines["jobs"]["y_lims"])
+                    if plot_lines["jobs"].get("x_lims"):
+                        plt.xlim(plot_lines["jobs"]["x_lims"])
 
-                ax = plt.subplot(3, 1, 2)
+                ax = plt.subplot(n_subplots, 1, 2)
                 plt.plot(times_plot, series_jp[:, 1],
-                         color=job_class_color(cl, job_classes),
-                         linestyle=plot_linestyle_sp[cl_sp],
-                         label=cl)
+                         color=job_class_color(cl_name, job_classes.keys()),
+                         label=cl_name)
                 plt.ylabel("# procs")
-                # plt.yscale('log')
-                ax.yaxis.set_major_formatter(FormatStrFormatter('%d'))
-                if self.export_config.get("plot_ylims"):
-                    if self.export_config["plot_ylims"].get("procs"):
-                        plt.ylim(self.export_config["plot_ylims"]["procs"])
+                plt.yscale('log')
 
-                if self.export_config.get("plot_xlims"):
-                    if self.export_config["plot_xlims"].get("jobs_proc_nodes"):
-                        plt.xlim(self.export_config["plot_xlims"]["jobs_proc_nodes"])
+                # Set plot limits if specified by the user..
+                if plot_lines.get("procs"):
+                    if plot_lines["procs"].get("y_lims"):
+                        plt.ylim(plot_lines["procs"]["y_lims"])
+                    if plot_lines["procs"].get("x_lims"):
+                        plt.xlim(plot_lines["procs"]["x_lims"])
 
-                ax = plt.subplot(3, 1, 3)
-                # print "series_jp[:, 2]", series_jp[:, 2]
-                # print "series_jp.shape", series_jp.shape
-                plt.plot(times_plot, series_jp[:, 2],
-                         color=job_class_color(cl, job_classes),
-                         linestyle=plot_linestyle_sp[cl_sp],
-                         label=cl)
-                plt.ylabel("# nodes")
-                # plt.yscale('log')
-                ax.yaxis.set_major_formatter(FormatStrFormatter('%d'))
-                if self.export_config.get("plot_ylims"):
-                    if self.export_config["plot_ylims"].get("nodes"):
-                        plt.ylim(self.export_config["plot_ylims"]["nodes"])
+                # if also #nodes is specified..
+                if n_subplots == 3:
+                    ax = plt.subplot(n_subplots, 1, 3)
+                    plt.plot(times_plot, series_jp[:, 2],
+                             color=job_class_color(cl_name, job_classes.keys()),
+                             label=cl_name)
+                    plt.ylabel("# nodes")
+                    plt.yscale('log')
 
-                if self.export_config.get("plot_xlims"):
-                    if self.export_config["plot_xlims"].get("jobs_proc_nodes"):
-                        plt.xlim(self.export_config["plot_xlims"]["jobs_proc_nodes"])
+                    # Set plot limits if specified by the user..
+                    if plot_lines.get("nodes"):
+                        if plot_lines["nodes"].get("y_lims"):
+                            plt.ylim(plot_lines["nodes"]["y_lims"])
+                        if plot_lines["nodes"].get("x_lims"):
+                            plt.xlim(plot_lines["nodes"]["x_lims"])
 
-        ax = plt.subplot(3, 1, 1)
+        ax = plt.subplot(n_subplots, 1, 1)
         plt.title("Time series - experiment: {}".format(sim.name))
         ax.legend()
 
-        ax = plt.subplot(3, 1, 2)
+        ax = plt.subplot(n_subplots, 1, 2)
         plt.xlabel("time [s]")
         if output_path:
-            plt.savefig(os.path.join(output_path, sim.name + '_time_series_jobs_procs') + "."+fig_format)
+            plt.savefig(os.path.join(output_path, sim.name + '_time_series_jobs_procs_nodes') + "."+fig_format)
 
         plt.close()
         # =============================================================================

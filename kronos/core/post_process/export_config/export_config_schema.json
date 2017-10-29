@@ -102,26 +102,40 @@
                 "patternProperties": {
                   "(n_write|n_read|kb_write|kb_read|n_pairwise|kb_pairwise|n_collective|kb_collective|flops)": {
                     "type": "object",
-                    "description": "option for line plots (y_lims and x_lims)"
-                  }
-                }
-              },
-
-              "plot_xlims":{
-                "type": "object",
-                "description": "Upper and lower limits of the x-axis specified by user",
-                "properties": {
-                  "jobs_proc_nodes":{
-                    "type":"array",
-                    "description": "x-limits for the #jobs/#procs/#nodes time-series plot"
-                  },
-                  "metrics":{
-                    "type":"array",
-                    "description": "x-limits for the metrics time-series plot"
+                    "description": "option for line plots (x_lims and y_lims)"
                   }
                 }
               }
+            },
+            "required": ["type"]
+          },
 
+
+          {
+            "type": "object",
+            "description": "Export plots of time-series of jobs, nodes, processes",
+            "properties":{
+              "type":{
+                "type":"string",
+                "description": "Export identification string",
+                "enum": ["time_series_jobs_nodes_procs"]
+              },
+              "format":{
+                "type": "string",
+                "description": "specific format which tabulated data will be written into",
+                "enum": ["png"]
+              },
+
+              "lines": {
+                "type": "object",
+                "description": "options for plot lines (each line is a specific metric)",
+                "patternProperties": {
+                  "(jobs|procs|nodes)": {
+                    "type": "object",
+                    "description": "option for line plots (x_lims and y_lims)"
+                  }
+                }
+              }
             },
             "required": ["type"]
           },
