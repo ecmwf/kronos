@@ -19,6 +19,7 @@ if __name__ == "__main__":
     # Read other arguments if present..
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('export_config', help="Export configuration file (.kef)")
+    parser.add_argument('--print_sim_info', "-p", help="Print simulation info on screen", action='store_true')
     args = parser.parse_args()
 
     # Read the export config
@@ -38,8 +39,9 @@ if __name__ == "__main__":
     # calculate statistics on the common job classes
     sim_set.calculate_class_stats_sums(common_job_classes)
 
-    # for sim in sim_set.sims:
-    #     sim.print_job_classes_info(common_job_classes)
+    if args.print_sim_info:
+        for sim in sim_set.sims:
+            sim.print_job_classes_info(common_job_classes)
 
     # Export results as per user requests
     for export_config in config.exports:

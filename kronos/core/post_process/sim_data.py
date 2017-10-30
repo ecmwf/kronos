@@ -287,15 +287,23 @@ class SimulationData(object):
 
         job_classes_dict = {}
         for job in self.jobs:
-            job_classes_dict.setdefault(job.get_class_name(class_list), []).append(job)
+
+            print "job name: {}".format(job.label)
+            classes_job_belongs_to = job.get_class_name(class_list)
+            print "-----> belongs to classes: {}".format(classes_job_belongs_to)
+
+            for job_class_name in classes_job_belongs_to:
+                job_classes_dict.setdefault(job_class_name, []).append(job)
 
         print "============ SIM: {} ===============".format(self.name)
-        print "{:80s}{:10s}".format("job label", "N cpus")
+
+        total_jobs_in_classes = 0
         for k,v in job_classes_dict.iteritems():
             print "CLASS: {}, contains {} jobs".format(k, len(v))
-            for j in v:
-                print "{:80s}{:10d}".format(j.label, j.n_cpu)
-            print ""
+            total_jobs_in_classes += len(v)
+
+        print "total n jobs {}".format(len(self.jobs))
+        print "total n in classes {}".format(total_jobs_in_classes)
 
 
 

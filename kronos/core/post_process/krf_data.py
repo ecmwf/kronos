@@ -240,7 +240,7 @@ class KRFJob(object):
         """
 
         # NOTE: a job can be in multiple classes
-        job_classes = [cl_k for cl_k, cl_v in class_list.iteritems() if self.is_in_class(cl_v)]
+        job_classes = [cl_name for cl_name, cl_regex in class_list.iteritems() if self.is_in_class(cl_regex)]
 
         if job_classes:
             return job_classes
