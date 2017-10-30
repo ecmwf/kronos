@@ -9,7 +9,6 @@
 import os
 import numpy as np
 
-from kronos.core.kronos_tools.utils import lin_reg
 from kronos.core.post_process.exporter_base import ExporterBase
 
 from kronos.core.post_process.krf_data import sorted_krf_stats_names
