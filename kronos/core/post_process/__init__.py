@@ -10,7 +10,8 @@ from kronos.core.post_process.exporters_tables import ExporterTable
 from kronos.core.post_process.exporters_plots import ExporterPlot
 from kronos.core.post_process.exporters_plots import ExporterTimeSeriesMetrics
 from kronos.core.post_process.exporters_plots import ExporterTimeSeriesJNP
-from kronos.core.post_process.exporters_plots import ExporterScatteredData
+from kronos.core.post_process.exporters_plots import ExporterTimeSeriesIOrates
+# from kronos.core.post_process.exporters_plots import ExporterScatteredData
 
 
 writer_map = {
@@ -18,5 +19,6 @@ writer_map = {
     "rates_plot": ExporterPlot,
     "time_series_metrics": ExporterTimeSeriesMetrics,
     "time_series_jobs_nodes_procs": ExporterTimeSeriesJNP,
-    "scattered_plots": ExporterScatteredData,
+    "time_series_io_rates": ExporterTimeSeriesIOrates,
+    # "scattered_plots": ExporterScatteredData,
 }

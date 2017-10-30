@@ -7,7 +7,7 @@
   "properties": {
     "verbose": {
       "type": "boolean",
-      "description": "verbose flag"
+      "description": "Verbose flag"
     },
     "experiment_list": {
       "type": "array",
@@ -52,7 +52,7 @@
               },
               "format":{
                 "type": "string",
-                "description": "specific format which tabulated data will be written into",
+                "description": "Specific format which tabulated data will be written into",
                 "enum": ["csv"]
               }
             },
@@ -70,12 +70,12 @@
               },
               "format":{
                 "type": "string",
-                "description": "specific format which tabulated data will be written into",
+                "description": "Specific format which tabulated data will be written into",
                 "enum": ["png"]
               },
               "y_lims":{
                 "type": "array",
-                "description": "y-limits of the axis specified by user"
+                "description": "Y-limits of the axis specified by user"
               }
             },
             "required": ["type"]
@@ -92,17 +92,17 @@
               },
               "format":{
                 "type": "string",
-                "description": "specific format which tabulated data will be written into",
+                "description": "Specific format which tabulated data will be written into",
                 "enum": ["png"]
               },
 
               "lines": {
                 "type": "object",
-                "description": "options for plot lines (each line is a specific metric)",
+                "description": "Options for plot lines (each line is a specific metric)",
                 "patternProperties": {
                   "(n_write|n_read|kb_write|kb_read|n_pairwise|kb_pairwise|n_collective|kb_collective|flops)": {
                     "type": "object",
-                    "description": "option for line plots (x_lims and y_lims)"
+                    "description": "Option for line plots (x_lims and y_lims)"
                   }
                 }
               }
@@ -122,17 +122,17 @@
               },
               "format":{
                 "type": "string",
-                "description": "specific format which tabulated data will be written into",
+                "description": "Specific format which tabulated data will be written into",
                 "enum": ["png"]
               },
 
               "lines": {
                 "type": "object",
-                "description": "options for plot lines (each line is a specific metric)",
+                "description": "Options for plot lines (each line is a specific metric)",
                 "patternProperties": {
                   "(jobs|procs|nodes)": {
                     "type": "object",
-                    "description": "option for line plots (x_lims and y_lims)"
+                    "description": "Option for line plots (x_lims and y_lims)"
                   }
                 }
               }
@@ -142,26 +142,33 @@
 
           {
             "type": "object",
-            "description": "Export scattered type of plots",
+            "description": "Export plots of time-series of io written (total, rates and wiriting processes)",
             "properties":{
               "type":{
                 "type":"string",
                 "description": "Export identification string",
-                "enum": ["scattered_plots"]
+                "enum": ["time_series_io_rates"]
               },
               "format":{
                 "type": "string",
-                "description": "specific format which tabulated data will be written into",
+                "description": "Specific format which tabulated data will be written into",
                 "enum": ["png"]
               },
 
-              "plot_xlims":{
-                "type": "array",
-                "description": "x-limits for the scattered plot"
+              "lines": {
+                "type": "object",
+                "description": "Options for plot lines (each line is a specific metric)",
+                "patternProperties": {
+                  "(kb_written|kb_written_sec|writing_processes)": {
+                    "type": "object",
+                    "description": "option for line plots (x_lims and y_lims)"
+                  }
+                }
               }
             },
             "required": ["type"]
           }
+
         ]
       }
     }
