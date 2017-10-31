@@ -73,7 +73,7 @@ if __name__ == "__main__":
 
         # Class name
         print "\n\n{}".format("-"*(_fl+1)*n_fields)
-        print "{:^{l}s}|".format(" - "+class_name, l=(_fl + 1) * n_fields-1)
+        print "{:^{l}s}|".format("class: "+class_name, l=(_fl + 1) * n_fields-1)
         print "{}".format("-" * (_fl + 1) * n_fields)
 
         # Header
