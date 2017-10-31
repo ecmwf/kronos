@@ -8,26 +8,32 @@
 # does it submit to any jurisdiction.
 
 import os
-import json
 import argparse
 import sys
-import strict_rfc3339
 
-from kronos.core.post_process.definitions import class_names_complete
+# Hard-coded job classes
+from kronos.core.post_process.sim_data import SimulationData
 
-list_classes = [
-    "main/fc/inigroup",
-    "main/fc/ensemble/cf",
-    "main/fc/ensemble/pf",
-    "main/fc/ensemble/logfiles",
-    "main/fc/lag",
-]
+job_classes = {
+               "ini_serial": "main/fc/inigroup/*/serial",
+               "ini_parallel": "main/fc/inigroup/*/parallel",
+               "getini_leg_parallel": "main/fc/ensemble/cf/control/legA/getiniLeg/*parallel",
+               "chunk0_parallel": "main/fc/ensemble/cf/control/legA/chunk0/*parallel",
+               "ensamble_cf_serial": "main/fc/ensemble/cf/*/serial",
+               "ensamble_pf_serial": "main/fc/ensemble/pf/*/serial",
+               "ensamble_pf_getinileg_serial": "main/fc/ensemble/pf/*/legA/getiniLeg/*parallel",
+               "ensamble_pf_modelepsnemo_parallel": "main/fc/ensemble/pf/*/legA/chunk0/modeleps_nemo/*parallel",
+               "ensemble_logfiles_serial": "main/fc/ensemble/logfiles/*serial",
+               "main_lag_serial": "main/fc/lag/*serial"
+              }
 
 if __name__ == "__main__":
 
     # Parser for the required arguments
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("job_dir", type=str, help="Path of the kronos output folder 'job_dir' (contains the job-<ID> sub-folders)")
+    parser.add_argument("job_dir",
+                        type=str,
+                        help="Path of the kronos output folder 'job_dir' (contains the job-<ID> sub-folders)")
     args = parser.parse_args()
 
     # check that the run path exists
@@ -41,157 +47,33 @@ if __name__ == "__main__":
         print "Specified path does not contain any job folder (<job-ID>..)!"
         sys.exit(-1)
 
-    # initialization
-    fname_list = []
-    dict_name_label = {}
-    tot_successful_jobs = 0
+    # read simulation data
+    simulation_tag = "kronos-sim"
+    sim_data = SimulationData.read_from_sim_paths(args.job_dir, simulation_tag)
 
-    jobs_data_dict = {}
-    for job_dir in job_dirs:
+    # print some info on the classification of the jobs in the simulation
+    sim_data.print_job_classes_info(job_classes)
 
-        sub_dir_path_abs = os.path.join(args.job_dir, job_dir)
-        sub_dir_files = os.listdir(sub_dir_path_abs)
-        krf_file = [f for f in sub_dir_files if f.endswith('.krf')]
-
-        if krf_file:
-
-            tot_successful_jobs += 1
-
-            map_file_name = krf_file[0]
-            map_file_full = os.path.join(sub_dir_path_abs, map_file_name)
-            map_base_abs = os.path.splitext(map_file_full)[0]
-
-            input_file_path_abs = os.path.join(sub_dir_path_abs, 'input.json')
-            stats_file_path_abs = os.path.join(sub_dir_path_abs, 'statistics.krf')
-
-            # read input file
-            with open(input_file_path_abs, 'r') as f:
-                json_data_input = json.load(f)
-
-            # read stats file
-            with open(stats_file_path_abs, 'r') as f:
-                json_data_stats = json.load(f)
-
-            # transfer data from input file to stats file
-            json_data_stats['metadata'] = json_data_input['metadata']
-
-            if json_data_input['metadata'].get('workload_name'):
-
-                class_name_root = [name for name in set(class_names_complete) if name in json_data_input['metadata']['workload_name']]
-
-                if class_name_root:
-                    class_name_root_0 = class_name_root[0]
-
-                    if "serial" in json_data_input['metadata']['workload_name']:
-                        class_name = class_name_root_0 + "/serial"
-
-                    elif "parallel" in json_data_input['metadata']['workload_name']:
-                        class_name = class_name_root_0 + "/parallel"
-                    else:
-                        class_name = "unknown tag"
-
-                    jobs_data_dict.setdefault(class_name, []).append(json_data_stats)
-
-    # check if there is some of the classes for which no jobs have been found
-    for class_name in set(class_names_complete):
-        if class_name+"/serial" not in jobs_data_dict.keys() and class_name+"/parallel" not in jobs_data_dict.keys():
-            print "warning: no jobs found for class {}".format(class_name)
+    # job statistics per class..
+    per_class_job_stats = sim_data.class_stats_sums(job_classes)
 
     # ///////////////////// print summary ////////////////////////
     print "{:<52s}".format("\n\nPERFORMANCE SUMMARY:\n")
 
-    print "N successful jobs: {:20d}".format(tot_successful_jobs)
-
     # overall runtime
-    job_end_times = [strict_rfc3339.rfc3339_to_timestamp(j["created"]) for jobs in jobs_data_dict.values() for j in jobs]
-    job_start_times_rel = [max([sum(r["time_series"]["durations"]) for r in j["ranks"]]) for jobs in jobs_data_dict.values() for j in jobs]
-    job_start_times = [t - job_start_times_rel[tt] for tt, t in enumerate(job_end_times)]
-    overall_runtime = max(job_end_times) - min(job_start_times)
-    print "Total Runtime [s]: {:20.2f}".format(overall_runtime)
+    print "Total Runtime [s]: {:20.2f}".format(sim_data.runtime())
 
     # Show summary per class
-    ordered_classe_names = jobs_data_dict.keys()
-    ordered_classe_names.sort()
-    for wl_name in ordered_classe_names:
+    for class_name in job_classes.keys():
 
-        jobs_in_wl = jobs_data_dict[wl_name]
+        class_stats = per_class_job_stats[class_name]
 
-        # print "jobs in wl {}".format(jobs_in_wl)
-
-        # -------- calculate relevant summary measures as needed.. ---------
-        data_keys = {
-            "cpu": {"conv": 1.0/1000.0**3, "label_sum": "FLOPS:        "},
-            "read": {"conv": 1.0/1024.0**3, "label_sum": "I/O read:       "},
-            "write": {"conv": 1.0/1024.0**3, "label_sum": "I/O write:      "},
-            "mpi-pairwise": {"conv": 1.0/1024.0**3, "label_sum": "MPI p2p:        "},
-            "mpi-collective": {"conv": 1.0/1024.0**3, "label_sum": "MPI col:        "}
-        }
-
-        perf_data = {}
-        for name in data_keys.keys():
-            perf_data[name] = [(rank["stats"][name]["count"],
-                                rank["stats"][name]["bytes"] if name != "cpu" else 0.0,
-                                rank["stats"][name]["elapsed"])
-                               for sa in jobs_in_wl for rank in sa["ranks"] if rank["stats"].get(name)]
-        # ------------------------------------------------------------------------------------------------
-
-        summary_data = {}
-        for k in data_keys.keys():
-            summary_data[k] = {"vec": zip(*perf_data[k])}
-
-        # ------------- sorted keys --------------
-        sorted_keys = [
-            "cpu",
-            "read",
-            "write",
-            "mpi-pairwise",
-            "mpi-collective"
-        ]
-        # -----------------------------------------
-
-        for k in sorted_keys:
-
-            if not summary_data[k]["vec"]:
-
-                summary_data[k]["sum_bytes"] = "N/A"
-                summary_data[k]["elapsed_sum"] = "N/A"
-
-            else:
-                # counter per sec
-                if k == "cpu":
-
-                    sc = data_keys[k]["conv"]
-                    vals_rates = [f0/float(f2)*sc for f0, f2 in zip(summary_data[k]["vec"][0], summary_data[k]["vec"][2])]
-
-                    # Total ops/bytes counter
-                    counts = [val * sc for val in summary_data[k]["vec"][0]]
-                    summary_data[k]["sum_bytes"] = int(sum(counts))
-
-                    # total elapsed time
-                    elapsed_vals = [val for val in summary_data[k]["vec"][2]]
-                    summary_data[k]["elapsed_sum"] = sum(elapsed_vals)
-
-                # bytes per sec..
-                else:
-
-                    sc = data_keys[k]["conv"]
-                    vals_rates = [f1 / float(f2) * sc for f1, f2 in zip(summary_data[k]["vec"][1], summary_data[k]["vec"][2])]
-
-                    # Total ops/bytes counter
-                    counts_bytes = [val * sc for val in summary_data[k]["vec"][1]]
-                    summary_data[k]["sum_bytes"] = sum(counts_bytes)
-
-                    # total elapsed time
-                    elapsed_vals = [val for val in summary_data[k]["vec"][2]]
-                    summary_data[k]["elapsed_sum"] = sum(elapsed_vals)
-
-        # /////////////////////////////// PRINT SUMMARY DATA ///////////////////////////////////
         _fl = 20
         n_fields = 3
 
         # Class name
         print "\n\n{}".format("-"*(_fl+1)*n_fields)
-        print "{:^{l}s}|".format(" - ".join([os.path.dirname(wl_name), "("+os.path.basename(wl_name)+" jobs)"]), l=(_fl + 1) * n_fields-1)
+        print "{:^{l}s}|".format(" - "+class_name, l=(_fl + 1) * n_fields-1)
         print "{}".format("-" * (_fl + 1) * n_fields)
 
         # Header
@@ -199,10 +81,9 @@ if __name__ == "__main__":
         print "{}".format("-" * (_fl + 1) * n_fields)
 
         # Print the metrics
-        for k in sorted_keys:
-            print "{:<{l}s}|{:>{l}}|{:>{l}}|".format(data_keys[k]["label_sum"],
-                                                     summary_data[k]["sum_bytes"],
-                                                     summary_data[k]["elapsed_sum"], l=_fl)
+        for k,v in class_stats.iteritems():
+            print "{:<{l}s}|{:>{l}}|{:>{l}}|".format(k,
+                                                     v["count"],
+                                                     v["elapsed"], l=_fl)
 
         print "{}".format("-" * (_fl + 1) * n_fields)
-
