@@ -34,6 +34,8 @@ if __name__ == "__main__":
     parser.add_argument("job_dir",
                         type=str,
                         help="Path of the kronos output folder 'job_dir' (contains the job-<ID> sub-folders)")
+    parser.add_argument("--permissive", help="If set, it skips the check on the number of successful jobs",
+                        action='store_true')
     args = parser.parse_args()
 
     # check that the run path exists
@@ -49,7 +51,9 @@ if __name__ == "__main__":
 
     # read simulation data
     simulation_tag = "kronos-sim"
-    sim_data = SimulationData.read_from_sim_paths(args.job_dir, simulation_tag)
+    sim_data = SimulationData.read_from_sim_paths(args.job_dir,
+                                                  simulation_tag,
+                                                  permissive=args.permissive)
 
     # print some info on the classification of the jobs in the simulation
     sim_data.print_job_classes_info(job_classes)
@@ -64,26 +68,28 @@ if __name__ == "__main__":
     print "Total Runtime [s]: {:20.2f}".format(sim_data.runtime())
 
     # Show summary per class
+    _fl = 20
+    n_fields = 3
     for class_name in job_classes.keys():
 
-        class_stats = per_class_job_stats[class_name]
+        class_stats = per_class_job_stats.get(class_name)
 
-        _fl = 20
-        n_fields = 3
+        if class_stats:
+            # Class name
+            print "\n\n{}".format("-"*(_fl+1)*n_fields)
+            print "{:^{l}s}|".format("class: "+class_name, l=(_fl + 1) * n_fields-1)
+            print "{}".format("-" * (_fl + 1) * n_fields)
 
-        # Class name
-        print "\n\n{}".format("-"*(_fl+1)*n_fields)
-        print "{:^{l}s}|".format("class: "+class_name, l=(_fl + 1) * n_fields-1)
-        print "{}".format("-" * (_fl + 1) * n_fields)
+            # Header
+            print "{:<{l}s}|{:^{l}s}|{:^{l}s}|".format("Name", "Total [G/GiB]", "Total Time", l=_fl)
+            print "{}".format("-" * (_fl + 1) * n_fields)
 
-        # Header
-        print "{:<{l}s}|{:^{l}s}|{:^{l}s}|".format("Name", "Total [G/GiB]", "Total Time", l=_fl)
-        print "{}".format("-" * (_fl + 1) * n_fields)
+            # Print the metrics
+            for k,v in class_stats.iteritems():
+                print "{:<{l}s}|{:>{l}}|{:>{l}}|".format(k,
+                                                         v["count"],
+                                                         v["elapsed"], l=_fl)
 
-        # Print the metrics
-        for k,v in class_stats.iteritems():
-            print "{:<{l}s}|{:>{l}}|{:>{l}}|".format(k,
-                                                     v["count"],
-                                                     v["elapsed"], l=_fl)
-
-        print "{}".format("-" * (_fl + 1) * n_fields)
+            print "{}".format("-" * (_fl + 1) * n_fields)
+        else:
+            print "\n\n*** Warning ***: no jobs found for class {}".format(class_name)

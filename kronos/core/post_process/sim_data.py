@@ -52,12 +52,13 @@ class SimulationData(object):
                 sys.exit(-1)
 
     @classmethod
-    def read_from_sim_paths(cls, sim_path, sim_name, n_procs_node=None):
+    def read_from_sim_paths(cls, sim_path, sim_name, n_procs_node=None, permissive=False):
 
         print "processing simulation: {}".format(sim_name)
 
         # check n of successful jobs
-        cls.check_n_successful_jobs(sim_path, sim_name)
+        if not permissive:
+            cls.check_n_successful_jobs(sim_path, sim_name)
 
         # check that the run path contains the job sub-folders
         job_dirs = [x for x in os.listdir(sim_path) if os.path.isdir(os.path.join(sim_path, x)) and "job-" in x]
@@ -90,7 +91,7 @@ class SimulationData(object):
                 )
 
         if jobs_data:
-            print "n successful jobs {}".format(len(jobs_data))
+            print "n successful jobs {}/{}".format(len(jobs_data), len(job_dirs))
 
         return cls(jobs=jobs_data, sim_name=sim_name, sim_path=sim_path, n_procs_node=n_procs_node)
 
