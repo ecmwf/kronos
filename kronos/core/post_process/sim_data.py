@@ -43,13 +43,14 @@ class SimulationData(object):
         # check that the run path contains the job sub-folders
         job_dirs = [x for x in os.listdir(sim_path) if os.path.isdir(os.path.join(sim_path, x)) and "job-" in x]
 
-        for job_dir in job_dirs:
+        # check if there are jobs that didn't write the "statistics.krf" file
+        failing_jobs = [job_dir for job_dir in job_dirs if not os.path.isfile(os.path.join(sim_path, job_dir, "statistics.krf"))]
 
-            # Create output dir if it does not exists..
-            if not os.path.isfile(os.path.join(sim_path, job_dir, "statistics.krf")):
-                print "Simulation {}: 'statistics.krf' file not found in job folder {}".format(sim_name, job_dir)
-                print "Kronos Postprocessing stops here!"
-                sys.exit(-1)
+        if failing_jobs:
+            print "ERROR: The following jobs have failed (jobs for which 'statistics.krf' is not found in job folder):"
+            print "{}".format("\n".join(failing_jobs))
+            print "Kronos Post-processing stops here!"
+            sys.exit(-1)
 
     @classmethod
     def read_from_sim_paths(cls, sim_path, sim_name, n_procs_node=None, permissive=False):
