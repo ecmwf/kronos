@@ -46,13 +46,18 @@ class DarshanIngestedJobFileTest(unittest.TestCase):
 
         f = DarshanIngestedJobFile("job")
 
+        f.open_time = 0.001
+        f.close_time = 0.005
         f.bytes_read = 123
         f.bytes_written = 456
         f.read_count = 7
         f.write_count = 8
 
-        self.assertEqual(str(f), "DarshanFile(7 reads, 123 bytes, 8 writes, 456 bytes)")
-        self.assertEqual(unicode(f), "DarshanFile(7 reads, 123 bytes, 8 writes, 456 bytes)")
+        expected_str = "DarshanFile(times: [{:.6f}, {:.6f}]: {} reads, {} bytes, {} writes, {} bytes)".format(
+            f.open_time, f.close_time, f.read_count, f.bytes_read, f.write_count, f.bytes_written)
+
+        self.assertEqual(str(f), expected_str)
+        self.assertEqual(unicode(f), expected_str)
 
     def test_aggregate_same_name(self):
         """
@@ -438,7 +443,7 @@ class DarshanLogReaderTest(unittest.TestCase):
         # With standard defaults
         lr = DarshanLogReader('test-path')
 
-        self.assertEqual(lr.parser_command, 'darshan-parser')
+        self.assertEqual(lr.parser_command, 'cat')
         self.assertEqual(lr.path, 'test-path')
         self.assertEqual(lr.file_pattern, "*.gz")
         self.assertTrue(lr.recursive)

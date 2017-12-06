@@ -7,6 +7,7 @@
 # does it submit to any jurisdiction.
 
 import subprocess
+from collections import OrderedDict
 
 from kronos.core.jobs import IngestedJob, ModelJob
 from kronos.core.logreader.base import LogReader
@@ -51,7 +52,16 @@ class DarshanIngestedJobFile(object):
         self.close_time = None
 
     def __unicode__(self):
-        return "DarshanFile({} reads, {} bytes, {} writes, {} bytes)".format(self.read_count, self.bytes_read, self.write_count, self.bytes_written)
+        return "DarshanFile(times: [{:.6f}, {:.6f}]: " \
+               "{} reads, " \
+               "{} bytes, " \
+               "{} writes, " \
+               "{} bytes)".format(self.open_time,
+                                  self.close_time,
+                                  self.read_count,
+                                  self.bytes_read,
+                                  self.write_count,
+                                  self.bytes_written)
 
     def __str__(self):
         return unicode(self).encode('utf-8')
@@ -85,6 +95,24 @@ class DarshanIngestedJobFile(object):
         self.write_time_start = self.write_time_start + delta if self.write_time_start is not None else None
         self.write_time_end = self.write_time_end + delta if self.write_time_end is not None else None
         self.close_time = self.close_time + delta if self.close_time is not None else None
+
+    def define_behaviour(self):
+        """
+        Return the "behaviour" of this file, options: [read_only, write_only, open_only, read_write]
+
+        :return:
+        """
+
+        if self.bytes_written and not self.bytes_read:
+            return "file_write_only"
+        elif self.bytes_read and not self.bytes_written:
+            return "file_read_only"
+        elif self.bytes_written and self.bytes_written:
+            return "file_read_write"
+        elif not self.bytes_read and not self.bytes_written:
+            return "file_open_only"
+        else:
+            raise LookupError("behaviour not understood.. I should not be here!")
 
 
 class DarshanIngestedJob(IngestedJob):
@@ -129,6 +157,48 @@ class DarshanIngestedJob(IngestedJob):
                 self.file_details[filename].aggregate(file_detail)
             else:
                 self.file_details[filename] = file_detail
+
+    def print_summary(self):
+        """
+        This function prints a summary of this darshan file
+        :return:
+        """
+
+        summary_data = OrderedDict([
+            ("write_count", 0),
+            ("bytes_written", 0),
+            ("read_count", 0),
+            ("bytes_read", 0),
+            ("open_count", 0),
+            ("close_count", 0),
+          ])
+
+        # print summary data of this ingested job
+        for fk, fv in self.file_details.iteritems():
+            summary_data[fv.define_behaviour()] = summary_data.get(fv.define_behaviour(), 0) + 1
+            for sk, sv in summary_data.items():
+                summary_data[sk] += getattr(fv, sk, 0)
+
+        # write time series of operations
+        time_series = []
+        for fk, fv in self.file_details.iteritems():
+            time_series.append(
+                [fv.open_time,
+                 fv.close_time,
+                 fv.read_count,
+                 fv.bytes_read,
+                 fv.write_count,
+                 fv.bytes_written]
+            )
+
+        time_series.sort(key=lambda x: x[0])
+
+        # print out the summary
+        print "\n**************** SUMMARY ****************\n"
+        print "\n".join(["[summary] {:20s} {}".format(k, v) for k, v in summary_data.items()])
+        print "\n-- time series --\n"
+        print "     "+" ".join(["{:^14}|".format(k) for k in ("t0", "t1", "#read", "bytes_read", "#write", "bytes_write")])
+        print "\n".join(["[ts] "+" ".join("{:15}".format(v) for v in ts_entry) for ts_entry in time_series])
 
     def model_job(self):
         """
@@ -265,7 +335,13 @@ class DarshanLogReader(LogReader):
     def __init__(self, path, **kwargs):
 
         # Custom configuration:
-        self.parser_command = kwargs.pop('parser', 'darshan-parser')
+        self.parser_command = kwargs.pop('parser', None)
+
+        # **Note**: if the parser command is not provided, **it assumes that the file is already parsed**
+        #  => it will only "cat" the file
+        self.parser_command = self.parser_command if self.parser_command else "cat"
+        if self.parser_command == "cat":
+            print "INFO: Darshan parser-command not provided, I assume the file has already been parsed.."
 
         super(DarshanLogReader, self).__init__(path, **kwargs)
 
@@ -273,9 +349,6 @@ class DarshanLogReader(LogReader):
         """
         Read a darshan log!
         """
-        # try:
-        #     output = subprocess.check_output([self.parser_command, filename])
-        # except subprocess.CalledProcessError as e:
 
         pipes = subprocess.Popen([self.parser_command, filename], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         output, error = pipes.communicate()
