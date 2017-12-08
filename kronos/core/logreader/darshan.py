@@ -82,8 +82,14 @@ class DarshanIngestedJobFile(object):
         :return:
         """
 
-        currval = getattr(self, val_name) or 0
-        setattr(self, val_name, self.param_map[val_name]["func"](currval, float(new_value)))
+        _init_when_hit = {
+            min: float("inf"),
+            max: 0,
+        }
+
+        _param_func = self.param_map[val_name]["func"]
+        currval = getattr(self, val_name) or _init_when_hit.get(_param_func, 0)
+        setattr(self, val_name, _param_func(currval, float(new_value)))
 
     def aggregate(self, other):
         """
