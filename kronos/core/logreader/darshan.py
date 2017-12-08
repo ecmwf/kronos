@@ -158,7 +158,7 @@ class DarshanIngestedJob(IngestedJob):
             else:
                 self.file_details[filename] = file_detail
 
-    def print_summary(self):
+    def print_summary(self, print_time_series=False):
         """
         This function prints a summary of this darshan file
         :return:
@@ -196,9 +196,11 @@ class DarshanIngestedJob(IngestedJob):
         # print out the summary
         print "\n**************** SUMMARY ****************\n"
         print "\n".join(["[summary] {:20s} {}".format(k, v) for k, v in summary_data.items()])
-        print "\n-- time series --\n"
-        print "     "+" ".join(["{:^14}|".format(k) for k in ("t0", "t1", "#read", "bytes_read", "#write", "bytes_write")])
-        print "\n".join(["[ts] "+" ".join("{:15}".format(v) for v in ts_entry) for ts_entry in time_series])
+
+        if print_time_series:
+            print "\n-- time series --\n"
+            print "     "+" ".join(["{:^14}|".format(k) for k in ("t0", "t1", "#read", "bytes_read", "#write", "bytes_write")])
+            print "\n".join(["[ts] "+" ".join("{:15}".format(v) for v in ts_entry) for ts_entry in time_series])
 
     def model_job(self):
         """
@@ -394,6 +396,7 @@ class DarshanLogReader(LogReader):
                 # A data line
                 bits = trimmed_line.split()
                 # file = ' '.join(bits[4:])
+                # print bits
                 filename = bits[4]
 
                 # Add the file to the map if required

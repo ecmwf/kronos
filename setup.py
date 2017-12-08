@@ -29,6 +29,7 @@ setup(
         'kronos': 'kronos'
     },
     scripts=[
+        'bin/kronos-analyse-dsh',
         'bin/kronos-ingest',
         'bin/kronos-model',
 

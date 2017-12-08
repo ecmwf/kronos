@@ -1,0 +1,66 @@
+#!/usr/bin/env python2.7
+# (C) Copyright 1996-2017 ECMWF.
+#
+# This software is licensed under the terms of the Apache Licence Version 2.0
+# which can be obtained at http://www.apache.org/licenses/LICENSE-2.0.
+# In applying this licence, ECMWF does not waive the privileges and immunities
+# granted to it by virtue of its status as an intergovernmental organisation nor
+# does it submit to any jurisdiction.
+"""
+Very simple tool that summarises relevant data from darshan logs
+It works with:
+
+ - A single Darshan file
+ - Path containing darshan files
+
+File pattern specifies a pattern that has to be matched for files to be processed
+
+"""
+
+import os
+import sys
+import argparse
+
+from kronos.core.logreader.darshan import DarshanLogReader
+
+
+if __name__ == "__main__":
+
+    # Parser for the required arguments
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--darshan_file", type=str, help="Name of a single darshan file to report")
+    parser.add_argument("--darshan_files_dir", type=str, help="Path containing darshan files to report")
+    parser.add_argument("--file_pattern", type=str, help="Path containing darshan files to report", default="*.darshan")
+    parser.add_argument("--time_series", help="if Set, the time series will be printed", action="store_true")
+    args = parser.parse_args()
+
+    # ---- Some checks ----
+    if args.darshan_file and args.darshan_files_dir:
+        print "ERROR: either --darshan_file or --darshan_files_dir can be passed"
+        sys.exit(-1)
+
+    if args.darshan_file:
+        if not os.path.exists(args.darshan_file):
+            print "ERROR: Specified darshan file does not exist: {}".format(args.darshan_file)
+            sys.exit(-1)
+
+    if args.darshan_files_dir:
+        if not os.path.exists(args.darshan_files_dir):
+            print "ERROR: Specified directory does not exist: {}".format(args.darshan_files_dir)
+            sys.exit(-1)
+
+    if args.darshan_file:
+        dsh_reader = DarshanLogReader("")
+        parsed_dsh_job = dsh_reader.read_log(args.darshan_file, suggested_label="generic")
+        parsed_dsh_job[0].print_summary(print_time_series=args.time_series)
+
+    elif args.darshan_files_dir:
+        dsh_reader = DarshanLogReader(args.darshan_files_dir, file_pattern=args.file_pattern, pool_readers=1)
+        parsed_dsh_job = dsh_reader.read_logs()
+
+        # note: this summarises all the jobs that might or might not be aggregated as a Kronos jobs
+        for j in parsed_dsh_job:
+            j.print_summary(print_time_series=args.time_series)
+
+
+
