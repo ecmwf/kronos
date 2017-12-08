@@ -35,21 +35,29 @@ class DarshanIngestedJobFile(object):
     This is a separate class, rather than being inside DarshanIngestedJob, as we need to pickle data to send it
     between processes, and pickling fails for nested classes.
     """
+
+    # map that lists the parameters and how they behave when accumulated
+    param_map = {
+        "bytes_read":       {"init": 0,    "func": lambda x, y: x+y},
+        "bytes_written":    {"init": 0,    "func": lambda x, y: x+y},
+        "open_count":       {"init": 0,    "func": lambda x, y: x+y},
+        "write_count":      {"init": 0,    "func": lambda x, y: x+y},
+        "read_count":       {"init": 0,    "func": lambda x, y: x+y},
+        "open_time":        {"init": None, "func": min},
+        "read_time_start":  {"init": None, "func": min},
+        "read_time_end":    {"init": None, "func": max},
+        "write_time_start": {"init": None, "func": min},
+        "write_time_end":   {"init": None, "func": max},
+        "close_time":       {"init": None, "func": max},
+    }
+
     def __init__(self, name):
+
         self.name = name
 
-        self.bytes_read = 0
-        self.bytes_written = 0
-        self.open_count = 0
-        self.write_count = 0
-        self.read_count = 0
-
-        self.open_time = None
-        self.read_time_start = None
-        self.read_time_end = None
-        self.write_time_start = None
-        self.write_time_end = None
-        self.close_time = None
+        # init accumulators and timestamps parameters
+        for p_name, p_descr in self.param_map.items():
+            setattr(self, p_name, p_descr["init"])
 
     def __unicode__(self):
         return "DarshanFile(times: [{:.6f}, {:.6f}]: " \
@@ -65,6 +73,17 @@ class DarshanIngestedJobFile(object):
 
     def __str__(self):
         return unicode(self).encode('utf-8')
+
+    def update_parameter(self, val_name, new_value):
+        """
+        This function updates values according to their type (accumulators or timestamps)
+        :param val_name:
+        :param new_value:
+        :return:
+        """
+
+        currval = getattr(self, val_name) or 0
+        setattr(self, val_name, self.param_map[val_name]["func"](currval, float(new_value)))
 
     def aggregate(self, other):
         """
@@ -139,6 +158,7 @@ class DarshanIngestedJob(IngestedJob):
         (and all these should be together).
         """
         assert self.label == other.label
+        print "aggregating job: {}".format(self.label)
 
         time_difference = other.time_start - self.time_start
         if time_difference < 0:
@@ -306,14 +326,17 @@ class DarshanLogReader(LogReader):
         'darshan log version': ('log_version', str)
     }
 
+    file_params_accumulators = {
+
+
+    }
+
     # See darshan summary on cca/ccb in the darshan module
     file_params = {
         'CP_BYTES_READ': 'bytes_read',
         'CP_BYTES_WRITTEN': 'bytes_written',
         'CP_POSIX_OPENS': 'open_count',
         'CP_POSIX_FOPENS': 'open_count',
-       # 'CP_POSIX_READ_TIME': 'read_time',
-       # 'CP_POSIX_WRITE_TIME': 'write_time',
         'CP_POSIX_WRITES': 'write_count',
         'CP_POSIX_FWRITES': 'write_count',
         'CP_POSIX_READS': 'read_count',
@@ -405,8 +428,7 @@ class DarshanLogReader(LogReader):
 
                 file_elem = self.file_params.get(bits[2], None)
                 if file_elem is not None:
-                    currval = getattr(files[filename], file_elem) or 0
-                    setattr(files[filename], file_elem, currval + float(bits[3]))
+                    files[filename].update_parameter(file_elem, bits[3])
 
         return [self.job_class(file_details=files, **params)]
 
