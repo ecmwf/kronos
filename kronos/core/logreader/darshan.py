@@ -36,13 +36,13 @@ class DarshanIngestedJobFile(object):
     between processes, and pickling fails for nested classes.
     """
 
-    # map that lists the parameters and how they behave when accumulated
+    # JobFile parameters: init values behaviour when accumulated
     param_map = {
-        "bytes_read":       {"init": 0,    "func": lambda x, y: x+y},
-        "bytes_written":    {"init": 0,    "func": lambda x, y: x+y},
-        "open_count":       {"init": 0,    "func": lambda x, y: x+y},
-        "write_count":      {"init": 0,    "func": lambda x, y: x+y},
-        "read_count":       {"init": 0,    "func": lambda x, y: x+y},
+        "bytes_read":       {"init": 0,    "func": lambda x, y: x + y},
+        "bytes_written":    {"init": 0,    "func": lambda x, y: x + y},
+        "open_count":       {"init": 0,    "func": lambda x, y: x + y},
+        "write_count":      {"init": 0,    "func": lambda x, y: x + y},
+        "read_count":       {"init": 0,    "func": lambda x, y: x + y},
         "open_time":        {"init": None, "func": min},
         "read_time_start":  {"init": None, "func": min},
         "read_time_end":    {"init": None, "func": max},
@@ -60,16 +60,8 @@ class DarshanIngestedJobFile(object):
             setattr(self, p_name, p_descr["init"])
 
     def __unicode__(self):
-        return "DarshanFile(times: [{:.6f}, {:.6f}]: " \
-               "{} reads, " \
-               "{} bytes, " \
-               "{} writes, " \
-               "{} bytes)".format(self.open_time,
-                                  self.close_time,
-                                  self.read_count,
-                                  self.bytes_read,
-                                  self.write_count,
-                                  self.bytes_written)
+        return "DarshanFile(times: [{:.6f}, {:.6f}]: {} reads, {} bytes, {} writes, {} bytes)".format(
+            self.open_time, self.close_time, self.read_count, self.bytes_read, self.write_count, self.bytes_written)
 
     def __str__(self):
         return unicode(self).encode('utf-8')
@@ -82,14 +74,19 @@ class DarshanIngestedJobFile(object):
         :return:
         """
 
-        _init_when_hit = {
-            min: float("inf"),
-            max: 0,
-        }
+        # Update values only if the new value is different from zero:
+        #  - byte counters = 0 are to be ignored
+        #  - time stamps = 0 are not valid Darshan entries (eq to "value not found")
+        if float(new_value):
 
-        _param_func = self.param_map[val_name]["func"]
-        currval = getattr(self, val_name) or _init_when_hit.get(_param_func, 0)
-        setattr(self, val_name, _param_func(currval, float(new_value)))
+            _init_when_hit = {
+                min: float("inf"),
+                max: 0,
+            }
+
+            _param_func = self.param_map[val_name]["func"]
+            currval = getattr(self, val_name) or _init_when_hit.get(_param_func, 0)
+            setattr(self, val_name, _param_func(currval, float(new_value)))
 
     def aggregate(self, other):
         """
@@ -210,11 +207,12 @@ class DarshanIngestedJob(IngestedJob):
         for fk, fv in self.file_details.iteritems():
             time_series.append(
                 [fv.open_time,
-                 fv.close_time,
+                 fv.close_time if fv.close_time else -1,
                  fv.read_count,
                  fv.bytes_read,
                  fv.write_count,
-                 fv.bytes_written]
+                 fv.bytes_written,
+                 fv.name]
             )
 
         time_series.sort(key=lambda x: x[0])
@@ -225,7 +223,13 @@ class DarshanIngestedJob(IngestedJob):
 
         if print_time_series:
             print "\n-- time series --\n"
-            print "     "+" ".join(["{:^14}|".format(k) for k in ("t0", "t1", "#read", "bytes_read", "#write", "bytes_write")])
+            print "     "+" ".join(["{:^14}|".format(k) for k in ("t_first_open",
+                                                                  "t_last_close",
+                                                                  "#read",
+                                                                  "bytes_read",
+                                                                  "#write",
+                                                                  "bytes_write",
+                                                                  "file_name")])
             print "\n".join(["[ts] "+" ".join("{:15}".format(v) for v in ts_entry) for ts_entry in time_series])
 
     def model_job(self):
