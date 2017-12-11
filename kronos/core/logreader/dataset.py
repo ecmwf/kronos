@@ -162,3 +162,10 @@ class IngestedDataSet(object):
                     pickle.dump(dataset, f)
 
         return dataset
+
+    def export(self, param_name):
+        """
+        Export dataset-specific quantities
+        :return:
+        """
+        raise NotImplementedError("export function not implemented for class: {}".format(type(self)))

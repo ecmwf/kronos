@@ -1,0 +1,29 @@
+#!/usr/bin/env python
+# (C) Copyright 1996-2017 ECMWF.
+#
+# This software is licensed under the terms of the Apache Licence Version 2.0
+# which can be obtained at http://www.apache.org/licenses/LICENSE-2.0.
+# In applying this licence, ECMWF does not waive the privileges and immunities
+# granted to it by virtue of its status as an intergovernmental organisation nor
+# does it submit to any jurisdiction.
+
+"""
+Export timestamped operations for the full dataset
+  - for list of dataset-specific parameters refer to each dataset implementation
+    - e.g. for DarshanDataset available options are:
+    ["bytes_read", "read_count", "bytes_written", "write_count"]
+"""
+import argparse
+
+from kronos.core.logreader.dataset import IngestedDataSet
+
+if __name__ == "__main__":
+    # Parser for the required arguments
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("path_pickled", type=str, help="The path of the (pickeld) dataset")
+    parser.add_argument("param_name", type=str, help="Name of the parameter to export")
+    args = parser.parse_args()
+
+    dataset = IngestedDataSet.from_pickled(args.path_pickled)
+
+    print "\n".join(["{}: {}".format(t, v) for t, v in dataset.export(args.param_name)])

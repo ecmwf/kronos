@@ -136,6 +136,27 @@ class DarshanIngestedJobFile(object):
         else:
             raise LookupError("behaviour not understood.. I should not be here!")
 
+    def time_stamped_operation(self, param_name):
+        """
+        This function returns the timestamp and the value of a parameter according to it's nature
+          - e.g. if it's a write operation or read operation the timestamp differ..
+        :return:
+        """
+
+        # Check that the request is valid
+        assert param_name in ["bytes_read", "read_count", "bytes_written", "write_count"]
+
+        if param_name in ["bytes_read", "read_count"] and self.read_time_start:
+
+            return (self.read_time_start+self.read_time_end)/2.0, getattr(self, param_name)
+
+        elif param_name in ["bytes_written", "write_count"] and self.write_time_start:
+
+            return (self.write_time_start + self.write_time_end) / 2.0, getattr(self, param_name)
+
+        else:
+            return None
+
 
 class DarshanIngestedJob(IngestedJob):
     """
@@ -643,6 +664,19 @@ class DarshanDataSet(IngestedDataSet):
         for job in self.joblist:
             # yield job.model_job(global_start_time)
             yield job.model_job()
+
+    def export(self, param_name):
+        """
+        This class generate a dataset-specific export of quantities
+        :return:
+        """
+
+        list_ops = [(f.time_stamped_operation(param_name)[0]+job.time_start, f.time_stamped_operation(param_name)[1])
+                    for job in self.joblist for f in job.file_details.values() if f.time_stamped_operation(param_name)]
+
+        t_min = min(zip(*list_ops)[0])
+
+        return sorted([(t-t_min, v) for t, v in list_ops], key=lambda x: x[0])
 
 
 class Darshan3DataSet(IngestedDataSet):
