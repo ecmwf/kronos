@@ -163,7 +163,7 @@ class IngestedDataSet(object):
 
         return dataset
 
-    def export(self, param_name):
+    def export_time_series(self, param_name):
         """
         Export dataset-specific quantities
         :return:

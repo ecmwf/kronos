@@ -13,17 +13,48 @@ Export timestamped operations for the full dataset
     - e.g. for DarshanDataset available options are:
     ["bytes_read", "read_count", "bytes_written", "write_count"]
 """
+
+import os
 import argparse
 
 from kronos.core.logreader.dataset import IngestedDataSet
 
 if __name__ == "__main__":
+
     # Parser for the required arguments
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("path_pickled", type=str, help="The path of the (pickeld) dataset")
-    parser.add_argument("param_name", type=str, help="Name of the parameter to export")
+    parser.add_argument("path", type=str, help="Path of pickeld ingested datasets (file or directory)")
+    parser.add_argument("--mode", type=str, help="Export mode", choices=["per_job_summary", "time_series"], default="per_job_summary")
+    parser.add_argument("--param", type=str, help="Name of the parameter to export (only used if mode=time_series")
     args = parser.parse_args()
 
-    dataset = IngestedDataSet.from_pickled(args.path_pickled)
+    try:
+        assert os.path.exists(args.path)
+    except AssertionError:
+        raise AssertionError("ERROR: Specified path does not exist: {}".format(args.path))
 
-    print "\n".join(["{}: {}".format(t, v) for t, v in dataset.export(args.param_name)])
+    # Collect the dataset (either from folder or path)
+    if os.path.isfile(args.path):
+        dataset = IngestedDataSet.from_pickled(args.path)
+    else:
+        pickle_files = os.listdir(args.path)
+        datasets = [IngestedDataSet.from_pickled(os.path.join(args.path, pk)) for pk in pickle_files]
+        assert (all(type(x) == type(datasets[0]) for x in datasets))
+        dataset_type = type(datasets[0])
+        dataset = dataset_type([job for d in datasets for job in d.joblist], "", "")
+
+    if args.mode == "per_job_summary":
+        for jj, job in enumerate(dataset.joblist):
+
+            _h, _f = job.summary_report()
+
+            # print header only at the beginning
+            if not jj:
+                print _h
+
+            # print fields
+            print _f
+
+    # "time_series" means asking for the series of the specified param for the whole dataset
+    elif args.mode == "time_series":
+        print "\n".join(["[ts]: {}: {}".format(t, v) for t, v in dataset.export_time_series(args.param)])

@@ -158,6 +158,7 @@ class DarshanIngestedJobFile(object):
             return None
 
 
+# /////////////////////////// Darshan version 2 classes ///////////////////////////////
 class DarshanIngestedJob(IngestedJob):
     """
     N.B. Darshan may produce MULTIPLE output files for each of the actual HPC jobs (as it produces one per command
@@ -202,56 +203,61 @@ class DarshanIngestedJob(IngestedJob):
             else:
                 self.file_details[filename] = file_detail
 
-    def print_summary(self, print_time_series=False):
+    def summary_report(self, mode="summary"):
         """
         This function prints a summary of this darshan file
         :return:
         """
 
-        summary_data = OrderedDict([
-            ("write_count", 0),
-            ("bytes_written", 0),
-            ("read_count", 0),
-            ("bytes_read", 0),
-            ("open_count", 0),
-            ("close_count", 0),
-          ])
+        _header = _fields = None
 
-        # print summary data of this ingested job
-        for fk, fv in self.file_details.iteritems():
-            summary_data[fv.define_behaviour()] = summary_data.get(fv.define_behaviour(), 0) + 1
-            for sk, sv in summary_data.items():
-                summary_data[sk] += getattr(fv, sk, 0)
+        if mode=="summary":
+            summary_data = OrderedDict([
+                ("write_count", 0),
+                ("bytes_written", 0),
+                ("read_count", 0),
+                ("bytes_read", 0),
+                ("open_count", 0),
+                ("close_count", 0),
+              ])
+
+            # print summary data of this ingested job
+            for fk, fv in self.file_details.iteritems():
+                summary_data[fv.define_behaviour()] = summary_data.get(fv.define_behaviour(), 0) + 1
+                for sk, sv in summary_data.items():
+                    summary_data[sk] += getattr(fv, sk, 0)
+
+            # print out the summary
+            print_order = ["read_count", "bytes_read", "write_count", "bytes_written"]
+            _header = " "*10 + " ".join(["{:^14}|".format(k) for k in ("#read", "bytes_read", "#write", "bytes_write", "job_name")])
+            _fields = "[summary]" + " ".join(["{:15}".format(summary_data[k]) for k in print_order]) + " {:<15}".format(self.label)
 
         # write time series of operations
-        time_series = []
-        for fk, fv in self.file_details.iteritems():
-            time_series.append(
-                [fv.open_time,
-                 fv.close_time if fv.close_time else -1,
-                 fv.read_count,
-                 fv.bytes_read,
-                 fv.write_count,
-                 fv.bytes_written,
-                 fv.name]
-            )
+        elif mode == "time_series":
+            time_series = []
+            for fk, fv in self.file_details.iteritems():
+                time_series.append(
+                    [fv.open_time,
+                     fv.close_time if fv.close_time else -1,
+                     fv.read_count,
+                     fv.bytes_read,
+                     fv.write_count,
+                     fv.bytes_written,
+                     fv.name]
+                )
 
-        time_series.sort(key=lambda x: x[0])
+            time_series.sort(key=lambda x: x[0])
 
-        # print out the summary
-        print "\n**************** SUMMARY ****************\n"
-        print "\n".join(["[summary] {:20s} {}".format(k, v) for k, v in summary_data.items()])
+            _header = "     "+" ".join(["{:^14}|".format(k) for k in ("t_first_open",
+                                                                      "t_last_close",
+                                                                      "#read",
+                                                                      "bytes_read",
+                                                                      "#write",
+                                                                      "bytes_write",
+                                                                      "file_name")])
+            _fields = "\n".join(["[ts] "+" ".join("{:15}".format(v) for v in ts_entry) for ts_entry in time_series])
 
-        if print_time_series:
-            print "\n-- time series --\n"
-            print "     "+" ".join(["{:^14}|".format(k) for k in ("t_first_open",
-                                                                  "t_last_close",
-                                                                  "#read",
-                                                                  "bytes_read",
-                                                                  "#write",
-                                                                  "bytes_write",
-                                                                  "file_name")])
-            print "\n".join(["[ts] "+" ".join("{:15}".format(v) for v in ts_entry) for ts_entry in time_series])
+        return _header, _fields
 
     def model_job(self):
         """
@@ -355,11 +361,6 @@ class DarshanLogReader(LogReader):
         'start_time': ('time_start', int),
         'end_time': ('time_end', int),
         'darshan log version': ('log_version', str)
-    }
-
-    file_params_accumulators = {
-
-
     }
 
     # See darshan summary on cca/ccb in the darshan module
@@ -488,6 +489,38 @@ class DarshanLogReader(LogReader):
             yield current_job
 
 
+class DarshanDataSet(IngestedDataSet):
+
+    log_reader_class = DarshanLogReader
+
+    def model_jobs(self):
+        """
+        Model the Darshan jobs, given a list of injested jobs
+
+        """
+        # The created times are all in seconds since an arbitrary reference, so we want to get
+        # them relative to a zero-time
+        # global_start_time = min((j.time_start for j in self.joblist))
+
+        for job in self.joblist:
+            # yield job.model_job(global_start_time)
+            yield job.model_job()
+
+    def export_time_series(self, param_name):
+        """
+        This class generates a dataset-specific export of quantities
+        :return:
+        """
+
+        list_ops = [(f.time_stamped_operation(param_name)[0]+job.time_start, f.time_stamped_operation(param_name)[1])
+                    for job in self.joblist for f in job.file_details.values() if f.time_stamped_operation(param_name)]
+
+        t_min = min(zip(*list_ops)[0])
+
+        return sorted([(t-t_min, v) for t, v in list_ops], key=lambda x: x[0])
+
+
+# /////////////////////////// Darshan version 3 classes ///////////////////////////////
 class DarshanLogReader3(LogReader):
 
     job_class = DarshanIngestedJob
@@ -646,37 +679,6 @@ class DarshanLogReader3(LogReader):
         # And when we are at the end of the list, yield the current job
         if current_job is not None:
             yield current_job
-
-
-class DarshanDataSet(IngestedDataSet):
-
-    log_reader_class = DarshanLogReader
-
-    def model_jobs(self):
-        """
-        Model the Darshan jobs, given a list of injested jobs
-
-        """
-        # The created times are all in seconds since an arbitrary reference, so we want to get
-        # them relative to a zero-time
-        # global_start_time = min((j.time_start for j in self.joblist))
-
-        for job in self.joblist:
-            # yield job.model_job(global_start_time)
-            yield job.model_job()
-
-    def export(self, param_name):
-        """
-        This class generate a dataset-specific export of quantities
-        :return:
-        """
-
-        list_ops = [(f.time_stamped_operation(param_name)[0]+job.time_start, f.time_stamped_operation(param_name)[1])
-                    for job in self.joblist for f in job.file_details.values() if f.time_stamped_operation(param_name)]
-
-        t_min = min(zip(*list_ops)[0])
-
-        return sorted([(t-t_min, v) for t, v in list_ops], key=lambda x: x[0])
 
 
 class Darshan3DataSet(IngestedDataSet):
