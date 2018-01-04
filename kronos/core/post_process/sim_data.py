@@ -288,6 +288,10 @@ class SimulationData(object):
         job_classes_dict = {}
         for job in self.jobs:
 
+            # print "job name: {}, t0={}, t1={}".format(job.label,
+            #                                           datetime.datetime.fromtimestamp(job.t_start),
+            #                                           datetime.datetime.fromtimestamp(job.t_end))
+
             print "job name: {}".format(job.label)
             classes_job_belongs_to = job.get_class_name(class_list)
             print "-----> belongs to classes: {}".format(classes_job_belongs_to)

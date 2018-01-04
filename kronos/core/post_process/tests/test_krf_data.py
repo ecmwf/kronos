@@ -51,11 +51,10 @@ class KRFJobTest(unittest.TestCase):
         krf_data = KRFJob(krf_json_data, decorator_data=decor_data)
 
         # time start
-        self.assertEqual(datetime2epochs( datetime.strptime(krf_json_data["created"], '%Y-%m-%dT%H:%M:%S+00:00') ), krf_data.t_start)
+        self.assertEqual(datetime2epochs( datetime.strptime(krf_json_data["created"], '%Y-%m-%dT%H:%M:%S+00:00') ), krf_data.t_end)
 
         # assert time end
-        self.assertEqual(krf_data.t_start + max([sum(ts["durations"]) for ts in self.time_series_2proc]),
-                         krf_data.t_end)
+        self.assertEqual(krf_data.t_start + max([sum(ts["durations"]) for ts in self.time_series_2proc]), krf_data.t_end)
 
         # assert duration
         self.assertEqual(krf_data.t_end-krf_data.t_start, krf_data.duration)

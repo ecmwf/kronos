@@ -186,6 +186,17 @@ class KRFJob(object):
     @property
     def t_start(self):
 
+        # T_start is calculated from t_end
+        return self.t_end - self.duration
+
+    @property
+    def duration(self):
+        return max([v for ts in self.time_series.values() for v in ts["times"]])
+
+    @property
+    def t_end(self):
+
+        # t_end is defined as the creation timestamp of KRF
         _ts = None
         if self._json_data.get("created"):
 
@@ -196,14 +207,6 @@ class KRFJob(object):
 
             _ts = datetime2epochs(created_datetime)
         return _ts
-
-    @property
-    def duration(self):
-        return max([v for ts in self.time_series.values() for v in ts["times"]])
-
-    @property
-    def t_end(self):
-        return self.t_start + self.duration
 
     def is_in_class(self, class_regex=None):
         """
