@@ -19,7 +19,6 @@ from kronos.core.exceptions_iows import ConfigurationError
 from kronos.core.workload_data import WorkloadData
 from kronos.core.config.config import Config
 from kronos.core.model import KronosModel
-from kronos.core.postprocess.run_plotter import RunPlotter
 from kronos.core.report import Report
 
 from kronos.io.profile_format import ProfileFormat
@@ -67,15 +66,6 @@ class Kronos(object):
         print "\nRun model...\n----------------------------------"
         kronos_runner = runner.factory(self.config.run['type'], self.config)
         kronos_runner.run()
-
-    def postprocess(self, run_dir):
-        """
-        Postprocess the results of the run
-        :return:
-        """
-        print "\nPostprocess run..\n----------------------------------"
-        plotter = RunPlotter(run_dir)
-        plotter.plot_run()
 
 
 if __name__ == "__main__":

@@ -45,6 +45,7 @@ setup(
         'bin/kronos-generate-read-files',
         'bin/kronos-executor',
         'bin/kronos-raw-to-kpf',
+        'bin/kronos-inspect-dataset',
 
         'bin/kronos-plot-kpf',
         'bin/kronos-map-2-kpf',
