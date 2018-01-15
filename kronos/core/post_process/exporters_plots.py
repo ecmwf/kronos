@@ -20,6 +20,10 @@ from kronos.core.post_process.definitions import linspace
 from kronos.core.post_process.definitions import running_series
 from kronos.core.post_process.definitions import labels_map
 
+import matplotlib
+matplotlib.use("Agg")
+import matplotlib.pyplot as plt
+
 
 class ExporterPlot(ExporterBase):
 
@@ -38,7 +42,6 @@ class ExporterPlot(ExporterBase):
     def _export_png(self, output_path, job_classes, **kwargs):
 
         print "Exporting PNG tables in {}".format(output_path)
-        import matplotlib.pyplot as plt
 
         # use ylims if user has provided them
         plot_ylim = self.export_config.get("y_lims")
@@ -170,7 +173,6 @@ class ExporterTimeSeriesMetrics(ExporterBase):
         :param output_path:
         :return:
         """
-        import matplotlib.pyplot as plt
 
         # =====================  calculate all time-series =====================
         times_plot = np.asarray(times_plot)
@@ -280,7 +282,6 @@ class ExporterTimeSeriesJNP(ExporterBase):
         :param output_path:
         :return:
         """
-        import matplotlib.pyplot as plt
         from matplotlib.ticker import FormatStrFormatter
 
         # ================= Plot job and processes time-series ==================
@@ -387,7 +388,6 @@ class ExporterTimeSeriesIOrates(ExporterBase):
         :param output_path:
         :return:
         """
-        import matplotlib.pyplot as plt
 
         times_plot = np.asarray(times_plot)
         global_time_series = {}
