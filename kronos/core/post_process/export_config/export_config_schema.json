@@ -102,14 +102,22 @@
                 "patternProperties": {
                   "(n_write|n_read|kb_write|kb_read|n_pairwise|kb_pairwise|n_collective|kb_collective|flops)": {
                     "type": "object",
-                    "description": "Option for line plots (x_lims and y_lims)"
+                    "patternProperties": {
+                      "(x_lims|y_lims)": {
+                        "type": "array",
+                        "description": "x_lims and y_lims",
+                        "items": {
+                            "type": "number"
+                        }
+                      }
+                    },
+                    "description": "Option for line plots"
                   }
                 }
               }
             },
-            "required": ["type"]
+            "required": ["type", "lines"]
           },
-
 
           {
             "type": "object",
@@ -132,12 +140,21 @@
                 "patternProperties": {
                   "(jobs|procs|nodes)": {
                     "type": "object",
+                    "patternProperties": {
+                      "(x_lims|y_lims)": {
+                        "type": "array",
+                        "description": "x_lims and y_lims",
+                        "items": {
+                            "type": "number"
+                        }
+                      }
+                    },
                     "description": "Option for line plots (x_lims and y_lims)"
                   }
                 }
               }
             },
-            "required": ["type"]
+            "required": ["type", "lines"]
           },
 
           {
@@ -161,12 +178,21 @@
                 "patternProperties": {
                   "(kb_written|kb_written_sec|writing_processes)": {
                     "type": "object",
+                    "patternProperties": {
+                      "(x_lims|y_lims)": {
+                        "type": "array",
+                        "description": "x_lims and y_lims",
+                        "items": {
+                            "type": "number"
+                        }
+                      }
+                    },
                     "description": "option for line plots (x_lims and y_lims)"
                   }
                 }
               }
             },
-            "required": ["type"]
+            "required": ["type", "lines"]
           }
 
         ]
