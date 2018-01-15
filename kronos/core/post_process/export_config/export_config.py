@@ -7,6 +7,8 @@
 # does it submit to any jurisdiction.
 import json
 
+import os
+
 from kronos.core.exceptions_iows import ConfigurationError
 from kronos.core.post_process.export_config.export_config_format import ExportConfigFormat
 
@@ -45,6 +47,10 @@ class ExportConfig(object):
 
             # if OK, set this attribute..
             setattr(self, k, v)
+
+        # If the output folder exists, stop
+        if os.path.isdir(self._config_dict["output_path"]):
+            raise RuntimeError("Output directory already exists!")
 
     @classmethod
     def from_json_file(cls, filename):
