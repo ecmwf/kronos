@@ -135,8 +135,6 @@ class SimulationData(object):
         :return:
         """
 
-        print "Summing class stats for sim : {}".format(self.name)
-
         # calculate all the stats for each job class
         per_class_stats = self.class_stats(job_classes)
 
@@ -147,8 +145,13 @@ class SimulationData(object):
         _all_class_stats_dict = {stat_metric: {field: 0.0 for field in krf_stats_info[stat_metric]["to_sum"]}
                                  for stat_metric in krf_stats_info.keys()}
 
+        # print "_all_class_stats_dict ", _all_class_stats_dict
+        # print "per_class_stats ", per_class_stats
+
         # update stats sums
         for class_name, stats_list in per_class_stats.iteritems():
+
+            # print "calculating stats for class {}".format(class_name)
 
             # initialize all the requested sums..
             _class_stats_dict = {stat_metric: {field: 0.0 for field in krf_stats_info[stat_metric]["to_sum"]}
@@ -158,6 +161,8 @@ class SimulationData(object):
             for stat_entry in stats_list:
                 for stat_metric in stat_entry.keys():
                     for field in krf_stats_info[stat_metric]["to_sum"]:
+
+                        # print "summing {:20}, metric {:20}, field {:20}".format(float(stat_entry[stat_metric][field]), stat_metric, field)
 
                         # add the summable metrics to class stats
                         _class_stats_dict[stat_metric][field] += float(stat_entry[stat_metric][field])
@@ -173,16 +178,25 @@ class SimulationData(object):
             # also calculate the rates (according to the fields defined in krf_stats_info)
             for stat_metric in _class_stats_dict.keys():
 
+                # print "stat_metric: {}".format(stat_metric)
+
                 # numerator and denominator for rate calculation
                 num, den = krf_stats_info[stat_metric]["def_rate"]
 
+                # print "num:{}, den:{}".format(num, den)
+                # print "-------> num:{}, den:{}".format(_class_stats_dict[stat_metric][num], _class_stats_dict[stat_metric][den])
+
                 # conversion factor
                 fc = krf_stats_info[stat_metric]["conv"]
+
+                # print "fc ", fc
 
                 # get the rate
                 rate = fc * _class_stats_dict[stat_metric][num] / _class_stats_dict[stat_metric][den]
 
                 _class_stats_dict[stat_metric]["rate"] = rate
+
+                # print "rate: {}".format(rate)
 
             # collect and store per-class stats
             per_class_stats_sums[class_name] = _class_stats_dict
@@ -281,7 +295,7 @@ class SimulationData(object):
 
         return found, global_time_series
 
-    def print_job_classes_info(self, class_list):
+    def print_job_classes_info(self, class_list, show_jobs_flag=False):
         """
         Provides basic information on job classes
         :return:
@@ -290,13 +304,12 @@ class SimulationData(object):
         job_classes_dict = {}
         for job in self.jobs:
 
-            # print "job name: {}, t0={}, t1={}".format(job.label,
-            #                                           datetime.datetime.fromtimestamp(job.t_start),
-            #                                           datetime.datetime.fromtimestamp(job.t_end))
-
-            print "job name: {}".format(job.label)
             classes_job_belongs_to = job.get_class_name(class_list)
-            print "-----> belongs to classes: {}".format(classes_job_belongs_to)
+
+            # print job-class info only if
+            if show_jobs_flag:
+                print "job name: {}".format(job.label)
+                print "-----> belongs to classes: {}".format(classes_job_belongs_to)
 
             for job_class_name in classes_job_belongs_to:
                 job_classes_dict.setdefault(job_class_name, []).append(job)

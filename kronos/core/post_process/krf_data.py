@@ -30,6 +30,7 @@ krf_stats_info = OrderedDict((
     ("cpu", {"conv": 1.0/1000.0**3,
              "label_sum": "FLOPS",
              "label_rate": "FLOPS [GB/sec]",
+             "label_metric": "count",
              "to_sum": ["count", "elapsed"],
              "def_rate": ["count", "elapsed"],
              }),
@@ -37,6 +38,7 @@ krf_stats_info = OrderedDict((
     ("read", {"conv": 1.0/1024.0**3,
               "label_sum": "I/O read",
               "label_rate": "I/O read [GiB/sec]",
+              "label_metric": "bytes",
               "to_sum": ["count", "elapsed", "bytes"],
               "def_rate": ["bytes", "elapsed"],
               }),
@@ -44,6 +46,7 @@ krf_stats_info = OrderedDict((
     ("write", {"conv": 1.0/1024.0**3,
                "label_sum": "I/O write",
                "label_rate": "I/O write [GiB/sec]",
+               "label_metric": "bytes",
                "to_sum": ["count", "elapsed", "bytes"],
                "def_rate": ["bytes", "elapsed"],
                }),
@@ -51,6 +54,7 @@ krf_stats_info = OrderedDict((
     ("mpi-pairwise", {"conv": 1.0/1024.0**3,
                       "label_sum": "MPI p2p",
                       "label_rate": "MPI p2p [GiB/sec]",
+                      "label_metric": "bytes",
                       "to_sum": ["count", "elapsed", "bytes"],
                       "def_rate": ["bytes", "elapsed"],
                       }),
@@ -58,6 +62,7 @@ krf_stats_info = OrderedDict((
     ("mpi-collective", {"conv": 1.0/1024.0**3,
                         "label_sum": "MPI col",
                         "label_rate": "MPI col [GiB/sec]",
+                        "label_metric": "bytes",
                         "to_sum": ["count", "elapsed", "bytes"],
                         "def_rate": ["bytes", "elapsed"],
                         })
@@ -246,9 +251,10 @@ class KRFJob(object):
         job_classes = [cl_name for cl_name, cl_regex in class_list.iteritems() if self.is_in_class(cl_regex)]
 
         if job_classes:
+
             return job_classes
+
         else:
-            # print "class_list ", class_list
-            # raise ValueError("class of job {} not found".format(self.label))
-            # print "class of job {} not found, setting to unknown".format(self.label)
-            return "unknown"
+
+            # If no specific classes are found, a "generic_class"
+            return ["generic_class"]

@@ -11,7 +11,7 @@ import os
 import argparse
 import sys
 
-# Hard-coded job classes
+from kronos.core.post_process.krf_data import krf_stats_info
 from kronos.core.post_process.sim_data import SimulationData
 
 job_classes = {
@@ -27,15 +27,65 @@ job_classes = {
                "main_lag_serial": "main/fc/lag/*serial"
               }
 
+
+def print_formatted_class_stats(class_name, per_class_job_stats):
+
+    # Show summary per class
+    _fl = 20
+    n_fields = 3
+
+    # get the stats for this class (if present..)
+    class_stats = per_class_job_stats.get(class_name)
+
+    if class_stats:
+
+        # Class name
+        print "\n\n{}".format("-" * (_fl + 1) * n_fields)
+        print "{:^{l}s}|".format("class: " + class_name, l=(_fl + 1) * n_fields - 1)
+        print "{}".format("-" * (_fl + 1) * n_fields)
+
+        # Header
+        print "{:<{l}s}|{:^{l}s}|{:^{l}s}|".format("Name", "Total [G/GiB]", "Total Time", l=_fl)
+        print "{}".format("-" * (_fl + 1) * n_fields)
+
+        # Print the relevant metrics for each stats class
+        for k, v in class_stats.iteritems():
+
+            stats_metric_info = krf_stats_info[k]
+
+            # retrieve the relevant info from the metric type
+            counter_to_print = v[stats_metric_info["label_metric"]]
+            conv_fact = stats_metric_info["conv"]
+            elaps_time = v["elapsed"]
+
+            print "{:<{l}s}|{:>{l}}|{:>{l}}|".format(k, counter_to_print * conv_fact, elaps_time, l=_fl)
+
+        print "{}".format("-" * (_fl + 1) * n_fields)
+    else:
+        print "\n\n*** Warning ***: no jobs found for class {}".format(class_name)
+
+
 if __name__ == "__main__":
 
     # Parser for the required arguments
     parser = argparse.ArgumentParser(description=__doc__)
+
     parser.add_argument("job_dir",
                         type=str,
-                        help="Path of the kronos output folder 'job_dir' (contains the job-<ID> sub-folders)")
-    parser.add_argument("--permissive", help="If set, it skips the check on the number of successful jobs",
+                        help="Path of the kronos output folder 'job_dir' (path that contains job-<ID> sub-folders..)")
+
+    parser.add_argument("--permissive",
+                        help="If set, it skips the check on the number of successful jobs",
                         action='store_true')
+
+    parser.add_argument("--rdx1_classes",
+                        help="If set, uses the classes pre-defined for the rdx1 benchmark",
+                        action='store_true')
+
+    parser.add_argument("--show_jobs",
+                        help="If set, shows which class each job falls into",
+                        action='store_true')
+
     args = parser.parse_args()
 
     # check that the run path exists
@@ -49,14 +99,17 @@ if __name__ == "__main__":
         print "Specified path does not contain any job folder (<job-ID>..)!"
         sys.exit(-1)
 
+    # set the job_classes
+    job_classes = job_classes if args.rdx1_classes else {}
+
     # read simulation data
     simulation_tag = "kronos-sim"
     sim_data = SimulationData.read_from_sim_paths(args.job_dir,
                                                   simulation_tag,
                                                   permissive=args.permissive)
 
-    # print some info on the classification of the jobs in the simulation
-    sim_data.print_job_classes_info(job_classes)
+    # print some info on the classification of the jobs in the simulation (if requested)
+    sim_data.print_job_classes_info(job_classes, args.show_jobs if args.show_jobs else False)
 
     # job statistics per class..
     per_class_job_stats = sim_data.class_stats_sums(job_classes)
@@ -67,29 +120,13 @@ if __name__ == "__main__":
     # overall runtime
     print "Total Runtime [s]: {:20.2f}".format(sim_data.runtime())
 
-    # Show summary per class
-    _fl = 20
-    n_fields = 3
-    for class_name in job_classes.keys():
+    # loop over all the classes found (including "generic_class")
+    for class_name in per_class_job_stats.keys():
+        if class_name != "all_classes" and class_name != "generic_class":
+            print_formatted_class_stats(class_name, per_class_job_stats)
 
-        class_stats = per_class_job_stats.get(class_name)
+    # print stats for the generic class
+    print_formatted_class_stats("generic_class", per_class_job_stats)
 
-        if class_stats:
-            # Class name
-            print "\n\n{}".format("-"*(_fl+1)*n_fields)
-            print "{:^{l}s}|".format("class: "+class_name, l=(_fl + 1) * n_fields-1)
-            print "{}".format("-" * (_fl + 1) * n_fields)
-
-            # Header
-            print "{:<{l}s}|{:^{l}s}|{:^{l}s}|".format("Name", "Total [G/GiB]", "Total Time", l=_fl)
-            print "{}".format("-" * (_fl + 1) * n_fields)
-
-            # Print the metrics
-            for k,v in class_stats.iteritems():
-                print "{:<{l}s}|{:>{l}}|{:>{l}}|".format(k,
-                                                         v["count"],
-                                                         v["elapsed"], l=_fl)
-
-            print "{}".format("-" * (_fl + 1) * n_fields)
-        else:
-            print "\n\n*** Warning ***: no jobs found for class {}".format(class_name)
+    # print stats for the generic class
+    print_formatted_class_stats("all_classes", per_class_job_stats)
