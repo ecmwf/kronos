@@ -5,9 +5,9 @@
 # In applying this licence, ECMWF does not waive the privileges and immunities
 # granted to it by virtue of its status as an intergovernmental organisation nor
 # does it submit to any jurisdiction.
-import json
-
 import os
+import json
+import datetime
 
 from kronos.core.exceptions_iows import ConfigurationError
 from kronos.core.post_process.export_config.export_config_format import ExportConfigFormat
@@ -48,9 +48,13 @@ class ExportConfig(object):
             # if OK, set this attribute..
             setattr(self, k, v)
 
-        # If the output folder exists, stop
-        if os.path.isdir(self._config_dict["output_path"]):
-            raise RuntimeError("Output directory already exists!")
+        # take the timestamp to be used to archive run folders (if existing)
+        out_dir = self._config_dict["output_path"]
+        if os.path.exists(out_dir):
+            time_stamp_now = datetime.datetime.now().strftime('%Y%m%d%H%M%S')
+            time_stamped_outdir = out_dir + "." + time_stamp_now
+            print "Dir: {} already exists!\n..moving it to: {}".format(out_dir, time_stamped_outdir)
+            os.rename(out_dir, time_stamped_outdir)
 
     @classmethod
     def from_json_file(cls, filename):
