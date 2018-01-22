@@ -1,22 +1,9 @@
-#!/usr/bin/env python
-# (C) Copyright 1996-2017 ECMWF.
-#
-# This software is licensed under the terms of the Apache Licence Version 2.0
-# which can be obtained at http://www.apache.org/licenses/LICENSE-2.0.
-# In applying this licence, ECMWF does not waive the privileges and immunities
-# granted to it by virtue of its status as an intergovernmental organisation nor
-# does it submit to any jurisdiction.
-
-
-import sys
-from kronos.io.schema_description import SchemaDescription
-
-exe_config_schema = {
+{
   "$schema": "http://json-schema.org/draft-04/schema",
   "type": "object",
   "title": "Kronos Executor configuration file format",
   "description": "The Kronos-Executor configuration file format controls the execution of the Executor",
-  "additionalProperties": False,
+  "additionalProperties": false,
   "properties": {
     "coordinator_binary": {
       "type": "string",
@@ -63,19 +50,3 @@ exe_config_schema = {
     }
   }
 }
-
-
-if __name__ == '__main__':
-
-    """
-    Function to print executor config schema
-    TODO: add validation check
-    """
-
-    # If no arguments are supplied, print the schema in a human readable form. Otherwise treat the
-    # arguments as files to be validated against the schema.
-    if len(sys.argv) == 1:
-        print SchemaDescription.from_schema(exe_config_schema)
-    else:
-        print "unknown argument!"
-        sys.exit(-1)

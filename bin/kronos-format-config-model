@@ -18,7 +18,15 @@ from kronos.core.config.config_format import ConfigFormat
 
 if __name__ == '__main__':
 
-    print ConfigFormat.describe()
-
-
-
+    # If no arguments are supplied, print the schema in a human readable form. Otherwise treat the
+    # arguments as files to be validated against the schema.
+    if len(sys.argv) == 1:
+        print ConfigFormat.describe()
+    else:
+        for filename in sys.argv[1:]:
+            print "Opening and validating: {}".format(filename)
+            try:
+                ConfigFormat.from_filename(filename)
+                print "OK!"
+            except Exception as e:
+                print e

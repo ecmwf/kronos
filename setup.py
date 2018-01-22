@@ -34,11 +34,13 @@ setup(
 
         'bin/kronos-view-json',
         'bin/kronos-show-info',
-        'bin/kronos-config',
-        'bin/kronos-config-exe',
-        'bin/kronos-kpf',
-        'bin/kronos-krf',
-        'bin/kronos-ksf',
+        'bin/kronos-format-config-model',
+        'bin/kronos-format-config-exe',
+        'bin/kronos-format-kpf',
+        'bin/kronos-format-krf',
+        'bin/kronos-format-ksf',
+        'bin/kronos-format-config-export',
+
         'bin/kronos-config-enquire',
         'bin/kronos-dummy-workload',
 
