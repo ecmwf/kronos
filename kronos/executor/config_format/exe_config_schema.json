@@ -14,11 +14,8 @@
       "description": "Working output folder"
     },
     "job_class": {
-      "type": "array",
-      "description": "Name of the submit script template that the executor uses (see kronos/executor/job_classes)",
-      "items": {
-        "type": "string"
-      }
+      "type": "string",
+      "description": "Name of the submit script template that the executor uses (see kronos/executor/job_classes)"
     },
     "job_dir_shared": {
       "type": "string",
@@ -47,6 +44,14 @@
     "read_file_size_max": {
       "type": "string",
       "description": "Maximum read size (to be interpreted as 2^<read_file_size_min>)"
+    },
+    "enable_ipm": {
+      "type": "boolean",
+      "description": "if Set to True, enable ipm headers in the job submit script"
+    },
+    "file_read_multiplicity": {
+      "type": "integer",
+      "description": "Number of files (for each file size) used to randomize the read calls of the synthetic apps"
     }
   }
 }
