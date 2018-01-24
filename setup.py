@@ -56,7 +56,6 @@ setup(
 
         'bin/kronos-run-perf',
         'bin/kronos-run-collect',
-        'bin/kronos-run-analysis',
         'bin/kronos-run-check',
         'bin/kronos-run-export',
         'bin/kronos-show-job',
