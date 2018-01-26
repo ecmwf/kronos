@@ -19,7 +19,7 @@ class ExporterSummaryRates(ExporterBase):
 
     def do_export(self, export_config, output_path, job_classes, **kwargs):
 
-        print "Exporting PNG tables in {}".format(output_path)
+        print "Exporting summary rates data to {}".format(output_path)
 
         # ------------ find max and min rates for scaling all the plots accordingly ------------
         max_norm_value = None

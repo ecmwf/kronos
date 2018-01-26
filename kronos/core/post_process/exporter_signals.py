@@ -29,7 +29,7 @@ class ExporterTimeSeries(ExporterBase):
         plot time series of metrics
         :return:
         """
-        print "Exporting time-series plots in {}".format(output_path)
+        print "Exporting time-series data to {}".format(output_path)
         for sim in self.sim_set.sims:
 
             # time bins (default value is one per second)

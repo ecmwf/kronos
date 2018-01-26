@@ -128,7 +128,6 @@ class ExportableSignalFrame(object):
         ax.legend(loc='center left', bbox_to_anchor=(1, 0.5))
 
         if self.save_filename:
-            print "self.save_filename ", self.save_filename
             plt.savefig(self.save_filename+"."+export_format)
 
         plt.close()
