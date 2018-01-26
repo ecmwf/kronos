@@ -134,10 +134,10 @@ class SimDataTest(unittest.TestCase):
         self.assertGreater(found, 0)
 
         # check of the binned values (see above)
-        self.assertEqual([v[1] for v in calculated_time_series["flops"]], [777, 333, 222])
+        self.assertEqual([v for v in calculated_time_series["flops"].values], [777, 333, 222])
 
         # check that the integral is conserved
-        self.assertEqual(sum([v[1] for v in calculated_time_series["flops"]]), sum([sum(job.time_series["flops"]["values"]) for job in sim_data.jobs]))
+        self.assertEqual(sum([v for v in calculated_time_series["flops"].values]), sum([sum(job.time_series["flops"]["values"]) for job in sim_data.jobs]))
 
 if __name__ == "__main__":
     unittest.main()

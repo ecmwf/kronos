@@ -10,9 +10,12 @@ import json
 import os
 
 import math
+from collections import OrderedDict
+
 import numpy as np
 import sys
 
+from kronos.core.post_process.result_signals import ResultRunningSignal, ResultProfiledSignal
 from kronos.core.time_signal.definitions import signal_types
 from kronos.core.post_process.krf_data import KRFJob, krf_stats_info
 from kronos.core.post_process.krf_decorator import KRFDecorator
@@ -145,13 +148,8 @@ class SimulationData(object):
         _all_class_stats_dict = {stat_metric: {field: 0.0 for field in krf_stats_info[stat_metric]["to_sum"]}
                                  for stat_metric in krf_stats_info.keys()}
 
-        # print "_all_class_stats_dict ", _all_class_stats_dict
-        # print "per_class_stats ", per_class_stats
-
         # update stats sums
         for class_name, stats_list in per_class_stats.iteritems():
-
-            # print "calculating stats for class {}".format(class_name)
 
             # initialize all the requested sums..
             _class_stats_dict = {stat_metric: {field: 0.0 for field in krf_stats_info[stat_metric]["to_sum"]}
@@ -161,8 +159,6 @@ class SimulationData(object):
             for stat_entry in stats_list:
                 for stat_metric in stat_entry.keys():
                     for field in krf_stats_info[stat_metric]["to_sum"]:
-
-                        # print "summing {:20}, metric {:20}, field {:20}".format(float(stat_entry[stat_metric][field]), stat_metric, field)
 
                         # add the summable metrics to class stats
                         _class_stats_dict[stat_metric][field] += float(stat_entry[stat_metric][field])
@@ -178,25 +174,16 @@ class SimulationData(object):
             # also calculate the rates (according to the fields defined in krf_stats_info)
             for stat_metric in _class_stats_dict.keys():
 
-                # print "stat_metric: {}".format(stat_metric)
-
                 # numerator and denominator for rate calculation
                 num, den = krf_stats_info[stat_metric]["def_rate"]
 
-                # print "num:{}, den:{}".format(num, den)
-                # print "-------> num:{}, den:{}".format(_class_stats_dict[stat_metric][num], _class_stats_dict[stat_metric][den])
-
                 # conversion factor
                 fc = krf_stats_info[stat_metric]["conv"]
-
-                # print "fc ", fc
 
                 # get the rate
                 rate = fc * _class_stats_dict[stat_metric][num] / _class_stats_dict[stat_metric][den]
 
                 _class_stats_dict[stat_metric]["rate"] = rate
-
-                # print "rate: {}".format(rate)
 
             # collect and store per-class stats
             per_class_stats_sums[class_name] = _class_stats_dict
@@ -226,9 +213,64 @@ class SimulationData(object):
 
         return per_class_stats_sums
 
+    def create_global_running_series(self, times, job_class_regex=None):
+        """
+        Calculate the time series for all the metrics that are "running" series (e.g. #jobs, #CPU's, #nodes)
+        :param jobs:
+        :param times:
+        :param job_class_regex:
+        :return:
+        """
+
+        bin_width = times[1] - times[0]
+
+        t0_epoch_wl = self.tmin_epochs
+
+        # logs number of concurrently running jobs, processes
+        running_jpn = OrderedDict((
+            ("jobs", np.zeros(len(times)) ),
+            ("procs", np.zeros(len(times)) ),
+            ("nodes", np.zeros(len(times)) ),
+        ))
+
+        # if n_proc_node is available, then also # of running nodes is calculated
+        if self.n_procs_node:
+            running_jpn.update({"nodes": np.zeros(len(times))})
+
+        found = 0
+        for job in self.jobs:
+
+            if job.is_in_class(job_class_regex):
+
+                found += 1
+                first = int(math.ceil((job.t_start - t0_epoch_wl - times[0]) / bin_width))
+                last = int(math.floor((job.t_end - t0_epoch_wl - times[0]) / bin_width))
+
+                # last index should always be >= first+1
+                last = last if last > first else first + 1
+
+                # #jobs
+                running_jpn["jobs"][first:last] += 1
+
+                # #procs
+                running_jpn["procs"][first:last] += job.n_cpu
+
+                if self.n_procs_node:
+
+                    # #nodes
+                    n_nodes = job.n_cpu/int(self.n_procs_node) if not job.n_cpu%int(self.n_procs_node) else \
+                        job.n_cpu/int(self.n_procs_node)+1
+
+                    running_jpn["nodes"][first:last] += n_nodes
+
+        # result signals (for running quantities)
+        jpn_result_signals = {k: ResultRunningSignal(k, times, values) for k, values in running_jpn.iteritems()}
+
+        return found, jpn_result_signals
+
     def create_global_time_series(self, times, job_class_regex=None):
         """
-        Calculate time series over a specified times vector
+        Calculate time series over a specified times vector (including # processes)
         :param times:
         :param job_class_regex:
         :return:
@@ -241,11 +283,9 @@ class SimulationData(object):
 
         for ts_name in signal_types:
 
-            # print "ts_name: ", ts_name
-
-            binned_values = np.zeros(len(times))
-            binned_elapsed = np.zeros(len(times))
-            binned_processes = np.zeros(len(times))
+            _values = np.zeros(len(times))
+            _elapsed = np.zeros(len(times))
+            _processes = np.zeros(len(times))
 
             for jj, job in enumerate(self.jobs):
 
@@ -256,17 +296,11 @@ class SimulationData(object):
 
                         if job.time_series.get(ts_name):
 
-                            # print "job values: ", job.time_series[ts_name]["values"]
-
                             # job_ts_timestamps includes the t_0 of each interval
                             job_ts_timestamps = [0] + job.time_series[ts_name]["times"]
                             t_start = job.t_start
 
-                            # print "---------> job_ts_timestamps ", job_ts_timestamps
                             for tt in range(1, len(job_ts_timestamps)):
-
-                                # print "job kernel t_0: ", job_ts_timestamps[tt-1] + t_start-tmin_epochs
-                                # print "job kernel t_1: ", job_ts_timestamps[tt] + t_start-tmin_epochs
 
                                 first = int(math.floor((job_ts_timestamps[tt-1] + t_start-tmin_epochs) / bin_width))
                                 last = int(math.ceil((job_ts_timestamps[tt] + t_start-tmin_epochs) / bin_width))
@@ -274,24 +308,17 @@ class SimulationData(object):
                                 # make sure that last is always > first
                                 last = last if last > first else first + 1
 
-                                # print "global index first: ", first
-                                # print "global index last: ", last
-
                                 # make sure that n_span_bin is >= 1
                                 n_span_bin = max(1, last-first)
 
                                 # counter to get the value corresponding to the time interval
                                 value_count = tt-1
 
-                                binned_values[first:last] += job.time_series[ts_name]["values"][value_count]/float(n_span_bin)
-                                binned_elapsed[first:last] += job.time_series[ts_name]["elapsed"][value_count]/float(n_span_bin)
-                                binned_processes[first:last] += 1
+                                _values[first:last] += job.time_series[ts_name]["values"][value_count]/float(n_span_bin)
+                                _elapsed[first:last] += job.time_series[ts_name]["elapsed"][value_count]/float(n_span_bin)
+                                _processes[first:last] += 1
 
-                                # print "Adding a total of: {}".format(job.time_series[ts_name]["values"][value_count])
-                                # print " --> Adding in each bin: {}".format(job.time_series[ts_name]["values"][value_count]/float(n_span_bin))
-                                # print "updated binned_values: ", binned_values
-
-            global_time_series[ts_name] = zip(times, binned_values, binned_elapsed, binned_processes)
+            global_time_series[ts_name] = ResultProfiledSignal(ts_name, times, _values, _elapsed, _processes)
 
         return found, global_time_series
 

@@ -6,10 +6,7 @@
 # granted to it by virtue of its status as an intergovernmental organisation nor
 # does it submit to any jurisdiction.
 
-import math
 import datetime
-import numpy as np
-
 
 # ///////////////////////////////// UTILITIES /////////////////////////////////////////
 def datetime2epochs(t_in):
@@ -28,55 +25,25 @@ def linspace(x0, x1, count):
     return [x0+(x1-x0)*i/float(count-1) for i in range(count)]
 
 
-def running_series(jobs, times, t0_epoch_wl, n_procs_node=None, job_class_regex=None):
-
-    bin_width = times[1] - times[0]
-
-    # logs number of concurrently running jobs, processes
-    if n_procs_node:
-        running_jpn = np.zeros((len(times), 3))
-    else:
-        running_jpn = np.zeros((len(times), 2))
-
-    found = 0
-    for job in jobs:
-
-        if job.is_in_class(job_class_regex):
-            
-            found += 1
-            first = int(math.ceil((job.t_start-t0_epoch_wl - times[0]) / bin_width))
-            last = int(math.floor((job.t_end-t0_epoch_wl - times[0]) / bin_width))
-
-            # last index should always be >= first+1
-            last = last if last > first else first+1
-
-            # #jobs
-            running_jpn[first:last, 0] += 1
-
-            # #cpus
-            running_jpn[first:last, 1] += job.n_cpu
-
-            if n_procs_node:
-
-                # #nodes
-                n_nodes = job.n_cpu/int(n_procs_node) if not job.n_cpu%int(n_procs_node) else job.n_cpu/int(n_procs_node)+1
-                running_jpn[first:last, 2] += n_nodes
-
-    return found, running_jpn
-
-
 # ///////////////////////////////// DEFINITIONS /////////////////////////////////////////
 
 labels_map = {
-    'n_write': "[#]",
+    'n_write': "[-]",
     'kb_write': "[KiB]",
-    'n_read': "[#]",
+    'n_read': "[-]",
     'n_collective': "[#]",
     'kb_read': "[KiB]",
-    'flops': "[#]",
+    'flops': "[-]",
     'kb_collective': "[KiB]",
     'kb_pairwise': "[KiB]",
-    'n_pairwise': "[#]"
+    'n_pairwise': "[-]",
+
+    'jobs':  "[-]",
+    'procs': "[-]",
+    'nodes': "[-]",
+
+    'write_rates': "[KiB/s]",
+    'read_rates': "[KiB/s]",
 }
 
 # class_colors = [(0, 0, 1),

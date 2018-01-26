@@ -43,35 +43,17 @@
         "oneOf": [
           {
             "type": "object",
-            "description": "Export tabulated data",
-            "properties":{
-              "type":{
-                "type":"string",
-                "description": "Export identification string",
-                "enum": ["rates_table"]
-              },
-              "format":{
-                "type": "string",
-                "description": "Specific format which tabulated data will be written into",
-                "enum": ["csv"]
-              }
-            },
-            "required": ["type"]
-          },
-
-          {
-            "type": "object",
             "description": "Export plots",
             "properties":{
               "type":{
                 "type":"string",
                 "description": "Export identification string",
-                "enum": ["rates_plot"]
+                "enum": ["normalised_rates"]
               },
               "format":{
                 "type": "string",
                 "description": "Specific format which tabulated data will be written into",
-                "enum": ["png"]
+                "enum": ["png", "pdf", "ps", "eps", "svg", "json"]
               },
               "y_lims":{
                 "type": "array",
@@ -80,7 +62,6 @@
             },
             "required": ["type"]
           },
-
           {
             "type": "object",
             "description": "Export plots of time-series",
@@ -88,19 +69,19 @@
               "type":{
                 "type":"string",
                 "description": "Export identification string",
-                "enum": ["time_series_metrics"]
+                "enum": ["time_series"]
               },
               "format":{
                 "type": "string",
                 "description": "Specific format which tabulated data will be written into",
-                "enum": ["png"]
+                "enum": ["png", "pdf", "ps", "eps", "svg", "json"]
               },
 
               "lines": {
                 "type": "object",
                 "description": "Options for plot lines (each line is a specific metric)",
                 "patternProperties": {
-                  "(n_write|n_read|kb_write|kb_read|n_pairwise|kb_pairwise|n_collective|kb_collective|flops)": {
+                  "(n_write|n_read|kb_write|kb_read|n_pairwise|kb_pairwise|n_collective|kb_collective|flops|jobs|procs|nodes|write_rates|read_rates)": {
                     "type": "object",
                     "patternProperties": {
                       "(x_lims|y_lims)": {
@@ -117,84 +98,7 @@
               }
             },
             "required": ["type", "lines"]
-          },
-
-          {
-            "type": "object",
-            "description": "Export plots of time-series of jobs, nodes, processes",
-            "properties":{
-              "type":{
-                "type":"string",
-                "description": "Export identification string",
-                "enum": ["time_series_jobs_nodes_procs"]
-              },
-              "format":{
-                "type": "string",
-                "description": "Specific format which tabulated data will be written into",
-                "enum": ["png"]
-              },
-
-              "lines": {
-                "type": "object",
-                "description": "Options for plot lines (each line is a specific metric)",
-                "patternProperties": {
-                  "(jobs|procs|nodes)": {
-                    "type": "object",
-                    "patternProperties": {
-                      "(x_lims|y_lims)": {
-                        "type": "array",
-                        "description": "x_lims and y_lims",
-                        "items": {
-                            "type": "number"
-                        }
-                      }
-                    },
-                    "description": "Option for line plots (x_lims and y_lims)"
-                  }
-                }
-              }
-            },
-            "required": ["type", "lines"]
-          },
-
-          {
-            "type": "object",
-            "description": "Export plots of time-series of io written (total, rates and wiriting processes)",
-            "properties":{
-              "type":{
-                "type":"string",
-                "description": "Export identification string",
-                "enum": ["time_series_io_rates"]
-              },
-              "format":{
-                "type": "string",
-                "description": "Specific format which tabulated data will be written into",
-                "enum": ["png"]
-              },
-
-              "lines": {
-                "type": "object",
-                "description": "Options for plot lines (each line is a specific metric)",
-                "patternProperties": {
-                  "(kb_written|kb_written_sec|writing_processes)": {
-                    "type": "object",
-                    "patternProperties": {
-                      "(x_lims|y_lims)": {
-                        "type": "array",
-                        "description": "x_lims and y_lims",
-                        "items": {
-                            "type": "number"
-                        }
-                      }
-                    },
-                    "description": "option for line plots (x_lims and y_lims)"
-                  }
-                }
-              }
-            },
-            "required": ["type", "lines"]
           }
-
         ]
       }
     }

@@ -8,6 +8,7 @@
 import os
 import json
 import datetime
+from collections import OrderedDict
 
 from kronos.core.exceptions_iows import ConfigurationError
 from kronos.core.post_process.export_config.export_config_format import ExportConfigFormat
@@ -61,7 +62,7 @@ class ExportConfig(object):
 
         # Read the config file
         with open(filename, "r") as f:
-            config_options = json.load(f)
+            config_options = json.load(f, object_pairs_hook=OrderedDict)
 
         return cls(config_options)
 

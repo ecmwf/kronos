@@ -17,27 +17,16 @@ class ExporterBase(object):
     optional_configs = []
 
     def __init__(self, sim_set=None):
-
-        # simulations data
         self.sim_set = sim_set
         self.export_config = None
 
     def export(self, export_config, output_path, job_classes, **kwargs):
 
         self.export_config = export_config
+        self.check_export_config(export_config, output_path, **kwargs)
+        self.do_export(export_config, output_path, job_classes, **kwargs)
 
-        self.check_export_config(export_config, output_path, job_classes, **kwargs)
-
-        # Get output format from config (to choose appropriate method from the exporter..)
-        export_format = export_config.get("format", self.default_export_format)
-
-        # call the export function as appropriate
-        if export_format:
-            self.export_function_map(export_format)(output_path, job_classes, **kwargs)
-        else:
-            self.export_function_map(self.default_export_format)(output_path, job_classes, **kwargs)
-
-    def check_export_config(self, export_config, out_path, job_classes, **kwargs):
+    def check_export_config(self, export_config, out_path, **kwargs):
 
         # create output dir if it does not exists..
         if not os.path.isdir(out_path):
@@ -47,10 +36,7 @@ class ExporterBase(object):
         if export_config["type"] != self.class_export_type:
             raise ConfigurationError("Export type {}, does not match class: {}".format(export_config["type"],
                                                                                        self.__class__.__name__))
-        # check that export format is consistent with export type
-        if not self.export_function_map(export_config["format"]):
-            raise ConfigurationError("Format type {}, not implemented for class: {}".format(export_config["format"],
-                                                                                            self.__class__.__name__))
+
         if not self.optional_configs and kwargs:
             raise ConfigurationError("Class: {} does not accept optional config keys!".format(self.__class__.__name__))
         else:
@@ -60,6 +46,5 @@ class ExporterBase(object):
                         print "Class: {} incompatible with config {}".format(self.__class__.__name__, k)
                 raise ConfigurationError
 
-    @classmethod
-    def export_function_map(cls, keys):
+    def do_export(self, export_config, output_path, job_classes, **kwargs):
         raise NotImplementedError
