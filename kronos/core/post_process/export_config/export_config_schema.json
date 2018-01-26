@@ -43,7 +43,7 @@
         "oneOf": [
           {
             "type": "object",
-            "description": "Export plots",
+            "description": "Export plots/tables of overall rates on all the simulations",
             "properties":{
               "type":{
                 "type":"string",
@@ -52,12 +52,12 @@
               },
               "format":{
                 "type": "string",
-                "description": "Specific format which tabulated data will be written into",
+                "description": "Specific format which tabulated/plotted data will be written into",
                 "enum": ["png", "pdf", "ps", "eps", "svg", "json"]
               },
               "y_lims":{
                 "type": "array",
-                "description": "Y-limits of the axis specified by user"
+                "description": "Y-limits of the axis specified by user (for plotting only)"
               }
             },
             "required": ["type"]
@@ -73,31 +73,31 @@
               },
               "format":{
                 "type": "string",
-                "description": "Specific format which tabulated data will be written into",
+                "description": "Specific format which tabulated/plotted data will be written into",
                 "enum": ["png", "pdf", "ps", "eps", "svg", "json"]
               },
 
-              "lines": {
+              "signals": {
                 "type": "object",
-                "description": "Options for plot lines (each line is a specific metric)",
+                "description": "Options for signals (each line is for a specific metric)",
                 "patternProperties": {
                   "(n_write|n_read|kb_write|kb_read|n_pairwise|kb_pairwise|n_collective|kb_collective|flops|jobs|procs|nodes|write_rates|read_rates)": {
                     "type": "object",
                     "patternProperties": {
                       "(x_lims|y_lims)": {
                         "type": "array",
-                        "description": "x_lims and y_lims",
+                        "description": "x_lims and y_lims (only valid for plotting)",
                         "items": {
                             "type": "number"
                         }
                       }
                     },
-                    "description": "Option for line plots"
+                    "description": "Option for signal plots/tebles"
                   }
                 }
               }
             },
-            "required": ["type", "lines"]
+            "required": ["type", "signals"]
           }
         ]
       }

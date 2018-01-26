@@ -77,7 +77,7 @@ class ExporterTimeSeries(ExporterBase):
 
         # ------------------ assemble frame for export.. ------------------
         pp = 0
-        config_lines = self.export_config["lines"]
+        config_lines = self.export_config["signals"]
         n_groups = len(config_lines)
         groups = []
 
