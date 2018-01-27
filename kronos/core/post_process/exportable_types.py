@@ -102,8 +102,6 @@ class ExportableSignalFrame(object):
         plt.axes([0., 0., 1., 1./self.stretch_plot])
         plt.title(self.title)
 
-        # TODO: make the plot additive and remove the "all-classes" line
-
         pp = 0
         for subplot in self.subplots:
             pp += 1

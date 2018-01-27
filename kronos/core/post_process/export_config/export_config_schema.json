@@ -84,6 +84,10 @@
                 "type": "string",
                 "description": "A distinctive tag for this export (it is appended to the export output filename)"
               },
+              "nbins":{
+                "type": "integer",
+                "description": "N of intervals of interpolated signals"
+              },
               "signals": {
                 "type": "object",
                 "description": "Options for signals (each line is for a specific metric)",
