@@ -12,7 +12,7 @@ from kronos.core.exceptions_iows import ConfigurationError
 
 class ExporterBase(object):
 
-    class_export_type = "BaseExporter"
+    export_type = "BaseExporter"
     default_export_format = None
     optional_configs = []
 
@@ -33,7 +33,7 @@ class ExporterBase(object):
             os.mkdir(out_path)
 
         # check that export type is consistent with the class type
-        if export_config["type"] != self.class_export_type:
+        if export_config["type"] != self.export_type:
             raise ConfigurationError("Export type {}, does not match class: {}".format(export_config["type"],
                                                                                        self.__class__.__name__))
 

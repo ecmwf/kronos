@@ -22,7 +22,7 @@ class ExporterTimeSeries(ExporterBase):
     This class plots the time-series of the various CPU/MPI/IO metrics
     """
 
-    class_export_type = "time_series"
+    export_type = "time_series"
 
     def do_export(self, export_config, output_path, job_classes, **kwargs):
         """
@@ -111,9 +111,10 @@ class ExporterTimeSeries(ExporterBase):
                                                 legend=True if pp == n_groups else False))
 
         # Aggregate all the groups in the Exportable data structure
+        output_file = os.path.join(output_path, sim.name)+"_"+self.export_type+"_"+self.export_config["tag"]
         export_frame = ExportableSignalFrame(groups,
                                              title="Time series - simulation: {}".format(sim.name),
-                                             save_filename=os.path.join(output_path, sim.name + '_time_series'),
+                                             save_filename=output_file,
                                              stretch_plot=1.4
                                              )
         export_frame.export(export_format)

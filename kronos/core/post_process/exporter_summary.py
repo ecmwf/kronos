@@ -15,7 +15,7 @@ from kronos.core.post_process.result_signals import ResultSignal
 
 class ExporterSummaryRates(ExporterBase):
 
-    class_export_type = "normalised_rates"
+    export_type = "normalised_rates"
 
     def do_export(self, export_config, output_path, job_classes, **kwargs):
 
@@ -77,9 +77,10 @@ class ExporterSummaryRates(ExporterBase):
                                             legend=True)]
 
         # Aggregate all the groups in the Exportable data structure
+        output_file = os.path.join(output_path, self.export_type)+'_'+self.export_config["tag"]
         export_frame = ExportableSignalFrame(all_groups,
                                              title="Normalised rates",
-                                             save_filename=os.path.join(output_path, 'rates_class_all')
+                                             save_filename=output_file
                                              )
 
         export_frame.export(export_config["format"])

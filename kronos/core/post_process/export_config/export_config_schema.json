@@ -55,12 +55,16 @@
                 "description": "Specific format which tabulated/plotted data will be written into",
                 "enum": ["png", "pdf", "ps", "eps", "svg", "json"]
               },
+              "tag":{
+                "type": "string",
+                "description": "A distinctive tag for this export (it is appended to the export output filename)"
+              },
               "y_lims":{
                 "type": "array",
                 "description": "Y-limits of the axis specified by user (for plotting only)"
               }
             },
-            "required": ["type"]
+            "required": ["type", "tag"]
           },
           {
             "type": "object",
@@ -76,7 +80,10 @@
                 "description": "Specific format which tabulated/plotted data will be written into",
                 "enum": ["png", "pdf", "ps", "eps", "svg", "json"]
               },
-
+              "tag":{
+                "type": "string",
+                "description": "A distinctive tag for this export (it is appended to the export output filename)"
+              },
               "signals": {
                 "type": "object",
                 "description": "Options for signals (each line is for a specific metric)",
@@ -97,7 +104,7 @@
                 }
               }
             },
-            "required": ["type", "signals"]
+            "required": ["type", "tag", "signals"]
           }
         ]
       }
