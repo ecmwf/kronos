@@ -22,7 +22,7 @@ class ResultSignal(object):
         self.times = times
         self.values = values
 
-    def get_exportable(self):
+    def get_exportable(self, **kwargs):
         """
         This converts a specific result signal into an exportable signal
         :return:
@@ -31,7 +31,8 @@ class ResultSignal(object):
         return ExportableSignal(
             self.name,
             self.times,
-            self.values
+            self.values,
+            ** kwargs
         )
 
 

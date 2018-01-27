@@ -72,6 +72,7 @@ class ExporterTimeSeries(ExporterBase):
 
             # add the running signals
             found_jobs_in_class, running_series = sim.create_global_running_series(times_plot, job_class_regex=cl_regex)
+
             if found_jobs_in_class:
                 signals[cl_name].update(running_series)
 

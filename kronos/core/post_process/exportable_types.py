@@ -7,6 +7,7 @@
 # does it submit to any jurisdiction.
 
 import json
+import numpy as np
 
 import matplotlib
 matplotlib.use("Agg")
@@ -17,12 +18,25 @@ class ExportableSignal(object):
     """
     Aggregates the data for a signal that needs to be exported
     """
-    def __init__(self, name, xvalues, yvalues, labels=None, color=None):
+    def __init__(self, name, xvalues, yvalues, labels=None, color=None, metadata=None):
+
         self.name = name
-        self.xvalues = xvalues
-        self.yvalues = yvalues
+        self.xvalues = np.asarray(xvalues)
+        self.yvalues = np.asarray(yvalues)
         self.labels = labels
         self.color = color
+
+        # place-holder for any additional information to print out (table export only..)
+        self.metadata = metadata
+
+    def tabulated_dict(self):
+        """
+        Returns information to be tabulated
+        :return:
+        """
+
+        return {"x_values": self.xvalues.tolist(), "y_values": self.yvalues.tolist()} if not self.metadata \
+            else {"x_values": self.xvalues.tolist(), "y_values": self.yvalues.tolist(), "info": self.metadata}
 
 
 class ExportableSignalGroup(object):
@@ -143,8 +157,7 @@ class ExportableSignalFrame(object):
         export_data = {"title": self.title}
 
         for group in self.subplots:
-            export_data[group.name] = {signal.name: {"times": signal.xvalues.tolist(), "values": signal.yvalues.tolist()}
-                                       for signal in group.signals}
+            export_data[group.name] = {signal.name: signal.tabulated_dict() for signal in group.signals}
 
         with open(self.save_filename+".json", 'w') as f:
             json.dump(export_data, f, ensure_ascii=True, sort_keys=True, indent=4, separators=(',', ': '))

@@ -28,7 +28,7 @@ class ExporterSummaryRates(ExporterBase):
 
             for stat_name in sorted_krf_stats_names:
 
-                # take list of rates if the metric is defined for this class otherwise get "-1" flag
+                # take list of rates if the metric is defined for this class otherwise get "None" flag
                 metric_rate_list = [self.sim_set.class_stats_sums[sim_name][class_name][stat_name]["rate"]
                                     if self.sim_set.class_stats_sums[sim_name][class_name].get(stat_name)
                                     else None for sim_name in self.sim_set.ordered_sims().keys()]
@@ -57,7 +57,7 @@ class ExporterSummaryRates(ExporterBase):
                 _times = range(len(metric_rate_list))
                 _values = [v / float(metric_rate_list[0]) for v in metric_rate_list]
                 label = krf_stats_info[stat_name]["label_sum"]
-                group_signals.append(ResultSignal(label, _times, _values).get_exportable())
+                group_signals.append(ResultSignal(label, _times, _values).get_exportable(metadata={"norm_factor": float(metric_rate_list[0])}))
 
         # if y_lims are not specified by the user, take the max/min encountered during the per-class plots
         # (if job-classes have been passes at all -> and therefore min_norm_value and max_norm_value are not None
