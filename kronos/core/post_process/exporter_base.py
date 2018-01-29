@@ -11,6 +11,9 @@ from kronos.core.exceptions_iows import ConfigurationError
 
 
 class ExporterBase(object):
+    """
+    Base class for "exporter" classes. Exporter classes package exportable data from simulation logs
+    """
 
     export_type = "BaseExporter"
     default_export_format = None
