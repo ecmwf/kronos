@@ -46,7 +46,7 @@ class Job(BaseJob):
         """
 
         for config_param in self.needed_config_params:
-            assert config_param in self.job_config["params"]
+            assert config_param in self.job_config["config_params"]
 
     def generate_internal(self):
 
@@ -67,7 +67,7 @@ class Job(BaseJob):
 
         # update the job submit template with all the configs
         for param_name in self.needed_config_params:
-            script_format.update({param_name: self.job_config["params"][param_name]})
+            script_format.update({param_name: self.job_config["config_params"][param_name]})
 
         with open(self.run_script, 'w') as f:
             f.write(job_template.format(**script_format))

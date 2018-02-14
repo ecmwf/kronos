@@ -252,11 +252,7 @@
                              "type": "number",
                                 "description": "job start delay (in sec) relative to the first job"
                             },
-                            "num_procs": {
-                                "type": "number",
-                                "description": "number of processes that the job will run on"
-                            },
-                            "params": {
+                            "config_params": {
                                 "type": "object",
                                 "description": "Dictionary containing all the parameters to be passed to configure the job template "
                             }
@@ -264,8 +260,7 @@
                         "required": [
                             "job_class",
                             "metadata",
-                            "num_procs",
-                            "params"
+                            "config_params"
                         ]
                     }
                 ]
