@@ -44,14 +44,6 @@ class Executor(object):
 
         self.schedule = schedule
 
-        self.job_class_module_file = os.path.join(
-            os.path.dirname(__file__),
-            "job_classes/{}.py".format(config.get("job_class", "trivial_job"))
-        )
-        print "Job class module: {}".format(self.job_class_module_file)
-        self.job_class_module = imp.load_source('job', self.job_class_module_file)
-        self.job_class = self.job_class_module.Job
-
         # job dir
         self.local_tmpdir = config.get("local_tmpdir", None)
         self.job_dir = config.get("job_dir", os.path.join(os.getcwd(), "run"))
@@ -153,6 +145,14 @@ class Executor(object):
             job_dir = os.path.join(self.job_dir, "job-{}".format(job_num))
             job_config['job_num'] = job_num
 
+            job_class_module_file = os.path.join(
+                os.path.dirname(__file__),
+                "job_classes/{}.py".format(job_config.get("job_class", self.config.get("job_class", "trivial_job")))
+            )
+            print "==========> Job class module: {}".format(job_class_module_file)
+            job_class_module = imp.load_source('job', job_class_module_file)
+            job_class = job_class_module.Job
+
             if self._file_read_multiplicity:
                 job_config['file_read_multiplicity'] = self._file_read_multiplicity
             if self._file_read_size_min_pow:
@@ -160,7 +160,7 @@ class Executor(object):
             if self._file_read_size_max_pow:
                 job_config['file_read_size_max_pow'] = self._file_read_size_max_pow
 
-            j = self.job_class(job_config, self, job_dir)
+            j = job_class(job_config, self, job_dir)
 
             j.generate()
             jobs.append(j)
