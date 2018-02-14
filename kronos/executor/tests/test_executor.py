@@ -206,12 +206,6 @@ class ExecutorTests(unittest.TestCase):
             # And initialise an executor. See what happens!
             e = executor.Executor(config_minimal, global_config)
 
-            expected_mod = "job_classes/slurm.py"
-            self.assertEqual(e.job_class_module_file[-len(expected_mod):], expected_mod)
-
-            self.assertIsInstance(e.job_class_module, types.ModuleType)
-            self.assertTrue(issubclass(e.job_class, base_job.BaseJob))
-
             self.assertEqual(e.job_dir, tmpdir2)
             self.assertTrue(os.path.exists(tmpdir2) and os.path.isdir(tmpdir2))
 
