@@ -12,7 +12,7 @@ sys.path.append(os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.
 
 from kronos.executor import executor
 from kronos.executor.global_config import global_config
-from kronos.executor.job_classes import base_job
+# from kronos.executor.job_classes import base_job
 
 from kronos.io.schedule_format import ScheduleFormat
 
@@ -159,12 +159,6 @@ class ExecutorTests(unittest.TestCase):
 
             # And initialise an executor. See what happens!
             e = executor.Executor(config_minimal, global_config)
-
-            expected_mod = "job_classes/trivial_job.py"
-            self.assertEqual(e.job_class_module_file[-len(expected_mod):], expected_mod)
-
-            self.assertIsInstance(e.job_class_module, types.ModuleType)
-            self.assertTrue(issubclass(e.job_class, base_job.BaseJob))
 
             expected_job_path = os.path.join(tmpdir, "run")
             self.assertEqual(e.job_dir, expected_job_path)
