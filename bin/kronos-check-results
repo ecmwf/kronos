@@ -8,9 +8,14 @@
 # does it submit to any jurisdiction.
 
 """
-Script that checks if Kronos has executed a specific metrics as prescribed by the KSF file. It loops
-over the job output folders, it sums all the values of the selected metric found in the .KRF files and compares
-the sum with the sum retrieved from the KSF file (the test is considered PASS if the difference is < 1%)
+
+==========================================================================================
+Script that checks if Kronos has executed a specific metrics as prescribed by the KSF file.
+It loops over the job output folders, it sums all the values of the selected metric found
+in the .KRF files and compares the sum with the sum retrieved from the KSF file
+(the test is considered PASS if the difference is < 1%)
+==========================================================================================
+
 """
 
 import os
@@ -108,9 +113,16 @@ def krf_to_profiled_job_json(krf_json, input_json):
 if __name__ == "__main__":
 
     # Parser for the required arguments
-    parser = argparse.ArgumentParser(description=__doc__)
+    parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawTextHelpFormatter)
     parser.add_argument("job_dir", type=str, help="Path of the kronos output folder 'job_dir' (contains the job-<ID> sub-folders)")
     parser.add_argument("metric_name", type=str)
+
+    # print the help if no arguments are passed
+    if len(sys.argv) == 1:
+        parser.print_help()
+        sys.exit(1)
+
+    # parse the arguments..
     args = parser.parse_args()
 
     # check if metric name exists..

@@ -29,7 +29,7 @@ setup(
         'kronos': 'kronos'
     },
     scripts=[
-        'bin/kronos-ingest',
+        'bin/kronos-ingest-logs',
         'bin/kronos-model',
 
         'bin/kronos-view-json',
@@ -41,24 +41,27 @@ setup(
         'bin/kronos-format-ksf',
         'bin/kronos-format-config-export',
 
-        'bin/kronos-config-enquire',
-        'bin/kronos-dummy-workload',
-
         'bin/kronos-generate-read-files',
         'bin/kronos-executor',
         'bin/kronos-raw-to-kpf',
         'bin/kronos-inspect-dataset',
 
         'bin/kronos-plot-kpf',
-        'bin/kronos-map-2-kpf',
-        'bin/kronos-dsh-2-kpf',
+        # 'bin/kronos-map-2-kpf',
+        # 'bin/kronos-dsh-2-kpf',
         'bin/kronos-krf-2-kpf',
 
-        'bin/kronos-run-perf',
-        'bin/kronos-run-collect',
-        'bin/kronos-run-check',
-        'bin/kronos-run-export',
+        'bin/kronos-summarise-results',
+        'bin/kronos-collect-results',
+        'bin/kronos-check-results',
+        'bin/kronos-analyse-results',
         'bin/kronos-show-job',
+
+        # development tools
+        'bin/kronos-enquire-global-config',
+        'bin/kronos-generate-artificial-workload',
+        'bin/kronos-generate-dummy-workload',
+
     ],
     include_package_data=True,
     install_requires=requirements,

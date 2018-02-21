@@ -54,7 +54,6 @@ class JSONIoFormat(object):
         """
         Do validation of a dictionary that has been loaded from (or will be written to) a JSON
         """
-        print "Validating JSON schema.."
         jsonschema.validate(js, cls.schema(), format_checker=jsonschema.FormatChecker())
 
     @classmethod

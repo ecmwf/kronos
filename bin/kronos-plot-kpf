@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 # (C) Copyright 1996-2017 ECMWF.
 # 
 # This software is licensed under the terms of the Apache Licence Version 2.0
@@ -7,7 +8,13 @@
 # does it submit to any jurisdiction.
 
 """
-Kronos tool to quickly plot a KPF file
+
+============================================================================
+       **DEVELOPMENT TOOL** - USAGE OF THIS TOOL IS UNSUPPORTED
+============================================================================
+
+Kronos tool to plot the data time-series contained in a KPF file
+
 """
 
 import argparse
@@ -17,7 +24,7 @@ import numpy as np
 from matplotlib.pyplot import cm
 
 from kronos.core.jobs import ModelJob
-from kronos.core.time_signal import time_signal_names
+from kronos.core.time_signal.definitions import time_signal_names
 from kronos.io.profile_format import ProfileFormat
 from kronos.core.plot_handler import PlotHandler
 from kronos.core.workload_data import WorkloadDataGroup
@@ -26,11 +33,18 @@ from kronos.core.workload_data import WorkloadDataGroup
 if __name__ == "__main__":
 
     # Parser for the required arguments
-    parser = argparse.ArgumentParser(description=__doc__)
+    parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawTextHelpFormatter)
     parser.add_argument("path_unmodelled_kpf", help="path of KPF file of un-modelled data to over-plot")
     parser.add_argument("-b", "--nbins", help="path of KPF file of un-modelled data to over-plot", default=2000)
     parser.add_argument("-xn", "--xmin", help="min x-limit")
     parser.add_argument("-xm", "--xmax", help="max x-limit")
+
+    # print the help if no arguments are passed
+    if len(sys.argv) == 1:
+        parser.print_help()
+        sys.exit(1)
+
+    # parse the arguments..
     args = parser.parse_args()
 
     # check number of unique labels in KPF and create a group only if it contains less than 10 labels

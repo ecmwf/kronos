@@ -7,6 +7,17 @@
 # granted to it by virtue of its status as an intergovernmental organisation nor
 # does it submit to any jurisdiction.
 
+"""
+
+============================================================================
+Tool that shows the schema of a kronos executor configuration file.
+If an executor configuration file name is passed, it gets validated against
+the schema.
+============================================================================
+
+"""
+
+import argparse
 import os
 import sys
 
@@ -17,15 +28,30 @@ from kronos.executor.config_format.exe_config_format import ExeConfigFormat
 
 if __name__ == '__main__':
 
-    # If no arguments are supplied, print the schema in a human readable form. Otherwise treat the
-    # arguments as files to be validated against the schema.
+    # read other arguments if present..
+    parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawTextHelpFormatter)
+    parser_group = parser.add_mutually_exclusive_group(required=True)
+    parser_group.add_argument('-v', '--validate',
+                              type=str,
+                              help="Validates an executor configuration file",
+                              metavar='FILENAME')
+    parser_group.add_argument('-s', "--show",
+                              help="Show the schema of the kronos executor configuration file",
+                              action="store_true")
+
+    # print the help if no arguments are passed
     if len(sys.argv) == 1:
+        parser.print_help()
+        sys.exit(1)
+
+    # parse the arguments..
+    args = parser.parse_args()
+
+    if args.show:
         print ExeConfigFormat.describe()
-    else:
-        for filename in sys.argv[1:]:
-            print "Opening and validating: {}".format(filename)
-            try:
-                ExeConfigFormat.from_filename(filename)
-                print "OK!"
-            except Exception as e:
-                print e
+    elif args.validate:
+        try:
+            ExeConfigFormat.from_filename(args.validate)
+        except Exception as e:
+            print e
+            sys.exit(1)

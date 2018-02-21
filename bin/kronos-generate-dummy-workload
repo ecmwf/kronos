@@ -6,7 +6,18 @@
 # In applying this licence, ECMWF does not waive the privileges and immunities 
 # granted to it by virtue of its status as an intergovernmental organisation nor
 # does it submit to any jurisdiction.
+
+"""
+
+============================================================================
+       **DEVELOPMENT TOOL** - USAGE OF THIS TOOL IS UNSUPPORTED
+============================================================================
+
+This tool generates a simplistic workload - configuration needed in the file
+"""
+
 import os
+import sys
 import argparse
 
 try:
@@ -17,7 +28,8 @@ except:
 import numpy as np
 from datetime import date
 
-from kronos.core.time_signal import TimeSignal, signal_types
+from kronos.core.time_signal.time_signal import TimeSignal
+from kronos.core.time_signal.definitions import signal_types
 from kronos.core.jobs import ModelJob
 from kronos.io.profile_format import ProfileFormat
 from kronos.core import time_signal
@@ -190,10 +202,15 @@ def kronos_dummy_workload():
 
 if __name__ == "__main__":
 
-    parser = argparse.ArgumentParser(description='Script to create a simplified workload made of '
-                                                 'of jobs derived from few prototypical classes. It can be used for '
-                                                 'simple tests and examples')
+    parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawTextHelpFormatter)
     parser.add_argument("kpf_output", help="Path of KPF output file")
+
+    # print the help if no arguments are passed
+    if len(sys.argv) == 1:
+        parser.print_help()
+        sys.exit(1)
+
+    # parse the arguments..
     args = parser.parse_args()
 
     kpf_handle, class_idx_vec, model_job_classes = kronos_dummy_workload()

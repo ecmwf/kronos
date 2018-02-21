@@ -8,11 +8,17 @@
 # does it submit to any jurisdiction.
 
 """
+
+============================================================================
+       **DEVELOPMENT TOOL** - USAGE OF THIS TOOL IS UNSUPPORTED
+============================================================================
+
 Kronos data ingestion tool.
 
-Given a path, ingests the available data to produce a kronos cache file. This cache file may be used in other
-elements of the kronos process.
+Given a path, ingests the available data to produce a kronos cache file.
+This cache file may be used in other elements of the kronos process.
 """
+
 import os
 import sys
 sys.path.append(os.path.dirname(os.path.dirname(__file__)))
@@ -30,7 +36,7 @@ from kronos.core import logreader
 if __name__ == "__main__":
 
     # Parser for the required arguments
-    parser = argparse.ArgumentParser(description=__doc__)
+    parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawTextHelpFormatter)
 
     parser.add_argument("path", type=str,
                         help="The path of the data to ingest (either directory or filename). Operates recursively "
@@ -48,6 +54,12 @@ if __name__ == "__main__":
                         type=float,
                         help="Clock-rate of the hardware where the data have been profiled")
 
+    # print the help if no arguments are passed
+    if len(sys.argv) == 1:
+        parser.print_help()
+        sys.exit(1)
+
+    # parse the arguments..
     args = parser.parse_args()
 
     print "ARGS", args

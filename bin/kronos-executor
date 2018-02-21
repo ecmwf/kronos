@@ -1,4 +1,24 @@
 #!/usr/bin/env python
+
+# (C) Copyright 1996-2017 ECMWF.
+#
+# This software is licensed under the terms of the Apache Licence Version 2.0
+# which can be obtained at http://www.apache.org/licenses/LICENSE-2.0.
+# In applying this licence, ECMWF does not waive the privileges and immunities
+# granted to it by virtue of its status as an intergovernmental organisation nor
+# does it submit to any jurisdiction.
+
+"""
+
+============================================================================
+Usage:
+    kronos-executor <config> <schedule>
+
+Config must be in JSON format. Schedule must be a KSF file output by Kronos
+============================================================================
+
+"""
+
 import argparse
 import json
 import os
@@ -12,17 +32,17 @@ from kronos.io.schedule_format import ScheduleFormat
 
 if __name__ == "__main__":
 
-    """
-    Usage:
-        kronos-executor <config> <schedule>
-
-    Config must be in JSON format. Schedule must be a KSF file output by Kronos
-    """
-
     # read other arguments if present..
-    parser = argparse.ArgumentParser(description=__doc__)
+    parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawTextHelpFormatter)
     parser.add_argument('ksf_file_name', type=str, help="Name of KSF file containing the schedule")
     parser.add_argument('-c', "--config", help="Executor config file (read README.rst for info)")
+
+    # print the help if no arguments are passed
+    if len(sys.argv) == 1:
+        parser.print_help()
+        sys.exit(1)
+
+    # parse the arguments..
     args = parser.parse_args()
 
     if not os.path.exists(args.ksf_file_name):

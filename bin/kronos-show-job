@@ -8,7 +8,11 @@
 # does it submit to any jurisdiction.
 
 """
+
+=======================
 show info of a KSF file
+=======================
+
 """
 
 import sys
@@ -67,9 +71,16 @@ def get_tot_metrics(synth_app):
 if __name__ == "__main__":
 
     # Parser for the required arguments
-    parser = argparse.ArgumentParser(description=__doc__)
+    parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawTextHelpFormatter)
     parser.add_argument("ksf", type=str, help="File name of KSF to inspect")
     parser.add_argument("label", type=str, help="label of the synthetic app to show")
+
+    # print the help if no arguments are passed
+    if len(sys.argv) == 1:
+        parser.print_help()
+        sys.exit(1)
+
+    # parse the arguments..
     args = parser.parse_args()
 
     ksf_data = ScheduleFormat.from_filename(args.ksf).synapp_data

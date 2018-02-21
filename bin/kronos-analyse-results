@@ -7,7 +7,19 @@
 # granted to it by virtue of its status as an intergovernmental organisation nor
 # does it submit to any jurisdiction.
 
+"""
+
+==========================================================================
+This tool analyses the results of a Kronos run and exports plots/tables of
+relevant metrics. For full list of options of the configuration file,
+run the kronos tool "kronos-format-config-export".
+==========================================================================
+
+"""
+
 import argparse
+
+import sys
 from kronos.core.post_process.sim_set import SimulationSet
 from kronos.core.post_process import writer_map
 from kronos.core.post_process.export_config.export_config import ExportConfig
@@ -16,9 +28,16 @@ from kronos.core.post_process.sim_data import SimulationData
 if __name__ == "__main__":
 
     # Read other arguments if present..
-    parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('export_config', help="Export configuration file (.kef)")
+    parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawTextHelpFormatter)
+    parser.add_argument('export_config', help="Analysis configuration file")
     parser.add_argument('--print_sim_info', "-p", help="Print simulation info on screen", action='store_true')
+
+    # print the help if no arguments are passed
+    if len(sys.argv) == 1:
+        parser.print_help()
+        sys.exit(1)
+
+    # parse the arguments..
     args = parser.parse_args()
 
     # Read the export config

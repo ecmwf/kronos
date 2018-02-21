@@ -7,6 +7,16 @@
 # granted to it by virtue of its status as an intergovernmental organisation nor
 # does it submit to any jurisdiction.
 
+"""
+
+=================================================================
+The Kronos-model applies modelling algorithms to data profiled on
+an HPC system and generates a workload model in athe form of a
+Kronos Schedule.
+=================================================================
+
+"""
+
 import os
 import sys
 
@@ -71,9 +81,16 @@ class Kronos(object):
 if __name__ == "__main__":
 
     # read other arguments if present..
-    parser = argparse.ArgumentParser(description='Kronos software')
+    parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawTextHelpFormatter)
     parser.add_argument('configuration_file', type=str)
     parser.add_argument('-m', "--model", help="Generate workload model", action='store_true')
+
+    # print the help if no arguments are passed
+    if len(sys.argv) == 1:
+        parser.print_help()
+        sys.exit(1)
+
+    # parse the arguments..
     args = parser.parse_args()
 
     try:

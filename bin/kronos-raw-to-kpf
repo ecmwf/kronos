@@ -8,7 +8,10 @@
 # does it submit to any jurisdiction.
 
 """
+=================================
 Exports a KPF file from a dataset
+=================================
+
 """
 import os
 import sys
@@ -23,10 +26,17 @@ from kronos.core.logreader.dataset import IngestedDataSet
 if __name__ == "__main__":
 
     # Parser for the required arguments
-    parser = argparse.ArgumentParser(description=__doc__)
+    parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawTextHelpFormatter)
     parser.add_argument("path_pickled", type=str, help="The path of the pickeld dataset to ingest")
     parser.add_argument("path_output", type=str, help="The path of the KPF file to write out")
     parser.add_argument("-t", "--tag", type=str, help="worklaod tag")
+
+    # print the help if no arguments are passed
+    if len(sys.argv) == 1:
+        parser.print_help()
+        sys.exit(1)
+
+    # parse the arguments..
     args = parser.parse_args()
 
     dataset = IngestedDataSet.from_pickled(args.path_pickled)

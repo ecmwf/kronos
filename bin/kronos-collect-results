@@ -8,7 +8,11 @@
 # does it submit to any jurisdiction.
 
 """
-script to collect all the relevant files of the run folder
+
+====================================================================================
+Script to collect and aggregate in a tarball all the relevant files of a Kronos run.
+====================================================================================
+
 """
 
 import os
@@ -19,9 +23,16 @@ import tarfile
 if __name__ == "__main__":
 
     # Parser for the required arguments
-    parser = argparse.ArgumentParser(description=__doc__)
+    parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawTextHelpFormatter)
     parser.add_argument("tarball_path", type=str, help="Path of the kronos tarball")
     parser.add_argument("path_run", type=str, help="Path of the kronos output folder (contains the job-<ID> sub-folders)")
+
+    # print the help if no arguments are passed
+    if len(sys.argv) == 1:
+        parser.print_help()
+        sys.exit(1)
+
+    # parse the arguments..
     args = parser.parse_args()
 
     if not os.path.exists(args.path_run):

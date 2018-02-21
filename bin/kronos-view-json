@@ -8,17 +8,31 @@
 # does it submit to any jurisdiction.
 
 """
-Simple script to show a json file in a nice and readable format
+
+==================================================================================
+Simple and light-weight script to show any json file in a nice and readable format
+==================================================================================
+
 """
 
-import argparse
+
+import sys
 import json
+import argparse
+
 
 if __name__ == '__main__':
 
     # Parser for the required arguments
-    parser = argparse.ArgumentParser(description=__doc__)
+    parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawTextHelpFormatter)
     parser.add_argument("path_json", type=str, help="The path of the json file to view (also KPF, KSF, etc..)")
+
+    # print the help if no arguments are passed
+    if len(sys.argv) == 1:
+        parser.print_help()
+        sys.exit(1)
+
+    # parse the arguments..
     args = parser.parse_args()
 
     with open(args.path_json, "r") as f:

@@ -7,7 +7,17 @@
 # granted to it by virtue of its status as an intergovernmental organisation nor
 # does it submit to any jurisdiction.
 
+"""
 
+============================================================================
+Tool that shows the schema of a Kronos Profile Format file.
+If a Kronos Profile Format file name is passed, it gets validated against
+the schema.
+============================================================================
+
+"""
+
+import argparse
 import os
 import sys
 
@@ -18,15 +28,30 @@ from kronos.io.profile_format import ProfileFormat
 
 if __name__ == '__main__':
 
-    # If no arguments are supplied, print the schema in a human readable form. Otherwise treat the
-    # arguments as files to be validated against the schema.
+    # read other arguments if present..
+    parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawTextHelpFormatter)
+    parser_group = parser.add_mutually_exclusive_group(required=True)
+    parser_group.add_argument('-v', '--validate',
+                              type=str,
+                              help="Validates a Kronos Profile file",
+                              metavar='FILENAME')
+    parser_group.add_argument('-s', "--show",
+                              help="Show the schema of the Kronos Profile file",
+                              action="store_true")
+
+    # print the help if no arguments are passed
     if len(sys.argv) == 1:
+        parser.print_help()
+        sys.exit(1)
+
+    # parse the arguments..
+    args = parser.parse_args()
+
+    if args.show:
         print ProfileFormat.describe()
-    else:
-        for filename in sys.argv[1:]:
-            print "Opening and validating: {}".format(filename)
-            try:
-                ProfileFormat.from_filename(filename)
-                print "OK!"
-            except Exception as e:
-                print e
+    elif args.validate:
+        try:
+            ProfileFormat.from_filename(args.validate)
+        except Exception as e:
+            print e
+            sys.exit(1)

@@ -7,6 +7,17 @@
 # granted to it by virtue of its status as an intergovernmental organisation nor
 # does it submit to any jurisdiction.
 
+"""
+
+========================================================================
+
+Tool that generates a summary of a Kronos run. It shows the rates of the
+kernel operations (CPU/MPI/IO) on a per-job class basis.
+
+========================================================================
+
+"""
+
 import os
 import argparse
 import sys
@@ -68,7 +79,7 @@ def print_formatted_class_stats(class_name, per_class_job_stats):
 if __name__ == "__main__":
 
     # Parser for the required arguments
-    parser = argparse.ArgumentParser(description=__doc__)
+    parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawTextHelpFormatter)
 
     parser.add_argument("job_dir",
                         type=str,
@@ -86,6 +97,12 @@ if __name__ == "__main__":
                         help="If set, shows which class each job falls into",
                         action='store_true')
 
+    # print the help if no arguments are passed
+    if len(sys.argv) == 1:
+        parser.print_help()
+        sys.exit(1)
+
+    # parse the arguments..
     args = parser.parse_args()
 
     # check that the run path exists

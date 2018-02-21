@@ -8,11 +8,16 @@
 # does it submit to any jurisdiction.
 
 """
+
+=======================
 show info of a KSF file
+=======================
+
 """
 
 import argparse
 
+import sys
 from kronos.core.time_signal.definitions import time_signal_names, signal_types
 from kronos.executor.tools import mean_of_list, std_of_list
 from kronos.io.profile_format import ProfileFormat
@@ -244,9 +249,16 @@ def print_metrics(tot_metrics):
 if __name__ == "__main__":
 
     # Parser for the required arguments
-    parser = argparse.ArgumentParser(description=__doc__)
+    parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawTextHelpFormatter)
     parser.add_argument("--ksf", type=str, help="File name of KSF to inspect")
     parser.add_argument("--kpf", type=str, help="File name of KSF of the corresponding kronos run")
+
+    # print the help if no arguments are passed
+    if len(sys.argv) == 1:
+        parser.print_help()
+        sys.exit(1)
+
+    # parse the arguments..
     args = parser.parse_args()
 
     info = factory(args)
