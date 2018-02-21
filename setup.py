@@ -59,8 +59,8 @@ setup(
 
         # development tools
         'bin/kronos-enquire-global-config',
-        'bin/kronos-generate-artificial-workload',
-        'bin/kronos-generate-dummy-workload',
+        # 'bin/kronos-generate-artificial-workload',
+        'bin/kronos-generate-dummy-workload'
 
     ],
     include_package_data=True,
