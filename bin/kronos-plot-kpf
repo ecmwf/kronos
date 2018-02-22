@@ -30,9 +30,6 @@ from kronos.core.workload_data import WorkloadDataGroup
 
 if __name__ == "__main__":
 
-    import matplotlib.pyplot as plt
-    from matplotlib.pyplot import cm
-
     # Parser for the required arguments
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawTextHelpFormatter)
     parser.add_argument("path_unmodelled_kpf", help="path of KPF file of un-modelled data to over-plot")
@@ -47,6 +44,9 @@ if __name__ == "__main__":
 
     # parse the arguments..
     args = parser.parse_args()
+
+    import matplotlib.pyplot as plt
+    from matplotlib.pyplot import cm
 
     # check number of unique labels in KPF and create a group only if it contains less than 10 labels
     kpf_data = ProfileFormat.from_filename(args.path_unmodelled_kpf)
