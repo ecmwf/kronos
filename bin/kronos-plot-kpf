@@ -75,6 +75,9 @@ if __name__ == "__main__":
     if not args.xmax:
         xmax = t_1
 
+    import matplotlib.pyplot as plt
+    from matplotlib.pyplot import cm
+
     plt_hdl = PlotHandler()
     color = iter(cm.rainbow(np.linspace(0, 1, len(wl_orig_group.tags))))
     n_plots = len(time_signal_names) + 1
