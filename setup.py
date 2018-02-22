@@ -47,19 +47,15 @@ setup(
         'bin/kronos-inspect-dataset',
 
         'bin/kronos-plot-kpf',
-        # 'bin/kronos-map-2-kpf',
-        # 'bin/kronos-dsh-2-kpf',
         'bin/kronos-convert-krf-to-kpf',
 
         'bin/kronos-summarise-results',
         'bin/kronos-collect-results',
         'bin/kronos-validate-results',
         'bin/kronos-analyse-results',
-        'bin/kronos-show-job',
 
         # development tools
         'bin/kronos-enquire-global-config',
-        # 'bin/kronos-generate-artificial-workload',
         'bin/kronos-generate-dummy-jobs'
 
     ],
