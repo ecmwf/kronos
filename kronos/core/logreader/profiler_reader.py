@@ -81,7 +81,7 @@ def read_allinea_log(filename, jobs_n_bins=None, cfg=None):
 
     else:
         print "The allinea map file does not seem to contain IO traces: i.e. [lustre_]bytes_[written|read]"
-        sys.exit(-1)
+        sys.exit(1)
 
     allinea_time_signal_map = {
         'instr_fp':             {'name': 'flops',                          'scale_factor': clock_rate, 'is_time_percent': True},

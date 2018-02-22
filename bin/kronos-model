@@ -24,7 +24,6 @@ sys.path.append(os.path.dirname(os.path.dirname(__file__)))
 
 import argparse
 
-from kronos.core import runner
 from kronos.core.exceptions_iows import ConfigurationError
 from kronos.core.workload_data import WorkloadData
 from kronos.core.config.config import Config
@@ -69,14 +68,6 @@ class Kronos(object):
         print "\nOutputting synthetic app input...\n----------------------------------"
         self.workload_model.export_synthetic_workload()
 
-    def run(self):
-        """
-        Main execution routine (default if no specific plugin is requested)
-        """
-        print "\nRun model...\n----------------------------------"
-        kronos_runner = runner.factory(self.config.run['type'], self.config)
-        kronos_runner.run()
-
 
 if __name__ == "__main__":
 
@@ -101,11 +92,11 @@ if __name__ == "__main__":
         except (OSError, IOError) as e:
             print "Error opening input file: {}".format(e)
             print __doc__
-            sys.exit(-1)
+            sys.exit(1)
 
         except ValueError as e:
             print "Error parsing the supplied input file: {}".format(e)
-            sys.exit(-1)
+            sys.exit(1)
 
         # And get going!!!
         app = Kronos(config)
@@ -119,7 +110,7 @@ if __name__ == "__main__":
             Report.print_report()
         else:
             print "command line parsing error.."
-            sys.exit(-1)
+            sys.exit(1)
 
     except ConfigurationError as e:
         print "Error in Kronos configuration: {}".format(e)

@@ -53,7 +53,7 @@ class SimulationData(object):
             print "ERROR: The following jobs have failed (jobs for which 'statistics.krf' is not found in job folder):"
             print "{}".format("\n".join(failing_jobs))
             print "Kronos Post-processing stops here!"
-            sys.exit(-1)
+            sys.exit(1)
 
     @classmethod
     def read_from_sim_paths(cls, sim_path, sim_name, n_procs_node=None, permissive=False):
@@ -70,7 +70,7 @@ class SimulationData(object):
         # and check that the collection was successful..
         if not job_dirs:
             print "Specified path does not contain any job folder (<job-ID>..)!"
-            sys.exit(-1)
+            sys.exit(1)
 
         # jobs_data_dict = {}
         jobs_data = []

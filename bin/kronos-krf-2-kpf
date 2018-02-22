@@ -122,11 +122,11 @@ if __name__ == "__main__":
 
     if not os.path.exists(args.path_run):
         print "Specified run path does not exist: {}".format(args.path_run)
-        sys.exit(-1)
+        sys.exit(1)
 
     if os.path.exists(args.kpf_file):
         print "Output KPF file {} already exists!".format(args.kpf_file)
-        sys.exit(-1)
+        sys.exit(1)
 
     # path of the output kpf file
     path_kpf = os.path.dirname(os.path.abspath(args.kpf_file))

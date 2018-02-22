@@ -19,9 +19,7 @@ Kronos tool to plot the data time-series contained in a KPF file
 
 import argparse
 import sys
-import matplotlib.pyplot as plt
 import numpy as np
-from matplotlib.pyplot import cm
 
 from kronos.core.jobs import ModelJob
 from kronos.core.time_signal.definitions import time_signal_names
@@ -31,6 +29,9 @@ from kronos.core.workload_data import WorkloadDataGroup
 
 
 if __name__ == "__main__":
+
+    import matplotlib.pyplot as plt
+    from matplotlib.pyplot import cm
 
     # Parser for the required arguments
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawTextHelpFormatter)
@@ -58,7 +59,7 @@ if __name__ == "__main__":
             labelled_jobs.setdefault(job["label"], [model_job]).append(model_job)
     else:
         print "too many labels in KPF data (>10). I'm not plotting.."
-        sys.exit(-1)
+        sys.exit(1)
 
     wl_orig_group = WorkloadDataGroup.from_labelled_jobs(labelled_jobs)
 

@@ -68,7 +68,7 @@ if __name__ == "__main__":
         print "Ingestion type is required."
         print "Please supply --type=<type>"
         print "Choices: {}".format(logreader.ingest_types)
-        sys.exit(-1)
+        sys.exit(1)
 
     print "Ingesting file(s) associated with path: {}".format(args.path)
 

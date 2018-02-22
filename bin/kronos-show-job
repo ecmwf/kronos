@@ -93,7 +93,7 @@ if __name__ == "__main__":
 
     if not synth_app_json_data:
         print "synthetic app not found in KSF"
-        sys.exit(-1)
+        sys.exit(1)
 
     if len(synth_app_json_data) > 1:
         print "N={} matching synthetic-apps found!".format(len(synth_app_json_data))

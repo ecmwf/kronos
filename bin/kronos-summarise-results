@@ -108,13 +108,13 @@ if __name__ == "__main__":
     # check that the run path exists
     if not os.path.exists(args.job_dir):
         print "Specified run path does not exist: {}".format(args.job_dir)
-        sys.exit(-1)
+        sys.exit(1)
 
     # check that the run path contains the job sub-folders
     job_dirs = [x for x in os.listdir(args.job_dir) if os.path.isdir(os.path.join(args.job_dir, x)) and "job-" in x]
     if not job_dirs:
         print "Specified path does not contain any job folder (<job-ID>..)!"
-        sys.exit(-1)
+        sys.exit(1)
 
     # set the job_classes
     job_classes = job_classes if args.rdx1_classes else {}

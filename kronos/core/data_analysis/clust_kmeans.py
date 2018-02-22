@@ -8,7 +8,6 @@
 
 import numpy as np
 from scipy.spatial.distance import cdist
-import matplotlib.pyplot as plt
 
 from sklearn.cluster import KMeans
 from sklearn.metrics import silhouette_score
@@ -98,6 +97,7 @@ class ClusteringKmeans(ClusteringBase):
 
         # stop and plot cluster silhouette values unless specifically requested not to
         if not self.user_does_not_check:
+            import matplotlib.pyplot as plt
             plot_handler = PlotHandler()
             plt.figure(plot_handler.get_fig_handle_ID(), facecolor='w', edgecolor='k')
             plt.plot(nc_vec, silhouette_score_vec, 'b')

@@ -132,13 +132,13 @@ if __name__ == "__main__":
     # check that the run path exists
     if not os.path.exists(args.job_dir):
         print "Specified run path does not exist: {}".format(args.job_dir)
-        sys.exit(-1)
+        sys.exit(1)
 
     # check that the run path contains the job sub-folders
     job_dirs = [x for x in os.listdir(args.job_dir) if os.path.isdir(os.path.join(args.job_dir, x)) and "job-" in x]
     if not job_dirs:
         print "Specified path does not contain any job folder (<job-ID>..)!"
-        sys.exit(-1)
+        sys.exit(1)
 
     # check that the run path contains the ksf file
     ksf_file = [x for x in os.listdir(args.job_dir) if os.path.isfile(os.path.join(args.job_dir, x)) and x.endswith('.ksf')]
@@ -148,7 +148,7 @@ if __name__ == "__main__":
 
     if len(ksf_file) > 1:
         print "Specified path contains more than one KSF file!"
-        sys.exit(-1)
+        sys.exit(1)
 
     # sums of all metrics for all the jobs
     krf_metrics_sums = {k[0]: 0.0 for k in ts_names_map.values()}
@@ -159,7 +159,7 @@ if __name__ == "__main__":
         # read the statistics.krf file
         krf_file_path_abs = os.path.join(os.path.join(args.job_dir, job_subdir), "statistics.krf")
         if not os.path.isfile(krf_file_path_abs):
-            sys.exit(-1)
+            sys.exit(1)
 
         krf_data_json = ResultsFormat.from_filename(krf_file_path_abs).output_dict()
 
@@ -215,7 +215,7 @@ if __name__ == "__main__":
 
     # fails if the requested metrics differ from the measured one
     if abs(krf_metrics_sums[args.metric_name] - tot_ksf_metrics[args.metric_name])/tot_ksf_metrics[args.metric_name] > 0.01:
-        sys.exit(-1)
+        sys.exit(1)
     else:
         print "Result for metric {}: PASS".format(args.metric_name)
         sys.exit(0)

@@ -37,11 +37,11 @@ if __name__ == "__main__":
 
     if not os.path.exists(args.path_run):
         print "Specified Kronos output path does not exist: {}".format(args.path_run)
-        sys.exit(-1)
+        sys.exit(1)
 
     if os.path.exists(args.tarball_path):
         print "File {} already exists".format(args.tarball_path)
-        sys.exit(-1)
+        sys.exit(1)
     else:
         tar_file = tarfile.open(args.tarball_path, "w:gz")
 
