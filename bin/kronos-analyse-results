@@ -20,8 +20,9 @@ run the kronos tool "kronos-format-config-export".
 import argparse
 
 import sys
+
+from kronos.core.post_process.exporters import writer_map
 from kronos.core.post_process.sim_set import SimulationSet
-from kronos.core.post_process import writer_map
 from kronos.core.post_process.export_config.export_config import ExportConfig
 from kronos.core.post_process.sim_data import SimulationData
 
