@@ -67,7 +67,7 @@ user_config = {
 
 def user_workload():
     """
-    Example function that generates a simplified workload (by explicitly calling kronos-generate-dummy-workload)
+    Example function that generates a simplified workload (by explicitly calling kronos-generate-dummy-jobs)
     and applied classification/clustering to it. Some relevant example plots are generated.
     :return:
     """
@@ -79,7 +79,7 @@ def user_workload():
     print dir_output
     print dir_bin
 
-    subprocess.Popen([os.path.join(dir_bin, 'kronos-generate-dummy-workload'),
+    subprocess.Popen([os.path.join(dir_bin, 'kronos-generate-dummy-jobs'),
                       os.path.join(dir_output, kpf_name_base+'.kpf')],
                      stdin=None,
                      stdout=None,

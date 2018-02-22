@@ -43,24 +43,24 @@ setup(
 
         'bin/kronos-generate-read-files',
         'bin/kronos-executor',
-        'bin/kronos-raw-to-kpf',
+        'bin/kronos-convert-dataset-to-kpf',
         'bin/kronos-inspect-dataset',
 
         'bin/kronos-plot-kpf',
         # 'bin/kronos-map-2-kpf',
         # 'bin/kronos-dsh-2-kpf',
-        'bin/kronos-krf-2-kpf',
+        'bin/kronos-convert-krf-to-kpf',
 
         'bin/kronos-summarise-results',
         'bin/kronos-collect-results',
-        'bin/kronos-check-results',
+        'bin/kronos-validate-results',
         'bin/kronos-analyse-results',
         'bin/kronos-show-job',
 
         # development tools
         'bin/kronos-enquire-global-config',
         # 'bin/kronos-generate-artificial-workload',
-        'bin/kronos-generate-dummy-workload'
+        'bin/kronos-generate-dummy-jobs'
 
     ],
     include_package_data=True,
