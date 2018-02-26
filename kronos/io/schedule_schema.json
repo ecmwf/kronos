@@ -7,7 +7,7 @@
     "properties": {
         "version" : {
             "type": "number",
-            "enum": [1, %(kronos-version)s],
+            "enum": [1],
             "description": "Version number of the KSchedule format"
         },
         "tag": {
@@ -31,6 +31,7 @@
                 "type": "object",
                 "oneOf": [
                     {
+                        "type": "object",
                         "properties": {
                             "metadata": {
                                 "type": "object",
@@ -235,6 +236,7 @@
                         ]
                     },
                     {
+                        "type": "object",
                         "properties": {
                             "job_class": {
                                 "type": "string",
@@ -249,12 +251,26 @@
                                 }
                             },
                             "start_delay": {
-                             "type": "number",
+                                "type": "number",
                                 "description": "job start delay (in sec) relative to the first job"
                             },
                             "config_params": {
                                 "type": "object",
                                 "description": "Dictionary containing all the parameters to be passed to configure the job template "
+                            },
+                            "metadata": {
+                                "type": "object",
+                                "description": "job metadata",
+                                "properties": {
+                                    "job_name": {
+                                        "type": "string",
+                                        "description": "job name"
+                                    },
+                                    "workload_name": {
+                                        "type": "string",
+                                        "description": "workload name"
+                                    }
+                                }
                             }
                         },
                         "required": [
