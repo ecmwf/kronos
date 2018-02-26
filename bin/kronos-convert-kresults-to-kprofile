@@ -14,7 +14,7 @@
 ============================================================================
 
 Utility to go through the kronos run folder and generates a KProfile file
-from the statistics.krf files
+from the statistics.kresults files
 
 """
 
@@ -40,20 +40,20 @@ ts_names_map = {
 }
 
 
-def krf_to_profiled_job_json(krf_json, input_json):
+def kresults_to_profiled_job_json(kresults_json, input_json):
     """
-    Function that reads statistics.krf and input.json and builds job json data (to be later used for ProfileFormat)
-    :param krf_json:
+    Function that reads statistics.kresults and input.json and builds job json data (to be later used for ProfileFormat)
+    :param kresults_json:
     :param input_json:
     :return:
     """
 
     job = {}
 
-    # create time series json data from statistics.krf
+    # create time series json data from statistics.kresults
     time_series_json = {}
 
-    for rank_data in krf_json["ranks"]:
+    for rank_data in kresults_json["ranks"]:
 
         tends = np.cumsum(rank_data["time_series"]['durations'])
 
@@ -144,16 +144,16 @@ if __name__ == "__main__":
 
         sub_dir_path_abs = os.path.join(args.path_run, job_dir)
         sub_dir_files = os.listdir(sub_dir_path_abs)
-        krf_file = [f for f in sub_dir_files if f.endswith('.krf')]
+        kresults_file = [f for f in sub_dir_files if f.endswith('.kresults')]
 
-        print krf_file
+        print kresults_file
 
-        if krf_file:
+        if kresults_file:
 
-            krf_file_name = krf_file[0]
-            krf_file_full = os.path.join(sub_dir_path_abs, krf_file_name)
-            krf_base_abs = os.path.splitext(krf_file_full)[0]
-            print "processing KRF file: {}".format(krf_file_full)
+            kresults_file_name = kresults_file[0]
+            kresults_file_full = os.path.join(sub_dir_path_abs, kresults_file_name)
+            kresults_base_abs = os.path.splitext(kresults_file_full)[0]
+            print "processing KResults file: {}".format(kresults_file_full)
 
             input_file_path_abs = os.path.join(sub_dir_path_abs, 'input.json')
 
@@ -164,10 +164,10 @@ if __name__ == "__main__":
             label = input_data_json['metadata']['workload_name']
             job_ID = input_data_json['job_num']
 
-            krf_data_json = ResultsFormat.from_filename(krf_file_full).output_dict()
+            kresults_data_json = ResultsFormat.from_filename(kresults_file_full).output_dict()
 
             # fill up the json data of the job (from statistics and input file)
-            job_json = krf_to_profiled_job_json(krf_data_json, input_data_json)
+            job_json = kresults_to_profiled_job_json(kresults_data_json, input_data_json)
 
             # append to list
             if job_json:

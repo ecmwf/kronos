@@ -9,9 +9,9 @@
 import numpy as np
 
 
-def create_krf_ranks(metrics_calc_all_ranks):
+def create_kresults_ranks(metrics_calc_all_ranks):
     """
-    Function to generate dummy krf json data from time series..
+    Function to generate dummy kresults json data from time series..
     """
 
     ranks_data = []
@@ -102,9 +102,9 @@ def create_krf_ranks(metrics_calc_all_ranks):
     return ranks_data
 
 
-def create_krf(list_metrics, creation_date=None):
+def create_kresults(list_metrics, creation_date=None):
     """
-    Creates a dummy KRF from a list of dictionaries, format example below..:
+    Creates a dummy KResults from a list of dictionaries, format example below..:
     [
       {
         "flops":       np.asarray([0,0,0,1]),
@@ -131,17 +131,17 @@ def create_krf(list_metrics, creation_date=None):
     :return:
     """
 
-    ranks_data = create_krf_ranks(list_metrics)
+    ranks_data = create_kresults_ranks(list_metrics)
 
-    # template for a dummy json KRF file
-    krf_data = {
+    # template for a dummy json KResults file
+    kresults_data = {
         "created": creation_date if creation_date else "2017-07-31T01:28:42+00:00",  # just an example creation date
         "ranks": ranks_data,
         "kronosSHA1": "",
         "kronosVersion": "0.1.2",
         "version": 1,
-        "tag": "KRONOS-KRF-MAGIC",
+        "tag": "KRONOS-KRESULTS-MAGIC",
         "uid": 10360
     }
 
-    return krf_data
+    return kresults_data

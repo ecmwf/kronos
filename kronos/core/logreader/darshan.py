@@ -532,7 +532,7 @@ class DarshanLogReader3(LogReader):
     label_method = "directory"
 
     files_to_filter_out = [
-        "statistics.krf",
+        "statistics.kresults",
         "<STDOUT>"
     ]
 

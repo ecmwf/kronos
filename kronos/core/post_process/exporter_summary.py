@@ -9,7 +9,7 @@ import os
 
 from kronos.core.post_process.exportable_types import ExportableSignalGroup, ExportableSignalFrame
 from kronos.core.post_process.exporter_base import ExporterBase
-from kronos.core.post_process.krf_data import sorted_krf_stats_names, krf_stats_info
+from kronos.core.post_process.kresults_data import sorted_kresults_stats_names, kresults_stats_info
 from kronos.core.post_process.result_signals import ResultSignal
 
 
@@ -26,7 +26,7 @@ class ExporterSummaryRates(ExporterBase):
         min_norm_value = None
         for class_name in job_classes.keys():
 
-            for stat_name in sorted_krf_stats_names:
+            for stat_name in sorted_kresults_stats_names:
 
                 # take list of rates if the metric is defined for this class otherwise get "None" flag
                 metric_rate_list = [self.sim_set.class_stats_sums[sim_name][class_name][stat_name]["rate"]
@@ -44,7 +44,7 @@ class ExporterSummaryRates(ExporterBase):
 
         # --------------------------- assemble frame for export.. ---------------------------------
         group_signals = []
-        for stat_name in sorted_krf_stats_names:
+        for stat_name in sorted_kresults_stats_names:
 
             # take list of rates if the metric is defined for this class otherwise get "-1" flag
             metric_rate_list = [self.sim_set.class_stats_sums[sim_name]["all_classes"][stat_name]["rate"]
@@ -56,7 +56,7 @@ class ExporterSummaryRates(ExporterBase):
                 # NB: values are normalized against 1st simulation (of the ordered list of sims)
                 _times = range(len(metric_rate_list))
                 _values = [v / float(metric_rate_list[0]) for v in metric_rate_list]
-                label = krf_stats_info[stat_name]["label_sum"]
+                label = kresults_stats_info[stat_name]["label_sum"]
                 group_signals.append(ResultSignal(label, _times, _values).get_exportable(metadata={"norm_factor": float(metric_rate_list[0])}))
 
         # if y_lims are not specified by the user, take the max/min encountered during the per-class plots

@@ -22,7 +22,7 @@ import os
 import argparse
 import sys
 
-from kronos.core.post_process.krf_data import krf_stats_info
+from kronos.core.post_process.kresults_data import kresults_stats_info
 from kronos.core.post_process.sim_data import SimulationData
 
 job_classes = {
@@ -62,7 +62,7 @@ def print_formatted_class_stats(class_name, per_class_job_stats):
         # Print the relevant metrics for each stats class
         for k, v in class_stats.iteritems():
 
-            stats_metric_info = krf_stats_info[k]
+            stats_metric_info = kresults_stats_info[k]
 
             # retrieve the relevant info from the metric type
             counter_to_print = v[stats_metric_info["label_metric"]]

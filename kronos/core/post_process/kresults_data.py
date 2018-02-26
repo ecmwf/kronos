@@ -26,7 +26,7 @@ ts_names_map = {
     "flops": ("flops", 1.0),
 }
 
-krf_stats_info = OrderedDict((
+kresults_stats_info = OrderedDict((
     ("cpu", {"conv": 1.0/1000.0**3,
              "label_sum": "FLOPS",
              "label_rate": "FLOPS [GB/sec]",
@@ -69,18 +69,18 @@ krf_stats_info = OrderedDict((
 ))
 
 
-sorted_krf_stats_names = krf_stats_info.keys()
+sorted_kresults_stats_names = kresults_stats_info.keys()
 
 
-class KRFJob(object):
+class KResultsJob(object):
     """
     This class defines a job that is run and self-profiled by Kronos.
-    It mainly defines wrapping methods on top of the KRF data..
+    It mainly defines wrapping methods on top of the KResults data..
     """
 
     def __init__(self, _json_data, decorator_data=None):
 
-        # JSON data of the KRF file
+        # JSON data of the KResults file
         self._json_data = _json_data
 
         # Decorating data (if available)
@@ -91,7 +91,7 @@ class KRFJob(object):
 
     def calc_time_series(self):
 
-        # group time series from krf data..
+        # group time series from kresults data..
         _series_tvr = {}
         for rr,rank_data in enumerate(self._json_data["ranks"]):
 
@@ -127,16 +127,16 @@ class KRFJob(object):
         return time_series
 
     @classmethod
-    def from_krf_file(cls, krf_filename, decorator=None):
+    def from_kresults_file(cls, kresults_filename, decorator=None):
         """
-        instantiate a KRFJob object from name of KRF file
-        :param krf_filename:
+        instantiate a KResultsJob object from name of KResults file
+        :param kresults_filename:
         :param decorator:
         :return:
         """
 
         return cls(
-            ResultsFormat.from_filename(krf_filename, validate_json=False).output_dict(),
+            ResultsFormat.from_filename(kresults_filename, validate_json=False).output_dict(),
             decorator_data=decorator
         )
 
@@ -152,7 +152,7 @@ class KRFJob(object):
 
     def profiled_metrics(self):
         """
-        Return the statistics as in the KRF data
+        Return the statistics as in the KResults data
         :return:
         """
         return [r["stats"] for r in self._json_data["ranks"]]
@@ -201,7 +201,7 @@ class KRFJob(object):
     @property
     def t_end(self):
 
-        # t_end is defined as the creation timestamp of KRF
+        # t_end is defined as the creation timestamp of KResults
         _ts = None
         if self._json_data.get("created"):
 

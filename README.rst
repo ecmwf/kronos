@@ -26,7 +26,7 @@ Kronos file formats are listed below. For each format an executable ("kronos-<fo
 - Kronos Executor configuration format (for info: > kronos-config-exe)
 - Kronos Profile Format ".KProfile" (for info: > kronos-kprofile)
 - Kronos Schedule Format ".KSchedule" (for info: > kronos-kschedule)
-- Kronos Results Format ".KRF" (for info: > kronos-krf)
+- Kronos Results Format ".KResults" (for info: > kronos-kresults)
 
 4. Executor
 -----------

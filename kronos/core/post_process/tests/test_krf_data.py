@@ -12,12 +12,12 @@ import numpy as np
 from datetime import datetime
 
 from kronos.core.post_process.definitions import datetime2epochs
-from kronos.core.post_process.krf_data import KRFJob
-from kronos.core.post_process.krf_decorator import KRFDecorator
-from kronos.core.post_process.tests.test_utils import create_krf
+from kronos.core.post_process.kresults_data import KResultsJob
+from kronos.core.post_process.kresults_decorator import KResultsDecorator
+from kronos.core.post_process.tests.test_utils import create_kresults
 
 
-class KRFJobTest(unittest.TestCase):
+class KResultsJobTest(unittest.TestCase):
 
     time_series_2proc = [
         {
@@ -38,36 +38,36 @@ class KRFJobTest(unittest.TestCase):
         }
     ]
 
-    def test_krf_basics(self):
+    def test_kresults_basics(self):
         """
-        Test main properties of a KRF job
+        Test main properties of a KResults job
         :return:
         """
 
-        # crete krf data..
-        krf_json_data = create_krf(self.time_series_2proc)
+        # crete kresults data..
+        kresults_json_data = create_kresults(self.time_series_2proc)
 
-        decor_data = KRFDecorator(workload_name="workload_1/something_else/parallel", job_name="test_job_1")
-        krf_data = KRFJob(krf_json_data, decorator_data=decor_data)
+        decor_data = KResultsDecorator(workload_name="workload_1/something_else/parallel", job_name="test_job_1")
+        kresults_data = KResultsJob(kresults_json_data, decorator_data=decor_data)
 
         # time start
-        self.assertEqual(datetime2epochs( datetime.strptime(krf_json_data["created"], '%Y-%m-%dT%H:%M:%S+00:00') ), krf_data.t_end)
+        self.assertEqual(datetime2epochs( datetime.strptime(kresults_json_data["created"], '%Y-%m-%dT%H:%M:%S+00:00') ), kresults_data.t_end)
 
         # assert time end
-        self.assertEqual(krf_data.t_start + max([sum(ts["durations"]) for ts in self.time_series_2proc]), krf_data.t_end)
+        self.assertEqual(kresults_data.t_start + max([sum(ts["durations"]) for ts in self.time_series_2proc]), kresults_data.t_end)
 
         # assert duration
-        self.assertEqual(krf_data.t_end-krf_data.t_start, krf_data.duration)
+        self.assertEqual(kresults_data.t_end-kresults_data.t_start, kresults_data.duration)
 
         # assert ncpu
-        self.assertEqual(krf_data.n_cpu, len(krf_json_data["ranks"]))
+        self.assertEqual(kresults_data.n_cpu, len(kresults_json_data["ranks"]))
 
         # is in class
-        self.assertTrue( krf_data.is_in_class("workload_1/*/parallel"))
+        self.assertTrue( kresults_data.is_in_class("workload_1/*/parallel"))
 
-    def test_krf_time_series(self):
+    def test_kresults_time_series(self):
         """
-        Test KRF job time series
+        Test KResults job time series
         :return:
         """
 
@@ -77,13 +77,13 @@ class KRFJobTest(unittest.TestCase):
         # "flops":     np.asarray([222, 0,   0,   222]),
         # "durations": np.asarray([1.0, 1.0, 1.0, 6.0])
 
-        # crete krf data..
-        krf_json_data = create_krf(self.time_series_2proc)
-        decor_data = KRFDecorator(workload_name="workload-1", job_name="test_job_1")
-        krf_data = KRFJob(krf_json_data, decorator_data=decor_data)
+        # crete kresults data..
+        kresults_json_data = create_kresults(self.time_series_2proc)
+        decor_data = KResultsDecorator(workload_name="workload-1", job_name="test_job_1")
+        kresults_data = KResultsJob(kresults_json_data, decorator_data=decor_data)
 
         # job time series
-        time_series = krf_data.calc_time_series()
+        time_series = kresults_data.calc_time_series()
 
         # check flops time series (time stamps)
         self.assertEqual(time_series["flops"]["times"], [1.0, 2.0, 4.0, 9.0])

@@ -37,7 +37,7 @@ setup(
         'bin/kronos-format-config-model',
         'bin/kronos-format-config-exe',
         'bin/kronos-format-kprofile',
-        'bin/kronos-format-krf',
+        'bin/kronos-format-kresults',
         'bin/kronos-format-kschedule',
         'bin/kronos-format-config-export',
 
@@ -47,7 +47,7 @@ setup(
         'bin/kronos-inspect-dataset',
 
         'bin/kronos-plot-kprofile',
-        'bin/kronos-convert-krf-to-kprofile',
+        'bin/kronos-convert-kresults-to-kprofile',
 
         'bin/kronos-summarise-results',
         'bin/kronos-collect-results',

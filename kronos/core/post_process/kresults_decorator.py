@@ -7,7 +7,7 @@
 # does it submit to any jurisdiction.
 
 
-class KRFDecorator(object):
+class KResultsDecorator(object):
     """
     Job decorator data
     """

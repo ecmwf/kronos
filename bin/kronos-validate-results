@@ -12,7 +12,7 @@
 ==========================================================================================
 Script that checks if Kronos has executed a specific metrics as prescribed by the KSchedule file.
 It loops over the job output folders, it sums all the values of the selected metric found
-in the .KRF files and compares the sum with the sum retrieved from the KSchedule file
+in the .KResults files and compares the sum with the sum retrieved from the KSchedule file
 (the test is considered PASS if the difference is < 1%)
 ==========================================================================================
 
@@ -44,20 +44,20 @@ def cumsum(input_list):
     return [sum(input_list[:ii+1]) for ii,i in enumerate(input_list)]
 
 
-def krf_to_profiled_job_json(krf_json, input_json):
+def kresults_to_profiled_job_json(kresults_json, input_json):
     """
-    Function that reads statistics.krf and input.json and builds job json data (to be later used for ProfileFormat)
-    :param krf_json:
+    Function that reads statistics.kresults and input.json and builds job json data (to be later used for ProfileFormat)
+    :param kresults_json:
     :param input_json:
     :return:
     """
 
     job = {}
 
-    # create time series json data from statistics.krf
+    # create time series json data from statistics.kresults
     time_series_json = {}
 
-    for rank_data in krf_json["ranks"]:
+    for rank_data in kresults_json["ranks"]:
 
         tends = cumsum(rank_data["time_series"]['durations'])
 
@@ -151,17 +151,17 @@ if __name__ == "__main__":
         sys.exit(1)
 
     # sums of all metrics for all the jobs
-    krf_metrics_sums = {k[0]: 0.0 for k in ts_names_map.values()}
+    kresults_metrics_sums = {k[0]: 0.0 for k in ts_names_map.values()}
 
     # loop over all sub-folders
     for job_subdir in job_dirs:
 
-        # read the statistics.krf file
-        krf_file_path_abs = os.path.join(os.path.join(args.job_dir, job_subdir), "statistics.krf")
-        if not os.path.isfile(krf_file_path_abs):
+        # read the statistics.kresults file
+        kresults_file_path_abs = os.path.join(os.path.join(args.job_dir, job_subdir), "statistics.kresults")
+        if not os.path.isfile(kresults_file_path_abs):
             sys.exit(1)
 
-        krf_data_json = ResultsFormat.from_filename(krf_file_path_abs).output_dict()
+        kresults_data_json = ResultsFormat.from_filename(kresults_file_path_abs).output_dict()
 
         # read the input.json file
         input_file_path_abs = os.path.join(os.path.join(args.job_dir, job_subdir), 'input.json')
@@ -170,11 +170,11 @@ if __name__ == "__main__":
         with open(input_file_path_abs, 'r') as f:
             input_data_json = json.load(f)
 
-        job_json = krf_to_profiled_job_json(krf_data_json, input_data_json)
+        job_json = kresults_to_profiled_job_json(kresults_data_json, input_data_json)
 
         # print json.dumps(job_json, sort_keys=True, indent=4, separators=(',', ': '))
         for metric,time_values in job_json["time_series"].iteritems():
-            krf_metrics_sums[metric] += sum(time_values["values"])
+            kresults_metrics_sums[metric] += sum(time_values["values"])
 
     # read data from the KSchedule
     kschedule_data = ScheduleFormat.from_filename(os.path.join(args.job_dir, kschedule_file[0]))
@@ -208,13 +208,13 @@ if __name__ == "__main__":
                 else:
                     raise ("kernel name {} not recognized!".format(ker["name"]))
 
-    # if the metrics is zero (both in the KRF's and in the KSchedule) => check is PASS
-    if abs(krf_metrics_sums[args.metric_name] == 0 and tot_kschedule_metrics[args.metric_name]) == 0:
+    # if the metrics is zero (both in the KResults's and in the KSchedule) => check is PASS
+    if abs(kresults_metrics_sums[args.metric_name] == 0 and tot_kschedule_metrics[args.metric_name]) == 0:
         print "Result for metric {}: PASS".format(args.metric_name)
         sys.exit(0)
 
     # fails if the requested metrics differ from the measured one
-    if abs(krf_metrics_sums[args.metric_name] - tot_kschedule_metrics[args.metric_name])/tot_kschedule_metrics[args.metric_name] > 0.01:
+    if abs(kresults_metrics_sums[args.metric_name] - tot_kschedule_metrics[args.metric_name])/tot_kschedule_metrics[args.metric_name] > 0.01:
         sys.exit(1)
     else:
         print "Result for metric {}: PASS".format(args.metric_name)

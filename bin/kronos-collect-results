@@ -50,7 +50,7 @@ if __name__ == "__main__":
         'input.json',
         'error',
         'output',
-        'statistics.krf',
+        'statistics.kresults',
         '.darshan',
         '.map',
     ]

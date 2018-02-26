@@ -17,8 +17,8 @@ import sys
 
 from kronos.core.post_process.result_signals import ResultRunningSignal, ResultProfiledSignal
 from kronos.core.time_signal.definitions import signal_types
-from kronos.core.post_process.krf_data import KRFJob, krf_stats_info
-from kronos.core.post_process.krf_decorator import KRFDecorator
+from kronos.core.post_process.kresults_data import KResultsJob, kresults_stats_info
+from kronos.core.post_process.kresults_decorator import KResultsDecorator
 
 
 class SimulationData(object):
@@ -28,7 +28,7 @@ class SimulationData(object):
 
     def __init__(self, jobs=None, sim_name=None, sim_path=None, n_procs_node=None):
 
-        # KRF jobs
+        # KResults jobs
         self.jobs = jobs
 
         # Sim-name
@@ -46,11 +46,11 @@ class SimulationData(object):
         # check that the run path contains the job sub-folders
         job_dirs = [x for x in os.listdir(sim_path) if os.path.isdir(os.path.join(sim_path, x)) and "job-" in x]
 
-        # check if there are jobs that didn't write the "statistics.krf" file
-        failing_jobs = [job_dir for job_dir in job_dirs if not os.path.isfile(os.path.join(sim_path, job_dir, "statistics.krf"))]
+        # check if there are jobs that didn't write the "statistics.kresults" file
+        failing_jobs = [job_dir for job_dir in job_dirs if not os.path.isfile(os.path.join(sim_path, job_dir, "statistics.kresults"))]
 
         if failing_jobs:
-            print "ERROR: The following jobs have failed (jobs for which 'statistics.krf' is not found in job folder):"
+            print "ERROR: The following jobs have failed (jobs for which 'statistics.kresults' is not found in job folder):"
             print "{}".format("\n".join(failing_jobs))
             print "Kronos Post-processing stops here!"
             sys.exit(1)
@@ -78,20 +78,20 @@ class SimulationData(object):
 
             sub_dir_path_abs = os.path.join(sim_path, job_dir)
             sub_dir_files = os.listdir(sub_dir_path_abs)
-            krf_file = [f for f in sub_dir_files if f.endswith('.krf')]
+            kresults_file = [f for f in sub_dir_files if f.endswith('.kresults')]
 
-            if krf_file:
+            if kresults_file:
                 input_file_path_abs = os.path.join(sub_dir_path_abs, 'input.json')
-                stats_file_path_abs = os.path.join(sub_dir_path_abs, 'statistics.krf')
+                stats_file_path_abs = os.path.join(sub_dir_path_abs, 'statistics.kresults')
 
                 # Read decorator data from input file
                 with open(input_file_path_abs, 'r') as f:
                     json_data_input = json.load(f)
-                decorator = KRFDecorator(**json_data_input["metadata"])
+                decorator = KResultsDecorator(**json_data_input["metadata"])
 
                 # Append the profiled job to the "jobs_data" structure
                 jobs_data.append(
-                    KRFJob.from_krf_file(stats_file_path_abs, decorator=decorator)
+                    KResultsJob.from_kresults_file(stats_file_path_abs, decorator=decorator)
                 )
 
         if jobs_data:
@@ -145,20 +145,20 @@ class SimulationData(object):
         per_class_stats_sums = {}
 
         # add a key that contains metric rates from all the classes
-        _all_class_stats_dict = {stat_metric: {field: 0.0 for field in krf_stats_info[stat_metric]["to_sum"]}
-                                 for stat_metric in krf_stats_info.keys()}
+        _all_class_stats_dict = {stat_metric: {field: 0.0 for field in kresults_stats_info[stat_metric]["to_sum"]}
+                                 for stat_metric in kresults_stats_info.keys()}
 
         # update stats sums
         for class_name, stats_list in per_class_stats.iteritems():
 
             # initialize all the requested sums..
-            _class_stats_dict = {stat_metric: {field: 0.0 for field in krf_stats_info[stat_metric]["to_sum"]}
-                                 for stat_metric in krf_stats_info.keys()}
+            _class_stats_dict = {stat_metric: {field: 0.0 for field in kresults_stats_info[stat_metric]["to_sum"]}
+                                 for stat_metric in kresults_stats_info.keys()}
 
             # loop over stats and make the sums
             for stat_entry in stats_list:
                 for stat_metric in stat_entry.keys():
-                    for field in krf_stats_info[stat_metric]["to_sum"]:
+                    for field in kresults_stats_info[stat_metric]["to_sum"]:
 
                         # add the summable metrics to class stats
                         _class_stats_dict[stat_metric][field] += float(stat_entry[stat_metric][field])
@@ -171,14 +171,14 @@ class SimulationData(object):
                 if _class_stats_dict[stat_metric]["elapsed"] == 0.0:
                     _class_stats_dict.pop(stat_metric)
 
-            # also calculate the rates (according to the fields defined in krf_stats_info)
+            # also calculate the rates (according to the fields defined in kresults_stats_info)
             for stat_metric in _class_stats_dict.keys():
 
                 # numerator and denominator for rate calculation
-                num, den = krf_stats_info[stat_metric]["def_rate"]
+                num, den = kresults_stats_info[stat_metric]["def_rate"]
 
                 # conversion factor
-                fc = krf_stats_info[stat_metric]["conv"]
+                fc = kresults_stats_info[stat_metric]["conv"]
 
                 # get the rate
                 rate = fc * _class_stats_dict[stat_metric][num] / _class_stats_dict[stat_metric][den]
@@ -194,14 +194,14 @@ class SimulationData(object):
             if _all_class_stats_dict[stat_metric]["elapsed"] == 0.0:
                 _all_class_stats_dict.pop(stat_metric)
 
-        # also calculate the rates (according to the fields defined in krf_stats_info)
+        # also calculate the rates (according to the fields defined in kresults_stats_info)
         for stat_metric in _all_class_stats_dict.keys():
 
             # numerator and denominator for rate calculation
-            num, den = krf_stats_info[stat_metric]["def_rate"]
+            num, den = kresults_stats_info[stat_metric]["def_rate"]
 
             # conversion factor
-            fc = krf_stats_info[stat_metric]["conv"]
+            fc = kresults_stats_info[stat_metric]["conv"]
 
             # get the rate
             rate = fc * _all_class_stats_dict[stat_metric][num] / _all_class_stats_dict[stat_metric][den]

@@ -10,10 +10,10 @@
 import unittest
 import numpy as np
 
-from kronos.core.post_process.krf_data import KRFJob
-from kronos.core.post_process.krf_decorator import KRFDecorator
+from kronos.core.post_process.kresults_data import KResultsJob
+from kronos.core.post_process.kresults_decorator import KResultsDecorator
 from kronos.core.post_process.sim_data import SimulationData
-from kronos.core.post_process.tests.test_utils import create_krf
+from kronos.core.post_process.tests.test_utils import create_kresults
 
 
 class SimDataTest(unittest.TestCase):
@@ -39,28 +39,28 @@ class SimDataTest(unittest.TestCase):
             }
         ]
 
-        # crete krf data (job-0)
-        krf_json_data_0 = create_krf(time_series_2proc, creation_date="2017-07-31T01:28:42+00:00")
-        decor_data = KRFDecorator(workload_name="workload_1/something_else/parallel", job_name="test_job_0")
-        krf_data_0 = KRFJob(krf_json_data_0, decorator_data=decor_data)
+        # crete kresults data (job-0)
+        kresults_json_data_0 = create_kresults(time_series_2proc, creation_date="2017-07-31T01:28:42+00:00")
+        decor_data = KResultsDecorator(workload_name="workload_1/something_else/parallel", job_name="test_job_0")
+        kresults_data_0 = KResultsJob(kresults_json_data_0, decorator_data=decor_data)
 
-        # crete krf data (job-1)
-        krf_json_data_1 = create_krf(time_series_2proc, creation_date="2017-07-31T01:28:44+00:00")
-        decor_data = KRFDecorator(workload_name="workload_1/something_else/parallel", job_name="test_job_1")
-        krf_data_1 = KRFJob(krf_json_data_1, decorator_data=decor_data)
+        # crete kresults data (job-1)
+        kresults_json_data_1 = create_kresults(time_series_2proc, creation_date="2017-07-31T01:28:44+00:00")
+        decor_data = KResultsDecorator(workload_name="workload_1/something_else/parallel", job_name="test_job_1")
+        kresults_data_1 = KResultsJob(kresults_json_data_1, decorator_data=decor_data)
 
         # instantiate the sim_data object
-        sim_data = SimulationData(jobs=[krf_data_0, krf_data_1], sim_name="dummy_sim", n_procs_node=36)
+        sim_data = SimulationData(jobs=[kresults_data_0, kresults_data_1], sim_name="dummy_sim", n_procs_node=36)
 
         # test total runtime
         # 11 = 9 + 2 (9 is the total duration of cpu2 and job2 has started 2 seconds after job 1)
         self.assertEqual(sim_data.runtime(), 11)
 
         # test tmin_epochs
-        self.assertEqual(sim_data.tmin_epochs, min(krf_data_0.t_start, krf_data_1.t_start))
+        self.assertEqual(sim_data.tmin_epochs, min(kresults_data_0.t_start, kresults_data_1.t_start))
 
         # test tmax_epochs
-        self.assertEqual(sim_data.tmax_epochs, max(krf_data_0.t_end, krf_data_1.t_end))
+        self.assertEqual(sim_data.tmax_epochs, max(kresults_data_0.t_end, kresults_data_1.t_end))
 
     def test_global_time_series(self):
         """
@@ -113,18 +113,18 @@ class SimDataTest(unittest.TestCase):
         # tt = [4.0, 8.0, 12.]
         # vv = [777, 333, 222]
 
-        # crete krf data (job-0)
-        krf_json_data_0 = create_krf(time_series_2proc, creation_date="2017-07-31T01:28:42+00:00")
-        decor_data = KRFDecorator(workload_name="workload_1/something_else/parallel", job_name="test_job_0")
-        krf_data_0 = KRFJob(krf_json_data_0, decorator_data=decor_data)
+        # crete kresults data (job-0)
+        kresults_json_data_0 = create_kresults(time_series_2proc, creation_date="2017-07-31T01:28:42+00:00")
+        decor_data = KResultsDecorator(workload_name="workload_1/something_else/parallel", job_name="test_job_0")
+        kresults_data_0 = KResultsJob(kresults_json_data_0, decorator_data=decor_data)
 
-        # crete krf data (job-1)
-        krf_json_data_1 = create_krf(time_series_2proc, creation_date="2017-07-31T01:28:44+00:00")
-        decor_data = KRFDecorator(workload_name="workload_1/something_else/parallel", job_name="test_job_1")
-        krf_data_1 = KRFJob(krf_json_data_1, decorator_data=decor_data)
+        # crete kresults data (job-1)
+        kresults_json_data_1 = create_kresults(time_series_2proc, creation_date="2017-07-31T01:28:44+00:00")
+        decor_data = KResultsDecorator(workload_name="workload_1/something_else/parallel", job_name="test_job_1")
+        kresults_data_1 = KResultsJob(kresults_json_data_1, decorator_data=decor_data)
 
         # instantiate the sim_data object
-        sim_data = SimulationData(jobs=[krf_data_0, krf_data_1], sim_name="dummy_sim", n_procs_node=36)
+        sim_data = SimulationData(jobs=[kresults_data_0, kresults_data_1], sim_name="dummy_sim", n_procs_node=36)
 
         # check global time series
         times = [4.0, 8.0, 12.]

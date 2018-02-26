@@ -20,7 +20,7 @@ class ResultsFormat(JSONIoFormat):
     A standardised format for profiling information.
     """
     format_version = 1
-    format_magic = "KRONOS-KRF-MAGIC"
+    format_magic = "KRONOS-KRESULTS-MAGIC"
     schema_json = os.path.join(os.path.dirname(__file__), "results_schema.json")
 
     def __init__(self, ranks=None, created=None, uid=None):
