@@ -10,12 +10,9 @@
 
 """
 
-============================================================================
-Usage:
-    kronos-executor <config> <schedule>
-
-Config must be in JSON format. Schedule must be a KSchedule file output by Kronos
-============================================================================
+Kronos Executor is the main command that executes the kronos
+schedule on an HPC system. Configuration file is JSON format (see kronos-format-config-exe).
+Schedule must be a KSchedule file (execute kronos-format-kschedule for details)
 
 """
 

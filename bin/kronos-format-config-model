@@ -9,11 +9,9 @@
 
 """
 
-============================================================================
 Tool that shows the schema of a kronos model configuration file.
 If a model configuration file name is passed, it gets validated against
 the schema.
-============================================================================
 
 """
 

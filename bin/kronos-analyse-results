@@ -9,11 +9,9 @@
 
 """
 
-==========================================================================
 This tool analyses the results of a Kronos run and exports plots/tables of
 relevant metrics. For full list of options of the configuration file,
 run the kronos tool "kronos-format-config-export".
-==========================================================================
 
 """
 

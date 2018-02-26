@@ -9,12 +9,8 @@
 
 """
 
-========================================================================
-
 Tool that generates a summary of a Kronos run. It shows the rates of the
 kernel operations (CPU/MPI/IO) on a per-job class basis.
-
-========================================================================
 
 """
 

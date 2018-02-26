@@ -9,11 +9,9 @@
 
 """
 
-=================================================================
 The Kronos-model applies modelling algorithms to data profiled on
 an HPC system and generates a workload model in athe form of a
 Kronos Schedule.
-=================================================================
 
 """
 

@@ -9,12 +9,10 @@
 
 """
 
-==========================================================================================
 Script that checks if Kronos has executed a specific metrics as prescribed by the KSchedule file.
 It loops over the job output folders, it sums all the values of the selected metric found
 in the .KResults files and compares the sum with the sum retrieved from the KSchedule file
 (the test is considered PASS if the difference is < 1%)
-==========================================================================================
 
 """
 

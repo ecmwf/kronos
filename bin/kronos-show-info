@@ -9,9 +9,7 @@
 
 """
 
-=======================
-show info of a KSchedule file
-=======================
+Tool to show information of a kronos schedule file (KSchedule)
 
 """
 

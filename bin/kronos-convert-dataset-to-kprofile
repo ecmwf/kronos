@@ -8,9 +8,8 @@
 # does it submit to any jurisdiction.
 
 """
-=================================
+
 Exports a KProfile file from a dataset
-=================================
 
 """
 import os
