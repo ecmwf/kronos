@@ -25,6 +25,8 @@ from kronos.core.time_signal.definitions import signal_types, time_signal_names
 from kronos.io.results_format import ResultsFormat
 from kronos.io.schedule_format import ScheduleFormat
 
+# map that directly translates the metrics in the KResults
+# and the metrics as defined in the KProfile
 ts_names_map = {
     "n_write": ("n_write", 1.0),
     "n_read": ("n_read", 1.0),
@@ -142,7 +144,7 @@ if __name__ == "__main__":
     kschedule_file = [x for x in os.listdir(args.job_dir) if os.path.isfile(os.path.join(args.job_dir, x)) and x.endswith('.kschedule')]
     if not kschedule_file:
         print "Specified path does not contain the KSchedule file!"
-        sys.exit(-1)
+        sys.exit(1)
 
     if len(kschedule_file) > 1:
         print "Specified path contains more than one KSchedule file!"

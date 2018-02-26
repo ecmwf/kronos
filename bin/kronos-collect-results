@@ -43,6 +43,17 @@ if __name__ == "__main__":
     else:
         tar_file = tarfile.open(args.tarball_path, "w:gz")
 
+    # check that the run path contains one (and one only) kschedule file
+    kschedule_files = [x for x in os.listdir(args.path_run) if os.path.isfile(os.path.join(args.path_run, x)) and x.endswith('.kschedule')]
+    if not kschedule_files:
+        print "Specified path does not contain the KSchedule file!"
+        sys.exit(1)
+    elif len(kschedule_files) > 1:
+        print "More than one KSchedule file found in the output folder!"
+        sys.exit(1)
+    else:
+        kschedule_file = kschedule_files[0]
+
     files_to_be_collected = [
         'submit_script',
         'input.json',
@@ -75,6 +86,7 @@ if __name__ == "__main__":
             file_abs_path = os.path.join(sub_dir_path_abs, file_name)
             tar_file.add(file_abs_path, arcname=os.path.join("run_data", os.path.join(job_dir, file_name)))
 
+    tar_file.add(os.path.join(args.path_run, kschedule_file), arcname=os.path.join("run_data", kschedule_file))
     tar_file.close()
 
     print "done!"
