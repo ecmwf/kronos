@@ -7,7 +7,7 @@
     "properties": {
         "version" : {
             "type": "number",
-            "enum": [1],
+            "enum": [1, %(kronos-version)s],
             "description": "Version number of the KSchedule format"
         },
         "tag": {
