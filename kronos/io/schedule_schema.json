@@ -2,22 +2,22 @@
     "$schema": "http://json-schema.org/draft-04/schema",
     "type": "object" ,
     "title": "Kronos Schedule Format",
-    "description": "The Kronos Schedule Format (KSF) is a standardised interchange format for output scheduling and modelling data from Kronos",
+    "description": "The Kronos Schedule Format (KSchedule) is a standardised interchange format for output scheduling and modelling data from Kronos",
     "additionalProperties": false,
     "properties": {
         "version" : {
             "type": "number",
             "enum": [1, %(kronos-version)s],
-            "description": "Version number of the KSF format"
+            "description": "Version number of the KSchedule format"
         },
         "tag": {
             "enum": ["%(kronos-magic)s"],
-            "description": "Magic value to help test validity of KSF file"
+            "description": "Magic value to help test validity of KSchedule file"
         },
         "created": {
             "type": "string",
             "format": "date-time",
-            "description": "A timestamp for creation of the KSF file"
+            "description": "A timestamp for creation of the KSchedule file"
         },
         "uid": {
             "type": "integer",

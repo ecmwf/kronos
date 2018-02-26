@@ -114,9 +114,9 @@ class KronosModel(object):
             self.generate_synthetic_workload()
 
         # in the case neither the classification nor the generation entries are specified in the config file,
-        # just translate the KProfile file into the KSF file in a one-to-one relationship
+        # just translate the KProfile file into the KSchedule file in a one-to-one relationship
         if not self.config_classification:
-            self._ksf_from_kprofile_one_to_one()
+            self._kschedule_from_kprofile_one_to_one()
 
     def _apply_workload_fillin(self):
         """
@@ -160,12 +160,12 @@ class KronosModel(object):
     def export_synthetic_workload(self):
         """
         Export the synthetic workload generated from the model (or from the one-to-one translation
-        of the KProfile into the KSF)
+        of the KProfile into the KSchedule)
         :return:
         """
 
-        ksf_path = os.path.join(self.config.dir_output, self.config.ksf_filename)
-        self.sa_workload.export_ksf(ksf_path)
+        kschedule_path = os.path.join(self.config.dir_output, self.config.kschedule_filename)
+        self.sa_workload.export_kschedule(kschedule_path)
 
     def _check_jobs(self, workloads_to_check=None):
         """
@@ -322,13 +322,13 @@ class KronosModel(object):
 
         Report.add_measure(ModelMeasure("r_gyration error [%]", r_gyr_all_pc, __name__))
 
-    def _ksf_from_kprofile_one_to_one(self):
+    def _kschedule_from_kprofile_one_to_one(self):
         """
         This function very simply translates model_jobs into synthetic applications with a one-to-one relationship
         :return:
         """
 
-        print_colour("green", "generating the KSF from the KProfile in a one-to-one relationship")
+        print_colour("green", "generating the KSchedule from the KProfile in a one-to-one relationship")
 
         # check that all the model jobs contain all the metrics
         self._check_jobs()

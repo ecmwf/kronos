@@ -33,9 +33,9 @@
         "type": "string"
       }
     },
-    "ksf_filename": {
+    "kschedule_filename": {
       "type": "string",
-      "description": "Name of KSF (schedule) output file"
+      "description": "Name of KSchedule (schedule) output file"
     },
     "model": {
       "type": "object",
@@ -483,5 +483,5 @@
       }
     }
   },
-  "required": ["dir_input", "dir_output", "kprofile_files", "ksf_filename"]
+  "required": ["dir_input", "dir_output", "kprofile_files", "kschedule_filename"]
 }

@@ -37,7 +37,7 @@ class ScheduleFormatTest(unittest.TestCase):
         """
         valid = {
             "version": 1,
-            "tag": "KRONOS-KSF-MAGIC",
+            "tag": "KRONOS-KSCHEDULE-MAGIC",
             "created": "2016-12-14T09:57:35Z",  # Timestamp in strict rfc3339 format.
             "uid": 1234,
         }
@@ -74,7 +74,7 @@ class ScheduleFormatTest(unittest.TestCase):
         """
         valid = {
             "version": 1,
-            "tag": "KRONOS-KSF-MAGIC",
+            "tag": "KRONOS-KSCHEDULE-MAGIC",
             "created": "2016-12-14T09:57:35Z",  # Timestamp in strict rfc3339 format.
             "uid": 1234,
         }

@@ -22,7 +22,7 @@ mpirun -np {num_procs} {exe_path} -i {n_files} -k -m
 
 class Job(BaseJob):
 
-    # parameters coming from the KSF job entry
+    # parameters coming from the KSchedule job entry
     needed_config_params = [
         "n_files"
     ]

@@ -29,7 +29,7 @@ class Executor(object):
         'local_tmpdir', 'submission_workers', 'enable_darshan', 'darshan_lib_path',
         'file_read_multiplicity', 'file_read_size_min_pow', 'file_read_size_max_pow']
 
-    def __init__(self, config, schedule, ksf_file=None):
+    def __init__(self, config, schedule, kschedule_file=None):
         """
         Initialisation. Passed a dictionary of configurations
         """
@@ -60,8 +60,8 @@ class Executor(object):
 
         os.makedirs(self.job_dir)
 
-        if ksf_file:
-            copy2(ksf_file, self.job_dir)
+        if kschedule_file:
+            copy2(kschedule_file, self.job_dir)
 
         # shared dir
         self.job_dir_shared = config.get("job_dir_shared", os.path.join(os.getcwd(), "run/shared"))

@@ -10,9 +10,9 @@
 """
 
 ==========================================================================================
-Script that checks if Kronos has executed a specific metrics as prescribed by the KSF file.
+Script that checks if Kronos has executed a specific metrics as prescribed by the KSchedule file.
 It loops over the job output folders, it sums all the values of the selected metric found
-in the .KRF files and compares the sum with the sum retrieved from the KSF file
+in the .KRF files and compares the sum with the sum retrieved from the KSchedule file
 (the test is considered PASS if the difference is < 1%)
 ==========================================================================================
 
@@ -140,14 +140,14 @@ if __name__ == "__main__":
         print "Specified path does not contain any job folder (<job-ID>..)!"
         sys.exit(1)
 
-    # check that the run path contains the ksf file
-    ksf_file = [x for x in os.listdir(args.job_dir) if os.path.isfile(os.path.join(args.job_dir, x)) and x.endswith('.ksf')]
-    if not ksf_file:
-        print "Specified path does not contain the KSF file!"
+    # check that the run path contains the kschedule file
+    kschedule_file = [x for x in os.listdir(args.job_dir) if os.path.isfile(os.path.join(args.job_dir, x)) and x.endswith('.kschedule')]
+    if not kschedule_file:
+        print "Specified path does not contain the KSchedule file!"
         sys.exit(-1)
 
-    if len(ksf_file) > 1:
-        print "Specified path contains more than one KSF file!"
+    if len(kschedule_file) > 1:
+        print "Specified path contains more than one KSchedule file!"
         sys.exit(1)
 
     # sums of all metrics for all the jobs
@@ -176,45 +176,45 @@ if __name__ == "__main__":
         for metric,time_values in job_json["time_series"].iteritems():
             krf_metrics_sums[metric] += sum(time_values["values"])
 
-    # read data from the KSF
-    ksf_data = ScheduleFormat.from_filename(os.path.join(args.job_dir, ksf_file[0]))
-    tot_ksf_metrics = {k: signal_types[k]["type"](0) for k in time_signal_names}
+    # read data from the KSchedule
+    kschedule_data = ScheduleFormat.from_filename(os.path.join(args.job_dir, kschedule_file[0]))
+    tot_kschedule_metrics = {k: signal_types[k]["type"](0) for k in time_signal_names}
 
-    for synth_app in ksf_data.synapp_data:
+    for synth_app in kschedule_data.synapp_data:
         for frame in synth_app["frames"]:
 
             for ker in frame:
 
                 if ker["name"] == "cpu":
-                    tot_ksf_metrics["flops"] += signal_types["flops"]["type"](ker["flops"])
+                    tot_kschedule_metrics["flops"] += signal_types["flops"]["type"](ker["flops"])
 
                 elif ker["name"] == "file-read":
-                    tot_ksf_metrics["kb_read"] += signal_types["kb_read"]["type"](ker["kb_read"])
-                    tot_ksf_metrics["n_read"] += signal_types["n_read"]["type"](ker["n_read"])
+                    tot_kschedule_metrics["kb_read"] += signal_types["kb_read"]["type"](ker["kb_read"])
+                    tot_kschedule_metrics["n_read"] += signal_types["n_read"]["type"](ker["n_read"])
 
                 elif ker["name"] == "file-write":
-                    tot_ksf_metrics["kb_write"] += signal_types["kb_write"]["type"](ker["kb_write"])
-                    tot_ksf_metrics["n_write"] += signal_types["n_write"]["type"](ker["n_write"])
+                    tot_kschedule_metrics["kb_write"] += signal_types["kb_write"]["type"](ker["kb_write"])
+                    tot_kschedule_metrics["n_write"] += signal_types["n_write"]["type"](ker["n_write"])
 
                 elif ker["name"] == "mpi":
-                    tot_ksf_metrics["n_pairwise"] += signal_types["n_pairwise"]["type"](ker["n_pairwise"])
-                    tot_ksf_metrics["kb_pairwise"] += signal_types["kb_pairwise"]["type"](ker["kb_pairwise"])
-                    tot_ksf_metrics["n_collective"] += signal_types["n_collective"]["type"](ker["n_collective"])
-                    tot_ksf_metrics["kb_collective"] += signal_types["kb_collective"]["type"](ker["kb_collective"])
+                    tot_kschedule_metrics["n_pairwise"] += signal_types["n_pairwise"]["type"](ker["n_pairwise"])
+                    tot_kschedule_metrics["kb_pairwise"] += signal_types["kb_pairwise"]["type"](ker["kb_pairwise"])
+                    tot_kschedule_metrics["n_collective"] += signal_types["n_collective"]["type"](ker["n_collective"])
+                    tot_kschedule_metrics["kb_collective"] += signal_types["kb_collective"]["type"](ker["kb_collective"])
 
                 # ------------ additional kernels --------
                 elif ker["name"] == "fs_metadata":
-                    tot_ksf_metrics["n_mkdir"] += int(ker["n_mkdir"])
+                    tot_kschedule_metrics["n_mkdir"] += int(ker["n_mkdir"])
                 else:
                     raise ("kernel name {} not recognized!".format(ker["name"]))
 
-    # if the metrics is zero (both in the KRF's and in the KSF) => check is PASS
-    if abs(krf_metrics_sums[args.metric_name] == 0 and tot_ksf_metrics[args.metric_name]) == 0:
+    # if the metrics is zero (both in the KRF's and in the KSchedule) => check is PASS
+    if abs(krf_metrics_sums[args.metric_name] == 0 and tot_kschedule_metrics[args.metric_name]) == 0:
         print "Result for metric {}: PASS".format(args.metric_name)
         sys.exit(0)
 
     # fails if the requested metrics differ from the measured one
-    if abs(krf_metrics_sums[args.metric_name] - tot_ksf_metrics[args.metric_name])/tot_ksf_metrics[args.metric_name] > 0.01:
+    if abs(krf_metrics_sums[args.metric_name] - tot_kschedule_metrics[args.metric_name])/tot_kschedule_metrics[args.metric_name] > 0.01:
         sys.exit(1)
     else:
         print "Result for metric {}: PASS".format(args.metric_name)

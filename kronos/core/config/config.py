@@ -40,7 +40,7 @@ class Config(object):
     dir_input = None
     dir_output = None
     kprofile_files = []
-    ksf_filename = 'schedule.ksf'
+    kschedule_filename = 'schedule.kschedule'
 
     model = None
     run = None

@@ -19,7 +19,7 @@ class ScheduleFormat(JSONIoFormat):
     A standardised format for schedule information.
     """
     format_version = 3
-    format_magic = "KRONOS-KSF-MAGIC"
+    format_magic = "KRONOS-KSCHEDULE-MAGIC"
     schema_json = os.path.join(os.path.dirname(__file__), "schedule_schema.json")
 
     def __init__(self,
@@ -78,7 +78,7 @@ class ScheduleFormat(JSONIoFormat):
     @classmethod
     def from_synthetic_workload(cls, synth_workload, n_bins):
         """
-        Creates a ksf handler from synthetic workload data
+        Creates a kschedule handler from synthetic workload data
         :param synth_workload:
         :param uid:
         :param workload_tag:

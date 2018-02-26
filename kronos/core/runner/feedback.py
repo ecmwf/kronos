@@ -69,7 +69,7 @@ class FeedbackLoopRunner(BaseRunner):
 
         # self.log_file = None
         self.synthetic_workload = None
-        self.ksf_filename = self.config.ksf_filename
+        self.kschedule_filename = self.config.kschedule_filename
 
         # Then set the general configuration into the parent class..
         super(FeedbackLoopRunner, self).__init__(config)
@@ -103,8 +103,8 @@ class FeedbackLoopRunner(BaseRunner):
 
             job_runner = run_control.factory(self.config.run['hpc_job_sched'], self.config)
 
-            # handles the ksf file
-            ksf_data = ScheduleFormat.from_filename(os.path.join(self.config.dir_output, self.ksf_filename))
+            # handles the kschedule file
+            kschedule_data = ScheduleFormat.from_filename(os.path.join(self.config.dir_output, self.kschedule_filename))
 
             # create run dir
             if not os.path.exists(dir_run_results):
@@ -119,9 +119,9 @@ class FeedbackLoopRunner(BaseRunner):
                 myfile.write(ts_names_str + '\n')
 
             # initialize the vectors: metric_sums, scaling factors
-            metrics_sum_dict_ref = ksf_data.scaled_sums
-            sa_metric_dict = ksf_data.scaled_sums
-            scaling_factors = ksf_data.scaling_factors
+            metrics_sum_dict_ref = kschedule_data.scaled_sums
+            sa_metric_dict = kschedule_data.scaled_sums
+            scaling_factors = kschedule_data.scaling_factors
 
             pp = pprint.PrettyPrinter(depth=4)
             print "ts names: "
@@ -157,13 +157,13 @@ class FeedbackLoopRunner(BaseRunner):
                 if not os.path.exists(dir_run_iter_map):
                     os.makedirs(dir_run_iter_map)
 
-                # move the ksf file into HPC input dir (and also into SA iteration folder)
+                # move the kschedule file into HPC input dir (and also into SA iteration folder)
                 subprocess.Popen(["scp",
-                                  os.path.join(self.config.dir_output, self.ksf_filename),
+                                  os.path.join(self.config.dir_output, self.kschedule_filename),
                                   user_at_host+":"+self.hpc_dir_input]).wait()
                 subprocess.Popen(["cp",
-                                  os.path.join(self.config.dir_output, self.ksf_filename),
-                                  os.path.join(dir_run_iter_sa, self.ksf_filename)]).wait()
+                                  os.path.join(self.config.dir_output, self.kschedule_filename),
+                                  os.path.join(dir_run_iter_sa, self.kschedule_filename)]).wait()
 
                 # -- run jobs on HPC and wait until they finish --
                 job_runner.remote_run_executor()
@@ -264,10 +264,10 @@ class FeedbackLoopRunner(BaseRunner):
 
                 # update workload through stretching and re-export the synthetic apps..
                 # TODO: Note that this writes back into the output folder!! perhaps not a good choice..
-                ksf_data.set_scaling_factors(scaling_factors)
+                kschedule_data.set_scaling_factors(scaling_factors)
 
-                print os.path.join(self.config.dir_output, self.ksf_filename)
-                ksf_data.export(filename=os.path.join(self.config.dir_output, self.ksf_filename),
+                print os.path.join(self.config.dir_output, self.kschedule_filename)
+                kschedule_data.export(filename=os.path.join(self.config.dir_output, self.kschedule_filename),
                                 nbins=self.config.model['generator']['synthapp_n_frames'])
 
                 # write log file

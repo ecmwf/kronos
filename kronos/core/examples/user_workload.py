@@ -36,7 +36,7 @@ user_config = {
     "dir_input": os.path.join(os.getcwd(), "input"),
     "dir_output": os.path.join(os.getcwd(), "output"),
     "kprofile_files": ["dummy_user_wl.kprofile"],
-    "ksf_filename": "schedule_epcc.ksf",
+    "kschedule_filename": "schedule_epcc.kschedule",
 
     "model": {
         "fill_in": {

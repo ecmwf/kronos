@@ -38,7 +38,7 @@ setup(
         'bin/kronos-format-config-exe',
         'bin/kronos-format-kprofile',
         'bin/kronos-format-krf',
-        'bin/kronos-format-ksf',
+        'bin/kronos-format-kschedule',
         'bin/kronos-format-config-export',
 
         'bin/kronos-generate-read-files',

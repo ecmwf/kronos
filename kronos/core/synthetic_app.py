@@ -127,15 +127,15 @@ class SyntheticWorkload(object):
 
         return max(sa.time_start for sa in self.app_list)
 
-    def export_ksf(self, filename):
+    def export_kschedule(self, filename):
         """
-        Write a KSF file that describes the synthetic schedule,
+        Write a KSchedule file that describes the synthetic schedule,
         this file can be given directly to the executor
         :return:
         """
         n_bins = self.config.model["generator"]["synth_apps_n_bins"]
 
-        print_colour("green", "Exporting {} synth-apps to KSF schedule: {}".format(len(self.app_list), filename))
+        print_colour("green", "Exporting {} synth-apps to KSchedule schedule: {}".format(len(self.app_list), filename))
 
         # # pre-calculate sums for efficiency..
         # tot_metrics_apps = self.total_metrics_apps(n_bins=n_bins)
