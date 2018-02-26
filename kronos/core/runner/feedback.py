@@ -231,8 +231,8 @@ class FeedbackLoopRunner(BaseRunner):
                 map_workload = WorkloadData(jobs=[job for job in job_map_dataset.model_jobs()],
                                             tag='allinea_map_files')
 
-                # export the workload to a kpf file
-                ScheduleFormat.from_synthetic_workload(map_workload).write_filename(os.path.join(dir_run_iter_map, 'kpf_output.kpf'))
+                # export the workload to a kprofile file
+                ScheduleFormat.from_synthetic_workload(map_workload).write_filename(os.path.join(dir_run_iter_map, 'kprofile_output.kprofile'))
                 # ///////////////////////////////////////////////////////////////////////////////////////
 
                 # append dictionaries to history structures..

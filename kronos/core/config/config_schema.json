@@ -20,15 +20,15 @@
     },
     "dir_input": {
       "type": "string",
-      "description": "Folder of KPF format file"
+      "description": "Folder of KProfile format file"
     },
     "dir_output": {
       "type": "string",
       "description": "Working output folder"
     },
-    "kpf_files": {
+    "kprofile_files": {
       "type": "array",
-      "description": "List of KPF files that Kronos reads as input",
+      "description": "List of KProfile files that Kronos reads as input",
       "items": {
         "type": "string"
       }
@@ -306,7 +306,7 @@
             },
             "save_wl_before_clustering": {
               "type": "boolean",
-              "description": "flag to save workloads into corresponding kpf's before clustering"
+              "description": "flag to save workloads into corresponding kprofile's before clustering"
             },
             "clustering": {
               "type": "object",
@@ -483,5 +483,5 @@
       }
     }
   },
-  "required": ["dir_input", "dir_output", "kpf_files", "ksf_filename"]
+  "required": ["dir_input", "dir_output", "kprofile_files", "ksf_filename"]
 }

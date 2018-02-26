@@ -243,13 +243,13 @@ class WorkloadTests(unittest.TestCase):
                                            source_wl.jobs[0].timesignals[ts].yvalues)
                             for ts in time_signal_names))
 
-    def test_reanimate_kpf(self):
+    def test_reanimate_kprofile(self):
         """
-        The purpose of the KPF is to be able to (re-)animate ModelJobs from the input data.
+        The purpose of the KProfile is to be able to (re-)animate ModelJobs from the input data.
         """
         valid = {
             "version": 1,
-            "tag": "KRONOS-KPF-MAGIC",
+            "tag": "KRONOS-KProfile-MAGIC",
             "created": "2016-12-14T09:57:35Z",  # Timestamp in strict rfc3339 format.
             "uid": 1234,
             "workload_tag": "A-tag",
@@ -271,7 +271,7 @@ class WorkloadTests(unittest.TestCase):
 
         pf = ProfileFormat.from_file(StringIO(json.dumps(valid)))
 
-        workload = WorkloadData.from_kpf(pf)
+        workload = WorkloadData.from_kprofile(pf)
 
         self.assertEquals(workload.tag, "A-tag")
 

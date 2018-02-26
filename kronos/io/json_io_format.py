@@ -16,7 +16,7 @@ import strict_rfc3339
 
 class JSONIoFormat(object):
     """
-    A base class for shared functionality between the KFS and KPF files.
+    A base class for shared functionality between the KFS and KProfile files.
     """
 
     format_version = None
@@ -96,7 +96,7 @@ class JSONIoFormat(object):
     @classmethod
     def from_file(cls, f, validate_json=True):
         """
-        Given a KPF file, load it and make the data appropriately available
+        Given a KProfile file, load it and make the data appropriately available
         """
         data = json.load(f)
 

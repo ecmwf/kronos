@@ -13,7 +13,7 @@
        **DEVELOPMENT TOOL** - USAGE OF THIS TOOL IS UNSUPPORTED
 ============================================================================
 
-Utility to go through the kronos run folder and generates a KPF file
+Utility to go through the kronos run folder and generates a KProfile file
 from the statistics.krf files
 
 """
@@ -112,7 +112,7 @@ if __name__ == "__main__":
     # Parser for the required arguments
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawTextHelpFormatter)
     parser.add_argument("path_run", type=str, help="Path of the kronos run folder (contains the job-<ID> sub-folders)")
-    parser.add_argument("kpf_file", type=str, help="Name of the KPF file to write out")
+    parser.add_argument("kprofile_file", type=str, help="Name of the KProfile file to write out")
 
     # print the help if no arguments are passed
     if len(sys.argv) == 1:
@@ -126,17 +126,17 @@ if __name__ == "__main__":
         print "Specified run path does not exist: {}".format(args.path_run)
         sys.exit(1)
 
-    if os.path.exists(args.kpf_file):
-        print "Output KPF file {} already exists!".format(args.kpf_file)
+    if os.path.exists(args.kprofile_file):
+        print "Output KProfile file {} already exists!".format(args.kprofile_file)
         sys.exit(1)
 
-    # path of the output kpf file
-    path_kpf = os.path.dirname(os.path.abspath(args.kpf_file))
-    if not os.path.exists(path_kpf):
-        os.mkdir(path_kpf)
+    # path of the output kprofile file
+    path_kprofile = os.path.dirname(os.path.abspath(args.kprofile_file))
+    if not os.path.exists(path_kprofile):
+        os.mkdir(path_kprofile)
 
     # ---------- Process the run jsons ----------
-    print "writing output kpf file: {}".format(args.kpf_file)
+    print "writing output kprofile file: {}".format(args.kprofile_file)
     job_dirs = [x for x in os.listdir(args.path_run) if os.path.isdir(os.path.join(args.path_run, x)) and "job-" in x]
 
     job_json_all = []
@@ -173,9 +173,9 @@ if __name__ == "__main__":
             if job_json:
                 job_json_all.append(job_json)
 
-    # Build the data structure for the KPF file format
+    # Build the data structure for the KProfile file format
     pf = ProfileFormat(json_jobs=job_json_all, workload_tag='kronos_workload')
 
-    # write output kpf file..
-    with open(args.kpf_file, 'w') as f:
+    # write output kprofile file..
+    with open(args.kprofile_file, 'w') as f:
         pf.write(f)

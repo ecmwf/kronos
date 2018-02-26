@@ -33,7 +33,7 @@ class ProfileFormatTest(unittest.TestCase):
         """
         valid = {
             "version": 1,
-            "tag": "KRONOS-KPF-MAGIC",
+            "tag": "KRONOS-KProfile-MAGIC",
             "created": "2016-12-14T09:57:35Z",  # Timestamp in strict rfc3339 format.
             "uid": 1234,
             "workload_tag": "A-tag",
@@ -202,7 +202,7 @@ class ProfileFormatTest(unittest.TestCase):
         """
         valid = {
             "version": 1,
-            "tag": "KRONOS-KPF-MAGIC",
+            "tag": "KRONOS-KProfile-MAGIC",
             "created": "2016-12-14T09:57:35Z",  # Timestamp in strict rfc3339 format.
             "uid": 1234,
             "workload_tag": "A-tag",
@@ -260,7 +260,7 @@ class ProfileFormatTest(unittest.TestCase):
         """
         valid = {
             "version": 1,
-            "tag": "KRONOS-KPF-MAGIC",
+            "tag": "KRONOS-KProfile-MAGIC",
             "created": "2016-12-14T09:57:35Z",  # Timestamp in strict rfc3339 format.
             "uid": 1234,
             "workload_tag": "A-tag",

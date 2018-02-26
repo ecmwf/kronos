@@ -20,7 +20,7 @@ class ProfileFormat(JSONIoFormat):
     A standardised format for profiling information.
     """
     format_version = 1
-    format_magic = "KRONOS-KPF-MAGIC"
+    format_magic = "KRONOS-KProfile-MAGIC"
     schema_json = os.path.join(os.path.dirname(__file__), "profile_schema.json")
 
     def __init__(self, model_jobs=None, json_jobs=None, created=None, uid=None, workload_tag="unknown"):

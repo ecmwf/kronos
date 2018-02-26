@@ -8,7 +8,7 @@
         "version" : {
             "type": "number",
             "enum": [%(kronos-version)s],
-            "description": "Version number of the KPF format"
+            "description": "Version number of the KProfile format"
         },
         "tag": {
             "enum": ["%(kronos-magic)s"],

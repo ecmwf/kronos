@@ -36,18 +36,18 @@ setup(
         'bin/kronos-show-info',
         'bin/kronos-format-config-model',
         'bin/kronos-format-config-exe',
-        'bin/kronos-format-kpf',
+        'bin/kronos-format-kprofile',
         'bin/kronos-format-krf',
         'bin/kronos-format-ksf',
         'bin/kronos-format-config-export',
 
         'bin/kronos-generate-read-files',
         'bin/kronos-executor',
-        'bin/kronos-convert-dataset-to-kpf',
+        'bin/kronos-convert-dataset-to-kprofile',
         'bin/kronos-inspect-dataset',
 
-        'bin/kronos-plot-kpf',
-        'bin/kronos-convert-krf-to-kpf',
+        'bin/kronos-plot-kprofile',
+        'bin/kronos-convert-krf-to-kprofile',
 
         'bin/kronos-summarise-results',
         'bin/kronos-collect-results',

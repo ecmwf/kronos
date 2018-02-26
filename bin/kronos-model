@@ -53,9 +53,9 @@ class Kronos(object):
         print "\nBeginning data ingestion...\n----------------------------------"
 
         self.workloads = []
-        for filename in self.config.kpf_files:
+        for filename in self.config.kprofile_files:
             with open(os.path.join(self.config.dir_input, filename), 'r') as f:
-                self.workloads.append(WorkloadData.from_kpf(ProfileFormat.from_file(f)))
+                self.workloads.append(WorkloadData.from_kprofile(ProfileFormat.from_file(f)))
 
         print "\nIngested workloads: [\n" + ",\n".join(["    {}".format(d.tag) for d in self.workloads]) + "\n]"
 

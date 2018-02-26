@@ -16,7 +16,7 @@ Please read the LICENCE file
 
 2. Usage
 --------
-Kronos Modeller reads profiled workload data (.KPF format) and generates a synthetic schedule (KSF format).
+Kronos Modeller reads profiled workload data (.KProfile format) and generates a synthetic schedule (KSF format).
 Kronos Executor reads a synthetic schedule (KSF format) and executes it on a HPC system
 
 3. Kronos File formats
@@ -24,7 +24,7 @@ Kronos Executor reads a synthetic schedule (KSF format) and executes it on a HPC
 Kronos file formats are listed below. For each format an executable ("kronos-<format>) in the /bin directory will provide a description of each field
 
 - Kronos Executor configuration format (for info: > kronos-config-exe)
-- Kronos Profile Format ".KPF" (for info: > kronos-kpf)
+- Kronos Profile Format ".KProfile" (for info: > kronos-kprofile)
 - Kronos Schedule Format ".KSF" (for info: > kronos-ksf)
 - Kronos Results Format ".KRF" (for info: > kronos-krf)
 

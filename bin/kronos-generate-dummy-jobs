@@ -39,7 +39,7 @@ def kronos_dummy_workload():
     """
     This function produces and example of simplified workload
     :return:
-    kpf_handle: kpf format object containing the user-defined workload
+    kprofile_handle: kprofile format object containing the user-defined workload
     class_idx_vec: list of indices identifying jobs by reference to the prototypical jobs [model_job_classes]
     model_job_classes: list of prototypical jobs
     """
@@ -203,7 +203,7 @@ def kronos_dummy_workload():
 if __name__ == "__main__":
 
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawTextHelpFormatter)
-    parser.add_argument("kpf_output", help="Path of KPF output file")
+    parser.add_argument("kprofile_output", help="Path of KProfile output file")
 
     # print the help if no arguments are passed
     if len(sys.argv) == 1:
@@ -213,13 +213,13 @@ if __name__ == "__main__":
     # parse the arguments..
     args = parser.parse_args()
 
-    kpf_handle, class_idx_vec, model_job_classes = kronos_dummy_workload()
-    kpf_handle.write_filename(args.kpf_output)
+    kprofile_handle, class_idx_vec, model_job_classes = kronos_dummy_workload()
+    kprofile_handle.write_filename(args.kprofile_output)
 
-    # In addition to the KPF also writes other two files with the indices and prototypical classes
+    # In addition to the KProfile also writes other two files with the indices and prototypical classes
     # from which the jobs have been generated
-    with open(os.path.splitext(args.kpf_output)[0]+"_class_idx_vec", "w") as f:
+    with open(os.path.splitext(args.kprofile_output)[0]+"_class_idx_vec", "w") as f:
         pickle.dump(class_idx_vec, f)
 
-    with open(os.path.splitext(args.kpf_output)[0] + "_model_job_classes", "w") as f:
+    with open(os.path.splitext(args.kprofile_output)[0] + "_model_job_classes", "w") as f:
         pickle.dump(model_job_classes, f)

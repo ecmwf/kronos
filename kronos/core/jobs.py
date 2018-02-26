@@ -88,7 +88,7 @@ class ModelJob(object):
     @staticmethod
     def from_json(js):
         """
-        (Re)animate a ModelJob from json extracted from a KPF (kronos.io.profile_format.ProfileFormat)
+        (Re)animate a ModelJob from json extracted from a KProfile (kronos.io.profile_format.ProfileFormat)
         """
         return ModelJob(
             timesignals={n: TimeSignal.from_values(n, xvals=t['times'], yvals=t['values'],

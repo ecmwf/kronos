@@ -47,13 +47,13 @@ class WorkloadData(object):
         return unicode(self).encode('utf-8')
 
     @staticmethod
-    def from_kpf(kpf):
+    def from_kprofile(kprofile):
         """
-        Obtain a workload from read-in and checked json data in a KPF
+        Obtain a workload from read-in and checked json data in a KProfile
         """
         return WorkloadData(
-            jobs=(ModelJob.from_json(j) for j in kpf.profiled_jobs),
-            tag=kpf.workload_tag
+            jobs=(ModelJob.from_json(j) for j in kprofile.profiled_jobs),
+            tag=kprofile.workload_tag
         )
 
     def append_jobs(self, model_jobs=None):

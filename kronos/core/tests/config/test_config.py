@@ -35,7 +35,7 @@ class ConfigTests(unittest.TestCase):
             "created": "2016-12-14T09:57:35Z",  # Timestamp in strict rfc3339 format.
             'dir_input': existing_path,
             'dir_output': existing_path,
-            "kpf_files": ["file1", "file2"],
+            "kprofile_files": ["file1", "file2"],
             "ksf_filename": "ksf_output"
         }
 
@@ -62,7 +62,7 @@ class ConfigTests(unittest.TestCase):
             "created": "2016-12-14T09:57:35Z",  # Timestamp in strict rfc3339 format.
             'dir_input': existing_path,
             'dir_output': existing_path,
-            "kpf_files": ["file1", "file2"],
+            "kprofile_files": ["file1", "file2"],
             "ksf_filename": "ksf_output"
         }
         cfg = Config(config_dict=config_dict)
@@ -101,7 +101,7 @@ class ConfigTests(unittest.TestCase):
             f.write("""{{
                 "dir_input": "{}",
                 "created": "2016-12-14T09:57:35Z",
-                "kpf_files": ["file1", "file2"],
+                "kprofile_files": ["file1", "file2"],
                 "ksf_filename": "ksf_output",
                 #"unknown": "parameter",
                 "dir_output": "{}"
@@ -118,7 +118,7 @@ class ConfigTests(unittest.TestCase):
                 "created": "2016-12-14T09:57:35Z",  # Timestamp in strict rfc3339 format.
                 "dir_input": "abcdef",
                 "dir_output": "{}",
-                "kpf_files": ["file1", "file2"],
+                "kprofile_files": ["file1", "file2"],
                 "ksf_filename": "ksf_output",
                 "unknown": "{}"
             }}""".format(existing_path, existing_path))
@@ -132,7 +132,7 @@ class ConfigTests(unittest.TestCase):
             "created": "2016-12-14T09:57:35Z",  # Timestamp in strict rfc3339 format.
             "dir_input": "input",  # Timestamp in strict rfc3339 format.
             "dir_output": "output",
-            "kpf_files": ["file1", "file2"],
+            "kprofile_files": ["file1", "file2"],
             "ksf_filename": "ksf_output"
         }
 

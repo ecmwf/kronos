@@ -36,9 +36,9 @@ def factory(args):
 
         return ksf_info(ScheduleFormat.from_filename(args.ksf).synapp_data)
 
-    elif args.kpf:
+    elif args.kprofile:
 
-        return kpf_info(ProfileFormat.from_filename(args.kpf).profiled_jobs)
+        return kprofile_info(ProfileFormat.from_filename(args.kprofile).profiled_jobs)
     else:
         raise Exception("no valid option passed. Type --help for info and options")
 
@@ -123,11 +123,11 @@ class ksf_info(file_info):
         return self.tot_metrics
 
 
-class kpf_info(file_info):
+class kprofile_info(file_info):
 
     def __init__(self, jobs_data):
 
-        super(kpf_info, self).__init__(jobs_data)
+        super(kprofile_info, self).__init__(jobs_data)
 
     def n_procs(self):
         return [app["ncpus"] for app in self.jobs_data if app.get("ncpus")]
@@ -251,7 +251,7 @@ if __name__ == "__main__":
     # Parser for the required arguments
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawTextHelpFormatter)
     parser.add_argument("--ksf", type=str, help="File name of KSF to inspect")
-    parser.add_argument("--kpf", type=str, help="File name of KSF of the corresponding kronos run")
+    parser.add_argument("--kprofile", type=str, help="File name of KSF of the corresponding kronos run")
 
     # print the help if no arguments are passed
     if len(sys.argv) == 1:

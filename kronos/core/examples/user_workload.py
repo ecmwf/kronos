@@ -35,7 +35,7 @@ user_config = {
     "tag": "KRONOS-CONFIG-MAGIC",
     "dir_input": os.path.join(os.getcwd(), "input"),
     "dir_output": os.path.join(os.getcwd(), "output"),
-    "kpf_files": ["dummy_user_wl.kpf"],
+    "kprofile_files": ["dummy_user_wl.kprofile"],
     "ksf_filename": "schedule_epcc.ksf",
 
     "model": {
@@ -74,26 +74,26 @@ def user_workload():
 
     dir_output = os.path.dirname(os.path.realpath(__file__))+'/../../../output'
     dir_bin = os.path.dirname(os.path.realpath(__file__))+'/../../../bin'
-    kpf_name_base = "dummy"
+    kprofile_name_base = "dummy"
 
     print dir_output
     print dir_bin
 
     subprocess.Popen([os.path.join(dir_bin, 'kronos-generate-dummy-jobs'),
-                      os.path.join(dir_output, kpf_name_base+'.kpf')],
+                      os.path.join(dir_output, kprofile_name_base+'.kprofile')],
                      stdin=None,
                      stdout=None,
                      stderr=None,
                      shell=False).wait()
 
-    # load the KPF
-    kpf_handle = ProfileFormat.from_filename(os.path.join(dir_output, kpf_name_base+'.kpf'))
+    # load the KProfile
+    kprofile_handle = ProfileFormat.from_filename(os.path.join(dir_output, kprofile_name_base+'.kprofile'))
 
     # load the additional workload data..
-    with open(os.path.join(dir_output, kpf_name_base+'_class_idx_vec'), "r") as f:
+    with open(os.path.join(dir_output, kprofile_name_base+'_class_idx_vec'), "r") as f:
         class_idx_vec = pickle.load(f)
 
-    with open(os.path.join(dir_output, kpf_name_base+'_model_job_classes'), "r") as f:
+    with open(os.path.join(dir_output, kprofile_name_base+'_model_job_classes'), "r") as f:
         model_job_classes = pickle.load(f)
 
     # plot jobs classes
@@ -116,10 +116,10 @@ def user_workload():
     plt.savefig(os.path.join(user_config["dir_output"], 'classes.png'))
     plt.close()
 
-    # export wl to a KPF
-    kpf_handle.write_filename(os.path.join(dir_output, "dummy_user_wl.kpf"))
+    # export wl to a KProfile
+    kprofile_handle.write_filename(os.path.join(dir_output, "dummy_user_wl.kprofile"))
 
-    workload_list = [WorkloadData.from_kpf(kpf_handle)]
+    workload_list = [WorkloadData.from_kprofile(kprofile_handle)]
     workload_model = KronosModel(workload_list, config.Config(config_dict=user_config))
     workload_model.generate_model()
 
