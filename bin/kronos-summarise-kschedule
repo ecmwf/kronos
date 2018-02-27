@@ -245,12 +245,12 @@ if __name__ == "__main__":
 
     mpi_col_histograms = KernelStats(kernel_data).calculate_mpi_col_histograms(n_bins=5)
     if mpi_col_histograms:
-        print "\n{:{_ff}} [KB per call]".format("mpi_collective".upper(), _ff=_ff)
+        print "\n{:{_ff}} [KiB/call]".format("mpi_collective".upper(), _ff=_ff)
         KernelStats.print_histogram(*mpi_col_histograms, format_len=_ff)
 
     mpi_p2p_histograms = KernelStats(kernel_data).calculate_mpi_p2p_histograms(n_bins=5)
     if mpi_p2p_histograms:
-        print "\n{:{_ff}} [KB per call]".format("mpi_point2point".upper(), _ff=_ff)
+        print "\n{:{_ff}} [KiB/call]".format("mpi_point2point".upper(), _ff=_ff)
         KernelStats.print_histogram(*mpi_p2p_histograms, format_len=_ff)
 
     print "\n..done"
