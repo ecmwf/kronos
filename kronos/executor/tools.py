@@ -36,7 +36,7 @@ def calc_histogram(values, n_bins):
     min_val = min(values)
 
     if max_val == min_val:
-        return [min_val, max_val], [1]
+        return [min_val, max_val], [len(values)]
     else:
         delta_bin = (max_val - min_val) / float(n_bins)
 
