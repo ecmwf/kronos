@@ -33,7 +33,6 @@ setup(
         'bin/kronos-model',
 
         'bin/kronos-view-json',
-        'bin/kronos-show-info',
         'bin/kronos-format-config-model',
         'bin/kronos-format-config-exe',
         'bin/kronos-format-kprofile',
