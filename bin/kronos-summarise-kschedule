@@ -237,16 +237,20 @@ if __name__ == "__main__":
     print "\nHISTOGRAMS:"
 
     _ff=15
-    print "\n{:{_ff}} [FLOPS]".format("flops".upper(), _ff=_ff)
+
     flops_histograms = KernelStats(kernel_data).calculate_flops_histograms(n_bins=5)
-    KernelStats.print_histogram(*flops_histograms, format_len=_ff)
+    if flops_histograms:
+        print "\n{:{_ff}} [FLOPS]".format("flops".upper(), _ff=_ff)
+        KernelStats.print_histogram(*flops_histograms, format_len=_ff)
 
-    print "\n{:{_ff}} [KB per call]".format("mpi_collective".upper(), _ff=_ff)
     mpi_col_histograms = KernelStats(kernel_data).calculate_mpi_col_histograms(n_bins=5)
-    KernelStats.print_histogram(*mpi_col_histograms, format_len=_ff)
+    if mpi_col_histograms:
+        print "\n{:{_ff}} [KB per call]".format("mpi_collective".upper(), _ff=_ff)
+        KernelStats.print_histogram(*mpi_col_histograms, format_len=_ff)
 
-    print "\n{:{_ff}} [KB per call]".format("mpi_point2point".upper(), _ff=_ff)
     mpi_p2p_histograms = KernelStats(kernel_data).calculate_mpi_p2p_histograms(n_bins=5)
-    KernelStats.print_histogram(*mpi_p2p_histograms, format_len=_ff)
+    if mpi_p2p_histograms:
+        print "\n{:{_ff}} [KB per call]".format("mpi_point2point".upper(), _ff=_ff)
+        KernelStats.print_histogram(*mpi_p2p_histograms, format_len=_ff)
 
     print "\n..done"

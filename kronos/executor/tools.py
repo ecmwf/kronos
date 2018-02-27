@@ -36,7 +36,7 @@ def calc_histogram(values, n_bins):
     min_val = min(values)
 
     if max_val == min_val:
-        return [min_val, max_val], 1
+        return [min_val, max_val], [1]
     else:
         delta_bin = (max_val - min_val) / float(n_bins)
 
@@ -140,7 +140,6 @@ class KernelStats(object):
                         process_flops_stats.extend(ker.get("work_per_process", []))
 
         if not process_flops_stats:
-            print "no CPU kernels found in data"
             return None
         else:
 
