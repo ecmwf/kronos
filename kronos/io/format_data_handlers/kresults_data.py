@@ -12,9 +12,9 @@ import os
 import sys
 from collections import OrderedDict
 
+from kronos.io.definitions import kresults_stats_info
 from kronos.shared_tools.shared_utils import add_value_to_sublist
 from kronos.io.format_data_handlers.kresults_job import KResultsJob
-from kronos.io.format_data_handlers.kresults_job import kresults_stats_info
 from kronos.core.time_signal.definitions import signal_types
 from kronos.io.format_data_handlers.kresults_decorator import KResultsDecorator
 

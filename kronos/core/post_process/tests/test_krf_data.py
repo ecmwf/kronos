@@ -11,7 +11,7 @@ import unittest
 from datetime import datetime
 
 import numpy as np
-from kronos.core.post_process.definitions import datetime2epochs
+from kronos.shared_tools.shared_utils import datetime2epochs
 from kronos.io.format_data_handlers.kresults_job import KResultsJob
 from kronos.core.post_process.tests.test_utils import create_kresults
 from kronos.io.format_data_handlers.kresults_decorator import KResultsDecorator

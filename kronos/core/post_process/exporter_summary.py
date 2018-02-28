@@ -10,7 +10,7 @@ import os
 from kronos.core.post_process.exportable_types import ExportableSignalGroup, ExportableSignalFrame
 from kronos.core.post_process.exporter_base import ExporterBase
 from kronos.core.post_process.result_signals import ResultSignal
-from kronos.io.format_data_handlers.kresults_job import sorted_kresults_stats_names, kresults_stats_info
+from kronos.io.definitions import sorted_kresults_stats_names, kresults_stats_info
 
 
 class ExporterSummaryRates(ExporterBase):
