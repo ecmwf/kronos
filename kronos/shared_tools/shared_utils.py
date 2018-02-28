@@ -8,4 +8,5 @@
 
 
 def add_value_to_sublist(_list, idx1, idx2, val):
-    return [v+val if idx1 <= vv < idx2 else v for vv, v in enumerate(_list)]
+    _list[idx1:idx2] = [_list[i]+val for i in range(idx1, idx2)]
+    return _list
