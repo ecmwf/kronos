@@ -8,7 +8,7 @@
 
 import os
 
-from kronos.core.config_format_base import ConfigFormatBase
+from kronos.io.config_format_base import ConfigFormatBase
 
 
 class ConfigFormat(ConfigFormatBase):

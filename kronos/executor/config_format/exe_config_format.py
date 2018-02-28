@@ -7,7 +7,8 @@
 # does it submit to any jurisdiction.
 
 import os
-from kronos.core.config_format_base import ConfigFormatBase
+
+from kronos.io.config_format_base import ConfigFormatBase
 
 
 class ExeConfigFormat(ConfigFormatBase):
