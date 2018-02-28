@@ -39,7 +39,7 @@ class KResultsData(object):
         self.n_procs_node = n_procs_node
 
     @classmethod
-    def check_n_successful_jobs(cls, sim_path, sim_name):
+    def check_n_successful_jobs(cls, sim_path):
 
         # check that the run path contains the job sub-folders
         job_dirs = [x for x in os.listdir(sim_path) if os.path.isdir(os.path.join(sim_path, x)) and "job-" in x]
@@ -60,7 +60,7 @@ class KResultsData(object):
 
         # check n of successful jobs
         if not permissive:
-            cls.check_n_successful_jobs(sim_path, sim_name)
+            cls.check_n_successful_jobs(sim_path)
 
         # check that the run path contains the job sub-folders
         job_dirs = [x for x in os.listdir(sim_path) if os.path.isdir(os.path.join(sim_path, x)) and "job-" in x]
