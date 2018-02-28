@@ -19,8 +19,8 @@ class ResultSignal(object):
     def __init__(self, name, times, values):
 
         self.name = name
-        self.times = times
-        self.values = values
+        self.times = np.asarray(times)
+        self.values = np.asarray(values)
 
     def get_exportable(self, **kwargs):
         """

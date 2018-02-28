@@ -18,8 +18,8 @@ import argparse
 import os
 import sys
 
-from kronos.core.post_process.sim_data import SimulationData
-from kronos.io.format_data_handlers.kresults_data import kresults_stats_info
+from kronos.io.format_data_handlers.kresults_job import kresults_stats_info
+from kronos.io.format_data_handlers.kresults import KResultsData
 
 job_classes = {
                "ini_serial": "main/fc/inigroup/*/serial",
@@ -117,9 +117,9 @@ if __name__ == "__main__":
 
     # read simulation data
     simulation_tag = "kronos-sim"
-    sim_data = SimulationData.read_from_sim_paths(args.job_dir,
-                                                  simulation_tag,
-                                                  permissive=args.permissive)
+    sim_data = KResultsData.read_from_sim_paths(args.job_dir,
+                                                simulation_tag,
+                                                permissive=args.permissive)
 
     # print some info on the classification of the jobs in the simulation (if requested)
     sim_data.print_job_classes_info(job_classes, args.show_jobs if args.show_jobs else False)

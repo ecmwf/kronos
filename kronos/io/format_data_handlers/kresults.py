@@ -12,14 +12,14 @@ import os
 import sys
 from collections import OrderedDict
 
-import numpy as np
-from kronos.io.format_data_handlers.kresults_data import KResultsJob, kresults_stats_info
-from kronos.core.post_process.result_signals import ResultRunningSignal, ResultProfiledSignal
+from kronos.shared_tools.shared_utils import add_value_to_sublist
+from kronos.io.format_data_handlers.kresults_job import KResultsJob
+from kronos.io.format_data_handlers.kresults_job import kresults_stats_info
 from kronos.core.time_signal.definitions import signal_types
 from kronos.io.format_data_handlers.kresults_decorator import KResultsDecorator
 
 
-class SimulationData(object):
+class KResultsData(object):
     """
     Data relative to a Kronos simulation
     """
@@ -226,14 +226,14 @@ class SimulationData(object):
 
         # logs number of concurrently running jobs, processes
         running_jpn = OrderedDict((
-            ("jobs", np.zeros(len(times)) ),
-            ("procs", np.zeros(len(times)) ),
-            ("nodes", np.zeros(len(times)) ),
+            ("jobs", [0]*len(times)),
+            ("procs", [0]*len(times)),
+            ("nodes", [0]*len(times)),
         ))
 
         # if n_proc_node is available, then also # of running nodes is calculated
         if self.n_procs_node:
-            running_jpn.update({"nodes": np.zeros(len(times))})
+            running_jpn.update({"nodes": [0]*len(times)})
 
         found = 0
         for job in self.jobs:
@@ -248,23 +248,20 @@ class SimulationData(object):
                 last = last if last > first else first + 1
 
                 # #jobs
-                running_jpn["jobs"][first:last] += 1
+                running_jpn["jobs"] = add_value_to_sublist(running_jpn["jobs"], first, last, 1)
 
                 # #procs
-                running_jpn["procs"][first:last] += job.n_cpu
+                running_jpn["procs"] = add_value_to_sublist(running_jpn["procs"], first, last, job.n_cpu)
 
                 if self.n_procs_node:
 
                     # #nodes
-                    n_nodes = job.n_cpu/int(self.n_procs_node) if not job.n_cpu%int(self.n_procs_node) else \
+                    n_nodes = job.n_cpu/int(self.n_procs_node) if not job.n_cpu % int(self.n_procs_node) else \
                         job.n_cpu/int(self.n_procs_node)+1
 
-                    running_jpn["nodes"][first:last] += n_nodes
+                    running_jpn["nodes"] = add_value_to_sublist(running_jpn["nodes"], first, last, n_nodes)
 
-        # result signals (for running quantities)
-        jpn_result_signals = {k: ResultRunningSignal(k, times, values) for k, values in running_jpn.iteritems()}
-
-        return found, jpn_result_signals
+        return found, times, running_jpn
 
     def create_global_time_series(self, times, job_class_regex=None):
         """
@@ -281,9 +278,9 @@ class SimulationData(object):
 
         for ts_name in signal_types:
 
-            _values = np.zeros(len(times))
-            _elapsed = np.zeros(len(times))
-            _processes = np.zeros(len(times))
+            _values = [0]*len(times)
+            _elapsed = [0]*len(times)
+            _processes = [0]*len(times)
 
             for jj, job in enumerate(self.jobs):
 
@@ -312,11 +309,14 @@ class SimulationData(object):
                                 # counter to get the value corresponding to the time interval
                                 value_count = tt-1
 
-                                _values[first:last] += job.time_series[ts_name]["values"][value_count]/float(n_span_bin)
-                                _elapsed[first:last] += job.time_series[ts_name]["elapsed"][value_count]/float(n_span_bin)
-                                _processes[first:last] += 1
+                                _values = add_value_to_sublist(_values, first, last, job.time_series[ts_name]["values"][value_count]/float(n_span_bin))
+                                _elapsed = add_value_to_sublist(_elapsed, first, last, job.time_series[ts_name]["elapsed"][value_count]/float(n_span_bin))
+                                _processes = add_value_to_sublist(_processes, first, last, 1)
 
-            global_time_series[ts_name] = ResultProfiledSignal(ts_name, times, _values, _elapsed, _processes)
+            global_time_series[ts_name] = {"times": times,
+                                           "values": _values,
+                                           "elapsed": _elapsed,
+                                           "processes": _processes}
 
         return found, global_time_series
 
@@ -349,5 +349,65 @@ class SimulationData(object):
         print "total n jobs {}".format(len(self.jobs))
         print "total n in classes {}".format(total_jobs_in_classes)
 
+
+
+
+
+class KResultsDataSet(object):
+    """
+    A set of simulation data
+    """
+
+    def __init__(self, sims):
+
+        # List of simulations
+        self.sims = sims
+
+        # Rates (per class)
+        self.rates = {}
+
+        # # calculate the stats and aggregate them by job classes
+        # self.class_stats_sums = self._calculate_class_stats_sums(class_list)
+        self.class_stats_sums = None
+
+    def ordered_sims(self):
+        return OrderedDict([(sim.name, sim) for sim in self.sims])
+
+    def calculate_class_stats_sums(self, job_classes):
+        """
+        Calculate per class data of all the simulations in the set
+        :return:
+        """
+
+        class_stats_sums = {}
+        for sim in self.sims:
+            class_stats_sums[sim.name] = sim.class_stats_sums(job_classes)
+
+        self.class_stats_sums = class_stats_sums
+
+    def retrieve_common_job_classes(self, class_dict):
+        """
+        Retrieve the names of the classes for which there is at least one job in each simulation of the set
+        :param class_dict:
+        :return:
+        """
+
+        class_common_dict = {}
+        for class_name, class_regex in class_dict.iteritems():
+
+            print "checking job class {}".format(class_name)
+            found_in_all_sims = True
+            for sim in self.sims:
+                found_in_sim = False
+                for job in sim.jobs:
+                    if job.is_in_class(class_regex):
+                        found_in_sim = True
+                if not found_in_sim:
+                    found_in_all_sims = False
+
+            if found_in_all_sims:
+                class_common_dict[class_name] = class_regex
+
+        return class_common_dict
 
 

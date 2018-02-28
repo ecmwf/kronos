@@ -21,7 +21,7 @@ import json
 import os
 import sys
 
-from kronos.io.format_data_handlers.kresults_data import KResultsJob
+from kronos.io.format_data_handlers.kresults_job import KResultsJob
 from kronos.core.time_signal.definitions import signal_types, time_signal_names
 from kronos.io.format_data_handlers.kresults_decorator import KResultsDecorator
 from kronos.io.schedule_format import ScheduleFormat

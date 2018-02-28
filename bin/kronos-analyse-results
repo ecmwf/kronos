@@ -16,13 +16,12 @@ run the kronos tool "kronos-format-config-export".
 """
 
 import argparse
-
 import sys
 
-from kronos.core.post_process.exporters import writer_map
-from kronos.core.post_process.sim_set import SimulationSet
 from kronos.core.post_process.export_config.export_config import ExportConfig
-from kronos.core.post_process.sim_data import SimulationData
+from kronos.core.post_process.exporters import writer_map
+from kronos.io.format_data_handlers.kresults import KResultsData
+from kronos.io.format_data_handlers.kresults import KResultsDataSet
 
 if __name__ == "__main__":
 
@@ -43,11 +42,11 @@ if __name__ == "__main__":
     config = ExportConfig.from_json_file(args.export_config)
 
     # Labelled list of simulations
-    labelled_kronos_sims = [SimulationData.read_from_sim_paths(path, tag, n_procs_node=config.n_procs_node)
+    labelled_kronos_sims = [KResultsData.read_from_sim_paths(path, tag, n_procs_node=config.n_procs_node)
                             for tag, path in zip(config.experiment_list, config.experiment_paths)]
 
     # Pre-calculate data ready for export
-    sim_set = SimulationSet(labelled_kronos_sims)
+    sim_set = KResultsDataSet(labelled_kronos_sims)
 
     # Retrieve job classes common for all the simulation in the set
     common_job_classes = sim_set.retrieve_common_job_classes(config.job_classes)

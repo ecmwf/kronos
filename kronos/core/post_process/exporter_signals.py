@@ -14,7 +14,7 @@ from kronos.core.post_process.exporter_base import ExporterBase
 from kronos.core.post_process.definitions import job_class_color
 from kronos.core.post_process.definitions import linspace
 from kronos.core.post_process.definitions import labels_map
-from kronos.core.post_process.result_signals import ResultInstantRatesSignal
+from kronos.core.post_process.result_signals import ResultInstantRatesSignal, ResultRunningSignal, ResultProfiledSignal
 
 
 class ExporterTimeSeries(ExporterBase):
@@ -53,7 +53,12 @@ class ExporterTimeSeries(ExporterBase):
         for cl_name, cl_regex in job_classes.items()+[("all-classes", None)]:
 
             # time series of result metrics
-            found_jobs_in_class, series = sim.create_global_time_series(times_plot, job_class_regex=cl_regex)
+            found_jobs_in_class, series_dict = sim.create_global_time_series(times_plot, job_class_regex=cl_regex)
+            series = {tsk: ResultProfiledSignal(tsk,
+                                                tsv["times"],
+                                                tsv["values"],
+                                                tsv["elapsed"],
+                                                tsv["processes"]) for tsk, tsv in series_dict.iteritems()}
 
             # if some jobs in this class have been found:
             if found_jobs_in_class:
@@ -71,10 +76,11 @@ class ExporterTimeSeries(ExporterBase):
                                                                           signals[cl_name]["kb_read"])
 
             # add the running signals
-            found_jobs_in_class, running_series = sim.create_global_running_series(times_plot, job_class_regex=cl_regex)
+            found_jobs_in_class, times, running_signals = sim.create_global_running_series(times_plot, job_class_regex=cl_regex)
+            _signals = {k: ResultRunningSignal(k, times, values) for k, values in running_signals.iteritems()}
 
             if found_jobs_in_class:
-                signals[cl_name].update(running_series)
+                signals[cl_name].update(_signals)
 
         # ------------------ assemble frame for export.. ------------------
         pp = 0

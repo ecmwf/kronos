@@ -10,10 +10,11 @@
 import unittest
 
 import numpy as np
-from kronos.io.format_data_handlers.kresults_data import KResultsJob
-from kronos.core.post_process.sim_data import SimulationData
+from kronos.core.post_process.result_signals import ResultProfiledSignal
 from kronos.core.post_process.tests.test_utils import create_kresults
+from kronos.io.format_data_handlers.kresults_job import KResultsJob
 from kronos.io.format_data_handlers.kresults_decorator import KResultsDecorator
+from kronos.io.format_data_handlers.kresults import KResultsData
 
 
 class SimDataTest(unittest.TestCase):
@@ -50,7 +51,7 @@ class SimDataTest(unittest.TestCase):
         kresults_data_1 = KResultsJob(kresults_json_data_1, decorator_data=decor_data)
 
         # instantiate the sim_data object
-        sim_data = SimulationData(jobs=[kresults_data_0, kresults_data_1], sim_name="dummy_sim", n_procs_node=36)
+        sim_data = KResultsData(jobs=[kresults_data_0, kresults_data_1], sim_name="dummy_sim", n_procs_node=36)
 
         # test total runtime
         # 11 = 9 + 2 (9 is the total duration of cpu2 and job2 has started 2 seconds after job 1)
@@ -124,11 +125,17 @@ class SimDataTest(unittest.TestCase):
         kresults_data_1 = KResultsJob(kresults_json_data_1, decorator_data=decor_data)
 
         # instantiate the sim_data object
-        sim_data = SimulationData(jobs=[kresults_data_0, kresults_data_1], sim_name="dummy_sim", n_procs_node=36)
+        sim_data = KResultsData(jobs=[kresults_data_0, kresults_data_1], sim_name="dummy_sim", n_procs_node=36)
 
         # check global time series
         times = [4.0, 8.0, 12.]
-        found, calculated_time_series = sim_data.create_global_time_series(times)
+        # found, calculated_time_series = sim_data.create_global_time_series(times)
+        found, series_dict = sim_data.create_global_time_series(times)
+        calculated_time_series = {tsk: ResultProfiledSignal(tsk,
+                                                            tsv["times"],
+                                                            tsv["values"],
+                                                            tsv["elapsed"],
+                                                            tsv["processes"]) for tsk, tsv in series_dict.iteritems()}
 
         # check that indeed has found jobs that fall in this time range
         self.assertGreater(found, 0)
