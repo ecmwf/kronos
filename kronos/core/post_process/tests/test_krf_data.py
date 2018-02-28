@@ -8,13 +8,13 @@
 # does it submit to any jurisdiction.
 
 import unittest
-import numpy as np
 from datetime import datetime
 
+import numpy as np
 from kronos.core.post_process.definitions import datetime2epochs
-from kronos.core.post_process.kresults_data import KResultsJob
-from kronos.core.post_process.kresults_decorator import KResultsDecorator
+from kronos.io.format_data_handlers.kresults_data import KResultsJob
 from kronos.core.post_process.tests.test_utils import create_kresults
+from kronos.io.format_data_handlers.kresults_decorator import KResultsDecorator
 
 
 class KResultsJobTest(unittest.TestCase):

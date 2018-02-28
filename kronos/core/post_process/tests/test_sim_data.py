@@ -8,12 +8,12 @@
 # does it submit to any jurisdiction.
 
 import unittest
-import numpy as np
 
-from kronos.core.post_process.kresults_data import KResultsJob
-from kronos.core.post_process.kresults_decorator import KResultsDecorator
+import numpy as np
+from kronos.io.format_data_handlers.kresults_data import KResultsJob
 from kronos.core.post_process.sim_data import SimulationData
 from kronos.core.post_process.tests.test_utils import create_kresults
+from kronos.io.format_data_handlers.kresults_decorator import KResultsDecorator
 
 
 class SimDataTest(unittest.TestCase):

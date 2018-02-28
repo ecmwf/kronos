@@ -7,18 +7,16 @@
 # does it submit to any jurisdiction.
 
 import json
-import os
-
 import math
+import os
+import sys
 from collections import OrderedDict
 
 import numpy as np
-import sys
-
+from kronos.io.format_data_handlers.kresults_data import KResultsJob, kresults_stats_info
 from kronos.core.post_process.result_signals import ResultRunningSignal, ResultProfiledSignal
 from kronos.core.time_signal.definitions import signal_types
-from kronos.core.post_process.kresults_data import KResultsJob, kresults_stats_info
-from kronos.core.post_process.kresults_decorator import KResultsDecorator
+from kronos.io.format_data_handlers.kresults_decorator import KResultsDecorator
 
 
 class SimulationData(object):

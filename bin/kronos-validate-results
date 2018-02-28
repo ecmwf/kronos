@@ -16,14 +16,14 @@ in the .KResults files and compares the sum with the sum retrieved from the KSch
 
 """
 
-import os
-import json
 import argparse
+import json
+import os
 import sys
 
-from kronos.core.post_process.kresults_data import KResultsJob
-from kronos.core.post_process.kresults_decorator import KResultsDecorator
+from kronos.io.format_data_handlers.kresults_data import KResultsJob
 from kronos.core.time_signal.definitions import signal_types, time_signal_names
+from kronos.io.format_data_handlers.kresults_decorator import KResultsDecorator
 from kronos.io.schedule_format import ScheduleFormat
 
 # map that translates KResults and KProfile metrics

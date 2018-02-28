@@ -14,12 +14,12 @@ kernel operations (CPU/MPI/IO) on a per-job class basis.
 
 """
 
-import os
 import argparse
+import os
 import sys
 
-from kronos.core.post_process.kresults_data import kresults_stats_info
 from kronos.core.post_process.sim_data import SimulationData
+from kronos.io.format_data_handlers.kresults_data import kresults_stats_info
 
 job_classes = {
                "ini_serial": "main/fc/inigroup/*/serial",
