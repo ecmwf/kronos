@@ -48,7 +48,8 @@ class KResultsData(object):
         failing_jobs = [job_dir for job_dir in job_dirs if not os.path.isfile(os.path.join(sim_path, job_dir, "statistics.kresults"))]
 
         if failing_jobs:
-            print "ERROR: The following jobs have failed (jobs for which 'statistics.kresults' is not found in job folder):"
+            print "ERROR: The following jobs have failed (jobs for which " \
+                  "'statistics.kresults' is not found in job folder):"
             print "{}".format("\n".join(failing_jobs))
             print "Kronos Post-processing stops here!"
             sys.exit(1)

@@ -20,8 +20,8 @@ import sys
 
 from kronos.core.post_process.export_config.export_config import ExportConfig
 from kronos.core.post_process.exporters import writer_map
-from kronos.io.format_data_handlers.kresults import KResultsData
-from kronos.io.format_data_handlers.kresults import KResultsDataSet
+from kronos.io.format_data_handlers.kresults_data import KResultsData
+from kronos.io.format_data_handlers.kresults_data import KResultsDataSet
 
 if __name__ == "__main__":
 

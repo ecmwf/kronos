@@ -14,7 +14,7 @@ from kronos.core.post_process.result_signals import ResultProfiledSignal
 from kronos.core.post_process.tests.test_utils import create_kresults
 from kronos.io.format_data_handlers.kresults_job import KResultsJob
 from kronos.io.format_data_handlers.kresults_decorator import KResultsDecorator
-from kronos.io.format_data_handlers.kresults import KResultsData
+from kronos.io.format_data_handlers.kresults_data import KResultsData
 
 
 class SimDataTest(unittest.TestCase):
