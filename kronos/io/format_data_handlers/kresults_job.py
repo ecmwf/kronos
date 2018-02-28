@@ -7,69 +7,11 @@
 # does it submit to any jurisdiction.
 import fnmatch
 import re
-from collections import OrderedDict
-
 from datetime import datetime
 
 from kronos.core.post_process.definitions import cumsum, datetime2epochs
+from kronos.io.definitions import kresults_ts_names_map
 from kronos.io.results_format import ResultsFormat
-
-ts_names_map = {
-    "n_write": ("n_write", 1.0),
-    "n_read": ("n_read", 1.0),
-    "bytes_write": ("kb_write", 1.0/1024.0),
-    "bytes_read": ("kb_read", 1.0/1024.0),
-    "n_pairwise": ("n_pairwise", 1.0),
-    "bytes_pairwise": ("kb_pairwise", 1.0/1024.0),
-    "n_collective": ("n_collective", 1.0),
-    "bytes_collective": ("kb_collective", 1.0/1024.0),
-    "flops": ("flops", 1.0),
-}
-
-kresults_stats_info = OrderedDict((
-    ("cpu", {"conv": 1.0/1000.0**3,
-             "label_sum": "FLOPS",
-             "label_rate": "FLOPS [GB/sec]",
-             "label_metric": "count",
-             "to_sum": ["count", "elapsed"],
-             "def_rate": ["count", "elapsed"],
-             }),
-
-    ("read", {"conv": 1.0/1024.0**3,
-              "label_sum": "I/O read",
-              "label_rate": "I/O read [GiB/sec]",
-              "label_metric": "bytes",
-              "to_sum": ["count", "elapsed", "bytes"],
-              "def_rate": ["bytes", "elapsed"],
-              }),
-
-    ("write", {"conv": 1.0/1024.0**3,
-               "label_sum": "I/O write",
-               "label_rate": "I/O write [GiB/sec]",
-               "label_metric": "bytes",
-               "to_sum": ["count", "elapsed", "bytes"],
-               "def_rate": ["bytes", "elapsed"],
-               }),
-
-    ("mpi-pairwise", {"conv": 1.0/1024.0**3,
-                      "label_sum": "MPI p2p",
-                      "label_rate": "MPI p2p [GiB/sec]",
-                      "label_metric": "bytes",
-                      "to_sum": ["count", "elapsed", "bytes"],
-                      "def_rate": ["bytes", "elapsed"],
-                      }),
-
-    ("mpi-collective", {"conv": 1.0/1024.0**3,
-                        "label_sum": "MPI col",
-                        "label_rate": "MPI col [GiB/sec]",
-                        "label_metric": "bytes",
-                        "to_sum": ["count", "elapsed", "bytes"],
-                        "def_rate": ["bytes", "elapsed"],
-                        })
-))
-
-
-sorted_kresults_stats_names = kresults_stats_info.keys()
 
 
 class KResultsJob(object):
@@ -113,14 +55,14 @@ class KResultsJob(object):
         for name, values in _series_tvr.iteritems():
 
             # assert name in time_signal.signal_types
-            assert name in ts_names_map.keys()
+            assert name in kresults_ts_names_map.keys()
 
             if values is not None:
                 ts_t, ts_v, ts_r, ts_e = zip(*values)
-                time_series[ts_names_map[name][0]] = {
+                time_series[kresults_ts_names_map[name][0]] = {
                     'times': list(ts_t),
-                    'values': [v * ts_names_map[name][1] for v in list(ts_v)],
-                    'ratios': [v * ts_names_map[name][1] for v in list(ts_r)],
+                    'values': [v * kresults_ts_names_map[name][1] for v in list(ts_v)],
+                    'ratios': [v * kresults_ts_names_map[name][1] for v in list(ts_r)],
                     'elapsed': list(ts_e),
                 }
 

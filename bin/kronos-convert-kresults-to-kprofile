@@ -24,20 +24,9 @@ import argparse
 import numpy as np
 import sys
 
+from kronos.io.definitions import kresults_ts_names_map
 from kronos.io.profile_format import ProfileFormat
 from kronos.io.results_format import ResultsFormat
-
-ts_names_map = {
-    "n_write": ("n_write", 1.0),
-    "n_read": ("n_read", 1.0),
-    "bytes_write": ("kb_write", 1.0/1024.0),
-    "bytes_read": ("kb_read", 1.0/1024.0),
-    "n_pairwise": ("n_pairwise", 1.0),
-    "bytes_pairwise": ("kb_pairwise", 1.0/1024.0),
-    "n_collective": ("n_collective", 1.0),
-    "bytes_collective": ("kb_collective", 1.0/1024.0),
-    "flops": ("flops", 1.0),
-}
 
 
 def kresults_to_profiled_job_json(kresults_json, input_json):
@@ -91,12 +80,12 @@ def kresults_to_profiled_job_json(kresults_json, input_json):
     for name, values in time_series_json.iteritems():
 
         # assert name in time_signal.signal_types
-        assert name in ts_names_map.keys()
+        assert name in kresults_ts_names_map.keys()
 
         if values is not None:
-            time_series[ts_names_map[name][0]] = {
+            time_series[kresults_ts_names_map[name][0]] = {
                 'times': list(zip(*values)[0]),
-                'values': [v*ts_names_map[name][1] for v in list(zip(*values)[1])],
+                'values': [v * kresults_ts_names_map[name][1] for v in list(zip(*values)[1])],
                 'priority': 10
             }
 

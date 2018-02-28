@@ -26,19 +26,6 @@ from kronos.core.time_signal.definitions import signal_types, time_signal_names
 from kronos.io.format_data_handlers.kresults_decorator import KResultsDecorator
 from kronos.io.schedule_format import ScheduleFormat
 
-# map that translates KResults and KProfile metrics
-ts_names_map = {
-    "n_write": ("n_write", 1.0),
-    "n_read": ("n_read", 1.0),
-    "bytes_write": ("kb_write", 1.0/1024.0),
-    "bytes_read": ("kb_read", 1.0/1024.0),
-    "n_pairwise": ("n_pairwise", 1.0),
-    "bytes_pairwise": ("kb_pairwise", 1.0/1024.0),
-    "n_collective": ("n_collective", 1.0),
-    "bytes_collective": ("kb_collective", 1.0/1024.0),
-    "flops": ("flops", 1.0),
-}
-
 
 def cumsum(input_list):
     return [sum(input_list[:ii+1]) for ii,i in enumerate(input_list)]
