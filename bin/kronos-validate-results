@@ -27,10 +27,6 @@ from kronos.io.format_data_handlers.kresults_decorator import KResultsDecorator
 from kronos.io.schedule_format import ScheduleFormat
 
 
-def cumsum(input_list):
-    return [sum(input_list[:ii+1]) for ii,i in enumerate(input_list)]
-
-
 if __name__ == "__main__":
 
     # Parser for the required arguments

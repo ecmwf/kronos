@@ -9,9 +9,9 @@ import fnmatch
 import re
 from datetime import datetime
 
-from kronos.core.post_process.definitions import cumsum, datetime2epochs
 from kronos.io.definitions import kresults_ts_names_map
 from kronos.io.results_format import ResultsFormat
+from kronos.shared_tools.shared_utils import cumsum, datetime2epochs
 
 
 class KResultsJob(object):
