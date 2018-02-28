@@ -7,16 +7,13 @@
 # does it submit to any jurisdiction.
 
 import numpy as np
-from scipy.spatial.distance import cdist
-
-from sklearn.cluster import KMeans
-from sklearn.metrics import silhouette_score
-
 from clust_base import ClusteringBase
 from kronos.core.data_analysis.silhouette import find_n_clusters_silhouette
-
-from kronos.core.kronos_tools.print_colour import print_colour
 from kronos.core.plot_handler import PlotHandler
+from kronos.shared_tools.print_colour import print_colour
+from scipy.spatial.distance import cdist
+from sklearn.cluster import KMeans
+from sklearn.metrics import silhouette_score
 
 
 class ClusteringKmeans(ClusteringBase):

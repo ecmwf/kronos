@@ -20,12 +20,12 @@ except:
     import pickle
 
 import base64
+import datetime
 import errno
 import os
-import datetime
 
 from kronos.core.exceptions_iows import ConfigurationError
-from kronos.core.kronos_tools.print_colour import print_colour
+from kronos.shared_tools.print_colour import print_colour
 
 
 class IngestedDataSet(object):

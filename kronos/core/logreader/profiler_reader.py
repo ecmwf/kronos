@@ -6,21 +6,19 @@
 # granted to it by virtue of its status as an intergovernmental organisation nor
 # does it submit to any jurisdiction.
 
+import glob
+import json
+import os
+import sys
 from datetime import datetime
 
-import os
-import json
-import glob
 import numpy as np
-import sys
-
-from kronos.core.jobs import IngestedJob, ModelJob
-from kronos.core.kronos_tools.print_colour import print_colour
-from kronos.core.time_signal.time_signal import TimeSignal
-from kronos.core.time_signal.definitions import signal_types
-
 from kronos.core.exceptions_iows import ConfigurationError
+from kronos.core.jobs import IngestedJob, ModelJob
 from kronos.core.logreader.dataset import IngestedDataSet
+from kronos.core.time_signal.definitions import signal_types
+from kronos.core.time_signal.time_signal import TimeSignal
+from kronos.shared_tools.print_colour import print_colour
 
 allinea_signal_priorities = {
     'flops': 10,

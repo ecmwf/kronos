@@ -17,7 +17,7 @@ from jobs import ModelJob
 from kronos.core.time_signal.definitions import time_signal_names
 # from kronos.core.time_signal.definitions import signal_types
 from kronos.io.schedule_format import ScheduleFormat
-from kronos_tools.print_colour import print_colour
+from kronos.shared_tools.print_colour import print_colour
 
 
 class SyntheticWorkload(object):

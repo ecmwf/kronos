@@ -18,7 +18,6 @@ from kronos.core import time_signal
 from kronos.core.exceptions_iows import ConfigurationError
 from kronos.core.time_signal.definitions import signal_types
 from kronos.core.workload_data import WorkloadData
-
 from kronos.io.schedule_format import ScheduleFormat
 
 os.sys.path.append(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
@@ -26,7 +25,7 @@ os.sys.path.append(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
 from base_runner import BaseRunner
 from kronos.core.kronos_tools import utils
 from kronos.core.logreader import profiler_reader
-from kronos.core.kronos_tools import print_colour
+from kronos.shared_tools import print_colour
 
 
 class FeedbackLoopRunner(BaseRunner):

@@ -13,8 +13,8 @@ from kronos.core.jobs import IngestedJob, ModelJob
 from kronos.core.logreader.base import LogReader
 from kronos.core.logreader.dataset import IngestedDataSet
 from kronos.core.time_signal.time_signal import TimeSignal
-from kronos.core.kronos_tools.merge import min_not_none, max_not_none
-from kronos.core.kronos_tools.print_colour import print_colour
+from kronos.shared_tools.merge import min_not_none, max_not_none
+from kronos.shared_tools.print_colour import print_colour
 
 darshan_signal_priorities = {
     'kb_read': 8,

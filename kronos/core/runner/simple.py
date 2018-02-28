@@ -6,15 +6,15 @@
 # granted to it by virtue of its status as an intergovernmental organisation nor
 # does it submit to any jurisdiction.
 
+import datetime
 import os
 import subprocess
 import time
-import datetime
 
 from kronos.core import run_control
-from kronos.core.runner.base_runner import BaseRunner
-from kronos.core.kronos_tools import print_colour
 from kronos.core.exceptions_iows import ConfigurationError
+from kronos.core.runner.base_runner import BaseRunner
+from kronos.shared_tools import print_colour
 
 
 class SimpleRunner(BaseRunner):

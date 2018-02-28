@@ -12,7 +12,7 @@ import sys
 
 from kronos.core.exceptions_iows import ConfigurationError
 from kronos.core.jobs import IngestedJob
-from kronos.core.kronos_tools.process_pool import ProcessingPool
+from kronos.shared_tools.process_pool import ProcessingPool
 
 
 class LogReader(object):

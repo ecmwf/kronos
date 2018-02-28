@@ -6,20 +6,18 @@
 # granted to it by virtue of its status as an intergovernmental organisation nor
 # does it submit to any jurisdiction.
 
-import numpy as np
 from difflib import SequenceMatcher
 
+import fill_in_functions as fillf
+import numpy as np
 from data_analysis import recommender
 from exceptions_iows import ConfigurationError
+from jobs import ModelJob
 from kronos.core.framework.pickable import PickableObject
 from kronos.core.kronos_tools.utils import running_sum
-from kronos_tools.print_colour import print_colour
-
 from kronos.core.time_signal.definitions import time_signal_names, signal_types
 from kronos.core.time_signal.time_signal import TimeSignal
-
-import fill_in_functions as fillf
-from jobs import ModelJob
+from kronos.shared_tools.print_colour import print_colour
 
 
 class WorkloadData(object):
