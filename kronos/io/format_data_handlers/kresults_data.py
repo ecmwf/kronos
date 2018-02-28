@@ -24,6 +24,9 @@ class KResultsData(object):
     Data relative to a Kronos simulation
     """
 
+    res_file_root = "statistics"
+    res_file_ext = "kresults"
+
     def __init__(self, jobs=None, sim_name=None, sim_path=None, n_procs_node=None):
 
         # KResults jobs
@@ -44,8 +47,9 @@ class KResultsData(object):
         # check that the run path contains the job sub-folders
         job_dirs = [x for x in os.listdir(sim_path) if os.path.isdir(os.path.join(sim_path, x)) and "job-" in x]
 
-        # check if there are jobs that didn't write the "statistics.kresults" file
-        failing_jobs = [job_dir for job_dir in job_dirs if not os.path.isfile(os.path.join(sim_path, job_dir, "statistics.kresults"))]
+        # check if there are jobs that didn't write the "statistics.kresults" file (or .krf for back-compatibility)
+        failing_jobs = [job_dir for job_dir in job_dirs
+                        if not os.path.isfile(os.path.join(sim_path, job_dir, cls.res_file_root+"."+cls.res_file_ext))]
 
         if failing_jobs:
             print "ERROR: The following jobs have failed (jobs for which " \
@@ -71,17 +75,16 @@ class KResultsData(object):
             print "Specified path does not contain any job folder (<job-ID>..)!"
             sys.exit(1)
 
-        # jobs_data_dict = {}
         jobs_data = []
         for job_dir in job_dirs:
 
             sub_dir_path_abs = os.path.join(sim_path, job_dir)
             sub_dir_files = os.listdir(sub_dir_path_abs)
-            kresults_file = [f for f in sub_dir_files if f.endswith('.kresults')]
+            kresults_file = [f for f in sub_dir_files if f.endswith(cls.res_file_ext)]
 
             if kresults_file:
                 input_file_path_abs = os.path.join(sub_dir_path_abs, 'input.json')
-                stats_file_path_abs = os.path.join(sub_dir_path_abs, 'statistics.kresults')
+                stats_file_path_abs = os.path.join(sub_dir_path_abs, cls.res_file_root+"."+cls.res_file_ext)
 
                 # Read decorator data from input file
                 with open(input_file_path_abs, 'r') as f:
@@ -89,9 +92,7 @@ class KResultsData(object):
                 decorator = KResultsDecorator(**json_data_input["metadata"])
 
                 # Append the profiled job to the "jobs_data" structure
-                jobs_data.append(
-                    KResultsJob.from_kresults_file(stats_file_path_abs, decorator=decorator)
-                )
+                jobs_data.append(KResultsJob.from_kresults_file(stats_file_path_abs, decorator=decorator))
 
         if jobs_data:
             print "n successful jobs {}/{}".format(len(jobs_data), len(job_dirs))
@@ -118,8 +119,6 @@ class KResultsData(object):
         Calculate a class_stats of a simulations
         :return:
         """
-
-        print "Aggregating class stats for sim : {}".format(self.name)
 
         per_class_stats = {}
         for job in self.jobs:
@@ -349,8 +348,6 @@ class KResultsData(object):
 
         print "total n jobs {}".format(len(self.jobs))
         print "total n in classes {}".format(total_jobs_in_classes)
-
-
 
 
 
