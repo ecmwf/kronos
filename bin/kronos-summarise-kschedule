@@ -17,9 +17,9 @@ import argparse
 
 import sys
 
-# from kronos.core.kronos_tools.ker_work_distribution import KernelWorkDistribution, KernelStats
 from kronos.core.time_signal.definitions import time_signal_names, signal_types
-from kronos.executor.tools import mean_of_list, std_of_list, KernelStats, KernelWorkDistribution
+from kronos.shared_tools.shared_utils import mean_of_list, std_of_list
+from kronos.io.format_data_handlers.kresults_kernel_work import KernelStats, KernelWorkDistribution
 from kronos.io.schedule_format import ScheduleFormat
 
 
