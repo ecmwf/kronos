@@ -149,7 +149,7 @@ class Executor(object):
                 os.path.dirname(__file__),
                 "job_classes/{}.py".format(job_config.get("job_class", self.config.get("job_class", "trivial_job")))
             )
-            print "==========> Job class module: {}".format(job_class_module_file)
+            # print "==========> Job class module: {}".format(job_class_module_file)
             job_class_module = imp.load_source('job', job_class_module_file)
             job_class = job_class_module.Job
 
