@@ -10,6 +10,12 @@ import datetime
 
 
 def add_value_to_sublist(_list, idx1, idx2, val):
+
+    assert idx1 >= 0
+    assert idx2 <= len(_list)
+    assert idx1 <= idx2
+    assert isinstance(idx1, int) and isinstance(idx2, int)
+
     _list[idx1:idx2] = [_list[i]+val for i in range(idx1, idx2)]
     return _list
 
@@ -46,6 +52,7 @@ def std_of_list(vals):
 
 
 def calc_histogram(values, n_bins):
+
     assert isinstance(n_bins, int)
     assert n_bins > 0
 
@@ -61,7 +68,7 @@ def calc_histogram(values, n_bins):
         binned_vals = [0] * n_bins
 
         for val in values:
-            idx_min = int(min(max(math.floor(val / int(delta_bin)), 0), len(binned_vals)-1))
+            idx_min = int(min(max(math.floor(val / float(delta_bin)), 0), len(binned_vals)-1))
 
             try:
                 binned_vals[idx_min] += 1

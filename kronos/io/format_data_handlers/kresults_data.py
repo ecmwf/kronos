@@ -12,7 +12,7 @@ import os
 import sys
 from collections import OrderedDict
 
-from kronos.io.definitions import kresults_stats_info
+from kronos.io.definitions import kresults_stats_info, kresults_ts_names_map
 from kronos.shared_tools.shared_utils import add_value_to_sublist
 from kronos.io.format_data_handlers.kresults_job import KResultsJob
 from kronos.core.time_signal.definitions import signal_types
@@ -319,6 +319,20 @@ class KResultsData(object):
                                            "processes": _processes}
 
         return found, global_time_series
+
+    def calc_metrics_sums(self):
+
+        _sums = {k: 0 for k in signal_types.keys()}
+
+        # dict that tells whether a metric is "per-process" or not (like MPI ops)
+        _metric_perproc_map = {v[0]: v[2] for v in kresults_ts_names_map.values()}
+
+        for job in self.jobs:
+            for k,v in job.calc_metrics_sums().iteritems():
+
+                # take the sums (taking int account whether he metric is interpreted "per-process" or not)
+                _sums[k] += v if not _metric_perproc_map[k] else v/float(job.n_cpu)
+        return _sums
 
     def print_job_classes_info(self, class_list, show_jobs_flag=False):
         """

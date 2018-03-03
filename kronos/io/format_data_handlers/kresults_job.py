@@ -68,6 +68,14 @@ class KResultsJob(object):
 
         return time_series
 
+    def calc_metrics_sums(self):
+        """
+        REturn metrics sums
+        :return:
+        """
+        _series = self.calc_time_series()
+        return {k: sum(v["values"]) for k, v in _series.iteritems()}
+
     @classmethod
     def from_kresults_file(cls, kresults_filename, decorator=None):
         """

@@ -10,6 +10,26 @@ import copy
 from kronos.shared_tools.shared_utils import calc_histogram
 
 
+def distribute_kernel_work(n_procs, nelems, mpi_rank, work_accumulator):
+
+    nelems_local = nelems / n_procs
+    accumulator_new = (work_accumulator + nelems) % n_procs
+
+    if accumulator_new > work_accumulator:
+
+        if work_accumulator <= mpi_rank < accumulator_new:
+            nelems_local += 1
+
+    elif accumulator_new < work_accumulator:
+
+        if mpi_rank >= work_accumulator or mpi_rank < accumulator_new:
+            nelems_local += 1
+
+    work_accumulator = accumulator_new
+
+    return nelems_local, work_accumulator
+
+
 class KernelWorkDistribution(object):
 
     def __init__(self, jobs_data):
@@ -32,46 +52,60 @@ class KernelWorkDistribution(object):
                 for ker in frame:
 
                     if ker["name"] == "cpu":
-                        ker["work_per_process"] = self.distribute_flops(ker["flops"], nprocs)
+                        ker["flops_per_process"] = self.distribute_flops(ker["flops"], nprocs)
 
                     elif ker["name"] == "file-read":
-                        ker["work_per_process"] = []
+                        ker["read_sizes_per_process"] = self.distribute_io(ker["kb_read"], ker["n_read"], nprocs)
 
                     elif ker["name"] == "file-write":
-                        ker["work_per_process"] = []
+                        ker["write_sizes_per_process"] = self.distribute_io(ker["kb_write"], ker["n_write"], nprocs)
 
                     elif ker["name"] == "mpi":
-                        ker["work_per_process_col"] = self.distribute_mpi(ker["kb_collective"], ker["n_collective"], nprocs)
-                        ker["work_per_process_p2p"] = self.distribute_mpi(ker["kb_pairwise"], ker["n_pairwise"], nprocs)
+                        ker["coll_sizes_per_process_col"] = self.distribute_mpi(ker["kb_collective"], ker["n_collective"], nprocs)
+                        ker["p2p_sizes_per_process_p2p"] = self.distribute_mpi(ker["kb_pairwise"], ker["n_pairwise"], nprocs)
 
                     else:
                         raise ("kernel name {} not recognized!".format(ker["name"]))
 
         return kernel_data
 
-    def distribute_flops(self, tot_metric, nprocs):
+    def distribute_flops(self, tot_metric_per_kernel, nprocs):
         """
-        Function that mimic the even distribution of FLOPS per kernel
-        :param tot_metric:
+        Sizes per process work
+        :param tot_metric_per_kernel:
         :return:
         """
-        return [tot_metric/float(nprocs)]*nprocs
+        return [tot_metric_per_kernel / float(nprocs)] * nprocs
 
-    def distribute_mpi(self, tot_metric, n_metric, nprocs):
+    def distribute_mpi(self, tot_metric_per_kernel, n_ops_per_kernel, nprocs):
         """
-        Function that mimic the even distribution of MPI ops per kernel
-        :param tot_metric:
+        Sizes of *MPI calls*
+        :param tot_metric_per_kernel:
+        :param n_ops_per_kernel:
+        :param nprocs
         :return:
         """
-        return [tot_metric/float(n_metric)]*nprocs
+        return [tot_metric_per_kernel / float(n_ops_per_kernel)] * nprocs
 
-    def distribute_io(self, tot_metric, n_metric):
+    def distribute_io(self, tot_metric_per_kernel, n_ops_per_kernel, nprocs):
         """
-        Function that mimic the even distribution of MPI ops per kernel
-        :param tot_metric:
+        Sizes of *IO calls*
+        :param tot_metric_per_kernel:
+        :param n_ops_per_kernel:
+        :param nprocs:
         :return:
         """
-        return tot_metric/float(n_metric)
+
+        # calculate #nreads per process
+        n_ops_per_proc = []
+        work_acc = 0
+        for i_proc in range(nprocs):
+            _n_ops, work_acc = distribute_kernel_work(nprocs, n_ops_per_kernel, i_proc, work_acc)
+            n_ops_per_proc.append(_n_ops)
+
+        # the ops-sizes are equal to tot_metric_per_kernel/nprocs/n_local_count
+        tot_metric_per_proc = tot_metric_per_kernel/float(nprocs)
+        return [tot_metric_per_proc/float(c) if c else 0 for c in n_ops_per_proc]
 
 
 class KernelStats(object):
@@ -88,56 +122,94 @@ class KernelStats(object):
         :return:
         """
 
-        process_flops_stats = []
+        values = []
         for synth_app in self.kernel_data:
             for frame in synth_app["frames"]:
                 for ker in frame:
                     if ker["name"] == "cpu":
-                        process_flops_stats.extend(ker.get("work_per_process", []))
+                        values.extend(ker.get("flops_per_process", []))
 
-        if not process_flops_stats:
+        if not values:
             return None
         else:
 
-            return calc_histogram(process_flops_stats, n_bins)
+            return calc_histogram(values, n_bins)
 
-    def calculate_mpi_col_histograms(self, n_bins=10):
+    def calculate_mpi_col_calls_histograms(self, n_bins=10):
         """
         calculate statistics from the per-process data
         :return:
         """
 
-        process_flops_stats = []
+        values = []
         for synth_app in self.kernel_data:
             for frame in synth_app["frames"]:
                 for ker in frame:
                     if ker["name"] == "mpi":
-                        process_flops_stats.extend(ker.get("work_per_process_col", []))
+                        values.extend(ker.get("coll_sizes_per_process_col", []))
 
-        if not process_flops_stats:
+        if not values:
             return None
         else:
 
-            return calc_histogram(process_flops_stats, n_bins)
+            return calc_histogram(values, n_bins)
 
-    def calculate_mpi_p2p_histograms(self, n_bins=10):
+    def calculate_mpi_p2p_calls_histograms(self, n_bins=10):
         """
         calculate statistics from the per-process data
         :return:
         """
 
-        process_flops_stats = []
+        values = []
         for synth_app in self.kernel_data:
             for frame in synth_app["frames"]:
                 for ker in frame:
                     if ker["name"] == "mpi":
-                        process_flops_stats.extend(ker.get("work_per_process_p2p", []))
+                        values.extend(ker.get("p2p_sizes_per_process_p2p", []))
 
-        if not process_flops_stats:
+        if not values:
             return None
         else:
 
-            return calc_histogram(process_flops_stats, n_bins)
+            return calc_histogram(values, n_bins)
+
+    def calculate_io_read_calls_histograms(self, n_bins=10):
+        """
+        calculate statistics from the per-process data
+        :return:
+        """
+
+        values = []
+        for synth_app in self.kernel_data:
+            for frame in synth_app["frames"]:
+                for ker in frame:
+                    if ker["name"] == "file-read":
+                        values.extend(ker.get("read_sizes_per_process", []))
+
+        if not values:
+            return None
+        else:
+
+            return calc_histogram(values, n_bins)
+
+    def calculate_io_write_calls_histograms(self, n_bins=10):
+        """
+        calculate statistics from the per-process data
+        :return:
+        """
+
+        values = []
+        for synth_app in self.kernel_data:
+            for frame in synth_app["frames"]:
+                for ker in frame:
+                    if ker["name"] == "file-write":
+                        values.extend(ker.get("write_sizes_per_process", []))
+
+        if not values:
+            return None
+        else:
+
+            return calc_histogram(values, n_bins)
 
     @staticmethod
     def print_histogram(bins, vals, format_len=25):

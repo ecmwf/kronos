@@ -8,16 +8,17 @@
 from collections import OrderedDict
 
 # map that translates KResults and KProfile metrics
+is_per_process = True
 kresults_ts_names_map = {
-    "n_write": ("n_write", 1.0),
-    "n_read": ("n_read", 1.0),
-    "bytes_write": ("kb_write", 1.0/1024.0),
-    "bytes_read": ("kb_read", 1.0/1024.0),
-    "n_pairwise": ("n_pairwise", 1.0),
-    "bytes_pairwise": ("kb_pairwise", 1.0/1024.0),
-    "n_collective": ("n_collective", 1.0),
-    "bytes_collective": ("kb_collective", 1.0/1024.0),
-    "flops": ("flops", 1.0),
+    "n_write": ("n_write", 1.0, False),
+    "n_read": ("n_read", 1.0, False),
+    "bytes_write": ("kb_write", 1.0/1024.0, False),
+    "bytes_read": ("kb_read", 1.0/1024.0, False),
+    "n_pairwise": ("n_pairwise", 1.0, is_per_process),
+    "bytes_pairwise": ("kb_pairwise", 1.0/1024.0, is_per_process),
+    "n_collective": ("n_collective", 1.0, is_per_process),
+    "bytes_collective": ("kb_collective", 1.0/1024.0, is_per_process),
+    "flops": ("flops", 1.0, False),
 }
 
 kresults_stats_info = OrderedDict((
