@@ -70,12 +70,14 @@ if __name__ == "__main__":
     results_metrics_sums = results_data.calc_metrics_sums()
 
     kschedule_data = KScheduleData.from_filename(os.path.join(args.job_dir, kschedule_file[0]))
-    tot_kschedule_metrics = {k: sum(v) for k, v in KScheduleData.per_job_series(kschedule_data.jobs()).iteritems()}
 
     # get the full list of metrics to test (considering the all case)
     metrics_to_test = [user_metric for user_metric in args.metrics if user_metric.lower() != "all"]
     if "all" in args.metrics:
         metrics_to_test += testable_metrics
+
+    # calculate the necessary series..
+    tot_kschedule_metrics = {k: sum(KScheduleData.per_job_series(kschedule_data.jobs(), k)) for k in metrics_to_test}
 
     # check all the metrics selected
     failed_checks = []
