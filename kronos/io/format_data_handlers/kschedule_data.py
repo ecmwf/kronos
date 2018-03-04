@@ -10,6 +10,7 @@ import re
 
 from kronos.core.app_kernels import available_kernels
 from kronos.core.time_signal.definitions import signal_types, time_signal_names
+from kronos.io.format_data_handlers.kschedule_kernel_work import KernelWorkDistribution
 from kronos.io.schedule_format import ScheduleFormat
 from kronos.shared_tools.shared_utils import calc_histogram
 
@@ -37,7 +38,7 @@ class KScheduleData(ScheduleFormat):
                                             unscaled_metrics_sums=unscaled_metrics_sums)
 
     @classmethod
-    def per_kernel_series(cls, jobs):
+    def per_kernel_series(cls, jobs, metric_name):
 
         _series = {k: [] for k in time_signal_names}
 
@@ -47,10 +48,10 @@ class KScheduleData(ScheduleFormat):
                     for kernel_param in cls.kernel_name_keys_map[ker["name"]]:
                         _series[kernel_param].append(signal_types[kernel_param]["type"](ker[kernel_param]))
 
-        return _series
+        return _series[metric_name]
 
     @classmethod
-    def per_job_series(cls, jobs):
+    def per_job_series(cls, jobs, metric_name):
 
         _series = {k: [] for k in time_signal_names}
 
@@ -65,11 +66,23 @@ class KScheduleData(ScheduleFormat):
             for k,v in _series.iteritems():
                 v.append(job_series[k])
 
+        return _series[metric_name]
+
+    @classmethod
+    def per_process_series(cls, jobs, metric_name):
+
+        _distribution_handler = KernelWorkDistribution(jobs)
+        _series = _distribution_handler.calculate_sub_kernel_distribution(metric_name, "process")
+
         return _series
 
     @classmethod
-    def per_process_series(cls, jobs):
-        pass
+    def per_call_series(cls, jobs, metric_name):
+
+        _distribution_handler = KernelWorkDistribution(jobs)
+        _series = _distribution_handler.calculate_sub_kernel_distribution(metric_name, "call")
+
+        return _series
 
     def filter_jobs(self, re_expression=None):
         """

@@ -40,27 +40,27 @@ class KScheduleDataSummary(object):
 
         _series = self.get_series()
 
-        if not len(_series[self.metric_name]) or not sum(_series[self.metric_name]):
+        if not len(_series) or not sum(_series):
             _summary = "NO {} FOUND WITH METRIC {}".format(self.aggregation_unit.upper(), self.metric_name)
             return _summary
 
         _units = signal_types[self.metric_name]["print_info"]["raw_units"]
 
-        _summary = "STATISTICS OVER {} {}S\n".format(len(_series[self.metric_name]), self.aggregation_unit.upper())
+        _summary = "STATISTICS OVER {} {}S\n".format(len(_series), self.aggregation_unit.upper())
 
         _summary += "\nMain Statistics\n"
-        _summary += "{:{_f}}:{:{_f}} [{}]\n".format("sum", sum(_series[self.metric_name]), _units, _f=self._format_len)
-        _summary += "{:{_f}}:{:{_f}} [{}]\n".format("max", max(_series[self.metric_name]), _units, _f=self._format_len)
-        _summary += "{:{_f}}:{:{_f}} [{}]\n".format("min", min(_series[self.metric_name]), _units, _f=self._format_len)
-        _summary += "{:{_f}}:{:{_f}} [{}]\n".format("avg", mean_of_list(_series[self.metric_name]), _units, _f=self._format_len)
-        _summary += "{:{_f}}:{:{_f}} [{}]\n".format("std", std_of_list(_series[self.metric_name]), _units, _f=self._format_len)
+        _summary += "{:{_f}}:{:{_f}} [{}]\n".format("sum", sum(_series), _units, _f=self._format_len)
+        _summary += "{:{_f}}:{:{_f}} [{}]\n".format("max", max(_series), _units, _f=self._format_len)
+        _summary += "{:{_f}}:{:{_f}} [{}]\n".format("min", min(_series), _units, _f=self._format_len)
+        _summary += "{:{_f}}:{:{_f}} [{}]\n".format("avg", mean_of_list(_series), _units, _f=self._format_len)
+        _summary += "{:{_f}}:{:{_f}} [{}]\n".format("std", std_of_list(_series), _units, _f=self._format_len)
 
         _summary += "\nSize Distribution [{}]\n".format(_units)
         _summary += "{}\n".format("".join(["-"] * 43))
         _summary += "[{:^{_f}},{:^{_f}}]\n".format("From", "To", _f=self._format_len)
         _summary += "{}\n".format("".join(["-"]*43))
 
-        bins, vals = self.ksf_data.get_distribution(_series[self.metric_name], n_bins=self.n_bins)
+        bins, vals = self.ksf_data.get_distribution(_series, n_bins=self.n_bins)
 
         for bb in range(len(bins) - 1):
             _summary += "[{:{format_len}},{:{format_len}}] -> {}\n".format(bins[bb], bins[bb + 1], vals[bb], format_len=self._format_len)
@@ -79,7 +79,7 @@ class KScheduleDataSummaryPerKernel(KScheduleDataSummary):
     aggregation_unit = "kernel"
 
     def get_series(self):
-        return KScheduleData.per_kernel_series(self.filtered_jobs)
+        return KScheduleData.per_kernel_series(self.filtered_jobs, self.metric_name)
 
 
 class KScheduleDataSummaryPerJob(KScheduleDataSummary):
@@ -90,7 +90,31 @@ class KScheduleDataSummaryPerJob(KScheduleDataSummary):
     aggregation_unit = "job"
 
     def get_series(self):
-        return KScheduleData.per_job_series(self.filtered_jobs)
+        return KScheduleData.per_job_series(self.filtered_jobs, self.metric_name)
+
+
+class KScheduleDataSummaryPerProcess(KScheduleDataSummary):
+    """
+        Handles the per-process series of metrics
+    """
+
+    aggregation_unit = "process"
+
+    def get_series(self):
+        return KScheduleData.per_process_series(self.filtered_jobs, self.metric_name)
+
+
+class KScheduleDataSummaryPerCall(KScheduleDataSummary):
+    """
+        Handles the per-process series of metrics
+    """
+
+    aggregation_unit = "call"
+
+    def get_series(self):
+        return KScheduleData.per_call_series(self.filtered_jobs, self.metric_name)
+
+
 
 
 # map between classes and their "aggregation unit" (e.g. kernel, job, etc..)

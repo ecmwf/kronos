@@ -62,6 +62,11 @@ if __name__ == "__main__":
                         choices=signal_types.keys()+["all"],
                         nargs='*')
 
+    parser.add_argument("-b", "--nbins",
+                        type=int,
+                        default=10,
+                        help="Nbins for distributions")
+
     # print the help if no arguments are passed
     if len(sys.argv) == 1:
         parser.print_help()
@@ -73,6 +78,12 @@ if __name__ == "__main__":
     # some checks:
     if args.summary and not args.metrics:
         raise RuntimeError("summary specified but metric name missing!")
+
+    if args.list and args.metrics:
+        raise RuntimeError("metrics option valid only for 'summary'!")
+
+    if args.list and args.nbins:
+        raise RuntimeError("bins option valid only for 'summary'!")
 
     # get the data from the schedule..
     kschedule_data = KScheduleData.from_filename(args.kschedule)
@@ -89,4 +100,6 @@ if __name__ == "__main__":
             metrics_to_test += signal_types.keys()
 
         for i_param in metrics_to_test:
-            kschedule_summary_handlers[args.summary](kschedule_data, i_param, job_match_re=args.filter, n_bins=10).get_summary()
+            kschedule_summary_handlers[args.summary](kschedule_data, i_param,
+                                                     job_match_re=args.filter,
+                                                     n_bins=args.nbins).get_summary()
