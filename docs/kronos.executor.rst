@@ -6,6 +6,7 @@ Subpackages
 
 .. toctree::
 
+    kronos.executor.config_format
     kronos.executor.job_classes
     kronos.executor.tests
 

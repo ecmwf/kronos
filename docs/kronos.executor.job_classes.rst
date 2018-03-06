@@ -20,6 +20,14 @@ kronos.executor.job_classes.hpc module
     :undoc-members:
     :show-inheritance:
 
+kronos.executor.job_classes.lsf module
+--------------------------------------
+
+.. automodule:: kronos.executor.job_classes.lsf
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 kronos.executor.job_classes.pbs module
 --------------------------------------
 
@@ -28,18 +36,10 @@ kronos.executor.job_classes.pbs module
     :undoc-members:
     :show-inheritance:
 
-kronos.executor.job_classes.remote_hpc module
----------------------------------------------
+kronos.executor.job_classes.sbatch_filter module
+------------------------------------------------
 
-.. automodule:: kronos.executor.job_classes.remote_hpc
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-kronos.executor.job_classes.remote_pbs module
----------------------------------------------
-
-.. automodule:: kronos.executor.job_classes.remote_pbs
+.. automodule:: kronos.executor.job_classes.sbatch_filter
     :members:
     :undoc-members:
     :show-inheritance:
