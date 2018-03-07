@@ -37,6 +37,13 @@ class KScheduleData(ScheduleFormat):
                                             scaling_factors=scaling_factors,
                                             unscaled_metrics_sums=unscaled_metrics_sums)
 
+        # check for non-synthetic app jobs in the schedule
+        external_jobs = [job for job in self.jobs if not job.get("frames")]
+        if external_jobs:
+            print "[INFO]: The following jobs in kschedule are (external jobs) => not counted for statistics summary"
+            print "\n".join([job["metadata"]["job_name"] for job in external_jobs])
+
+
     @classmethod
     def per_kernel_series(cls, jobs, metric_name):
 
