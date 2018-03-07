@@ -104,6 +104,7 @@ class KScheduleData(ScheduleFormat):
     def get_distribution(cls, series, n_bins=10):
         return calc_histogram(series, n_bins)
 
+    @property
     def jobs(self):
         return self.synapp_data
 

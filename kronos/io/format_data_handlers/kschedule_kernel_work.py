@@ -104,6 +104,7 @@ class KernelWorkDistribution(object):
 
                         elif ker["name"] == "file-write":
                             _work_per_process, _work_per_call, _calls_per_proc = self.distribute_kernel_int(ker["kb_write"], ker["n_write"], nprocs)
+
                             if metric_name == "kb_write" and aggregation_type == "process":
                                 _full_series.extend(_work_per_process)
                             elif metric_name == "kb_write" and aggregation_type == "call":
@@ -156,7 +157,7 @@ class KernelWorkDistribution(object):
         tot_metric_per_proc = tot_metric_per_kernel/float(nprocs)
 
         # work per processor
-        _work_per_process = [tot_metric_per_proc/float(c) if c else 0 for c in _calls_per_proc]
+        _work_per_process = [tot_metric_per_proc]*nprocs
 
         # work per call
         _work_per_call = []

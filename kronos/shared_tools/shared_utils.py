@@ -68,7 +68,7 @@ def calc_histogram(values, n_bins):
         binned_vals = [0] * n_bins
 
         for val in values:
-            idx_min = int(min(max(math.floor(val / float(delta_bin)), 0), len(binned_vals)-1))
+            idx_min = int(min(max(math.floor( (val-min_val) / float(delta_bin)), 0), len(binned_vals)-1))
 
             try:
                 binned_vals[idx_min] += 1
