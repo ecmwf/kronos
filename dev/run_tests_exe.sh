@@ -28,12 +28,12 @@ done
 
 cd ${bamboo_working_directory}/kronos/io
 for p in `find -maxdepth 3 -mindepth 1 -type d -name tests`; do
-    PYTHONPATH=`pwd` python ${bamboo_working_directory}/miniconda/envs/test_env_exe/lib/python2.7/site-packages/pytest.py --junitxml="${bamboo_working_directory}/test_output_exe.xml" ${p}
+    PYTHONPATH=`pwd` python ${bamboo_working_directory}/miniconda/envs/test_env_exe/lib/python2.7/site-packages/pytest.py --junitxml="${bamboo_working_directory}/test_output_exe_io.xml" ${p}
 done
 
 cd ${bamboo_working_directory}/kronos/shared_tools
 for p in `find -maxdepth 3 -mindepth 1 -type d -name tests`; do
-    PYTHONPATH=`pwd` python ${bamboo_working_directory}/miniconda/envs/test_env_exe/lib/python2.7/site-packages/pytest.py --junitxml="${bamboo_working_directory}/test_output_exe.xml" ${p}
+    PYTHONPATH=`pwd` python ${bamboo_working_directory}/miniconda/envs/test_env_exe/lib/python2.7/site-packages/pytest.py --junitxml="${bamboo_working_directory}/test_output_exe_sh.xml" ${p}
 done
 
 source deactivate
