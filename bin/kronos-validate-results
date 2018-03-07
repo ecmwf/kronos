@@ -77,7 +77,7 @@ if __name__ == "__main__":
         metrics_to_test += testable_metrics
 
     # calculate the necessary series..
-    tot_kschedule_metrics = {k: sum(KScheduleData.per_job_series(kschedule_data.jobs(), k)) for k in metrics_to_test}
+    tot_kschedule_metrics = {k: sum(KScheduleData.per_job_series(kschedule_data.jobs, k)) for k in metrics_to_test}
 
     # check all the metrics selected
     failed_checks = []
