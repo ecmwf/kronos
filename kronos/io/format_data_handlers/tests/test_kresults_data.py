@@ -1,269 +1,215 @@
 # (C) Copyright 1996-2017 ECMWF.
-# 
+#
 # This software is licensed under the terms of the Apache Licence Version 2.0
-# which can be obtained at http://www.apache.org/licenses/LICENSE-2.0. 
-# In applying this licence, ECMWF does not waive the privileges and immunities 
+# which can be obtained at http://www.apache.org/licenses/LICENSE-2.0.
+# In applying this licence, ECMWF does not waive the privileges and immunities
 # granted to it by virtue of its status as an intergovernmental organisation nor
 # does it submit to any jurisdiction.
-import json
 import unittest
-from StringIO import StringIO
+from datetime import datetime
 
-import jsonschema
-from kronos.io.format_data_handlers.kschedule_data import KScheduleData
+from kronos.io.format_data_handlers.kresults_data import KResultsData
+from kronos.io.format_data_handlers.kresults_job import KResultsJob
+from kronos.shared_tools.shared_utils import datetime2epochs
 
 
 class ProfileFormatTest(unittest.TestCase):
 
-    valid_kschedule = {
-        "unscaled_metrics_sums": {
-            "kb_collective": 208517553.62158203,
-            "n_collective": 4027725.0,
-            "kb_write": 741712101.625,
-            "n_pairwise": 21589693.0,
-            "n_write": 32810.097499999974,
-            "n_read": 554277.9349999997,
-            "kb_read": 728008033.3916016,
-            "flops": 95136577882416.19,
-            "kb_pairwise": 673515252.5620931
-        },
-        "jobs": [
-            {
-                "frames": [
-                    [
-                        {
-                            "flops": 333,
-                            "name": "cpu"
-                        },
-                        {
-                            "n_write": 10,
-                            "n_files": 1,
-                            "name": "file-write",
-                            "kb_write": 2500.0
-                        },
-                        {
-                            "n_write": 10,
-                            "n_files": 1,
-                            "name": "file-write",
-                            "kb_write": 2500.0
-                        }
-                    ],
-                    [
-                        {
-                            "kb_read": 999,
-                            "invalidate": True,
-                            "mmap": True,
-                            "name": "file-read",
-                            "n_read": 111
-                        }
+    # example of serial job
+    kresult_job_0 = {
+                        "created": "2018-02-26T15:34:44+00:00",
+                        "kronosSHA1": "",
+                        "kronosVersion": "0.1.4",
+                        "ranks": [
+                            {
+                                "host": "lxg04",
+                                "pid": 30481,
+                                "rank": 0,
+                                "stats": {
+                                    "cpu": {
+                                        "averageElapsed": 2.575281e-09,
+                                        "count": 10000000000,
+                                        "elapsed": 25.75281,
+                                        "stddevElapsed": 0.0002575281,
+                                        "sumSquaredElapsed": 663.2071
+                                    },
+                                    "write": {
+                                        "averageBytes": 256000,
+                                        "averageElapsed": 0.0003455162,
+                                        "bytes": 2560000,
+                                        "count": 10,
+                                        "elapsed": 0.003455162,
+                                        "stddevBytes": 0,
+                                        "stddevElapsed": 0.0003220533,
+                                        "sumSquaredBytes": 655360000000,
+                                        "sumSquaredElapsed": 2.230997e-06
+                                    }
+                                },
+                                "time_series": {
+                                    "bytes_write": [
+                                        0,
+                                        2560000
+                                    ],
+                                    "durations": [
+                                        25.75281,
+                                        0.007616043
+                                    ],
+                                    "flops": [
+                                        10000000000,
+                                        0
+                                    ],
+                                    "n_write": [
+                                        0,
+                                        10
+                                    ]
+                                }
+                            }
+                        ],
+                        "tag": "KRONOS-KRESULTS-MAGIC",
+                        "uid": 4426,
+                        "version": 1
+                    }
 
-                    ]
-                ],
-                "depends": [],
-                "num_procs": 1,
-                "metadata": {
-                    "job_name": "dummy-appID-0",
-                    "workload_name": "dummy-workload"
-                },
-                "start_delay": 0
-            },
-            {
-                "frames": [
-                    [
-                        {
-                            "flops": 1000,
-                            "name": "cpu"
-                        },
-                        {
-                            "n_write": 10,
-                            "n_files": 1,
-                            "name": "file-write",
-                            "kb_write": 2500.0
-                        },
-                        {
-                            "kb_read": 500,
-                            "invalidate": True,
-                            "mmap": True,
-                            "name": "file-read",
-                            "n_read": 20
-                        },
-                        {
-                            "n_collective": 444,
-                            "kb_collective": 888,
-                            "kb_pairwise": 222,
-                            "name": "mpi",
-                            "n_pairwise": 444
-                        },
-                        {
-                            "n_collective": 444,
-                            "kb_collective": 888,
-                            "kb_pairwise": 222,
-                            "name": "mpi",
-                            "n_pairwise": 444
-                        }
-                    ]
-                ],
-                "depends": [0],
-                "num_procs": 5,
-                "metadata": {
-                    "job_name": "dummy-appID-1",
-                    "workload_name": "dummy-workload"
-                },
-                "start_delay": 0
-            }
-        ],
-        "uid": 4426,
-        "created": "2017-06-16T15:04:06Z",
-        "tag": "KRONOS-KSCHEDULE-MAGIC",
-        "version": 3,
-        "scaling_factors": {
-            "flops": 1.0,
-            "n_collective": 1.0,
-            "kb_write": 1.0,
-            "n_pairwise": 1.0,
-            "n_write": 1.0,
-            "n_read": 1.0,
-            "kb_read": 1.0,
-            "kb_collective": 1.0,
-            "kb_pairwise": 1.0
-        }
-    }
+    # example of parallel job with 2 processors
+    kresult_job_1 = {
+                        "created": "2018-02-26T15:35:36+00:00",
+                        "kronosSHA1": "",
+                        "kronosVersion": "0.1.4",
+                        "ranks": [
+                            {
+                                "host": "lxg04",
+                                "pid": 30583,
+                                "rank": 0,
+                                "stats": {
+                                    "cpu": {
+                                        "averageElapsed": 0.03,
+                                        "count": 999,
+                                        "elapsed": 999/0.03,
+                                        "stddevElapsed": 0.0,
+                                        "sumSquaredElapsed": sum([0.03**2]*999)
+                                    }
+                                },
+                                "time_series": {
+                                    "durations": [
+                                        0.03*333,
+                                        0.03*666
+                                    ],
+                                    "flops": [
+                                        333,
+                                        666
+                                    ]
+                                }
+                            },
+                            {
+                                "host": "lxg04",
+                                "pid": 30584,
+                                "rank": 1,
+                                "stats": {
+                                    "cpu": {
+                                        "averageElapsed": 0.01,
+                                        "count": 30,
+                                        "elapsed": 30/0.01,
+                                        "stddevElapsed": 0.0,
+                                        "sumSquaredElapsed": sum([0.01**2]*30)
+                                    }
+                                },
+                                "time_series": {
+                                    "durations": [
+                                        0.01*10,
+                                        0.01*20
+                                    ],
+                                    "flops": [
+                                        10,
+                                        20
+                                    ]
+                                }
+                            }
+                        ],
+                        "tag": "KRONOS-KRESULTS-MAGIC",
+                        "uid": 4426,
+                        "version": 1
+                    }
 
-    def test_validate(self):
+    def test_serial_job_info(self):
 
-        # Check the validation information
-        valid_ks = self.valid_kschedule.copy()
-        self.assertRaises(jsonschema.ValidationError, lambda: KScheduleData.validate_json(StringIO(json.dumps(valid_ks))))
+        # serial job
+        job0 = KResultsJob(self.kresult_job_0)
+        self.assertEqual(job0.name, None)
+        self.assertEqual(job0.label, None)
+        self.assertEqual(job0.n_cpu, 1)
+        self.assertEqual(job0.get_class_name({}), ["generic_class"])
+        self.assertEqual(job0.is_in_class("dummy_class"), False)
 
-    def test_flops_series(self):
+    def test_parallel_job_info(self):
 
-        # Check the flops series (per job)
-        valid_ks = self.valid_kschedule.copy()
-        jobs = KScheduleData.from_file(StringIO(json.dumps(valid_ks))).jobs
-        flops_job = KScheduleData.per_job_series(jobs, "flops")
-        self.assertEqual(flops_job, [333, 1000])
+        # parallel job
+        job1 = KResultsJob(self.kresult_job_1)
+        self.assertEqual(job1.name, None)
+        self.assertEqual(job1.label, None)
+        self.assertEqual(job1.n_cpu, 2)
+        self.assertEqual(job1.get_class_name({}), ["generic_class"])
+        self.assertEqual(job1.is_in_class("dummy_class"), False)
 
-        # Check the flops series (per kernel)
-        valid_ks = self.valid_kschedule.copy()
-        jobs = KScheduleData.from_file(StringIO(json.dumps(valid_ks))).jobs
-        flops_ker = KScheduleData.per_kernel_series(jobs, "flops")
-        self.assertEqual(flops_ker, [333, 1000])
+    def test_serial_job_timings(self):
 
-        # Check the flops series (per process)
-        valid_ks = self.valid_kschedule.copy()
-        jobs = KScheduleData.from_file(StringIO(json.dumps(valid_ks))).jobs
-        flops_proc = KScheduleData.per_process_series(jobs, "flops")
-        self.assertEqual(flops_proc, [333, 200, 200, 200, 200, 200])
+        # serial job
+        job0 = KResultsJob(self.kresult_job_0)
+        end_datetime_job1 = datetime2epochs(datetime.strptime(job0._json_data["created"], '%Y-%m-%dT%H:%M:%S+00:00'))
+        self.assertEqual(job0.t_end, end_datetime_job1)
+        self.assertEqual(job0.duration, 25.75281+0.007616043)
+        self.assertEqual(job0.t_start, end_datetime_job1-(25.75281+0.007616043))
 
-        # Check the flops series (per call)
-        valid_ks = self.valid_kschedule.copy()
-        jobs = KScheduleData.from_file(StringIO(json.dumps(valid_ks))).jobs
-        self.assertRaises(RuntimeError, lambda: KScheduleData.per_call_series(jobs, "flops"))
+    def test_parallel_job_timings(self):
 
-    def test_io_write_series(self):
+        # parallel job
+        job1 = KResultsJob(self.kresult_job_1)
+        end_datetime_job1 = datetime2epochs(datetime.strptime(job1._json_data["created"], '%Y-%m-%dT%H:%M:%S+00:00'))
+        self.assertEqual(job1.t_end, end_datetime_job1)
+        self.assertEqual(job1.duration, 0.03*333+0.03*666)
+        self.assertEqual(job1.t_start, end_datetime_job1-(0.03*333+0.03*666))
 
-        # Check the io series (per job)
-        valid_ks = self.valid_kschedule.copy()
-        jobs = KScheduleData.from_file(StringIO(json.dumps(valid_ks))).jobs
-        io_write_job = KScheduleData.per_job_series(jobs, "kb_write")
-        self.assertEqual(io_write_job, [5000, 2500])
+    def test_serial_job_time_series(self):
 
-        # Check the io series (per kernel)
-        valid_ks = self.valid_kschedule.copy()
-        jobs = KScheduleData.from_file(StringIO(json.dumps(valid_ks))).jobs
-        io_write_kernel = KScheduleData.per_kernel_series(jobs, "kb_write")
-        self.assertEqual(io_write_kernel, [2500, 2500, 2500])
+        # serial job
+        job0 = KResultsJob(self.kresult_job_0)
 
-        # Check the io series (per process)
-        valid_ks = self.valid_kschedule.copy()
-        jobs = KScheduleData.from_file(StringIO(json.dumps(valid_ks))).jobs
-        io_write_process = KScheduleData.per_process_series(jobs, "kb_write")
-        self.assertEqual(io_write_process, [2500, 2500, 500, 500, 500, 500, 500])
+        _ts = job0.calc_time_series()
+        self.assertEqual(_ts["flops"]["times"], [25.75281])
+        self.assertEqual(_ts["kb_write"]["times"], [25.75281 + 0.007616043])
+        self.assertEqual(_ts["n_write"]["times"], [25.75281 + 0.007616043])
 
-        # Check the flops series (per call)
-        valid_ks = self.valid_kschedule.copy()
-        jobs = KScheduleData.from_file(StringIO(json.dumps(valid_ks))).jobs
-        io_write_call = KScheduleData.per_call_series(jobs, "kb_write")
-        self.assertEqual(io_write_call, [250]*20 + [250]*10)
+        self.assertEqual(_ts["flops"]["values"], [10000000000])
+        self.assertEqual(_ts["kb_write"]["values"], [2560000/1024.0])
+        self.assertEqual(_ts["n_write"]["values"], [10])
 
-    def test_io_read_series(self):
+        self.assertEqual(_ts["flops"]["ratios"], [10000000000/25.75281])
+        self.assertEqual(_ts["kb_write"]["ratios"], [2560000/1024.0/0.007616043])
+        self.assertEqual(_ts["n_write"]["ratios"], [10/0.007616043])
 
-        # Check the io series (per job)
-        valid_ks = self.valid_kschedule.copy()
-        jobs = KScheduleData.from_file(StringIO(json.dumps(valid_ks))).jobs
-        io_read_job = KScheduleData.per_job_series(jobs, "kb_read")
-        self.assertEqual(io_read_job, [999, 500])
+        self.assertEqual(_ts["flops"]["elapsed"], [25.75281])
+        self.assertEqual(_ts["kb_write"]["elapsed"], [0.007616043])
+        self.assertEqual(_ts["n_write"]["elapsed"], [0.007616043])
 
-        # Check the io series (per kernel)
-        valid_ks = self.valid_kschedule.copy()
-        jobs = KScheduleData.from_file(StringIO(json.dumps(valid_ks))).jobs
-        io_read_kernel = KScheduleData.per_kernel_series(jobs, "kb_read")
-        self.assertEqual(io_read_kernel, [999, 500])
+    def test_parallel_job_time_series(self):
 
-        # Check the io series (per process)
-        valid_ks = self.valid_kschedule.copy()
-        jobs = KScheduleData.from_file(StringIO(json.dumps(valid_ks))).jobs
-        io_read_process = KScheduleData.per_process_series(jobs, "kb_read")
-        self.assertEqual(io_read_process, [999]+[100]*5)
+        # serial job
+        job1 = KResultsJob(self.kresult_job_1)
 
-        # Check the io series (per call)
-        valid_ks = self.valid_kschedule.copy()
-        jobs = KScheduleData.from_file(StringIO(json.dumps(valid_ks))).jobs
-        io_read_call = KScheduleData.per_call_series(jobs, "kb_read")
-        self.assertEqual(io_read_call, [9]*111+[25]*20)
+        _ts = job1.calc_time_series()
+        self.assertEqual(_ts["flops"]["times"], [0.01*10, 0.01*10+0.01*20, 0.03*333, 0.03*333+0.03*666])
+        self.assertEqual(_ts["flops"]["values"], [10, 20, 333, 666])
+        self.assertEqual(_ts["flops"]["ratios"], [10/(0.01*10), 20/(0.01*20), 333/(0.03*333), 666/(0.03*666)])
+        self.assertEqual(_ts["flops"]["elapsed"], [0.01*10, 0.01*20, 0.03*333, 0.03*666])
 
-    def test_mpi_pairwise(self):
+    def test_validate_kresultsdata_info(self):
 
-        # Check the mpi p2p series (per job)
-        valid_ks = self.valid_kschedule.copy()
-        jobs = KScheduleData.from_file(StringIO(json.dumps(valid_ks))).jobs
-        mpi_job = KScheduleData.per_job_series(jobs, "kb_pairwise")
-        self.assertEqual(mpi_job, [0, 222*2])
+        # kresult jobs
+        job0 = KResultsJob(self.kresult_job_0)
+        job1 = KResultsJob(self.kresult_job_1)
+        kresults_data = KResultsData(jobs=[job0, job1], sim_name="test_results", sim_path=None, n_procs_node=24)
 
-        # Check the mpi p2p series (per kernel)
-        valid_ks = self.valid_kschedule.copy()
-        jobs = KScheduleData.from_file(StringIO(json.dumps(valid_ks))).jobs
-        mpi_kernel = KScheduleData.per_kernel_series(jobs, "kb_pairwise")
-        self.assertEqual(mpi_kernel, [222, 222])
+        self.assertEqual(len(kresults_data.jobs), 2)
+        self.assertEqual(kresults_data.name, "test_results")
+        self.assertEqual(kresults_data.path, None)
+        self.assertEqual(kresults_data.n_procs_node, 24)
 
-        # Check the mpi p2p series (per process)
-        valid_ks = self.valid_kschedule.copy()
-        jobs = KScheduleData.from_file(StringIO(json.dumps(valid_ks))).jobs
-        mpi_process = KScheduleData.per_process_series(jobs, "kb_pairwise")
-        self.assertEqual(mpi_process, [222]*5+[222]*5)
-
-        # Check the mpi p2p series (per call)
-        valid_ks = self.valid_kschedule.copy()
-        jobs = KScheduleData.from_file(StringIO(json.dumps(valid_ks))).jobs
-        mpi_call = KScheduleData.per_call_series(jobs, "kb_pairwise")
-        self.assertEqual(mpi_call, [222/444.0]*444+[222/444.0]*444)
-
-    def test_mpi_collective(self):
-
-        # Check the mpi p2p series (per job)
-        valid_ks = self.valid_kschedule.copy()
-        jobs = KScheduleData.from_file(StringIO(json.dumps(valid_ks))).jobs
-        mpi_job = KScheduleData.per_job_series(jobs, "kb_collective")
-        self.assertEqual(mpi_job, [0, 888*2])
-
-        # Check the mpi p2p series (per kernel)
-        valid_ks = self.valid_kschedule.copy()
-        jobs = KScheduleData.from_file(StringIO(json.dumps(valid_ks))).jobs
-        mpi_kernel = KScheduleData.per_kernel_series(jobs, "kb_collective")
-        self.assertEqual(mpi_kernel, [888, 888])
-
-        # Check the mpi p2p series (per process)
-        valid_ks = self.valid_kschedule.copy()
-        jobs = KScheduleData.from_file(StringIO(json.dumps(valid_ks))).jobs
-        mpi_process = KScheduleData.per_process_series(jobs, "kb_collective")
-        self.assertEqual(mpi_process, [888]*5+[888]*5)
-
-        # Check the mpi p2p series (per call)
-        valid_ks = self.valid_kschedule.copy()
-        jobs = KScheduleData.from_file(StringIO(json.dumps(valid_ks))).jobs
-        mpi_call = KScheduleData.per_call_series(jobs, "kb_collective")
-        self.assertEqual(mpi_call, [888/444.0]*444+[888/444.0]*444)
-
-
-if __name__ == "__main__":
-    unittest.main()

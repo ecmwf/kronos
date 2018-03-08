@@ -128,7 +128,7 @@ class KResultsJob(object):
         Job label
         :return:
         """
-        return self.decorating_data.label
+        return self.decorating_data.label if self.decorating_data else None
 
     @property
     def name(self):
@@ -136,7 +136,7 @@ class KResultsJob(object):
         Job name
         :return:
         """
-        return self.decorating_data.name
+        return self.decorating_data.name if self.decorating_data else None
 
     @property
     def t_start(self):
@@ -173,6 +173,9 @@ class KResultsJob(object):
         # if the class name is not provided, job is set to belong to class by default
         if not class_regex:
             return True
+
+        if not self.name:
+            return False
 
         # otherwise check if job.label matches the class name
         else:
