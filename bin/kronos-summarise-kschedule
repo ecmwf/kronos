@@ -88,8 +88,10 @@ if __name__ == "__main__":
     kschedule_data = KScheduleData.from_filename(args.kschedule)
 
     if args.list:
-        print "\nJOB LIST:"
-        print "\n".join(kschedule_data.list_job_names(regex=args.filter))
+
+        job_names = kschedule_data.list_job_names(regex=args.filter)
+        # print "\nFOUND {} JOBS".format(len(job_names))
+        print "\n".join(job_names)
 
     elif args.summary:
 
