@@ -13,7 +13,7 @@ import jsonschema
 from kronos.io.format_data_handlers.kschedule_data import KScheduleData
 
 
-class ProfileFormatTest(unittest.TestCase):
+class KScheduleDataTest(unittest.TestCase):
 
     valid_kschedule = {
         "unscaled_metrics_sums": {

@@ -13,7 +13,7 @@ from kronos.io.format_data_handlers.kresults_job import KResultsJob
 from kronos.shared_tools.shared_utils import datetime2epochs
 
 
-class ProfileFormatTest(unittest.TestCase):
+class KResultsDataTest(unittest.TestCase):
 
     # example of serial job
     kresult_job_0 = {
