@@ -61,8 +61,6 @@ class KResultsData(object):
     @classmethod
     def read_from_sim_paths(cls, sim_path, sim_name, n_procs_node=None, permissive=False):
 
-        print "processing simulation: {}".format(sim_name)
-
         # check n of successful jobs
         if not permissive:
             cls.check_n_successful_jobs(sim_path)
