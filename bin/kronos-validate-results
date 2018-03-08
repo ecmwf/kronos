@@ -35,7 +35,7 @@ if __name__ == "__main__":
     testable_metrics = signal_types.keys()
     testable_metrics.pop(testable_metrics.index("kb_read"))
     testable_metrics.pop(testable_metrics.index("n_read"))
-    parser.add_argument("metrics", choices=testable_metrics+["all"], nargs='+')
+    parser.add_argument("--metrics", choices=testable_metrics+["all"], nargs='+')
 
     # print the help if no arguments are passed
     if len(sys.argv) == 1:
