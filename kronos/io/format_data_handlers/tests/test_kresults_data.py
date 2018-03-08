@@ -9,7 +9,6 @@
 
 import unittest
 
-from kronos.core.post_process.result_signals import ResultProfiledSignal
 from kronos.io.format_data_handlers.kresults_data import KResultsData
 from kronos.io.format_data_handlers.kresults_decorator import KResultsDecorator
 from kronos.io.format_data_handlers.kresults_job import KResultsJob
@@ -130,20 +129,13 @@ class SimDataTest(unittest.TestCase):
         times = [4.0, 8.0, 12.]
         # found, calculated_time_series = sim_data.create_global_time_series(times)
         found, series_dict = sim_data.create_global_time_series(times)
-        calculated_time_series = {tsk: ResultProfiledSignal(tsk,
-                                                            tsv["times"],
-                                                            tsv["values"],
-                                                            tsv["elapsed"],
-                                                            tsv["processes"]) for tsk, tsv in series_dict.iteritems()}
 
         # check that indeed has found jobs that fall in this time range
         self.assertGreater(found, 0)
 
         # check of the binned values (see above)
-        self.assertEqual([v for v in calculated_time_series["flops"].values], [777, 333, 222])
+        self.assertEqual([v for v in series_dict["flops"]["values"]], [777, 333, 222])
 
-        # check that the integral is conserved
-        self.assertEqual(sum([v for v in calculated_time_series["flops"].values]), sum([sum(job.time_series["flops"]["values"]) for job in sim_data.jobs]))
 
 if __name__ == "__main__":
     unittest.main()
