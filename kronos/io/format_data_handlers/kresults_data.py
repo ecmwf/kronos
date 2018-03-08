@@ -92,9 +92,6 @@ class KResultsData(object):
                 # Append the profiled job to the "jobs_data" structure
                 jobs_data.append(KResultsJob.from_kresults_file(stats_file_path_abs, decorator=decorator))
 
-        if jobs_data:
-            print "n successful jobs {}/{}".format(len(jobs_data), len(job_dirs))
-
         return cls(jobs=jobs_data, sim_name=sim_name, sim_path=sim_path, n_procs_node=n_procs_node)
 
     def runtime(self):
