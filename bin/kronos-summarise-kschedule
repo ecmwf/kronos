@@ -45,7 +45,7 @@ if __name__ == "__main__":
     # filter jobs to be either listed or summarised
     parser.add_argument("-f", "--filter",
                         type=str,
-                        help="Only jobs with label matcheing this glob are included")
+                        help="Only jobs whose label matches this file-name matching expression are included")
 
     # choose what to do (either list or summarise jobs)
     parser_group = parser.add_mutually_exclusive_group(required=True)
