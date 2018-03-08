@@ -9,12 +9,11 @@
 
 import unittest
 
-import numpy as np
 from kronos.core.post_process.result_signals import ResultProfiledSignal
-from kronos.core.post_process.tests.test_utils import create_kresults
-from kronos.io.format_data_handlers.kresults_job import KResultsJob
-from kronos.io.format_data_handlers.kresults_decorator import KResultsDecorator
 from kronos.io.format_data_handlers.kresults_data import KResultsData
+from kronos.io.format_data_handlers.kresults_decorator import KResultsDecorator
+from kronos.io.format_data_handlers.kresults_job import KResultsJob
+from kronos.io.format_data_handlers.tests.local_test_utils import create_kresults
 
 
 class SimDataTest(unittest.TestCase):
@@ -23,20 +22,20 @@ class SimDataTest(unittest.TestCase):
 
         time_series_2proc = [
             {
-                "flops": np.asarray([0, 111, 0, 111]),
-                "bytes_read": np.asarray([333.3, 0, 0, 1]),
-                "n_read": np.asarray([3, 0, 0, 1]),
-                "bytes_write": np.asarray([0, 444.4, 0, 1]),
-                "n_write": np.asarray([0, 2, 0, 1]),
-                "durations": np.asarray([1.0, 1.0, 1.0, 1.0])
+                "flops": [0, 111, 0, 111],
+                "bytes_read": [333.3, 0, 0, 1],
+                "n_read": [3, 0, 0, 1],
+                "bytes_write": [0, 444.4, 0, 1],
+                "n_write": [0, 2, 0, 1],
+                "durations": [1.0, 1.0, 1.0, 1.0]
             },
             {
-                "flops": np.asarray([222, 0, 0, 222]),
-                "bytes_read": np.asarray([0, 0, 0, 1]),
-                "n_read": np.asarray([0, 0, 0, 1]),
-                "bytes_write": np.asarray([0, 0, 0, 1]),
-                "n_write": np.asarray([0, 0, 0, 1]),
-                "durations": np.asarray([1.0, 1.0, 1.0, 6.0])
+                "flops": [222, 0, 0, 222],
+                "bytes_read": [0, 0, 0, 1],
+                "n_read": [0, 0, 0, 1],
+                "bytes_write": [0, 0, 0, 1],
+                "n_write": [0, 0, 0, 1],
+                "durations": [1.0, 1.0, 1.0, 6.0]
             }
         ]
 
@@ -71,20 +70,20 @@ class SimDataTest(unittest.TestCase):
 
         time_series_2proc = [
             {
-                "flops": np.asarray([0, 111, 0, 111]),
-                "bytes_read": np.asarray([333.3, 0, 0, 1]),
-                "n_read": np.asarray([3, 0, 0, 1]),
-                "bytes_write": np.asarray([0, 444.4, 0, 1]),
-                "n_write": np.asarray([0, 2, 0, 1]),
-                "durations": np.asarray([1.0, 1.0, 1.0, 1.0])
+                "flops": [0, 111, 0, 111],
+                "bytes_read": [333.3, 0, 0, 1],
+                "n_read": [3, 0, 0, 1],
+                "bytes_write": [0, 444.4, 0, 1],
+                "n_write": [0, 2, 0, 1],
+                "durations": [1.0, 1.0, 1.0, 1.0]
             },
             {
-                "flops": np.asarray([222, 0, 0, 222]),
-                "bytes_read": np.asarray([0, 0, 0, 1]),
-                "n_read": np.asarray([0, 0, 0, 1]),
-                "bytes_write": np.asarray([0, 0, 0, 1]),
-                "n_write": np.asarray([0, 0, 0, 1]),
-                "durations": np.asarray([1.0, 1.0, 1.0, 6.0])
+                "flops": [222, 0, 0, 222],
+                "bytes_read": [0, 0, 0, 1],
+                "n_read": [0, 0, 0, 1],
+                "bytes_write": [0, 0, 0, 1],
+                "n_write": [0, 0, 0, 1],
+                "durations": [1.0, 1.0, 1.0, 6.0]
             }
         ]
 

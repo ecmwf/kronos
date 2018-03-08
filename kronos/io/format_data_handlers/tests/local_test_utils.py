@@ -6,7 +6,7 @@
 # granted to it by virtue of its status as an intergovernmental organisation nor
 # does it submit to any jurisdiction.
 
-import numpy as np
+from kronos.shared_tools.shared_utils import mean_of_list
 
 
 def create_kresults_ranks(metrics_calc_all_ranks):
@@ -20,51 +20,48 @@ def create_kresults_ranks(metrics_calc_all_ranks):
     for metrics_calc in metrics_calc_all_ranks:
 
         # CPU
-        idx_cpu = np.where(metrics_calc["flops"] > 0)
-        val_cpu = metrics_calc["flops"][idx_cpu]
-        elapsed_cpu = metrics_calc["durations"][idx_cpu]
+        val_cpu = [v for v in metrics_calc["flops"] if v]
+        elapsed_cpu = [d for d, v in zip(metrics_calc["durations"], metrics_calc["flops"]) if v]
 
         # read
-        idx_read = np.where(metrics_calc["n_read"] > 0)
-        val_bytes_read = metrics_calc["bytes_read"][idx_read]
-        val_n_read = metrics_calc["n_read"][idx_read]
-        elapsed_read = metrics_calc["durations"][idx_read]
+        val_bytes_read = [v for v in metrics_calc["bytes_read"] if v]
+        val_n_read = [v for v in metrics_calc["n_read"] if v]
+        elapsed_read = [d for d, v in zip(metrics_calc["durations"], metrics_calc["bytes_read"]) if v]
 
-        # write
-        idx_write = np.where(metrics_calc["n_write"] > 0)
-        val_bytes_write = metrics_calc["bytes_write"][idx_write]
-        val_n_write = metrics_calc["n_write"][idx_write]
-        elapsed_write = metrics_calc["durations"][idx_write]
+        # # write
+        val_bytes_write = [v for v in metrics_calc["bytes_write"] if v]
+        val_n_write = [v for v in metrics_calc["n_write"] if v]
+        elapsed_write = [d for d, v in zip(metrics_calc["durations"], metrics_calc["bytes_write"]) if v]
 
         stats_calc = {
             "cpu": {
                 "stddevElapsed": -1,  # "-1": used as "not checked/not used for postprocessing.."
-                "sumSquaredElapsed": np.sum(elapsed_cpu * elapsed_cpu),
-                "averageElapsed": np.mean(elapsed_cpu / val_cpu),
-                "elapsed": np.sum(elapsed_cpu),
+                "sumSquaredElapsed": sum([v*v for v in elapsed_cpu]),
+                "averageElapsed": mean_of_list([el/val for el,val in zip(elapsed_cpu, val_cpu) if val]),
+                "elapsed": sum(elapsed_cpu),
                 "count": sum(metrics_calc["flops"])
             },
             "read": {
                 "stddevElapsed": -1,
                 "sumSquaredElapsed": -1,
                 "averageElapsed": sum(elapsed_read) / sum(val_n_read),
-                "elapsed": np.sum(elapsed_read),
+                "elapsed": sum(elapsed_read),
                 "stddevBytes": -1,
                 "sumSquaredBytes": -1,
                 "averageBytes": sum(val_bytes_read) / sum(val_n_read),
-                "bytes": np.sum(val_bytes_read),
-                "count": np.sum(val_n_read)
+                "bytes": sum(val_bytes_read),
+                "count": sum(val_n_read)
             },
             "write": {
                 "stddevElapsed": -1,
                 "sumSquaredElapsed": -1,
                 "averageElapsed": sum(elapsed_write) / sum(val_n_write),
-                "elapsed": np.sum(elapsed_write),
+                "elapsed": sum(elapsed_write),
                 "stddevBytes": -1,
                 "sumSquaredBytes": -1,
                 "averageBytes": sum(val_bytes_write) / sum(val_n_write),
-                "bytes": np.sum(val_bytes_write),
-                "count": np.sum(val_n_write)
+                "bytes": sum(val_bytes_write),
+                "count": sum(val_n_write)
             },
         }
 
@@ -107,20 +104,20 @@ def create_kresults(list_metrics, creation_date=None):
     Creates a dummy KResults from a list of dictionaries, format example below..:
     [
       {
-        "flops":       np.asarray([0,0,0,1]),
-        "bytes_read":  np.asarray([0,0,0,1]),
-        "n_read":      np.asarray([0,0,0,1]),
-        "bytes_write": np.asarray([0,0,0,1]),
-        "n_write":     np.asarray([0,0,0,1]),
-        "durations":   np.asarray([0.1,0.22,0.33,0.22])
+        "flops":       asarray([0,0,0,1],
+        "bytes_read":  asarray([0,0,0,1],
+        "n_read":      asarray([0,0,0,1],
+        "bytes_write": asarray([0,0,0,1],
+        "n_write":     asarray([0,0,0,1],
+        "durations":   asarray([0.1,0.22,0.33,0.22]
       },
       {
-        "flops":       np.asarray([0,0,0,1]),
-        "bytes_read":  np.asarray([0,0,0,1]),
-        "n_read":      np.asarray([0,0,0,1]),
-        "bytes_write": np.asarray([0,0,0,1]),
-        "n_write":     np.asarray([0,0,0,1]),
-        "durations":   np.asarray([0.1,0.22,0.33,0.22])
+        "flops":       asarray([0,0,0,1],
+        "bytes_read":  asarray([0,0,0,1],
+        "n_read":      asarray([0,0,0,1],
+        "bytes_write": asarray([0,0,0,1],
+        "n_write":     asarray([0,0,0,1],
+        "durations":   asarray([0.1,0.22,0.33,0.22]
       },
       {
         ...
