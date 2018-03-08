@@ -13,6 +13,18 @@ This tool analyses the results of a Kronos run and exports plots/tables of
 relevant metrics. For full list of options of the configuration file,
 run the kronos tool "kronos-format-config-export".
 
+Usage examples:
+
+ 1. Produce the analysis outputs as specified in the config.json.
+
+   > kronos-analyse-results config.json
+
+ 2. Produce the analysis outputs as specified in the config.json and print information about job "classes"
+ that are specified in the config.json (i.e. which job classes include jobs from each kronos run specified
+ in the config.json):
+
+   > kronos-analyse-results config.json
+
 """
 
 import argparse
@@ -28,7 +40,7 @@ if __name__ == "__main__":
     # Read other arguments if present..
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawTextHelpFormatter)
     parser.add_argument('export_config', help="Analysis configuration file")
-    parser.add_argument('--print_sim_info', "-p", help="Print simulation info on screen", action='store_true')
+    parser.add_argument('--print_job_classes', "-p", help="Print simulation info on screen", action='store_true')
 
     # print the help if no arguments are passed
     if len(sys.argv) == 1:
@@ -50,12 +62,12 @@ if __name__ == "__main__":
 
     # Retrieve job classes common for all the simulation in the set
     common_job_classes = sim_set.retrieve_common_job_classes(config.job_classes)
-    print "common_job_classes: {}".format(common_job_classes)
+    print "==== Job classes shared by all simulations: ====\n{}".format( "\n".join(common_job_classes.keys()) )
 
     # calculate statistics on the common job classes
     sim_set.calculate_class_stats_sums(common_job_classes)
 
-    if args.print_sim_info:
+    if args.print_job_classes:
         for sim in sim_set.sims:
             sim.print_job_classes_info(common_job_classes)
 
