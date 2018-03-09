@@ -136,41 +136,41 @@ class SimDataTest(unittest.TestCase):
         # check of the binned values (see above)
         self.assertEqual([v for v in series_dict["flops"]["values"]], [777, 333, 222])
 
-    def test_class_stats_sums_function(self):
-
-        time_series_2proc = [
-            {
-                "flops": [0, 111, 0, 111],
-                "bytes_read": [333.3, 0, 0, 1],
-                "n_read": [3, 0, 0, 1],
-                "bytes_write": [0, 444.4, 0, 1],
-                "n_write": [0, 2, 0, 1],
-                "durations": [1.0, 1.0, 1.0, 1.0]
-            },
-            {
-                "flops": [222, 0, 0, 222],
-                "bytes_read": [0, 0, 0, 1],
-                "n_read": [0, 0, 0, 1],
-                "bytes_write": [0, 0, 0, 1],
-                "n_write": [0, 0, 0, 1],
-                "durations": [1.0, 1.0, 1.0, 6.0]
-            }
-        ]
-
-        # crete kresults data (job-0)
-        kresults_json_data_0 = create_kresults(time_series_2proc, creation_date="2017-07-31T01:28:42+00:00")
-        decor_data = KResultsDecorator(workload_name="workload_1/something_else/parallel", job_name="test_job_0")
-        kresults_data_0 = KResultsJob(kresults_json_data_0, decorator_data=decor_data)
-
-        # crete kresults data (job-1)
-        kresults_json_data_1 = create_kresults(time_series_2proc, creation_date="2017-07-31T01:28:44+00:00")
-        decor_data = KResultsDecorator(workload_name="workload_1/something_else/parallel", job_name="test_job_1")
-        kresults_data_1 = KResultsJob(kresults_json_data_1, decorator_data=decor_data)
-
-        # instantiate the sim_data object
-        sim_data = KResultsData(jobs=[kresults_data_0, kresults_data_1], sim_name="dummy_sim", n_procs_node=36)
-
-        # sim_data.class_stats_sums()
+    # def test_class_stats_sums_function(self):
+    #
+    #     time_series_2proc = [
+    #         {
+    #             "flops": [0, 111, 0, 111],
+    #             "bytes_read": [333.3, 0, 0, 1],
+    #             "n_read": [3, 0, 0, 1],
+    #             "bytes_write": [0, 444.4, 0, 1],
+    #             "n_write": [0, 2, 0, 1],
+    #             "durations": [1.0, 1.0, 1.0, 1.0]
+    #         },
+    #         {
+    #             "flops": [222, 0, 0, 222],
+    #             "bytes_read": [0, 0, 0, 1],
+    #             "n_read": [0, 0, 0, 1],
+    #             "bytes_write": [0, 0, 0, 1],
+    #             "n_write": [0, 0, 0, 1],
+    #             "durations": [1.0, 1.0, 1.0, 6.0]
+    #         }
+    #     ]
+    #
+    #     # crete kresults data (job-0)
+    #     kresults_json_data_0 = create_kresults(time_series_2proc, creation_date="2017-07-31T01:28:42+00:00")
+    #     decor_data = KResultsDecorator(workload_name="workload_1/something_else/parallel", job_name="test_job_0")
+    #     kresults_data_0 = KResultsJob(kresults_json_data_0, decorator_data=decor_data)
+    #
+    #     # crete kresults data (job-1)
+    #     kresults_json_data_1 = create_kresults(time_series_2proc, creation_date="2017-07-31T01:28:44+00:00")
+    #     decor_data = KResultsDecorator(workload_name="workload_1/something_else/parallel", job_name="test_job_1")
+    #     kresults_data_1 = KResultsJob(kresults_json_data_1, decorator_data=decor_data)
+    #
+    #     # instantiate the sim_data object
+    #     sim_data = KResultsData(jobs=[kresults_data_0, kresults_data_1], sim_name="dummy_sim", n_procs_node=36)
+    #
+    #     # sim_data.class_stats_sums()
 
 
 
