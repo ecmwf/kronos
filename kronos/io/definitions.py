@@ -28,6 +28,7 @@ kresults_stats_info = OrderedDict((
              "label_metric": "count",
              "to_sum": ["count", "elapsed"],
              "def_rate": ["count", "elapsed"],
+             "per_process": []
              }),
 
     ("read", {"conv": 1.0/1024.0**3,
@@ -36,6 +37,7 @@ kresults_stats_info = OrderedDict((
               "label_metric": "bytes",
               "to_sum": ["count", "elapsed", "bytes"],
               "def_rate": ["bytes", "elapsed"],
+              "per_process": []
               }),
 
     ("write", {"conv": 1.0/1024.0**3,
@@ -44,6 +46,7 @@ kresults_stats_info = OrderedDict((
                "label_metric": "bytes",
                "to_sum": ["count", "elapsed", "bytes"],
                "def_rate": ["bytes", "elapsed"],
+               "per_process": []
                }),
 
     ("mpi-pairwise", {"conv": 1.0/1024.0**3,
@@ -52,6 +55,7 @@ kresults_stats_info = OrderedDict((
                       "label_metric": "bytes",
                       "to_sum": ["count", "elapsed", "bytes"],
                       "def_rate": ["bytes", "elapsed"],
+                      "per_process": ["bytes", "count"]
                       }),
 
     ("mpi-collective", {"conv": 1.0/1024.0**3,
@@ -60,6 +64,7 @@ kresults_stats_info = OrderedDict((
                         "label_metric": "bytes",
                         "to_sum": ["count", "elapsed", "bytes"],
                         "def_rate": ["bytes", "elapsed"],
+                        "per_process": ["bytes", "count"]
                         })
 ))
 
