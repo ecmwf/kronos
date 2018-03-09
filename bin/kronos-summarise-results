@@ -10,7 +10,11 @@
 """
 
 Tool that generates a summary of a Kronos run. It shows total amount of "work" (defined as CPU, MPI, I/O operations)
-on a per-job class basis. Job classes are defined
+and total elapsed time to perform the work on a per-job-class basis. job classes can be specified through --filter option
+
+Example usage
+
+  > kronos-summarise-results <path-to-kronos-run> --filter ".*parallel"
 
 """
 
