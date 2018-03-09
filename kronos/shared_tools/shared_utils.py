@@ -8,6 +8,8 @@
 import math
 import datetime
 
+from kronos.io.definitions import kresults_stats_info
+
 
 def add_value_to_sublist(_list, idx1, idx2, val):
 
@@ -76,3 +78,47 @@ def calc_histogram(values, n_bins):
                 raise IndexError
 
         return bins, binned_vals
+
+
+def print_formatted_class_stats(class_name, per_class_job_stats):
+
+    # Show summary per class
+    _fl = 15
+    n_fields = 3
+
+    ordered_keys = [
+        "read",
+        "write",
+        "mpi-collective",
+        "mpi-pairwise",
+        "cpu"
+    ]
+
+    # get the stats for this class (if present..)
+    class_stats = per_class_job_stats.get(class_name)
+
+    if class_stats:
+
+        # Header
+        print "{}".format("-" * (_fl + 1) * n_fields)
+        print "{:<{l}s}|{:^{l}s}|{:^{l}s}|".format("Name", "Total [G/GiB]", "Total Time", l=_fl)
+        print "{}".format("-" * (_fl + 1) * n_fields)
+
+        # Print the relevant metrics for each stats class
+        for k in ordered_keys:
+
+            if k in class_stats.keys():
+                v = class_stats[k]
+                stats_metric_info = kresults_stats_info[k]
+
+                # retrieve the relevant info from the metric type
+                counter_to_print = v[stats_metric_info["label_metric"]]
+                conv_fact = stats_metric_info["conv"]
+                elaps_time = v["elapsed"]
+
+                print "{:<{l}s}|{:>{l}.0f}|{:>{l}.0f}|".format(k, counter_to_print * conv_fact, elaps_time, l=_fl)
+
+        # h-line
+        print "{}".format("-" * (_fl + 1) * n_fields)
+    else:
+        print "\n\n*** Warning ***: no jobs found for class {}".format(class_name)
