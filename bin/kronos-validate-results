@@ -9,6 +9,10 @@
 
 """
 
+============================================================================
+       **DEVELOPMENT TOOL** - USAGE OF THIS TOOL IS UNSUPPORTED
+============================================================================
+
 Script that checks if Kronos has executed a specific metrics as prescribed by the KSchedule file.
 It loops over the job output folders, it sums all the values of the selected metric found
 in the .KResults files and compares the sum with the sum retrieved from the KSchedule file
@@ -35,7 +39,7 @@ if __name__ == "__main__":
     testable_metrics = signal_types.keys()
     testable_metrics.pop(testable_metrics.index("kb_read"))
     testable_metrics.pop(testable_metrics.index("n_read"))
-    parser.add_argument("--metrics", choices=testable_metrics+["all"], nargs='+')
+    parser.add_argument("--metrics", choices=testable_metrics+["all"], default=["all"], nargs='+')
 
     # print the help if no arguments are passed
     if len(sys.argv) == 1:
