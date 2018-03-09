@@ -5,7 +5,6 @@
 # In applying this licence, ECMWF does not waive the privileges and immunities 
 # granted to it by virtue of its status as an intergovernmental organisation nor
 # does it submit to any jurisdiction.
-import fnmatch
 import re
 
 from kronos.core.app_kernels import available_kernels
@@ -101,7 +100,7 @@ class KScheduleData(ScheduleFormat):
         if not re_expression:
             return self.synapp_data
         else:
-            return [job for job in self.synapp_data if re.match(fnmatch.translate(re_expression), job["metadata"]["workload_name"])]
+            return [job for job in self.synapp_data if re.match(re_expression, job["metadata"]["workload_name"])]
 
     def list_job_names(self, regex=None):
         jobs = self.synapp_data if not regex else self.filter_jobs(regex)
