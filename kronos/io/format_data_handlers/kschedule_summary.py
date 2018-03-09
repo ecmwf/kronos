@@ -49,21 +49,21 @@ class KScheduleDataSummary(object):
         _summary = "STATISTICS OVER {} {}S\n".format(len(_series), self.aggregation_unit.upper())
 
         _summary += "\nMain Statistics\n"
-        _summary += "{:{_f}}:{:{_f}} [{}]\n".format("sum", sum(_series), _units, _f=self._format_len)
-        _summary += "{:{_f}}:{:{_f}} [{}]\n".format("max", max(_series), _units, _f=self._format_len)
-        _summary += "{:{_f}}:{:{_f}} [{}]\n".format("min", min(_series), _units, _f=self._format_len)
-        _summary += "{:{_f}}:{:{_f}} [{}]\n".format("avg", mean_of_list(_series), _units, _f=self._format_len)
-        _summary += "{:{_f}}:{:{_f}} [{}]\n".format("std", std_of_list(_series), _units, _f=self._format_len)
+        _summary += "{:{_f}}:{:{_f}.0f} [{}]\n".format("sum", sum(_series), _units, _f=self._format_len)
+        _summary += "{:{_f}}:{:{_f}.0f} [{}]\n".format("max", max(_series), _units, _f=self._format_len)
+        _summary += "{:{_f}}:{:{_f}.0f} [{}]\n".format("min", min(_series), _units, _f=self._format_len)
+        _summary += "{:{_f}}:{:{_f}.0f} [{}]\n".format("avg", mean_of_list(_series), _units, _f=self._format_len)
+        _summary += "{:{_f}}:{:{_f}.0f} [{}]\n".format("std", std_of_list(_series), _units, _f=self._format_len)
 
         _summary += "\nSize Distribution [{}]\n".format(_units)
-        _summary += "{}\n".format("".join(["-"] * 43))
+        _summary += "{}\n".format("".join(["-"] * (2*self._format_len+3)))
         _summary += "[{:^{_f}},{:^{_f}}]\n".format("From", "To", _f=self._format_len)
-        _summary += "{}\n".format("".join(["-"]*43))
+        _summary += "{}\n".format("".join(["-"]*(2*self._format_len+3)))
 
         bins, vals = self.ksf_data.get_distribution(_series, n_bins=self.n_bins)
 
         for bb in range(len(bins) - 1):
-            _summary += "[{:{format_len}},{:{format_len}}] -> {}\n".format(bins[bb], bins[bb + 1], vals[bb], format_len=self._format_len)
+            _summary += "[{:{format_len}.0f},{:{format_len}.0f}] -> {}\n".format(bins[bb], bins[bb + 1], vals[bb], format_len=self._format_len)
 
         return _summary
 
