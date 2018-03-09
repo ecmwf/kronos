@@ -247,7 +247,7 @@ class KResultsJobsTest(unittest.TestCase):
         self.assertEqual(kresults_data.n_cpu, len(kresults_json_data["ranks"]))
 
         # is in class
-        self.assertTrue( kresults_data.is_in_class("workload_1/*/parallel"))
+        self.assertTrue( kresults_data.is_in_class("^workload_1/.*/parallel"))
 
     def test_kresults_time_series(self):
         """
