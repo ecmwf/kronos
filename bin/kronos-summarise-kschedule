@@ -9,22 +9,46 @@
 
 """
 
-Tool to show information of a kronos schedule file (KSchedule)
+Tool that shows information of a kronos schedule file (KSchedule).
+------------------------------------------------------------------
+
+Two main functionalties are provided:
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+1. Jobs in the kschedule can be "listed" according to their "labels" as defined in the kschedule (--list option)
+   A regex expression can be used to select a subset of jobs (--filter=<expression>)
+
+2. Produce a summary for the different types of operations that are performed by the
+   selected jobs ( --summary=<summary type>). In particular, the summary type defines the level of granularity
+   at which statistics are aggregated. Summary types are listed here below:
+
+     - "job": Aggregation is "per job"
+
+     - "kernel": Aggregation is "per kernel" (each job contains a series of "kernels" which define "work" to be
+       distributed among processes - "work" is here intended as a defined amount of CPU, MPI or IO operations)
+
+     - "process": Aggregation is "per process" (this aggregation takes into account how kernel "work" is
+       distributed among the processes of the application
+
+     - "call": Aggregation is per system call. This is the lowest level of granularity and is used to check the
+       distribution of "work" per call (e.g. IO bytes written per IO write call).
+
 Examples of usage:
+~~~~~~~~~~~~~~~~~~
 
  > kronos-summarise-kschedule dummy.kschedule --list
    (lists all jobs in the KSF)
 
- - kronos-summarise-kschedule dummy.kschedule -f=*serial --list
-   (lists all jobs whose label matches the glob expression *serial)
+ > kronos-summarise-kschedule dummy.kschedule -f=".*serial" --list
+   (lists all jobs whose label matches the regex expression ".*serial")
 
- - kronos-summarise-kschedule dummy.kschedule -f=*serial --summary=job --metrics kb_write flops
+ > kronos-summarise-kschedule dummy.kschedule -f=".*serial" --summary=job --metrics kb_write flops
    (prints statistics (aggregated per "job") of all jobs whose label matches the ...
-   glob expression *serial - for metrics "kb_write" and "flops")
+   regex expression ".*serial" - for metrics "kb_write" and "flops")
 
- - kronos-summarise-kschedule dummy.kschedule -f=*serial --summary=kernel --metrics kb_write flops
+ > kronos-summarise-kschedule dummy.kschedule -f=".*serial" --summary=kernel --metrics kb_write flops
    (prints statistics (aggregated per "kernel") of all jobs whose label matches the ...
-   glob expression *serial - for metrics "kb_write" and "flops")
+   regex expression ".*serial" - for metrics "kb_write" and "flops")
 
 """
 
@@ -60,6 +84,7 @@ if __name__ == "__main__":
 
     parser.add_argument("-m", "--metrics",
                         choices=signal_types.keys()+["all"],
+                        default=["all"],
                         nargs='*')
 
     parser.add_argument("-b", "--nbins",
@@ -79,7 +104,7 @@ if __name__ == "__main__":
         raise RuntimeError("summary specified but metric name missing!")
 
     if args.list and args.metrics:
-        raise RuntimeError("metrics option valid only for 'summary'!")
+        print "metrics option ignored - valid only for 'summary' - "
 
     if args.list and args.nbins:
         raise RuntimeError("bins option valid only for 'summary'!")
