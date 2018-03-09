@@ -83,7 +83,7 @@ def calc_histogram(values, n_bins):
 def print_formatted_class_stats(class_name, per_class_job_stats):
 
     # Show summary per class
-    _fl = 15
+    _fl = 18
     n_fields = 3
 
     ordered_keys = [
@@ -116,9 +116,9 @@ def print_formatted_class_stats(class_name, per_class_job_stats):
                 conv_fact = stats_metric_info["conv"]
                 elaps_time = v["elapsed"]
 
-                print "{:<{l}s}|{:>{l}.0f}|{:>{l}.0f}|".format(k, counter_to_print * conv_fact, elaps_time, l=_fl)
+                print "{:<{l}s}|{:>{l}.2f}|{:>{l}.2f}|".format(k, counter_to_print * conv_fact, elaps_time, l=_fl)
 
         # h-line
         print "{}".format("-" * (_fl + 1) * n_fields)
     else:
-        print "\n\n*** Warning ***: no jobs found for class {}".format(class_name)
+        print "\n\n*** Warning ***: no jobs found in class"
