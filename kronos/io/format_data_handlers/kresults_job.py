@@ -5,7 +5,6 @@
 # In applying this licence, ECMWF does not waive the privileges and immunities 
 # granted to it by virtue of its status as an intergovernmental organisation nor
 # does it submit to any jurisdiction.
-import fnmatch
 import re
 from datetime import datetime
 
@@ -177,22 +176,7 @@ class KResultsJob(object):
         if not self.name:
             return False
 
-        # otherwise check if job.label matches the class name
-        else:
-
-            name_match = re.match(fnmatch.translate(class_regex), self.label)
-
-            # return class_name in self.label and class_sp in self.label
-            found_match = True if name_match else False
-
-            # if found_match:
-            #     print "------------------"
-            #     print "self.label ", self.label
-            #     print "class_regex ", class_regex
-            #     print found_match
-            #     print "------------------"
-
-            return found_match
+        return True if re.match(class_regex, self.label) else False
 
     def get_class_name(self, class_list):
         """
