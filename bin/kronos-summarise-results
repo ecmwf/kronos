@@ -9,8 +9,8 @@
 
 """
 
-Tool that generates a summary of a Kronos run. It shows the rates of the
-kernel operations (CPU/MPI/IO) on a per-job class basis.
+Tool that generates a summary of a Kronos run. It shows total amount of "work" (defined as CPU, MPI, I/O operations)
+on a per-job class basis. Job classes are defined
 
 """
 
@@ -18,59 +18,8 @@ import argparse
 import os
 import sys
 
-from kronos.io.definitions import kresults_stats_info
 from kronos.io.format_data_handlers.kresults_data import KResultsData
-
-job_classes = {
-               "ini_serial": "main/fc/inigroup/*/serial",
-               "ini_parallel": "main/fc/inigroup/*/parallel",
-               "getini_leg_parallel": "main/fc/ensemble/cf/control/legA/getiniLeg/*parallel",
-               "chunk0_parallel": "main/fc/ensemble/cf/control/legA/chunk0/*parallel",
-               "ensamble_cf_serial": "main/fc/ensemble/cf/*/serial",
-               "ensamble_pf_serial": "main/fc/ensemble/pf/*/serial",
-               "ensamble_pf_getinileg_serial": "main/fc/ensemble/pf/*/legA/getiniLeg/*parallel",
-               "ensamble_pf_modelepsnemo_parallel": "main/fc/ensemble/pf/*/legA/chunk0/modeleps_nemo/*parallel",
-               "ensemble_logfiles_serial": "main/fc/ensemble/logfiles/*serial",
-               "main_lag_serial": "main/fc/lag/*serial"
-              }
-
-
-def print_formatted_class_stats(class_name, per_class_job_stats):
-
-    # Show summary per class
-    _fl = 20
-    n_fields = 3
-
-    # get the stats for this class (if present..)
-    class_stats = per_class_job_stats.get(class_name)
-
-    if class_stats:
-
-        # Class name
-        print "\n\n{}".format("-" * (_fl + 1) * n_fields)
-        print "{:^{l}s}|".format("class: " + class_name, l=(_fl + 1) * n_fields - 1)
-        print "{}".format("-" * (_fl + 1) * n_fields)
-
-        # Header
-        print "{:<{l}s}|{:^{l}s}|{:^{l}s}|".format("Name", "Total [G/GiB]", "Total Time", l=_fl)
-        print "{}".format("-" * (_fl + 1) * n_fields)
-
-        # Print the relevant metrics for each stats class
-        for k, v in class_stats.iteritems():
-
-            stats_metric_info = kresults_stats_info[k]
-
-            # retrieve the relevant info from the metric type
-            counter_to_print = v[stats_metric_info["label_metric"]]
-            conv_fact = stats_metric_info["conv"]
-            elaps_time = v["elapsed"]
-
-            print "{:<{l}s}|{:>{l}}|{:>{l}}|".format(k, counter_to_print * conv_fact, elaps_time, l=_fl)
-
-        print "{}".format("-" * (_fl + 1) * n_fields)
-    else:
-        print "\n\n*** Warning ***: no jobs found for class {}".format(class_name)
-
+from kronos.shared_tools.shared_utils import print_formatted_class_stats
 
 if __name__ == "__main__":
 
@@ -81,17 +30,14 @@ if __name__ == "__main__":
                         type=str,
                         help="Path of the kronos output folder 'job_dir' (path that contains job-<ID> sub-folders..)")
 
-    parser.add_argument("--permissive",
+    parser.add_argument("-p", "--permissive",
                         help="If set, it skips the check on the number of successful jobs",
                         action='store_true')
 
-    parser.add_argument("--rdx1_classes",
-                        help="If set, uses the classes pre-defined for the rdx1 benchmark",
-                        action='store_true')
-
-    parser.add_argument("--show_jobs",
-                        help="If set, shows which class each job falls into",
-                        action='store_true')
+    parser.add_argument("-f", "--filter",
+                        type=str,
+                        help="A regex expression to select jobs according to their 'labels'"
+                        )
 
     # print the help if no arguments are passed
     if len(sys.argv) == 1:
@@ -112,34 +58,23 @@ if __name__ == "__main__":
         print "Specified path does not contain any job folder (<job-ID>..)!"
         sys.exit(1)
 
-    # set the job_classes
-    job_classes = job_classes if args.rdx1_classes else {}
-
     # read simulation data
     simulation_tag = "kronos-sim"
-    sim_data = KResultsData.read_from_sim_paths(args.job_dir,
-                                                simulation_tag,
-                                                permissive=args.permissive)
-
-    # print some info on the classification of the jobs in the simulation (if requested)
-    sim_data.print_job_classes_info(job_classes, args.show_jobs if args.show_jobs else False)
+    sim_data = KResultsData.read_from_sim_paths(args.job_dir, simulation_tag, permissive=args.permissive)
 
     # job statistics per class..
-    per_class_job_stats = sim_data.class_stats_sums(job_classes)
+    filter = {"filtered_jobs": args.filter} if args.filter else {}
+    per_class_job_stats = sim_data.class_stats_sums(filter)
 
     # ///////////////////// print summary ////////////////////////
     print "{:<52s}".format("\n\nPERFORMANCE SUMMARY:\n")
 
     # overall runtime
-    print "Total Runtime [s]: {:20.2f}".format(sim_data.runtime())
+    print "Total Simulation Runtime [s]: {:20.2f} \n".format(sim_data.runtime())
 
-    # loop over all the classes found (including "generic_class")
-    for class_name in per_class_job_stats.keys():
-        if class_name != "all_classes" and class_name != "generic_class":
-            print_formatted_class_stats(class_name, per_class_job_stats)
-
-    # print stats for the generic class
-    print_formatted_class_stats("generic_class", per_class_job_stats)
-
-    # print stats for the generic class
-    print_formatted_class_stats("all_classes", per_class_job_stats)
+    if args.filter:
+        print "Statistics for jobs matching regex filter: {}".format(args.filter)
+        print_formatted_class_stats("filtered_jobs", per_class_job_stats)
+    else:
+        print "Statistics for all jobs"
+        print_formatted_class_stats("generic_class", per_class_job_stats)
