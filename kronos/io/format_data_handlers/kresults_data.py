@@ -121,7 +121,7 @@ class KResultsData(object):
 
             # add this job to any class that the job belongs to..
             for class_name in job_owner_classes:
-                per_class_stats.setdefault(class_name, []).extend(job.get_stats())
+                per_class_stats.setdefault(class_name, []).append(job.get_stats())
 
         return per_class_stats
 
@@ -131,8 +131,7 @@ class KResultsData(object):
         :return:
         """
 
-        # calculate all the stats for each job class
-        per_class_stats = self.class_stats(job_classes)
+        # --------------------------- initialisation ---------------------------
 
         # init class stats sum structure
         per_class_stats_sums = {}
@@ -140,24 +139,35 @@ class KResultsData(object):
         # add a key that contains metric rates from all the classes
         _all_class_stats_dict = {stat_metric: {field: 0.0 for field in kresults_stats_info[stat_metric]["to_sum"]}
                                  for stat_metric in kresults_stats_info.keys()}
+        # ----------------------------------------------------------------------
 
-        # update stats sums
+        # calculate all the stats for each job class (per_class_stats is a list of lists - one list per job..)
+        per_class_stats = self.class_stats(job_classes)
+
+        # loop over statistics per class
         for class_name, stats_list in per_class_stats.iteritems():
 
             # initialize all the requested sums..
             _class_stats_dict = {stat_metric: {field: 0.0 for field in kresults_stats_info[stat_metric]["to_sum"]}
                                  for stat_metric in kresults_stats_info.keys()}
 
-            # loop over stats and make the sums
-            for stat_entry in stats_list:
-                for stat_metric in stat_entry.keys():
-                    for field in kresults_stats_info[stat_metric]["to_sum"]:
+            # loop over stats (per job) and make the sums
+            for job_stats in stats_list:
+                for stat_entry in job_stats:
+                    for stat_metric in stat_entry.keys():
+                        for field in kresults_stats_info[stat_metric]["to_sum"]:
 
-                        # add the summable metrics to class stats
-                        _class_stats_dict[stat_metric][field] += float(stat_entry[stat_metric][field])
+                            if field in kresults_stats_info[stat_metric].get("per_process", []):
+                                n_procs = len(job_stats)
+                                val = float(stat_entry[stat_metric][field])/float(n_procs)
+                            else:
+                                val = float(stat_entry[stat_metric][field])
 
-                        # add the summable metrics to all-class stats
-                        _all_class_stats_dict[stat_metric][field] += float(stat_entry[stat_metric][field])
+                            # add the summable metrics to class stats
+                            _class_stats_dict[stat_metric][field] += val
+
+                            # add the summable metrics to all-class stats
+                            _all_class_stats_dict[stat_metric][field] += val
 
             # Filter the fields for which aggregated time is still 0 (no operations have been summed up)
             for stat_metric in _class_stats_dict.keys():
