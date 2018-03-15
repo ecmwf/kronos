@@ -83,13 +83,13 @@ if __name__ == "__main__":
                               type=str)
 
     parser.add_argument("-m", "--metrics",
+                        help="name of metrics to summarise (default = 'all')",
                         choices=signal_types.keys()+["all"],
-                        default=["all"],
                         nargs='*')
 
     parser.add_argument("-b", "--nbins",
                         type=int,
-                        help="Nbins for distributions")
+                        help="Nbins for distributions (default = 10)")
 
     # print the help if no arguments are passed
     if len(sys.argv) == 1:
@@ -99,15 +99,15 @@ if __name__ == "__main__":
     # parse the arguments..
     args = parser.parse_args()
 
-    # some checks:
-    if args.summary and not args.metrics:
-        raise RuntimeError("summary specified but metric name missing!")
-
+    # Some checks:
     if args.list and args.metrics:
-        print "metrics option ignored - valid only for 'summary' - "
+        print "'--metrics' option ignored (only valid with '--summary')"
 
     if args.list and args.nbins:
-        raise RuntimeError("bins option valid only for 'summary'!")
+        print "'--nbins' option ignored (only valid with '--summary')"
+
+    if args.summary and not args.metrics:
+        args.metrics = ["all"]  # set the default here..
 
     # get the data from the schedule..
     kschedule_data = KScheduleData.from_filename(args.kschedule)
