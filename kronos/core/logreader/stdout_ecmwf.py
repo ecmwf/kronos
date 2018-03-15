@@ -6,14 +6,14 @@
 # granted to it by virtue of its status as an intergovernmental organisation nor
 # does it submit to any jurisdiction.
 
-import re
-import datetime
 import calendar
+import datetime
+import re
 
 from kronos.core.jobs import IngestedJob, ModelJob
 from kronos.core.logreader.base import LogReader
 from kronos.core.logreader.dataset import IngestedDataSet
-from kronos.core.kronos_tools.print_colour import print_colour
+from kronos.shared_tools.print_colour import print_colour
 
 
 class StdoutECMWFIngestedJob(IngestedJob):

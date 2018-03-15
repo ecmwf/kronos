@@ -2,22 +2,22 @@
     "$schema": "http://json-schema.org/draft-04/schema",
     "type": "object" ,
     "title": "Kronos Schedule Format",
-    "description": "The Kronos Schedule Format (KSF) is a standardised interchange format for output scheduling and modelling data from Kronos",
+    "description": "The Kronos Schedule Format (KSchedule) is a standardised interchange format for output scheduling and modelling data from Kronos",
     "additionalProperties": false,
     "properties": {
         "version" : {
             "type": "number",
             "enum": [1, %(kronos-version)s],
-            "description": "Version number of the KSF format"
+            "description": "Version number of the KSchedule format"
         },
         "tag": {
             "enum": ["%(kronos-magic)s"],
-            "description": "Magic value to help test validity of KSF file"
+            "description": "Magic value to help test validity of KSchedule file"
         },
         "created": {
             "type": "string",
             "format": "date-time",
-            "description": "A timestamp for creation of the KSF file"
+            "description": "A timestamp for creation of the KSchedule file"
         },
         "uid": {
             "type": "integer",
@@ -26,208 +26,260 @@
         "jobs": {
             "type": "array",
             "description": "Description of synthetic applications",
+            "additionalProperties": false,
             "items": {
                 "type": "object",
-                "properties": {
-                    "metadata": {
+                "oneOf": [
+                    {
                         "type": "object",
-                        "description": "job metadata",
                         "properties": {
-                            "job_name":{
-                                "type": "string",
-                                "description": "job name"
-                            },
-                            "workload_name":{
-                                "type": "string",
-                                "description": "workload name"
-                            }
-                        }
-                    },
-                    "repeat": {
-                        "type": "number",
-                        "description": "Number of times this job should be duplicated"
-                    },
-                    "start_delay":{
-                        "type": "number",
-                        "description": "job start delay (in sec) relative to the first job"
-                    },
-                    "num_procs": {
-                        "type": "number",
-                        "description": "number of processes that the job will run on"
-                    },
-                    "depends": {
-                        "type": "array",
-                        "description": "A list of job IDs that must be completed before this job runs",
-                        "items": {
-                            "type": "integer",
-                            "minimum": 0
-                        }
-                    },
-                    "frames": {
-                        "type": "array",
-                        "description": "set of Frames at which the instructions of the synthetic apps are executed",
-                        "items": {
-                            "type":"array",
-                            "description": "single Frame",
-                            "items": {
+                            "metadata": {
                                 "type": "object",
-                                "oneOf": [
-                                    {
-                                        "type": "object",
-                                        "description": "kernel to execute CPU instructions",
-                                        "properties": {
-                                            "name": {
-                                                "type": "string",
-                                                "description": "type of kernel",
-                                                "enum": [
-                                                    "cpu"
-                                                ]
-                                            },
-                                            "flops": {
-                                                "type": "number",
-                                                "description": "Number of flops to execute"
-                                            }
-                                        },
-                                        "required": [
-                                            "name",
-                                            "flops"
-                                        ]
+                                "description": "job metadata",
+                                "properties": {
+                                    "job_name": {
+                                        "type": "string",
+                                        "description": "job name"
                                     },
-                                    {
+                                    "workload_name": {
+                                        "type": "string",
+                                        "description": "workload name"
+                                    }
+                                }
+                            },
+                            "repeat": {
+                                "type": "number",
+                                "description": "Number of times this job should be duplicated"
+                            },
+                            "start_delay": {
+                                "type": "number",
+                                "description": "job start delay (in sec) relative to the first job"
+                            },
+                            "num_procs": {
+                                "type": "number",
+                                "description": "number of processes that the job will run on"
+                            },
+                            "depends": {
+                                "type": "array",
+                                "description": "A list of job IDs that must be completed before this job runs",
+                                "items": {
+                                    "type": "integer",
+                                    "minimum": 0
+                                }
+                            },
+                            "frames": {
+                                "type": "array",
+                                "description": "set of Frames at which the instructions of the synthetic apps are executed",
+                                "items": {
+                                    "type": "array",
+                                    "description": "single Frame",
+                                    "items": {
                                         "type": "object",
-                                        "description": "kernel to execute MPI instructions",
-                                        "properties": {
-                                            "name": {
-                                                "type": "string",
-                                                "description": "type of kernel",
-                                                "enum": [
-                                                    "mpi"
+                                        "oneOf": [
+                                            {
+                                                "type": "object",
+                                                "description": "kernel to execute CPU instructions",
+                                                "properties": {
+                                                    "name": {
+                                                        "type": "string",
+                                                        "description": "type of kernel",
+                                                        "enum": [
+                                                            "cpu"
+                                                        ]
+                                                    },
+                                                    "flops": {
+                                                        "type": "number",
+                                                        "description": "Number of flops to execute"
+                                                    }
+                                                },
+                                                "required": [
+                                                    "name",
+                                                    "flops"
                                                 ]
                                             },
-                                            "kb_collective": {
-                                                "type": "number",
-                                                "description": "Number of Kb for collective MPI operations"
-                                            },
-                                            "kb_pairwise": {
-                                                "type": "number",
-                                                "description": "Number of Kb for p2p MPI operations"
-                                            },
-                                            "n_collective": {
-                                                "type": "integer",
-                                                "description": "Number of collective MPI operations"
-                                            },
-                                            "n_pairwise": {
-                                                "type": "integer",
-                                                "description": "Number of p2p MPI operations"
-                                            }
-                                        },
-                                        "required": [
-                                            "name",
-                                            "kb_collective",
-                                            "kb_pairwise",
-                                            "n_collective",
-                                            "n_pairwise"
-                                        ]
-                                    },
-                                    {
-                                        "type": "object",
-                                        "description": "kernel to execute IO-read instructions",
-                                        "properties": {
-                                            "name": {
-                                                "type": "string",
-                                                "description": "type of kernel",
-                                                "enum": [
-                                                    "file-read"
+                                            {
+                                                "type": "object",
+                                                "description": "kernel to execute MPI instructions",
+                                                "properties": {
+                                                    "name": {
+                                                        "type": "string",
+                                                        "description": "type of kernel",
+                                                        "enum": [
+                                                            "mpi"
+                                                        ]
+                                                    },
+                                                    "kb_collective": {
+                                                        "type": "number",
+                                                        "description": "Number of Kb for collective MPI operations"
+                                                    },
+                                                    "kb_pairwise": {
+                                                        "type": "number",
+                                                        "description": "Number of Kb for p2p MPI operations"
+                                                    },
+                                                    "n_collective": {
+                                                        "type": "integer",
+                                                        "description": "Number of collective MPI operations"
+                                                    },
+                                                    "n_pairwise": {
+                                                        "type": "integer",
+                                                        "description": "Number of p2p MPI operations"
+                                                    }
+                                                },
+                                                "required": [
+                                                    "name",
+                                                    "kb_collective",
+                                                    "kb_pairwise",
+                                                    "n_collective",
+                                                    "n_pairwise"
                                                 ]
                                             },
-                                            "kb_read": {
-                                                "type": "number",
-                                                "description": "Number of Kb to read"
-                                            },
-                                            "mmap": {
-                                                "type": "boolean",
-                                                "description": "Whether or not read from mmap files"
-                                            },
-                                            "invalidate": {
-                                                "type": "boolean",
-                                                "description": "Whether or not read files are kept valid in cache"
-                                            },
-                                            "n_read": {
-                                                "type": "integer",
-                                                "description": "Number of read"
-                                            }
-                                        },
-                                        "required": [
-                                            "name",
-                                            "kb_read",
-                                            "mmap",
-                                            "n_read"
-                                        ]
-                                    },
-                                    {
-                                        "type": "object",
-                                        "description": "kernel to execute IO-write instructions",
-                                        "properties": {
-                                            "name": {
-                                                "type": "string",
-                                                "description": "type of kernel",
-                                                "enum": [
-                                                    "file-write"
+                                            {
+                                                "type": "object",
+                                                "description": "kernel to execute IO-read instructions",
+                                                "properties": {
+                                                    "name": {
+                                                        "type": "string",
+                                                        "description": "type of kernel",
+                                                        "enum": [
+                                                            "file-read"
+                                                        ]
+                                                    },
+                                                    "kb_read": {
+                                                        "type": "number",
+                                                        "description": "Number of Kb to read"
+                                                    },
+                                                    "mmap": {
+                                                        "type": "boolean",
+                                                        "description": "Whether or not read from mmap files"
+                                                    },
+                                                    "invalidate": {
+                                                        "type": "boolean",
+                                                        "description": "Whether or not read files are kept valid in cache"
+                                                    },
+                                                    "n_read": {
+                                                        "type": "integer",
+                                                        "description": "Number of read"
+                                                    }
+                                                },
+                                                "required": [
+                                                    "name",
+                                                    "kb_read",
+                                                    "mmap",
+                                                    "n_read"
                                                 ]
                                             },
-                                            "kb_write": {
-                                                "type": "number",
-                                                "description": "Number of Kb to write"
-                                            },
-                                            "n_files": {
-                                                "type": "integer",
-                                                "description": "The number of files to wirite to"
-                                            },
-                                            "n_write": {
-                                                "type": "integer",
-                                                "description": "Number of writes"
-                                            },
-                                            "continue_files": {
-                                                "type": "boolean",
-                                                "description": "If true, close files at end of write kernel, and create new ones for later write kernels"
-                                            }
-                                        },
-                                        "required": [
-                                            "name",
-                                            "kb_write",
-                                            "n_write",
-                                            "n_files"
-                                        ]
-                                    },
-
-                                    {
-                                        "type": "object",
-                                        "description": "kernel to execute file system metadata instructions",
-                                        "properties": {
-                                            "name": {
-                                                "type": "string",
-                                                "description": "type of kernel",
-                                                "enum": [
-                                                    "fs_metadata"
+                                            {
+                                                "type": "object",
+                                                "description": "kernel to execute IO-write instructions",
+                                                "properties": {
+                                                    "name": {
+                                                        "type": "string",
+                                                        "description": "type of kernel",
+                                                        "enum": [
+                                                            "file-write"
+                                                        ]
+                                                    },
+                                                    "kb_write": {
+                                                        "type": "number",
+                                                        "description": "Number of Kb to write"
+                                                    },
+                                                    "n_files": {
+                                                        "type": "integer",
+                                                        "description": "The number of files to wirite to"
+                                                    },
+                                                    "n_write": {
+                                                        "type": "integer",
+                                                        "description": "Number of writes"
+                                                    },
+                                                    "continue_files": {
+                                                        "type": "boolean",
+                                                        "description": "If true, close files at end of write kernel, and create new ones for later write kernels"
+                                                    }
+                                                },
+                                                "required": [
+                                                    "name",
+                                                    "kb_write",
+                                                    "n_write",
+                                                    "n_files"
                                                 ]
                                             },
-                                            "n_mkdir": {
-                                                "type": "integer",
-                                                "description": "Number of dir to create"
+                                            {
+                                                "type": "object",
+                                                "description": "kernel to execute file system metadata instructions",
+                                                "properties": {
+                                                    "name": {
+                                                        "type": "string",
+                                                        "description": "type of kernel",
+                                                        "enum": [
+                                                            "fs_metadata"
+                                                        ]
+                                                    },
+                                                    "n_mkdir": {
+                                                        "type": "integer",
+                                                        "description": "Number of dir to create"
+                                                    }
+                                                },
+                                                "required": [
+                                                    "name",
+                                                    "n_mkdir"
+                                                ]
                                             }
-                                        },
-                                        "required": [
-                                            "name",
-                                            "n_mkdir"
                                         ]
                                     }
-
-
-                                ]
+                                }
                             }
-                        }
+                        },
+                        "required": [
+                            "metadata",
+                            "num_procs",
+                            "frames"
+                        ]
+                    },
+                    {
+                        "type": "object",
+                        "properties": {
+                            "job_class": {
+                                "type": "string",
+                                "description": "select a specific job template in <>/executor/job_classes"
+                            },
+                            "depends": {
+                                "type": "array",
+                                "description": "A list of job IDs that must be completed before this job runs",
+                                "items": {
+                                    "type": "integer",
+                                    "minimum": 0
+                                }
+                            },
+                            "start_delay": {
+                                "type": "number",
+                                "description": "job start delay (in sec) relative to the first job"
+                            },
+                            "config_params": {
+                                "type": "object",
+                                "description": "Dictionary containing all the parameters to be passed to configure the job template "
+                            },
+                            "metadata": {
+                                "type": "object",
+                                "description": "job metadata",
+                                "properties": {
+                                    "job_name": {
+                                        "type": "string",
+                                        "description": "job name"
+                                    },
+                                    "workload_name": {
+                                        "type": "string",
+                                        "description": "workload name"
+                                    }
+                                }
+                            }
+                        },
+                        "required": [
+                            "job_class",
+                            "metadata",
+                            "config_params"
+                        ]
                     }
-                }
+                ]
 
             }
         },

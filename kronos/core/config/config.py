@@ -39,8 +39,8 @@ class Config(object):
     # Directory choices
     dir_input = None
     dir_output = None
-    kpf_files = []
-    ksf_filename = 'schedule.ksf'
+    kprofile_files = []
+    kschedule_filename = 'schedule.kschedule'
 
     model = None
     run = None

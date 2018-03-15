@@ -19,7 +19,7 @@ test_requirements = [
 
 setup(
     name='kronos',
-    version='0.1.3',
+    version='0.2.0',
     description="Workload extraction, modelling and duplication for HPC systems",
     long_description=readme + '\n\n' + history,
     author="Tiago Quintino, Antonino Bonanni, Simon Smart",
@@ -29,32 +29,35 @@ setup(
         'kronos': 'kronos'
     },
     scripts=[
-        'bin/kronos-ingest',
+        'bin/kronos-ingest-logs',
         'bin/kronos-model',
 
         'bin/kronos-view-json',
-        'bin/kronos-show-info',
-        'bin/kronos-config',
-        'bin/kronos-config-exe',
-        'bin/kronos-kpf',
-        'bin/kronos-krf',
-        'bin/kronos-ksf',
-        'bin/kronos-config-enquire',
-        'bin/kronos-dummy-workload',
+        'bin/kronos-format-config-model',
+        'bin/kronos-format-config-exe',
+        'bin/kronos-format-kprofile',
+        'bin/kronos-format-kresults',
+        'bin/kronos-format-kschedule',
+        'bin/kronos-format-config-export',
 
         'bin/kronos-generate-read-files',
         'bin/kronos-executor',
-        'bin/kronos-raw-to-kpf',
+        'bin/kronos-convert-dataset-to-kprofile',
+        'bin/kronos-inspect-dataset',
 
-        'bin/kronos-plot-kpf',
-        'bin/kronos-map-2-kpf',
-        'bin/kronos-dsh-2-kpf',
-        'bin/kronos-krf-2-kpf',
+        'bin/kronos-plot-kprofile',
+        'bin/kronos-convert-kresults-to-kprofile',
 
-        'bin/kronos-run-perf',
-        'bin/kronos-run-collect',
-        'bin/kronos-run-analysis',
-        'bin/kronos-show-job',
+        'bin/kronos-summarise-kschedule',
+        'bin/kronos-summarise-results',
+        'bin/kronos-collect-results',
+        'bin/kronos-validate-results',
+        'bin/kronos-analyse-results',
+
+        # development tools
+        'bin/kronos-enquire-global-config',
+        'bin/kronos-generate-dummy-jobs'
+
     ],
     include_package_data=True,
     install_requires=requirements,

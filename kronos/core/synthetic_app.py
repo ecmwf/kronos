@@ -14,9 +14,10 @@ from collections import Counter
 import app_kernels
 from exceptions_iows import ConfigurationError
 from jobs import ModelJob
-from kronos.core.time_signal.definitions import time_signal_names, signal_types
+from kronos.core.time_signal.definitions import time_signal_names
+# from kronos.core.time_signal.definitions import signal_types
 from kronos.io.schedule_format import ScheduleFormat
-from kronos_tools.print_colour import print_colour
+from kronos.shared_tools.print_colour import print_colour
 
 
 class SyntheticWorkload(object):
@@ -126,41 +127,41 @@ class SyntheticWorkload(object):
 
         return max(sa.time_start for sa in self.app_list)
 
-    def export_ksf(self, filename):
+    def export_kschedule(self, filename):
         """
-        Write a KSF file that describes the synthetic schedule,
+        Write a KSchedule file that describes the synthetic schedule,
         this file can be given directly to the executor
         :return:
         """
         n_bins = self.config.model["generator"]["synth_apps_n_bins"]
 
-        print_colour("green", "Exporting {} synth-apps to KSF schedule: {}".format(len(self.app_list), filename))
+        print_colour("green", "Exporting {} synth-apps to KSchedule schedule: {}".format(len(self.app_list), filename))
 
-        # pre-calculate sums for efficiency..
-        tot_metrics_apps = self.total_metrics_apps(n_bins=n_bins)
-        tot_metrics_orig = self.total_metrics_dict()
-
-        print "----- Metrics sums over workload: ------"
-        for k in time_signal_names:
-            unit = signal_types[k]["print_info"]["unit"]
-            form = signal_types[k]["print_info"]["format"]
-            conv = signal_types[k]["print_info"]["conv"]
-            str_format = "%-14s: " + form + " [" + unit + "]"
-            print str_format % (k, tot_metrics_orig[k] * conv)
-
-        print "------ Actual Scaling factors: ---------"
-        for k in time_signal_names:
-            form = "%14f"
-            str_format = "%-14s: " + form + " [n/a]"
-            print str_format % (k, tot_metrics_apps[k]/float(tot_metrics_orig[k]))
-
-        print "-------- Exported Metrics sums: --------"
-        for k in time_signal_names:
-            unit = signal_types[k]["print_info"]["unit"]
-            form = signal_types[k]["print_info"]["format"]
-            conv = signal_types[k]["print_info"]["conv"]
-            str_format = "%-14s: " + form + " [" + unit + "]"
-            print str_format % (k, tot_metrics_apps[k] * conv)
+        # # pre-calculate sums for efficiency..
+        # tot_metrics_apps = self.total_metrics_apps(n_bins=n_bins)
+        # tot_metrics_orig = self.total_metrics_dict()
+        #
+        # print "----- Metrics sums over workload: ------"
+        # for k in time_signal_names:
+        #     unit = signal_types[k]["print_info"]["unit"]
+        #     form = signal_types[k]["print_info"]["format"]
+        #     conv = signal_types[k]["print_info"]["conv"]
+        #     str_format = "%-14s: " + form + " [" + unit + "]"
+        #     print str_format % (k, tot_metrics_orig[k] * conv)
+        #
+        # print "------ Actual Scaling factors: ---------"
+        # for k in time_signal_names:
+        #     form = "%14f"
+        #     str_format = "%-14s: " + form + " [n/a]"
+        #     print str_format % (k, tot_metrics_apps[k]/float(tot_metrics_orig[k]))
+        #
+        # print "-------- Exported Metrics sums: --------"
+        # for k in time_signal_names:
+        #     unit = signal_types[k]["print_info"]["unit"]
+        #     form = signal_types[k]["print_info"]["format"]
+        #     conv = signal_types[k]["print_info"]["conv"]
+        #     str_format = "%-14s: " + form + " [" + unit + "]"
+        #     print str_format % (k, tot_metrics_apps[k] * conv)
 
         ScheduleFormat.from_synthetic_workload(self, n_bins=n_bins).write_filename(filename)
 

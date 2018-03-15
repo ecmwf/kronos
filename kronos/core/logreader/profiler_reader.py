@@ -6,20 +6,19 @@
 # granted to it by virtue of its status as an intergovernmental organisation nor
 # does it submit to any jurisdiction.
 
+import glob
+import json
+import os
+import sys
 from datetime import datetime
 
-import os
-import json
-import glob
 import numpy as np
-
-from kronos.core.jobs import IngestedJob, ModelJob
-from kronos.core.kronos_tools.print_colour import print_colour
-from kronos.core.time_signal.time_signal import TimeSignal
-from kronos.core.time_signal.definitions import signal_types
-
 from kronos.core.exceptions_iows import ConfigurationError
+from kronos.core.jobs import IngestedJob, ModelJob
 from kronos.core.logreader.dataset import IngestedDataSet
+from kronos.core.time_signal.definitions import signal_types
+from kronos.core.time_signal.time_signal import TimeSignal
+from kronos.shared_tools.print_colour import print_colour
 
 allinea_signal_priorities = {
     'flops': 10,
@@ -61,15 +60,31 @@ def read_allinea_log(filename, jobs_n_bins=None, cfg=None):
                          "WARNING: clock rate not provided! arbitrarily set to 2.5GHz")
             clock_rate = 2.5e9
 
+    # read the data of the json file..
+    with open(filename) as json_file:
+        json_data = json.load(json_file)
+
+    # Detect the proper io_keys (lustre or not) as they have a different name in the MAP logs
+    _samples = json_data['profile']['samples']
+
+    if _samples.get("lustre_bytes_read") and _samples.get("lustre_bytes_written"):
+
+        io_key_write = "lustre_bytes_written"
+        io_key_read = "lustre_bytes_read"
+
+    elif _samples.get("bytes_read") and _samples.get("bytes_written"):
+
+        io_key_write = "bytes_written"
+        io_key_read = "bytes_read"
+
+    else:
+        print "The allinea map file does not seem to contain IO traces: i.e. [lustre_]bytes_[written|read]"
+        sys.exit(1)
+
     allinea_time_signal_map = {
         'instr_fp':             {'name': 'flops',                          'scale_factor': clock_rate, 'is_time_percent': True},
-
-        # 'lustre_bytes_read':    {'name': 'kb_read',       'is_rate': True, 'scale_factor': 1./1024.},
-        # 'lustre_bytes_written': {'name': 'kb_write',      'is_rate': True, 'scale_factor': 1./1024.},
-
-        'bytes_read': {'name': 'kb_read', 'is_rate': True, 'scale_factor': 1. / 1024.},
-        'bytes_written': {'name': 'kb_write', 'is_rate': True, 'scale_factor': 1. / 1024.},
-
+        io_key_read:            {'name': 'kb_read',       'is_rate': True, 'scale_factor': 1. / 1024.},
+        io_key_write:           {'name': 'kb_write',      'is_rate': True, 'scale_factor': 1. / 1024.},
         'mpi_p2p':              {'name': 'n_pairwise',    'is_rate': True},
         'mpi_p2p_bytes':        {'name': 'kb_pairwise',   'is_rate': True, 'scale_factor': 1./1024.},
         'mpi_collect':          {'name': 'n_collective',  'is_rate': True},
@@ -79,9 +94,6 @@ def read_allinea_log(filename, jobs_n_bins=None, cfg=None):
     # A quick sanity check
     for value in allinea_time_signal_map.values():
         assert value['name'] in signal_types
-
-    with open(filename) as json_file:
-        json_data = json.load(json_file)
 
     # # fill in the workload structure
     # i_job = IngestedJob()

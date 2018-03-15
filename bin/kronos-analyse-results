@@ -1,0 +1,79 @@
+#!/usr/bin/env python
+# (C) Copyright 1996-2017 ECMWF.
+#
+# This software is licensed under the terms of the Apache Licence Version 2.0
+# which can be obtained at http://www.apache.org/licenses/LICENSE-2.0.
+# In applying this licence, ECMWF does not waive the privileges and immunities
+# granted to it by virtue of its status as an intergovernmental organisation nor
+# does it submit to any jurisdiction.
+
+"""
+
+This tool analyses the results of a Kronos run and exports plots/tables of
+relevant metrics. For full list of options of the configuration file,
+run the kronos tool "kronos-format-config-export".
+
+Usage examples:
+
+ 1. Produce the analysis outputs as specified in the config.json.
+
+   > kronos-analyse-results config.json
+
+ 2. Produce the analysis outputs as specified in the config.json and print information about job "classes"
+ that are specified in the config.json (i.e. which job classes include jobs from each kronos run specified
+ in the config.json):
+
+   > kronos-analyse-results config.json
+
+"""
+
+import argparse
+import sys
+
+from kronos.core.post_process.export_config.export_config import ExportConfig
+from kronos.core.post_process.exporters import writer_map
+from kronos.io.format_data_handlers.kresults_data import KResultsData
+from kronos.io.format_data_handlers.kresults_data import KResultsDataSet
+
+if __name__ == "__main__":
+
+    # Read other arguments if present..
+    parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawTextHelpFormatter)
+    parser.add_argument('export_config', help="Analysis configuration file")
+    parser.add_argument('--print_job_classes', "-p", help="Print simulation info on screen", action='store_true')
+
+    # print the help if no arguments are passed
+    if len(sys.argv) == 1:
+        parser.print_help()
+        sys.exit(1)
+
+    # parse the arguments..
+    args = parser.parse_args()
+
+    # Read the export config
+    config = ExportConfig.from_json_file(args.export_config)
+
+    # Labelled list of simulations
+    labelled_kronos_sims = [KResultsData.read_from_sim_paths(path, tag, n_procs_node=config.n_procs_node)
+                            for tag, path in zip(config.experiment_list, config.experiment_paths)]
+
+    # Pre-calculate data ready for export
+    sim_set = KResultsDataSet(labelled_kronos_sims)
+
+    # Retrieve job classes common for all the simulation in the set
+    common_job_classes = sim_set.retrieve_common_job_classes(config.job_classes)
+    print "==== Job classes shared by all simulations: ====\n{}".format( "\n".join(common_job_classes.keys()) )
+
+    # calculate statistics on the common job classes
+    sim_set.calculate_class_stats_sums(common_job_classes)
+
+    if args.print_job_classes:
+        for sim in sim_set.sims:
+            sim.print_job_classes_info(common_job_classes)
+
+    # Export results as per user requests
+    for export_config in config.exports:
+        data_writer = writer_map[export_config["type"]](sim_set=sim_set)
+        data_writer.export(export_config=export_config,
+                           output_path=config.output_path,
+                           job_classes=common_job_classes)

@@ -7,17 +7,13 @@
 # does it submit to any jurisdiction.
 
 import numpy as np
-from scipy.spatial.distance import cdist
-import matplotlib.pyplot as plt
-
-from sklearn.cluster import KMeans
-from sklearn.metrics import silhouette_score
-
 from clust_base import ClusteringBase
 from kronos.core.data_analysis.silhouette import find_n_clusters_silhouette
-
-from kronos.core.kronos_tools.print_colour import print_colour
 from kronos.core.plot_handler import PlotHandler
+from kronos.shared_tools.print_colour import print_colour
+from scipy.spatial.distance import cdist
+from sklearn.cluster import KMeans
+from sklearn.metrics import silhouette_score
 
 
 class ClusteringKmeans(ClusteringBase):
@@ -98,6 +94,7 @@ class ClusteringKmeans(ClusteringBase):
 
         # stop and plot cluster silhouette values unless specifically requested not to
         if not self.user_does_not_check:
+            import matplotlib.pyplot as plt
             plot_handler = PlotHandler()
             plt.figure(plot_handler.get_fig_handle_ID(), facecolor='w', edgecolor='k')
             plt.plot(nc_vec, silhouette_score_vec, 'b')

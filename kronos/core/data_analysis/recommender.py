@@ -7,10 +7,9 @@
 # does it submit to any jurisdiction.
 
 import numpy as np
-from scipy.spatial.distance import pdist
 from kronos.core.exceptions_iows import ConfigurationError
-
-from kronos.core.kronos_tools.print_colour import print_colour
+from kronos.shared_tools.print_colour import print_colour
+from scipy.spatial.distance import pdist
 
 
 class Recommender(object):

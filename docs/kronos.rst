@@ -9,6 +9,7 @@ Subpackages
     kronos.core
     kronos.executor
     kronos.io
+    kronos.shared_tools
 
 Module contents
 ---------------

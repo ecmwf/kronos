@@ -7,13 +7,13 @@
 # does it submit to any jurisdiction.
 
 import numpy as np
-
 from exceptions_iows import ModellingError, ConfigurationError
-from kronos_tools.merge import max_not_none, min_not_none
-from kronos_tools.print_colour import print_colour
-from kronos_tools.time_format import format_seconds
-from kronos.core.time_signal.time_signal import TimeSignal
 from kronos.core.time_signal.definitions import time_signal_names
+from kronos.core.time_signal.time_signal import TimeSignal
+from kronos.shared_tools.merge import max_not_none, min_not_none
+from kronos.shared_tools.print_colour import print_colour
+from kronos.shared_tools.time_format import format_seconds
+
 
 class ModelJob(object):
     """
@@ -88,7 +88,7 @@ class ModelJob(object):
     @staticmethod
     def from_json(js):
         """
-        (Re)animate a ModelJob from json extracted from a KPF (kronos.io.profile_format.ProfileFormat)
+        (Re)animate a ModelJob from json extracted from a KProfile (kronos.io.profile_format.ProfileFormat)
         """
         return ModelJob(
             timesignals={n: TimeSignal.from_values(n, xvals=t['times'], yvals=t['values'],

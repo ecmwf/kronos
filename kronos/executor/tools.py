@@ -6,21 +6,3 @@
 # granted to it by virtue of its status as an intergovernmental organisation nor
 # does it submit to any jurisdiction.
 
-
-def mean_of_list(vals):
-    """
-    avg value of a list
-    :param vals:
-    :return:
-    """
-    return sum(vals)/float(len(vals))
-
-
-def std_of_list(vals):
-    """
-    std of a list
-    :param vals:
-    :return:
-    """
-    mean_val = mean_of_list(vals)
-    return (sum([(v-mean_val)**2 for v in vals])/float(len(vals)))**0.5

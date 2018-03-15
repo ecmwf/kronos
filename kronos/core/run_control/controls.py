@@ -6,15 +6,15 @@
 # granted to it by virtue of its status as an intergovernmental organisation nor
 # does it submit to any jurisdiction.
 
+import os
 # from run_control.base_controls import BASEControls
 import re
 import subprocess
 import time
-import os
 
-from kronos.core.exceptions_iows import ConfigurationError
 from kronos.core.config.config import Config
-from kronos.core.kronos_tools import print_colour
+from kronos.core.exceptions_iows import ConfigurationError
+from kronos.shared_tools import print_colour
 
 
 class BASEControls(object):

@@ -52,6 +52,7 @@ class Job(BaseJob):
             'shared_dir': self.executor.job_dir_shared,
             'coordinator_binary': self.executor.coordinator_binary,
             'num_procs': nprocs,
+            'launcher_command': "mpirun",
             'input_file': self.input_file,
             'profiling_code': ""
         }
@@ -87,4 +88,4 @@ class Job(BaseJob):
             subprocess.call(self.run_script, stdout=fout, stderr=ferror, stdin=None, shell=True)
         os.chdir(cwd)
 
-        self.executor.set_job_submitted(self.id, )
+        self.executor.set_job_submitted(self.id, [])

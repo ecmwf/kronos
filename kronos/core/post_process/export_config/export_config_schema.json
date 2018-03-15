@@ -1,0 +1,117 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema",
+  "type": "object",
+  "title": "Kronos post-processing configuration file format",
+  "description": "The post-processing configuration file format controls the post-processing of Kronos runs",
+  "additionalProperties": false,
+  "properties": {
+    "verbose": {
+      "type": "boolean",
+      "description": "Verbose flag"
+    },
+    "experiment_list": {
+      "type": "array",
+      "description": "Tags of simulation list (used to label plots and/or tabular data)",
+      "items": {
+        "type": "string"
+      }
+    },
+    "experiment_paths": {
+      "type": "array",
+      "description": "Paths of simulations (path containing the job-<jobID> sub-folders. They corresponds to the experiment_list tags)",
+      "items": {
+        "type": "string"
+      }
+    },
+    "output_path": {
+      "type": "string",
+      "description": "Path where the output will be exported into"
+    },
+    "n_procs_node": {
+      "type": "integer",
+      "description": "N procs per node used to run the cases (TODO: this info needs to be removed..)"
+    },
+    "job_classes": {
+      "type": "object",
+      "description": "List of classes that jobs will be grouped into for the post-processing"
+    },
+    "exports": {
+      "type": "array",
+      "description": "List of exports to do with the data collected from the set of simulations",
+      "items": {
+        "type": "object",
+        "oneOf": [
+          {
+            "type": "object",
+            "description": "Export plots/tables of overall rates on all the simulations",
+            "properties":{
+              "type":{
+                "type":"string",
+                "description": "Export identification string",
+                "enum": ["normalised_rates"]
+              },
+              "format":{
+                "type": "string",
+                "description": "Specific format which tabulated/plotted data will be written into",
+                "enum": ["png", "pdf", "ps", "eps", "svg", "json"]
+              },
+              "tag":{
+                "type": "string",
+                "description": "A distinctive tag for this export (it is appended to the export output filename)"
+              },
+              "y_lims":{
+                "type": "array",
+                "description": "Y-limits of the axis specified by user (for plotting only)"
+              }
+            },
+            "required": ["type", "tag"]
+          },
+          {
+            "type": "object",
+            "description": "Export plots of time-series",
+            "properties":{
+              "type":{
+                "type":"string",
+                "description": "Export identification string",
+                "enum": ["time_series"]
+              },
+              "format":{
+                "type": "string",
+                "description": "Specific format which tabulated/plotted data will be written into",
+                "enum": ["png", "pdf", "ps", "eps", "svg", "json"]
+              },
+              "tag":{
+                "type": "string",
+                "description": "A distinctive tag for this export (it is appended to the export output filename)"
+              },
+              "nbins":{
+                "type": "integer",
+                "description": "N of intervals of interpolated signals"
+              },
+              "signals": {
+                "type": "object",
+                "description": "Options for signals (each line is for a specific metric)",
+                "patternProperties": {
+                  "(n_write|n_read|kb_write|kb_read|n_pairwise|kb_pairwise|n_collective|kb_collective|flops|jobs|procs|nodes|write_rates|read_rates)": {
+                    "type": "object",
+                    "patternProperties": {
+                      "(x_lims|y_lims)": {
+                        "type": "array",
+                        "description": "x_lims and y_lims (only valid for plotting)",
+                        "items": {
+                            "type": "number"
+                        }
+                      }
+                    },
+                    "description": "Option for signal plots/tebles"
+                  }
+                }
+              }
+            },
+            "required": ["type", "tag", "signals"]
+          }
+        ]
+      }
+    }
+  }
+}

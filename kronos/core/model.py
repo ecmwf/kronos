@@ -8,16 +8,15 @@
 
 import os
 
-import numpy as np
-
 import data_analysis
+import numpy as np
 import workload_data
 from config.config import Config
 from exceptions_iows import ConfigurationError
 from kronos.core.job_generation import generator
 from kronos.core.kronos_tools.gyration_radius import r_gyration
 from kronos.core.report import Report, ModelMeasure
-from kronos_tools.print_colour import print_colour
+from kronos.shared_tools.print_colour import print_colour
 from synthetic_app import SyntheticWorkload, SyntheticApp
 from workload_fill_in import WorkloadFiller
 
@@ -114,9 +113,9 @@ class KronosModel(object):
             self.generate_synthetic_workload()
 
         # in the case neither the classification nor the generation entries are specified in the config file,
-        # just translate the KPF file into the KSF file in a one-to-one relationship
+        # just translate the KProfile file into the KSchedule file in a one-to-one relationship
         if not self.config_classification:
-            self._ksf_from_kpf_one_to_one()
+            self._kschedule_from_kprofile_one_to_one()
 
     def _apply_workload_fillin(self):
         """
@@ -160,12 +159,12 @@ class KronosModel(object):
     def export_synthetic_workload(self):
         """
         Export the synthetic workload generated from the model (or from the one-to-one translation
-        of the KPF into the KSF)
+        of the KProfile into the KSchedule)
         :return:
         """
 
-        ksf_path = os.path.join(self.config.dir_output, self.config.ksf_filename)
-        self.sa_workload.export_ksf(ksf_path)
+        kschedule_path = os.path.join(self.config.dir_output, self.config.kschedule_filename)
+        self.sa_workload.export_kschedule(kschedule_path)
 
     def _check_jobs(self, workloads_to_check=None):
         """
@@ -225,12 +224,12 @@ class KronosModel(object):
 
             self.workloads.extend(cutout_workloads)
 
-        # save the KPF's of the sub-workloads before attempting the clustering
+        # save the KProfile's of the sub-workloads before attempting the clustering
         save_wl_before_clustering = self.config_classification.get('save_wl_before_clustering', False)
         if save_wl_before_clustering:
             # for wl in self.workloads:
-            #     kpf_hdl = ProfileFormat(model_jobs=wl.jobs, workload_tag=wl.tag)
-            #     kpf_hdl.write_filename(os.path.join(self.config.dir_output, wl.tag+"_workload.kpf"))
+            #     kprofile_hdl = ProfileFormat(model_jobs=wl.jobs, workload_tag=wl.tag)
+            #     kprofile_hdl.write_filename(os.path.join(self.config.dir_output, wl.tag+"_workload.kprofile"))
             wl_group = workload_data.WorkloadDataGroup(cutout_workloads)
             wl_group.export_pickle(os.path.join(self.config.dir_output, "_workload"))
 
@@ -322,13 +321,13 @@ class KronosModel(object):
 
         Report.add_measure(ModelMeasure("r_gyration error [%]", r_gyr_all_pc, __name__))
 
-    def _ksf_from_kpf_one_to_one(self):
+    def _kschedule_from_kprofile_one_to_one(self):
         """
         This function very simply translates model_jobs into synthetic applications with a one-to-one relationship
         :return:
         """
 
-        print_colour("green", "generating the KSF from the KPF in a one-to-one relationship")
+        print_colour("green", "generating the KSchedule from the KProfile in a one-to-one relationship")
 
         # check that all the model jobs contain all the metrics
         self._check_jobs()
@@ -343,7 +342,7 @@ class KronosModel(object):
                     job_name="appID-{}".format(cc),
                     time_signals=job.timesignals,
                     ncpus=job.ncpus,
-                    time_start=job.time_start,
+                    time_start=0.0,
                     label=job.label
                 )
 

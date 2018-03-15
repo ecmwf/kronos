@@ -13,10 +13,11 @@ Subpackages
     kronos.core.job_generation
     kronos.core.kronos_tools
     kronos.core.logreader
-    kronos.core.postprocess
+    kronos.core.post_process
     kronos.core.run_control
     kronos.core.runner
     kronos.core.tests
+    kronos.core.time_signal
 
 Submodules
 ----------
@@ -81,14 +82,6 @@ kronos.core.synthetic_app module
 --------------------------------
 
 .. automodule:: kronos.core.synthetic_app
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-kronos.core.time_signal module
-------------------------------
-
-.. automodule:: kronos.core.time_signal
     :members:
     :undoc-members:
     :show-inheritance:

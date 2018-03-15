@@ -183,13 +183,13 @@ class ModelJobTest(unittest.TestCase):
             del invalid_args[k]
             self.assertTrue(ModelJob(**valid_args).is_valid())
 
-    def test_reanimation_kpf(self):
+    def test_reanimation_kprofile(self):
         """
-        The purpose of the KPF is to be able to (re-)animate ModelJobs from the input data.
+        The purpose of the KProfile is to be able to (re-)animate ModelJobs from the input data.
         """
         valid = {
             "version": 1,
-            "tag": "KRONOS-KPF-MAGIC",
+            "tag": "KRONOS-KPROFILE-MAGIC",
             "created": "2016-12-14T09:57:35Z",  # Timestamp in strict rfc3339 format.
             "uid": 1234,
             "workload_tag": "A-tag",

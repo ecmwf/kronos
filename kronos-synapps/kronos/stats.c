@@ -26,7 +26,7 @@
 #include <assert.h>
 #include <errno.h>
 
-static void write_krf(const char* filename);
+static void write_kresults(const char* filename);
 
 /* ------------------------------------------------------------------------------------------------------------------ */
 
@@ -441,7 +441,7 @@ void report_stats() {
     /* Build and output JSONs */
 
     if (global_conf->write_statistics_file)
-        write_krf(global_conf->statistics_file);
+        write_kresults(global_conf->statistics_file);
 
 }
 
@@ -580,7 +580,7 @@ JSON* report_stats_json() {
 #define SEND_BUFFER_SIZE (1024 * 100)
 
 
-static void write_krf(const char* filename) {
+static void write_kresults(const char* filename) {
 
     const GlobalConfig* global_conf = global_config_instance();
 
@@ -673,12 +673,12 @@ static void write_krf(const char* filename) {
         free(recvcounts);
 #endif
 
-        /* Construct an outer KRF object */
+        /* Construct an outer KResults object */
 
         json = json_object_new();
 
         json_object_insert(json, "uid", json_number_new(global_conf->uid));
-        json_object_insert(json, "tag", json_string_new("KRONOS-KRF-MAGIC"));
+        json_object_insert(json, "tag", json_string_new("KRONOS-KRESULTS-MAGIC"));
         json_object_insert(json, "version", json_number_new(1));
         json_object_insert(json, "kronosVersion", json_string_new(kronos_version_str()));
         json_object_insert(json, "kronosSHA1", json_string_new(kronos_git_sha1()));
@@ -690,7 +690,7 @@ static void write_krf(const char* filename) {
         strftime(date_buffer, sizeof(date_buffer), "%Y-%m-%dT%H:%M:%S+00:00", tm);
         json_object_insert(json, "created", json_string_new(date_buffer));
 
-        /* Write the KRF to disk (only the head node) */
+        /* Write the KResults to disk (only the head node) */
 
         fp = fopen(global_conf->statistics_file, "w");
         if (fp != 0) {

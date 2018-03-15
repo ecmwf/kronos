@@ -1,5 +1,20 @@
 #!/usr/bin/env python
 
+# (C) Copyright 1996-2017 ECMWF.
+#
+# This software is licensed under the terms of the Apache Licence Version 2.0
+# which can be obtained at http://www.apache.org/licenses/LICENSE-2.0.
+# In applying this licence, ECMWF does not waive the privileges and immunities
+# granted to it by virtue of its status as an intergovernmental organisation nor
+# does it submit to any jurisdiction.
+
+"""
+
+File that generates read cache files in the current directory
+
+"""
+
+import argparse
 import os
 import sys
 
@@ -10,6 +25,21 @@ from kronos.executor.generate_read_files import generate_read_cache
 
 if __name__ == "__main__":
 
-    print "Using current working directory as read cache: {}".format(os.getcwd())
-    generate_read_cache(os.getcwd())
+    # Read other arguments if present..
+    parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawTextHelpFormatter)
+    parser.add_argument('read_files_path', type=str, help="Target path where read files are written")
+
+    # Print the help if no arguments are passed
+    if len(sys.argv) == 1:
+        parser.print_help()
+        sys.exit(1)
+
+    # Parse the arguments..
+    args = parser.parse_args()
+
+    if not os.path.exists(args.read_files_path):
+        raise ValueError("directory {} does not exist!".format(args.read_files_path))
+
+    print "Read cache files are being created in: {}".format(args.read_files_path)
+    generate_read_cache(args.read_files_path)
 

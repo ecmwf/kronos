@@ -5,7 +5,7 @@
 # In applying this licence, ECMWF does not waive the privileges and immunities 
 # granted to it by virtue of its status as an intergovernmental organisation nor
 # does it submit to any jurisdiction.
-from kronos.core.kronos_tools.print_colour import print_colour
+from kronos.shared_tools.print_colour import print_colour
 
 
 class ModelMeasure(object):

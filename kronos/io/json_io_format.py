@@ -16,7 +16,7 @@ import strict_rfc3339
 
 class JSONIoFormat(object):
     """
-    A base class for shared functionality between the KFS and KPF files.
+    A base class for shared functionality between the KFS and KProfile files.
     """
 
     format_version = None
@@ -94,18 +94,20 @@ class JSONIoFormat(object):
             self.write(f)
 
     @classmethod
-    def from_file(cls, f):
+    def from_file(cls, f, validate_json=True):
         """
-        Given a KPF file, load it and make the data appropriately available
+        Given a KProfile file, load it and make the data appropriately available
         """
         data = json.load(f)
-        cls.validate_json(data)
+
+        if validate_json:
+            cls.validate_json(data)
 
         return cls.from_json_data(data)
 
     @classmethod
-    def from_filename(cls, filename):
+    def from_filename(cls, filename, validate_json=True):
         with open(filename, 'r') as f:
-            return cls.from_file(f)
+            return cls.from_file(f, validate_json)
 
 

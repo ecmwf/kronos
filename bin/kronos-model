@@ -7,6 +7,14 @@
 # granted to it by virtue of its status as an intergovernmental organisation nor
 # does it submit to any jurisdiction.
 
+"""
+
+The Kronos-model applies modelling algorithms to data profiled on
+an HPC system and generates a workload model in athe form of a
+Kronos Schedule.
+
+"""
+
 import os
 import sys
 
@@ -14,12 +22,10 @@ sys.path.append(os.path.dirname(os.path.dirname(__file__)))
 
 import argparse
 
-from kronos.core import runner
 from kronos.core.exceptions_iows import ConfigurationError
 from kronos.core.workload_data import WorkloadData
 from kronos.core.config.config import Config
 from kronos.core.model import KronosModel
-from kronos.core.postprocess.run_plotter import RunPlotter
 from kronos.core.report import Report
 
 from kronos.io.profile_format import ProfileFormat
@@ -45,9 +51,9 @@ class Kronos(object):
         print "\nBeginning data ingestion...\n----------------------------------"
 
         self.workloads = []
-        for filename in self.config.kpf_files:
+        for filename in self.config.kprofile_files:
             with open(os.path.join(self.config.dir_input, filename), 'r') as f:
-                self.workloads.append(WorkloadData.from_kpf(ProfileFormat.from_file(f)))
+                self.workloads.append(WorkloadData.from_kprofile(ProfileFormat.from_file(f)))
 
         print "\nIngested workloads: [\n" + ",\n".join(["    {}".format(d.tag) for d in self.workloads]) + "\n]"
 
@@ -60,30 +66,20 @@ class Kronos(object):
         print "\nOutputting synthetic app input...\n----------------------------------"
         self.workload_model.export_synthetic_workload()
 
-    def run(self):
-        """
-        Main execution routine (default if no specific plugin is requested)
-        """
-        print "\nRun model...\n----------------------------------"
-        kronos_runner = runner.factory(self.config.run['type'], self.config)
-        kronos_runner.run()
-
-    def postprocess(self, run_dir):
-        """
-        Postprocess the results of the run
-        :return:
-        """
-        print "\nPostprocess run..\n----------------------------------"
-        plotter = RunPlotter(run_dir)
-        plotter.plot_run()
-
 
 if __name__ == "__main__":
 
     # read other arguments if present..
-    parser = argparse.ArgumentParser(description='Kronos software')
+    parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawTextHelpFormatter)
     parser.add_argument('configuration_file', type=str)
     parser.add_argument('-m', "--model", help="Generate workload model", action='store_true')
+
+    # print the help if no arguments are passed
+    if len(sys.argv) == 1:
+        parser.print_help()
+        sys.exit(1)
+
+    # parse the arguments..
     args = parser.parse_args()
 
     try:
@@ -94,11 +90,11 @@ if __name__ == "__main__":
         except (OSError, IOError) as e:
             print "Error opening input file: {}".format(e)
             print __doc__
-            sys.exit(-1)
+            sys.exit(1)
 
         except ValueError as e:
             print "Error parsing the supplied input file: {}".format(e)
-            sys.exit(-1)
+            sys.exit(1)
 
         # And get going!!!
         app = Kronos(config)
@@ -112,7 +108,7 @@ if __name__ == "__main__":
             Report.print_report()
         else:
             print "command line parsing error.."
-            sys.exit(-1)
+            sys.exit(1)
 
     except ConfigurationError as e:
         print "Error in Kronos configuration: {}".format(e)

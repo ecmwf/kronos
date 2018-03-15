@@ -6,12 +6,12 @@
 # granted to it by virtue of its status as an intergovernmental organisation nor
 # does it submit to any jurisdiction.
 
-import numpy as np
 import copy
 
-from kronos.core.kronos_tools.print_colour import print_colour
+import numpy as np
 from kronos.core.job_generation.strategy_base import StrategyBase
 from kronos.core.jobs import ModelJob
+from kronos.shared_tools.print_colour import print_colour
 
 
 class StrategySpawnRand(StrategyBase):

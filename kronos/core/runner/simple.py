@@ -6,15 +6,15 @@
 # granted to it by virtue of its status as an intergovernmental organisation nor
 # does it submit to any jurisdiction.
 
+import datetime
 import os
 import subprocess
 import time
-import datetime
 
 from kronos.core import run_control
-from kronos.core.runner.base_runner import BaseRunner
-from kronos.core.kronos_tools import print_colour
 from kronos.core.exceptions_iows import ConfigurationError
+from kronos.core.runner.base_runner import BaseRunner
+from kronos.shared_tools import print_colour
 
 
 class SimpleRunner(BaseRunner):
@@ -38,7 +38,7 @@ class SimpleRunner(BaseRunner):
         self.hpc_dir_output = None
         self.local_map2json_file = None
 
-        self.ksf_filename = self.config.ksf_filename
+        self.kschedule_filename = self.config.kschedule_filename
 
         # Then set the general configuration into the parent class..
         super(SimpleRunner, self).__init__(config)
@@ -70,8 +70,8 @@ class SimpleRunner(BaseRunner):
 
             job_runner = run_control.factory(self.config.controls['hpc_job_sched'], self.config)
 
-            # # handles the ksf file (not needed to read it here..)
-            # ksf_data = KSFFileHandler().from_ksf_file(os.path.join(self.config.dir_output, self.ksf_filename))
+            # # handles the kschedule file (not needed to read it here..)
+            # kschedule_data = KScheduleFileHandler().from_kschedule_file(os.path.join(self.config.dir_output, self.kschedule_filename))
 
             # create run dir
             if not os.path.exists(dir_run_results):
@@ -87,13 +87,13 @@ class SimpleRunner(BaseRunner):
             if not os.path.exists(dir_run_iter_map):
                 os.makedirs(dir_run_iter_map)
 
-            # move the ksf file into HPC input dir (and also into SA iteration folder)
+            # move the kschedule file into HPC input dir (and also into SA iteration folder)
             subprocess.Popen(["scp",
-                              os.path.join(self.config.dir_output, self.ksf_filename),
+                              os.path.join(self.config.dir_output, self.kschedule_filename),
                               user_at_host + ":" + self.hpc_dir_input])
             subprocess.Popen(["cp",
-                              os.path.join(self.config.dir_output, self.ksf_filename),
-                              os.path.join(dir_run_results, self.ksf_filename)])
+                              os.path.join(self.config.dir_output, self.kschedule_filename),
+                              os.path.join(dir_run_results, self.kschedule_filename)])
 
             # run jobs and wait until they have all finished..
             job_runner.remote_run_executor()
