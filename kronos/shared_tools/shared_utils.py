@@ -40,7 +40,8 @@ def mean_of_list(vals):
     :param vals:
     :return:
     """
-    return sum(vals)/float(len(vals))
+
+    return sum(vals)/float(len(vals)) if vals else 0
 
 
 def std_of_list(vals):
@@ -49,8 +50,23 @@ def std_of_list(vals):
     :param vals:
     :return:
     """
-    mean_val = mean_of_list(vals)
-    return (sum([(v-mean_val)**2 for v in vals])/float(len(vals)))**0.5
+    if not vals:
+
+        return 0
+
+    else:
+        mean_val = mean_of_list(vals)
+        return (sum([(v-mean_val)**2 for v in vals])/float(len(vals)))**0.5
+
+
+def sum_of_squared(vals):
+    """
+    Returns the sum of squared values
+    :param vals:
+    :return:
+    """
+
+    return sum([v**2 for v in vals])
 
 
 def calc_histogram(values, n_bins):
