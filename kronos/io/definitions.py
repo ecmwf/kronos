@@ -21,6 +21,9 @@ kresults_ts_names_map = {
     "flops": ("flops", 1.0, False),
 }
 
+# map that translates KProfile metrics to Kresults
+kprofile2kresults_ts_names_map = {v[0]: k for k, v in kresults_ts_names_map.iteritems()}
+
 kresults_stats_info = OrderedDict((
     ("cpu", {"conv": 1.0/1000.0**3,
              "label_sum": "FLOPS",
