@@ -47,6 +47,7 @@ setup(
 
         'bin/kronos-plot-kprofile',
         'bin/kronos-convert-kresults-to-kprofile',
+        'bin/kronos-convert-kprofile-to-kresults',
 
         'bin/kronos-summarise-kschedule',
         'bin/kronos-summarise-results',

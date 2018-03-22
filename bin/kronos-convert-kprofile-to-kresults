@@ -1,0 +1,50 @@
+#!/usr/bin/env python
+# (C) Copyright 1996-2017 ECMWF.
+#
+# This software is licensed under the terms of the Apache Licence Version 2.0
+# which can be obtained at http://www.apache.org/licenses/LICENSE-2.0.
+# In applying this licence, ECMWF does not waive the privileges and immunities
+# granted to it by virtue of its status as an intergovernmental organisation nor
+# does it submit to any jurisdiction.
+
+"""
+
+============================================================================
+       **DEVELOPMENT TOOL** - USAGE OF THIS TOOL IS UNSUPPORTED
+============================================================================
+
+Utility to generate an "approximated" kresults file from a kprofile
+(this can eb used by kronos to build an "approximated" kresults file from
+generic applications)
+
+"""
+
+import argparse
+import sys
+
+# from kronos.io.definitions import kresults_ts_names_map
+from kronos.io.format_data_handlers.converter_kprofile_kresults import ConverterKprofilerKresults
+from kronos.io.profile_format import ProfileFormat
+# from kronos.io.results_format import ResultsFormat
+
+
+if __name__ == "__main__":
+
+    # Parser for the required arguments
+    parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawTextHelpFormatter)
+    parser.add_argument("kprofile_file", type=str, help="Name of the KProfile file to read in")
+
+    # print the help if no arguments are passed
+    if len(sys.argv) == 1:
+        parser.print_help()
+        sys.exit(1)
+
+    # parse the arguments..
+    args = parser.parse_args()
+
+    kprofile_data = ProfileFormat.from_filename(args.kprofile_file)
+    converter = ConverterKprofilerKresults(kprofile_data)
+    kresults = converter.convert()
+    kresults[0].write_filename("statistics.kresults")
+
+
