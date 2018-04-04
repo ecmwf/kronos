@@ -56,7 +56,7 @@ class KResultsJob(object):
             # assert name in time_signal.signal_types
             assert name in kresults_ts_names_map.keys()
 
-            if values is not None:
+            if values:
                 ts_t, ts_v, ts_r, ts_e = zip(*values)
                 time_series[kresults_ts_names_map[name][0]] = {
                     'times': list(ts_t),
