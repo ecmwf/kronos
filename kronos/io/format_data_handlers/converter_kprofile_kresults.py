@@ -29,21 +29,27 @@ class ConverterKprofilerKresults(object):
 
             # ****** statistics will be distributed per rank *******
             # NOTE: this implies the assumption that all the processes are doing the exact same thing
-            # in other words we loose any pre-process information (this is acceptable for now but must clear)
+            # in other words we loose any per-process information (this is acceptable for now but must be clear)
             kprofile_ts_names = prof_job["time_series"].keys()
 
             # per process time_series
             kres_proc_ts = {}
             kres_proc_times = []
             kres_proc_ts.update({kprofile2kresults_ts_names_map[k]: [] for k in kprofile_ts_names})
+            kres_proc_ts["durations"] = []
 
             # main loop over kprofile metrics
             for ts_name, ts_values in prof_job["time_series"].iteritems():
 
                 # each value has to be appended to every series (as defined in the kprofile format)
-                for t, v in zip(ts_values["times"], ts_values["values"]):
+                # for t, v in zip(ts_values["times"], ts_values["values"]):
+                for tt, t in enumerate(ts_values["times"]):
 
                     kres_proc_times.append(t)
+                    v = ts_values["values"][tt]
+
+                    _dt = ts_values["times"][tt]-ts_values["times"][tt-1] if tt else ts_values["times"][tt]
+                    kres_proc_ts["durations"].append(_dt)
 
                     for kprof_metric in kprofile_ts_names:
 
@@ -65,7 +71,7 @@ class ConverterKprofilerKresults(object):
 
             # calculate durations from timestamps
             kres_proc_times.sort()
-            kres_proc_ts["durations"] = [v_i - v_ii for v_i, v_ii in zip(kres_proc_times, [0]+kres_proc_times[:-1])]
+            # kres_proc_ts["durations"] = [v_i - v_ii for v_i, v_ii in zip(kres_proc_times, [0]+kres_proc_times[:-1])]
 
             # now calculate the "rank" entries of the json file
             ranks_data = []
@@ -95,16 +101,20 @@ class ConverterKprofilerKresults(object):
         """
 
         required_ts = {
-            "bytes_write": {"name": "n_write", "default": 1},
-            "bytes_read": {"name": "n_read", "default": 1},
-            "bytes_pairwise": {"name": "n_pairwise", "default": 1},
-            "bytes_collective": {"name": "n_collective", "default": 1},
+            "bytes_write": {"name": "n_write", "default": 1, "type": int},
+            "bytes_read": {"name": "n_read", "default": 1, "type": int},
+            "bytes_pairwise": {"name": "n_pairwise", "default": 1, "type": int},
+            "bytes_collective": {"name": "n_collective", "default": 1, "type": int},
         }
 
         missing_time_series = {}
         for ts_name, ts_values in kresults_perproc_timeseries.iteritems():
             if ts_name in required_ts and not kresults_perproc_timeseries.get(required_ts[ts_name]["name"]):
-                missing_time_series[required_ts[ts_name]["name"]] = [required_ts[ts_name]["default"] if v else 0 for v in ts_values]
+
+                ts_typ = required_ts[ts_name]["type"]
+                ts_def = required_ts[ts_name]["default"]
+                ts_name = required_ts[ts_name]["name"]
+                missing_time_series[ts_name] = [ts_typ(ts_def) if v else 0 for v in ts_values]
 
         return missing_time_series
 
