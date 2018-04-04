@@ -25,7 +25,6 @@ import sys
 # from kronos.io.definitions import kresults_ts_names_map
 from kronos.io.format_data_handlers.converter_kprofile_kresults import ConverterKprofilerKresults
 from kronos.io.profile_format import ProfileFormat
-# from kronos.io.results_format import ResultsFormat
 
 
 if __name__ == "__main__":
@@ -33,6 +32,7 @@ if __name__ == "__main__":
     # Parser for the required arguments
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawTextHelpFormatter)
     parser.add_argument("kprofile_file", type=str, help="Name of the KProfile file to read in")
+    parser.add_argument("--output", type=str, help="Name of the Kresults file to write out")
 
     # print the help if no arguments are passed
     if len(sys.argv) == 1:
@@ -45,6 +45,8 @@ if __name__ == "__main__":
     kprofile_data = ProfileFormat.from_filename(args.kprofile_file)
     converter = ConverterKprofilerKresults(kprofile_data)
     kresults = converter.convert()
-    kresults[0].write_filename("statistics.kresults")
+
+    out_file = args.output if args.output else "statistics.kresults"
+    kresults[0].write_filename(out_file)
 
 
