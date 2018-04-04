@@ -1,0 +1,102 @@
+# (C) Copyright 1996-2017 ECMWF.
+# 
+# This software is licensed under the terms of the Apache Licence Version 2.0
+# which can be obtained at http://www.apache.org/licenses/LICENSE-2.0. 
+# In applying this licence, ECMWF does not waive the privileges and immunities 
+# granted to it by virtue of its status as an intergovernmental organisation nor
+# does it submit to any jurisdiction.
+
+"""
+
+============================================================================
+       **DEVELOPMENT TOOL** - USAGE OF THIS TOOL IS UNSUPPORTED
+============================================================================
+
+Match an external application run to a specific type of synthetic application in a kschedule
+It takes as input:
+
+ - kschedule containing only kronos synthetic apps
+ - kschedule of the external apps runs
+ - kprofile created from profiling the schedule of the external application runs
+ - A pattern of job labels (If a job label matches the pattern, an optimal match with an external app run is sought)
+
+"""
+
+import argparse
+import copy
+import os
+import re
+import sys
+
+from kronos.core.time_signal.definitions import time_signal_names, signal_types
+from kronos.io.profile_format import ProfileFormat
+
+sys.path.append(os.path.dirname(os.path.dirname(__file__)))
+
+from kronos.io.format_data_handlers.kschedule_data import KScheduleData
+
+
+if __name__ == '__main__':
+
+    # Parser for the required arguments
+    parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawTextHelpFormatter)
+    parser.add_argument("kronos_kschedule", type=str, help="Path of kschedule containing synthetic-apps only")
+    parser.add_argument("apps_kschedule", type=str, help="Path of kschedule for external app runs")
+    parser.add_argument("apps_kprofile", type=str, help="Path of kprofile with profiles of the external app runs")
+    parser.add_argument("job_match_regex", type=str, help="Regex of job label to be matched")
+
+    parser.add_argument("--output", type=str, help="Path of kschedule which contains matched runs")
+
+    # Print the help if no arguments are passed
+    if len(sys.argv) == 1:
+        parser.print_help()
+        sys.exit(1)
+
+    # Parse the arguments..
+    args = parser.parse_args()
+
+    # Get default name of output kschedule
+    output_kschedule_name = args.output if args.output else os.path.join(os.getcwd(), "output.kschedule")
+
+    # Get the data from the kronos synthetic apps schedule..
+    kronos_kschedule_data = KScheduleData.from_filename(args.kronos_kschedule)
+    jobs_to_match = kronos_kschedule_data.filter_jobs(re_expression=args.job_match_regex)
+
+    # get data from the external apps schedule and profile
+    apps_kschedule_data = KScheduleData.from_filename(args.apps_kschedule)
+    apps_kprofile_data = ProfileFormat.from_filename(args.apps_kprofile)
+
+    # Find the best match for each of the filtered jobs
+    jobs_to_match_updated = copy.deepcopy(kronos_kschedule_data.synapp_data)
+
+    for jj, synth_app in enumerate(kronos_kschedule_data.synapp_data):
+
+        if re.match(args.job_match_regex, synth_app["metadata"]["workload_name"]):
+
+            sa_series = {k: 0 for k in time_signal_names}
+            for frame in synth_app["frames"]:
+                for ker in frame:
+                    for kernel_param in KScheduleData.kernel_name_keys_map[ker["name"]]:
+                        sa_series[kernel_param] += signal_types[kernel_param]["type"](ker[kernel_param])
+
+            _obj_func = []
+            for kp, kprof_app in enumerate(apps_kprofile_data.profiled_jobs):
+                app_ts_sums = {k: sum(v["values"]) for k, v in kprof_app['time_series'].iteritems()}
+                _common_tsk = [k for k in app_ts_sums.keys() if k in sa_series.keys()]
+                _obj_func.append(sum([(sa_series[ts_k]**2-app_ts_sums[ts_k]**2)/app_ts_sums[ts_k]**2 for ts_k in _common_tsk]))
+                optimum_app_idx = _obj_func.index(min(_obj_func))
+
+            # TODO: this is assuming correct ordering - correct ordering should be enforced instead
+            synth_app_updated = apps_kschedule_data.synapp_data[optimum_app_idx]
+            synth_app_updated["depends"] = synth_app["depends"]
+            synth_app_updated["num_procs"] = synth_app["num_procs"]
+            synth_app_updated["metadata"]["synth_app_wl_name"] = synth_app["metadata"]["workload_name"]
+
+            jobs_to_match_updated[jj] = synth_app_updated
+
+    # write the output kschedule that contains the optimised external runs
+    kronos_kschedule_data.synapp_data = jobs_to_match_updated
+    kronos_kschedule_data.write_filename(output_kschedule_name)
+
+
+
