@@ -57,7 +57,12 @@ setup(
 
         # development tools
         'bin/kronos-enquire-global-config',
-        'bin/kronos-generate-dummy-jobs'
+        'bin/kronos-generate-dummy-jobs',
+        
+        # additional tools
+        'bin/mapjson_new2old.py',
+        'bin/map2json.py',
+        'bin/kronos-find-and-match-external-apps'
 
     ],
     include_package_data=True,
