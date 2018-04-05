@@ -62,7 +62,8 @@ setup(
         # additional tools
         'bin/mapjson_new2old.py',
         'bin/map2json.py',
-        'bin/kronos-find-and-match-external-apps'
+        'bin/kronos-find-and-match-external-apps',
+        'bin/kronos-write-external-app-runs',
 
     ],
     include_package_data=True,
