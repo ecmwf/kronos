@@ -84,10 +84,18 @@ if __name__ == '__main__':
                 app_ts_sums = {k: sum(v["values"]) for k, v in kprof_app['time_series'].iteritems()}
                 _common_tsk = [k for k in app_ts_sums.keys() if k in sa_series.keys()]
                 _obj_func.append(sum([(sa_series[ts_k]**2-app_ts_sums[ts_k]**2)/app_ts_sums[ts_k]**2 for ts_k in _common_tsk]))
-                optimum_app_idx = _obj_func.index(min(_obj_func))
 
-            # TODO: this is assuming correct ordering - correct ordering should be enforced instead
-            synth_app_updated = apps_kschedule_data.synapp_data[optimum_app_idx]
+            # choose the optimal run
+            optimum_app_idx = _obj_func.index(min(_obj_func))
+
+            # we need to find the index of the real_app in the schedule that corresponds to the idx in the kprofile
+            profiled_realapp_label = apps_kprofile_data.profiled_jobs[optimum_app_idx]["label"]
+            scheduled_realapp_idx = [ii for ii, iapp in enumerate(apps_kschedule_data.synapp_data) if iapp["metadata"]["job_name"] == profiled_realapp_label]
+            assert len(scheduled_realapp_idx) == 1
+            scheduled_realapp_idx = scheduled_realapp_idx[0]
+
+            # take info from the kschedule of the best match application run
+            synth_app_updated = apps_kschedule_data.synapp_data[scheduled_realapp_idx]
             synth_app_updated["depends"] = synth_app["depends"]
             synth_app_updated["num_procs"] = synth_app["num_procs"]
             synth_app_updated["metadata"]["synth_app_wl_name"] = synth_app["metadata"]["workload_name"]
