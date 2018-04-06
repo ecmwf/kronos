@@ -95,10 +95,10 @@ if __name__ == '__main__':
             scheduled_realapp_idx = scheduled_realapp_idx[0]
 
             # take info from the kschedule of the best match application run
-            synth_app_updated = apps_kschedule_data.synapp_data[scheduled_realapp_idx]
-            synth_app_updated["depends"] = synth_app["depends"]
-            synth_app_updated["num_procs"] = synth_app["num_procs"]
-            synth_app_updated["metadata"]["synth_app_wl_name"] = synth_app["metadata"]["workload_name"]
+            synth_app_updated = copy.deepcopy(apps_kschedule_data.synapp_data[scheduled_realapp_idx])
+            synth_app_updated["depends"] = copy.deepcopy(synth_app["depends"])
+            synth_app_updated["num_procs"] = copy.deepcopy(synth_app["num_procs"])
+            synth_app_updated["metadata"]["synth_app_wl_name"] = copy.deepcopy(synth_app["metadata"]["workload_name"])
 
             jobs_to_match_updated[jj] = synth_app_updated
 
