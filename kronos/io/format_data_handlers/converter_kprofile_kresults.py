@@ -28,26 +28,18 @@ class ConverterKprofileKresults(object):
         else:
             self.user_runtime = None
 
-        if self.user_runtime:
-
-            # force-change the overall runtime of the kprofile
-            self.kprofiler_data["duration"] = self.user_runtime
-
-            time_scaling = self.user_runtime/float(self.kprofiler_data["duration"])
-
-            # force-change the timestamps for all the time-series
-            for prof_job in self.kprofiler_data.profiled_jobs:
-
-                for tsk, tsv in prof_job["time_series"].iteritems():
-
-                    tsv["times"] = [t * time_scaling for t in tsv["times"]]
-
     def convert(self):
 
         kresults_jobs = []
 
         # profiled jobs
         for prof_job in self.kprofiler_data.profiled_jobs:
+
+            # if user_runtime is set, rescale the job timestamps to be consistent to it..
+            if self.user_runtime:
+                time_scaling = self.user_runtime / float(prof_job["duration"])
+                for tsk, tsv in prof_job["time_series"].iteritems():
+                    tsv["times"] = [t * time_scaling for t in tsv["times"]]
 
             n_procs = prof_job['ncpus']
 
@@ -66,8 +58,6 @@ class ConverterKprofileKresults(object):
             for ts_name, ts_values in prof_job["time_series"].iteritems():
 
                 # each value has to be appended to every series (as defined in the kprofile format)
-                # for t, v in zip(ts_values["times"], ts_values["values"]):
-
                 for tt, t in enumerate(ts_values["times"]):
 
                     kres_proc_times.append(t)
