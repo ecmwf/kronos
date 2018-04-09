@@ -12,11 +12,35 @@ from kronos.io.results_format import ResultsFormat
 from kronos.shared_tools.shared_utils import mean_of_list, std_of_list, sum_of_squared
 
 
-class ConverterKprofilerKresults(object):
+class ConverterKprofileKresults(object):
 
-    def __init__(self, kprofiler_data):
+    def __init__(self, kprofiler_data, user_runtime=None):
 
         self.kprofiler_data = kprofiler_data
+
+        # if set, this tuple overrides the t_start and the t_end of the profile
+        # (to be used to "substitute" missing kprofiles with existing ones by adjusting the timestamps only..)
+        if user_runtime:
+            if user_runtime < 0:
+                raise ValueError("user_runtime must be > 0 !")
+            else:
+                self.user_runtime = user_runtime
+        else:
+            self.user_runtime = None
+
+        if self.user_runtime:
+
+            # force-change the overall runtime of the kprofile
+            self.kprofiler_data["duration"] = self.user_runtime
+
+            time_scaling = self.user_runtime/float(self.kprofiler_data["duration"])
+
+            # force-change the timestamps for all the time-series
+            for prof_job in self.kprofiler_data.profiled_jobs:
+
+                for tsk, tsv in prof_job["time_series"].iteritems():
+
+                    tsv["times"] = [t * time_scaling for t in tsv["times"]]
 
     def convert(self):
 
@@ -43,6 +67,7 @@ class ConverterKprofilerKresults(object):
 
                 # each value has to be appended to every series (as defined in the kprofile format)
                 # for t, v in zip(ts_values["times"], ts_values["values"]):
+
                 for tt, t in enumerate(ts_values["times"]):
 
                     kres_proc_times.append(t)

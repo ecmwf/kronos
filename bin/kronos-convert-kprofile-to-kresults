@@ -23,7 +23,7 @@ import argparse
 import sys
 
 # from kronos.io.definitions import kresults_ts_names_map
-from kronos.io.format_data_handlers.converter_kprofile_kresults import ConverterKprofilerKresults
+from kronos.io.format_data_handlers.converter_kprofile_kresults import ConverterKprofileKresults
 from kronos.io.profile_format import ProfileFormat
 
 
@@ -43,7 +43,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     kprofile_data = ProfileFormat.from_filename(args.kprofile_file)
-    converter = ConverterKprofilerKresults(kprofile_data)
+    converter = ConverterKprofileKresults(kprofile_data)
     kresults = converter.convert()
 
     out_file = args.output if args.output else "statistics.kresults"
