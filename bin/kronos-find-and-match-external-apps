@@ -44,7 +44,6 @@ if __name__ == '__main__':
     parser.add_argument("apps_kschedule", type=str, help="Path of kschedule for external app runs")
     parser.add_argument("apps_kprofile", type=str, help="Path of kprofile with profiles of the external app runs")
     parser.add_argument("job_match_regex", type=str, help="Regex of job label to be matched")
-
     parser.add_argument("--output", type=str, help="Path of kschedule which contains matched runs")
 
     # Print the help if no arguments are passed
@@ -73,6 +72,8 @@ if __name__ == '__main__':
 
         if re.match(args.job_match_regex, synth_app["metadata"]["workload_name"]):
 
+            print "Searching match for app: {}".format(synth_app["metadata"]["workload_name"])
+
             sa_series = {k: 0 for k in time_signal_names}
             for frame in synth_app["frames"]:
                 for ker in frame:
@@ -93,6 +94,12 @@ if __name__ == '__main__':
             scheduled_realapp_idx = [ii for ii, iapp in enumerate(apps_kschedule_data.synapp_data) if iapp["metadata"]["job_name"] == profiled_realapp_label]
             assert len(scheduled_realapp_idx) == 1
             scheduled_realapp_idx = scheduled_realapp_idx[0]
+
+            app_type = str(apps_kschedule_data.synapp_data[scheduled_realapp_idx]["config_params"]["gtype"])
+            app_res = str(apps_kschedule_data.synapp_data[scheduled_realapp_idx]["config_params"]["resol"])
+            raps_run_id = app_type + "_" + app_res
+
+            print "---------> best match: {}".format(raps_run_id)
 
             # take info from the kschedule of the best match application run
             synth_app_updated = copy.deepcopy(apps_kschedule_data.synapp_data[scheduled_realapp_idx])
