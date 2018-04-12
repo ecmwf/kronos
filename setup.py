@@ -62,6 +62,7 @@ setup(
         # additional tools
         'bin/kronos-find-and-match-external-apps',
         'bin/kronos-write-external-app-runs',
+        'bin/kronos-generate-kschedule',
 
     ],
     include_package_data=True,
