@@ -66,7 +66,7 @@ class KResultsData(object):
             cls.check_n_successful_jobs(sim_path)
 
         # check that the run path contains the job sub-folders
-        job_dirs = [x for x in os.listdir(sim_path) if os.path.isdir(os.path.join(sim_path, x)) and "job-" in x]
+        job_dirs = sorted([x for x in os.listdir(sim_path) if os.path.isdir(os.path.join(sim_path, x)) and "job-" in x])
 
         # and check that the collection was successful..
         if not job_dirs:
@@ -75,6 +75,8 @@ class KResultsData(object):
 
         jobs_data = []
         for job_dir in job_dirs:
+
+            print "reading data from {}..".format(job_dir)
 
             sub_dir_path_abs = os.path.join(sim_path, job_dir)
             sub_dir_files = os.listdir(sub_dir_path_abs)

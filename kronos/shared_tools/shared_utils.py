@@ -8,6 +8,8 @@
 import math
 import datetime
 
+import numpy as np
+
 from kronos.io.definitions import kresults_stats_info
 
 
@@ -27,7 +29,8 @@ def datetime2epochs(t_in):
 
 
 def cumsum(input_list):
-    return [sum(input_list[:ii+1]) for ii,i in enumerate(input_list)]
+    # return [sum(input_list[:ii+1]) for ii,i in enumerate(input_list)]
+    return np.cumsum(input_list)
 
 
 def linspace(x0, x1, count):
@@ -138,3 +141,44 @@ def print_formatted_class_stats(class_name, per_class_job_stats):
         print "{}".format("-" * (_fl + 1) * n_fields)
     else:
         print "\n\n*** Warning ***: no jobs found in class"
+
+
+def digitize_xyvalues(xvalues, yvalues, nbins=None, key="sum"):
+    """
+    On-the-fly return digitized time series (rather than using
+    """
+
+    if nbins is None:
+        return xvalues, yvalues
+
+    # some checks..
+    assert len(xvalues) == len(yvalues)
+    nbins = int(nbins)
+    xvalues = np.asarray(xvalues)
+    yvalues = np.asarray(yvalues)
+
+    # Determine the bin boundaries
+    xedge_bins = np.linspace(min(xvalues), max(xvalues) + 1.0e-6, nbins + 1)
+
+    # Return xvalues as the midpoints of the bins
+    bins_delta = xedge_bins[1] - xedge_bins[0]
+    xvalues_bin = xedge_bins[1:] - (0.5 * bins_delta)
+
+    # Split the data up amongst the bins
+    # n.b. Returned indices will be >= 1, as 0 means to the left of the left-most edge.
+    bin_indices = np.digitize(xvalues, xedge_bins)
+
+    yvalues_bin = np.zeros(nbins)
+    for i in range(nbins):
+        if any(yvalues[bin_indices == i+1]):
+            if key == 'mean':
+                val = yvalues[bin_indices == i+1].mean()
+            elif key == 'sum':
+                val = yvalues[bin_indices == i+1].sum()
+            else:
+                raise ValueError("Digitization key value not recognised: {}".format(key))
+
+            yvalues_bin[i] = val
+
+    return xvalues_bin, yvalues_bin
+

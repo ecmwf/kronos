@@ -45,7 +45,7 @@ if __name__ == "__main__":
 
     kprofile_data = ProfileFormat.from_filename(args.kprofile_file)
     converter = ConverterKprofileKresults(kprofile_data, user_runtime=args.user_runtime)
-    kresults = converter.convert()
+    kresults = converter.convert(nbins=20)
 
     out_file = args.output if args.output else "statistics.kresults"
     kresults[0].write_filename(out_file)

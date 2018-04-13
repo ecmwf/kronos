@@ -9,7 +9,7 @@ import strict_rfc3339
 
 from kronos.io.definitions import kresults_ts_names_map, kprofile2kresults_ts_names_map
 from kronos.io.results_format import ResultsFormat
-from kronos.shared_tools.shared_utils import mean_of_list, std_of_list, sum_of_squared
+from kronos.shared_tools.shared_utils import mean_of_list, std_of_list, sum_of_squared, digitize_xyvalues
 
 
 class ConverterKprofileKresults(object):
@@ -28,7 +28,7 @@ class ConverterKprofileKresults(object):
         else:
             self.user_runtime = None
 
-    def convert(self):
+    def convert(self, nbins=None):
 
         kresults_jobs = []
 
@@ -58,12 +58,18 @@ class ConverterKprofileKresults(object):
             for ts_name, ts_values in prof_job["time_series"].iteritems():
 
                 # each value has to be appended to every series (as defined in the kprofile format)
-                for tt, t in enumerate(ts_values["times"]):
+                t_vals, v_vals = digitize_xyvalues(ts_values["times"], ts_values["values"], nbins=nbins, key="sum")
+
+                # retain only non zero-values
+                t_vals = [t for tt,t in enumerate(t_vals) if v_vals[tt]]
+                v_vals = [v for vv, v in enumerate(v_vals) if v_vals[vv]]
+
+                for tt, t in enumerate(t_vals):
 
                     kres_proc_times.append(t)
-                    v = ts_values["values"][tt]
+                    v = v_vals[tt]
 
-                    _dt = ts_values["times"][tt]-ts_values["times"][tt-1] if tt else ts_values["times"][tt]
+                    _dt = t_vals[tt]-t_vals[tt-1] if tt else t_vals[tt]
                     kres_proc_ts["durations"].append(_dt)
 
                     for kprof_metric in kprofile_ts_names:
