@@ -76,6 +76,8 @@ class ResultsFormat(JSONIoFormat):
             "created": self.created,
             "uid": self.uid,
             "ranks": self.ranks,
+            "kronosVersion": "0.3.0",
+            "kronosSHA1": "none"
         }
 
         return output_dict

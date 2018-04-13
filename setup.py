@@ -19,7 +19,7 @@ test_requirements = [
 
 setup(
     name='kronos',
-    version='0.2.0',
+    version='0.3.0',
     description="Workload extraction, modelling and duplication for HPC systems",
     long_description=readme + '\n\n' + history,
     author="Tiago Quintino, Antonino Bonanni, Simon Smart",
@@ -47,6 +47,7 @@ setup(
 
         'bin/kronos-plot-kprofile',
         'bin/kronos-convert-kresults-to-kprofile',
+        'bin/kronos-convert-kprofile-to-kresults',
 
         'bin/kronos-summarise-kschedule',
         'bin/kronos-summarise-results',
@@ -56,7 +57,12 @@ setup(
 
         # development tools
         'bin/kronos-enquire-global-config',
-        'bin/kronos-generate-dummy-jobs'
+        'bin/kronos-generate-dummy-jobs',
+        
+        # additional tools
+        'bin/kronos-find-and-match-external-apps',
+        'bin/kronos-write-external-app-runs',
+        'bin/kronos-generate-kschedule',
 
     ],
     include_package_data=True,

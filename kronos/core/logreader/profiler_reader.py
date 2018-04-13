@@ -108,8 +108,15 @@ def read_allinea_log(filename, jobs_n_bins=None, cfg=None):
 
     time_start = json_data['profile']['timestamp']
     runtime = float(json_data['profile']['runtime_ms']) / 1000.
-    time_start_epoch = (datetime.strptime(time_start, "%a %b %d %H:%M:%S %Y") -
-                        datetime(1970, 1, 1)).total_seconds()
+
+    try:
+        time_start_epoch = (datetime.strptime(time_start, "%a %b %d %H:%M:%S %Y") -
+                            datetime(1970, 1, 1)).total_seconds()
+    except ValueError:
+
+        time_start_epoch = (datetime.strptime(time_start, "%Y-%m-%dT%H:%M:%S+00") -
+                            datetime(1970, 1, 1)).total_seconds()
+
 
     # this job might not necessarily been queued
     i_job.time_created = time_start_epoch - 3
