@@ -201,6 +201,7 @@ bool write_to_file(int fd, long size, int* actual_number_writes_per_write_op) {
     int result;
     bool success;
     char* buffer = 0;
+    long int bytes_to_write;
 
     /* Loop over chunks of the maximum chunk size, until all written */
 
@@ -215,7 +216,7 @@ bool write_to_file(int fd, long size, int* actual_number_writes_per_write_op) {
 
         buffer = malloc(chunk_size);
 
-        long int bytes_to_write = chunk_size;
+        bytes_to_write = chunk_size;
         while (bytes_to_write > 0) {
 
             /* Start the timer now..*/
