@@ -18,6 +18,8 @@ ecbuild_add_library (
         kronos_version.c
         cpu.c
         cpu.h
+        memory.c
+        memory.h
         file_read.c
         file_read.h
         file_write.c

@@ -78,6 +78,27 @@
                                         "oneOf": [
                                             {
                                                 "type": "object",
+                                                "description": "kernel to execute memory operations",
+                                                "properties": {
+                                                    "name": {
+                                                        "type": "string",
+                                                        "description": "type of kernel",
+                                                        "enum": [
+                                                            "memory"
+                                                        ]
+                                                    },
+                                                    "mem_proc_kb": {
+                                                        "type": "number",
+                                                        "description": "kb of memory allocated/touched per proc"
+                                                    }
+                                                },
+                                                "required": [
+                                                    "name",
+                                                    "mem_proc_kb"
+                                                ]
+                                            },
+                                            {
+                                                "type": "object",
                                                 "description": "kernel to execute CPU instructions",
                                                 "properties": {
                                                     "name": {

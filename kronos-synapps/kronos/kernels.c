@@ -83,6 +83,8 @@ KernelFunctor* kernel_factory(const JSON* config) {
         return init_fsmetadata(config);
     } else if (name_length == 3 && strncmp(str_name, "cpu", name_length) == 0) {
         return init_cpu(config);
+    } else if (name_length == 6 && strncmp(str_name, "memory", name_length) == 0) {
+        return init_mem(config);
     } else if (name_length == 3 && strncmp(str_name, "mpi", name_length) == 0) {
 #ifdef HAVE_MPI
         return init_mpi(config);
