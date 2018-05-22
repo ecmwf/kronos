@@ -24,6 +24,7 @@
 #include "kronos/global_config.h"
 #include "kronos/kernels.h"
 #include "kronos/mpi_kernel.h"
+#include "kronos/memory.h"
 #include "kronos/trace.h"
 
 /* ------------------------------------------------------------------------------------------------------------------ */
