@@ -109,7 +109,7 @@ static void test_timers() {
     stats_stop_log(logger1, 1);
 
     assert(logger1->count == 1);
-    assert(fabs(logger1->sumTimes - 0.02) < 0.0002);
+    assert(fabs(logger1->sumTimes - 0.02) < 0.0004);
     assert(fabs(logger1->sumTimesSquared - 0.0004) < 0.00001);
 
     stats_start(logger1);
@@ -117,7 +117,7 @@ static void test_timers() {
     stats_stop_log(logger1, 1);
 
     assert(logger1->count == 2);
-    assert(fabs(logger1->sumTimes - 0.06) < 0.0003);
+    assert(fabs(logger1->sumTimes - 0.06) < 0.0004);
     assert(fabs(logger1->sumTimesSquared - 0.002) < 0.0001);
 
     /* And clear up */
@@ -140,7 +140,7 @@ static void test_timers_with_bytes() {
     stats_stop_log_bytes(logger1, 6666);
 
     assert(logger1->count == 1);
-    assert(fabs(logger1->sumTimes - 0.02) < 0.0002);
+    assert(fabs(logger1->sumTimes - 0.02) < 0.0003);
     assert(fabs(logger1->sumTimesSquared - 0.0004) < 0.00001);
     assert(logger1->sumBytes == 6666);
     assert(logger1->sumBytesSquared == 44435556);
@@ -150,7 +150,7 @@ static void test_timers_with_bytes() {
     stats_stop_log_bytes(logger1, 7777);
 
     assert(logger1->count == 2);
-    assert(fabs(logger1->sumTimes - 0.06) < 0.0003);
+    assert(fabs(logger1->sumTimes - 0.06) < 0.0004);
     assert(fabs(logger1->sumTimesSquared - 0.002) < 0.0001);
     assert(logger1->sumBytes == 14443);
     assert(logger1->sumBytesSquared == 104917285);
@@ -362,11 +362,11 @@ static void test_ts_logging() {
     ts_cpt = json_object_get(ts, "durations");
     assert(json_is_array(ts_cpt));
     assert(json_as_double(json_array_element(ts_cpt, 0), &d) == 0);
-    assert(fabs(d - 0.01) < 0.0002);
+    assert(fabs(d - 0.01) < 0.0004);
     assert(json_as_double(json_array_element(ts_cpt, 1), &d) == 0);
-    assert(fabs(d - 0.02) < 0.0002);
+    assert(fabs(d - 0.02) < 0.0004);
     assert(json_as_double(json_array_element(ts_cpt, 2), &d) == 0);
-    assert(fabs(d - 0.04) < 0.0002);
+    assert(fabs(d - 0.04) < 0.0004);
 
     ts_cpt = json_object_get(ts, "ts-1");
     assert(json_is_array(ts_cpt));

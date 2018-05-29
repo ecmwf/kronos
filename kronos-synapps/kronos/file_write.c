@@ -194,7 +194,7 @@ bool open_write_file(bool o_direct) {
     return true;
 }
 
-bool write_to_file(int fd, long size, int* actual_number_writes_per_write_op) {
+bool write_to_file(int fd, long size, int* actual_number_writes) {
 
     long remaining;
     long chunk_size;
@@ -207,7 +207,6 @@ bool write_to_file(int fd, long size, int* actual_number_writes_per_write_op) {
 
     success = true;
     remaining = size;
-    *actual_number_writes_per_write_op = 0;
     while (remaining > 0) {
 
         chunk_size = remaining < file_write_max_chunk_size ? remaining : file_write_max_chunk_size;
@@ -223,7 +222,7 @@ bool write_to_file(int fd, long size, int* actual_number_writes_per_write_op) {
             stats_start(stats_instance());
 
             result = write(fd, buffer, bytes_to_write);
-            *actual_number_writes_per_write_op = *actual_number_writes_per_write_op + 1;
+            (*actual_number_writes)++;
 
             if (result == -1) {
                 fprintf(stderr, "A write error occurred: %d (%s)\n", errno, strerror(errno));
@@ -231,16 +230,10 @@ bool write_to_file(int fd, long size, int* actual_number_writes_per_write_op) {
                 break;
             }
 
-            /*
-            const GlobalConfig* global_conf = global_config_instance();
-            fprintf(stderr, "%li bytes actually written by rank %i \n", result, global_conf->mpi_rank);
-            */
-
             /* ..and log this specific write for stats*/
             stats_stop_log_bytes(stats_instance(), result);
 
             bytes_to_write -= result;
-
         }
 
         free(buffer);
@@ -446,8 +439,11 @@ static int execute_file_write(const void* data) {
 
     FileWriteParamsInternal params = get_write_params(config);
     const WriteFileInfo* file_info;
+
+    /* n.b. Write operations may not write the requested number of bytes. Track the
+     *      actual number of writes used, rather than the requested number in params */
     int actual_number_writes = 0;
-    int actual_number_writes_per_write_op;
+
     int file_cnt, error;
 
     assert(!config->mmap);
@@ -471,12 +467,9 @@ static int execute_file_write(const void* data) {
     for (file_cnt = 0; file_cnt < params.num_writes; file_cnt++) {
 
         TRACE3("Writing %li bytes to %s", params.write_size, file_info->filename);
-        actual_number_writes_per_write_op = 0;
-        if (!write_to_file(file_info->fd, params.write_size, &actual_number_writes_per_write_op)) {
+        if (!write_to_file(file_info->fd, params.write_size, &actual_number_writes)) {
             fprintf(stderr, "A write error occurred on file: %s\n", file_info->filename);
             error = -1;
-        } else {
-            actual_number_writes += actual_number_writes_per_write_op;
         }
 
         /* Loop around the available files */
