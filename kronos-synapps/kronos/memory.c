@@ -43,10 +43,8 @@ MEMParamsInternal get_mem_params(const MEMConfig* config) {
 
     MEMParamsInternal params;
 
-    /* the memory kernel already defines memory allocated per process
-    so, no need for dividing by the number of processes..*/
-    /*params.node_mem = config->mem_kb*1024./ global_conf->nprocs;*/
-    params.node_mem = config->mem_kb*1024.;
+    params.node_mem = config->mem_kb*1024./ global_conf->nprocs;
+    /*params.node_mem = config->mem_kb*1024.;*/
 
     return params;
 }
@@ -109,7 +107,7 @@ KernelFunctor* init_mem(const JSON* config_json) {
 
     config = malloc(sizeof(MEMConfig));
 
-    if (json_object_get_integer(config_json, "mem_proc_kb", &config->mem_kb) != 0 ||
+    if (json_object_get_integer(config_json, "kb_mem", &config->mem_kb) != 0 ||
         config->mem_kb < 0) {
 
         fprintf(stderr, "Invalid parameters specified in mem config\n");

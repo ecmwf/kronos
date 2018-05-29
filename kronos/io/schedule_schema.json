@@ -87,14 +87,14 @@
                                                             "memory"
                                                         ]
                                                     },
-                                                    "mem_proc_kb": {
+                                                    "kb_mem": {
                                                         "type": "number",
                                                         "description": "kb of memory allocated/touched per proc"
                                                     }
                                                 },
                                                 "required": [
                                                     "name",
-                                                    "mem_proc_kb"
+                                                    "kb_mem"
                                                 ]
                                             },
                                             {

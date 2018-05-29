@@ -16,7 +16,10 @@ signal_types = OrderedDict([
     ('kb_collective', {'type': float, 'category': 'mpi',  'behaviour': 'sum'}),
 
     # # CPU
-    ('flops', {'type': int, 'category': 'cpu', 'behaviour': 'sum'})
+    ('flops', {'type': int, 'category': 'cpu', 'behaviour': 'sum'}),
+
+    # # Memory allocated
+    ('kb_mem', {'type': int, 'category': 'memory', 'behaviour': 'sum'})
 ])
 
 
@@ -33,6 +36,7 @@ signal_types['n_pairwise']["print_info"] = {"unit": "times ", "format": int_form
 signal_types['kb_pairwise']["print_info"] = {"unit": "Gbytes", "format": float_format_print, "conv": 1.0/(1024.0**2)}
 signal_types['n_collective']["print_info"] = {"unit": "times ", "format": int_format_print, "conv": 1.0}
 signal_types['kb_collective']["print_info"] = {"unit": "Gbytes", "format": float_format_print, "conv": 1.0/(1024.0**2)}
+signal_types['kb_mem']["print_info"] = {"unit": "Gbytes", "format": int_format_print, "conv": 1.0/(1024.0**2)}
 
 signal_types['flops']["print_info"]["raw_units"] = "FLOPS"
 signal_types['kb_read']["print_info"]["raw_units"] = "KiB"
@@ -43,6 +47,7 @@ signal_types['n_pairwise']["print_info"]["raw_units"] = "-"
 signal_types['kb_pairwise']["print_info"]["raw_units"] = "KiB"
 signal_types['n_collective']["print_info"]["raw_units"] = "-"
 signal_types['kb_collective']["print_info"]["raw_units"] = "KiB"
+signal_types['kb_mem']["print_info"]["raw_units"] = "KiB"
 
 signal_types['flops']["print_info"]["description"] = "Number of flops executed"
 signal_types['kb_read']["print_info"]["description"] = "KiB read from disk"
@@ -53,6 +58,7 @@ signal_types['n_pairwise']["print_info"]["description"] = "Number of point-to-po
 signal_types['kb_pairwise']["print_info"]["description"] = "KiB passed in point-to-point MPI operations"
 signal_types['n_collective']["print_info"]["description"] = "Number of collective MPI operations"
 signal_types['kb_collective']["print_info"]["description"] = "KiB passed in collective MPI operations"
+signal_types['kb_mem']["print_info"]["description"] = "KiB of allocated memory"
 
 
 time_signal_names = signal_types.keys()

@@ -229,9 +229,32 @@ class FileWriteKernel(KernelBase):
         return data
 
 
+class MEMKernel(KernelBase):
+
+    name = 'memory'
+    signals = (("kb_mem", "kb_mem"),)
+
+    def synapp_config(self, n_bins=None):
+        """
+        Special case code: apply max value constrain.
+        """
+        data = super(MEMKernel, self).synapp_config(n_bins=n_bins)
+
+        for d in data:
+
+            if d['kb_mem'] < 0.:
+                raise ValueError('kb_mem={} is < 0!'.format(d['kb_mem']))
+
+            if d['kb_mem'] >= 0:
+                d['kb_mem'] = int(d['kb_mem'])
+
+        return data
+
+
 available_kernels = [
     CPUKernel,
     MPIKernel,
     FileReadKernel,
-    FileWriteKernel
+    FileWriteKernel,
+    MEMKernel
 ]
