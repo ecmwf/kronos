@@ -123,6 +123,7 @@ bool send_final_notification() {
     json_object_insert(json, "job_num", json_number_new(global_conf->job_num));
 
     notification_size = write_json_string(json_buffer, sizeof(json_buffer), json);
+    free_json(json);
 
     /* Send message to the socket */
 
