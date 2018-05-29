@@ -14,7 +14,8 @@ typedef struct MEMConfig {
 
 } MEMConfig;
 
-KernelFunctor* init_mem(const JSON* config_json);
+/* Longer name than normal, to avoid ambiguity that we are initting memory */
+KernelFunctor* init_memory_kernel(const JSON* config_json);
 
 /* ------------------------------------------------------------------------------------------------------------------ */
 
