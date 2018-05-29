@@ -42,6 +42,8 @@ ecbuild_add_library (
         trace.h
         utility.c
         utility.h
+        notification.c
+        notification.h
 
     DEFINITIONS "${MPI_DEFINITIONS}"
 

@@ -57,6 +57,12 @@ typedef struct GlobalConfig {
     long file_read_size_min;
     long file_read_size_max;
 
+    long job_num;
+
+    bool enable_notifications;
+    char notification_host[HOST_NAME_MAX];
+    long notification_port;
+
 } GlobalConfig;
 
 
