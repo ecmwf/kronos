@@ -127,6 +127,7 @@ bool send_final_notification() {
 
     /* Send message to the socket */
 
+    TRACE1("Sending notification JSON");
     write(sockfd, json_buffer, notification_size);
 
     /* Clean up and exit */
