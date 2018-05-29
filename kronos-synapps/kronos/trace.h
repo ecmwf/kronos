@@ -25,11 +25,19 @@
 
 void printf_trace(const char* fn_id, const char* fmt, ...);
 
-#define TRACE() printf_trace(__FUNCTION__, "ENTER")
-#define TRACE1(x) printf_trace(__FUNCTION__, x)
-#define TRACE2(x, y) printf_trace(__FUNCTION__, x, y)
-#define TRACE3(x, y, z) printf_trace(__FUNCTION__, x, y, z)
-#define TRACE4(w, x, y, z) printf_trace(__FUNCTION__, w, x, y, z)
+#ifndef __func__
+#ifdef __FUNCTION__
+#define __func__ __FUNCTION__
+#else
+#define __func__ "<unknown>"
+#endif
+#endif
+
+#define TRACE() printf_trace(__func__, "ENTER")
+#define TRACE1(x) printf_trace(__func__, x)
+#define TRACE2(x, y) printf_trace(__func__, x, y)
+#define TRACE3(x, y, z) printf_trace(__func__, x, y, z)
+#define TRACE4(w, x, y, z) printf_trace(__func__, w, x, y, z)
 
 /* ------------------------------------------------------------------------------------------------------------------ */
 

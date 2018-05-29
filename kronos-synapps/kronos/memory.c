@@ -39,8 +39,6 @@ static TimeSeriesLogger* flops_time_series() {
 
 MEMParamsInternal get_mem_params(const MEMConfig* config) {
 
-    const GlobalConfig* global_conf = global_config_instance();
-
     MEMParamsInternal params;
 
     /* the memory kernel already defines memory allocated per process
@@ -58,7 +56,6 @@ static int execute_mem(const void* data) {
     MEMParamsInternal params;
     int error;
 
-    size_t mem_length;
     int page_size = sysconf(_SC_PAGESIZE);
     long n_bytes;
     char *alloc_mem_b;

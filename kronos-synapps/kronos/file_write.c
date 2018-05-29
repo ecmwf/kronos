@@ -448,8 +448,7 @@ static int execute_file_write(const void* data) {
     const WriteFileInfo* file_info;
     int actual_number_writes = 0;
     int actual_number_writes_per_write_op;
-    int i, file_cnt, error;
-    char* buffer;
+    int file_cnt, error;
 
     assert(!config->mmap);
 

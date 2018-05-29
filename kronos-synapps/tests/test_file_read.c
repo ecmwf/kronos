@@ -351,6 +351,7 @@ int main() {
     test_valid_size_limits();
     test_read_params_too_small();
     test_read_params_too_big();
+    test_read_params_distribution();
     test_read_params_num_reads();
     test_read_params_mpi_threads();
     test_read_kernel_init();

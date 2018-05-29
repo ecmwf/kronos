@@ -23,6 +23,8 @@
 #endif
 #include <stdlib.h>
 #include <math.h>
+#include <string.h>
+#include <unistd.h>
 
 #include "kronos/global_config.h"
 #include "kronos/json.h"
@@ -306,8 +308,6 @@ static void test_ts_logging() {
     const JSON* ts_cpt;
     long i;
     double d;
-
-    int test_val; /* Avoid warnings with GNU + pedantic */
 
     assert_ts_logger_count(0, 0);
 
