@@ -1,9 +1,9 @@
 #!/usr/bin/env python
+from datetime import datetime
 
-import multiprocessing as mp
-import Queue
-from kronos.executor.event_dispatcher import dispatcher_callback
+from kronos.executor.event_dispatcher import EventDispatcher
 from kronos.executor.executor import Executor
+from kronos.executor.kronos_event import KronosEvent
 
 
 class ExecutorDepsEvents(Executor):
@@ -26,61 +26,66 @@ class ExecutorDepsEvents(Executor):
         """
 
         jobs = self.generate_job_internals()
+        time_0 = datetime.now()
 
-        # loop over jobs and unlock jobs for which all dependencies are satisfied..
-        event_queue = mp.Queue()
-        events_handler_proc = mp.Process(target=dispatcher_callback,
-                                         args=(event_queue, self.notification_host, self.notification_port))
-        events_handler_proc.start()
+        # init the dispatcher
+        hdl = EventDispatcher(server_host=self.notification_host, server_port=self.notification_port)
 
+        # the simulation info
         _simulation_events = []
         _submitted_jobs = []
+        _finished_jobs = []
 
-        # ### pseudo code
-        # while len(finished_jobs) < len(jobs):
-        #
-        #     event = queue.pop_events()
-        #     if(event)
-        #         dispatch(event) # reads the event type and update the status of jobs, data structures, etc
-        #
-        #     dispatch(time_event)
-        #
-        #     submit_elegible_jobs() # can be almost asynchronous by forking for submission
+        # Main loop over dependencies
+        i_submission_cycle = 0
+        while not all(j.id in _finished_jobs for j in jobs):
 
-        while len(_simulation_events) < len(jobs):
+            _finished_jobs = [e.job_num for e in _simulation_events if e.event == "complete"]
 
-            # update events from the dispatcher
-            try:
-                _simulation_events = event_queue.get_nowait()
-            except Queue.Empty:
-                pass
+            # create a timer event every N cycles (just in case is needed)
+            if not i_submission_cycle % self.time_event_cycles:
+                self.add_timer_event(time_0, _simulation_events)
 
-            # TODO: add time events..
-            # _simulation_events.append(KronosEvent())
+            # submit jobs (with several workers..)
+            self.submit_eligible_jobs(jobs, _finished_jobs, _submitted_jobs)
 
-            # submit jobs (possibly with several workers..)
-            for j in jobs:
+            # advance the cycle as soon as there is some new event(s)
+            hdl.handle_incoming_messages()
+            _simulation_events = hdl.events
 
-                # print "job ", j.id
+            # print "_simulation_events ", [e.event for e in _simulation_events]
 
-                # get finished jobs from event_queue
-                finished_jobs = [e.job_num for e in _simulation_events if e.event == "complete"]
+    def submit_eligible_jobs(self, _jobs, fjobs, sjobs):
+        """
+        Submit the jobs eligible for submission
+        :param _jobs:
+        :param fjobs:
+        :param sjobs:
+        :return:
+        """
 
-                if j.id not in finished_jobs:
+        for j in _jobs:
 
-                    # check if all its parent jobs have finished
-                    if (j.depends == [] or all([p in finished_jobs for p in j.depends])) \
-                            and (j.id not in _submitted_jobs):
+            # consider this job only if it has not yet run or submitted
+            if (j.id not in fjobs) and (j.id not in sjobs):
 
-                        # append this job to the list of "already submitted jobs"
-                        _submitted_jobs.append(j.id)
+                # check if all its parent jobs have finished
+                if j.depends == [] or all([p in fjobs for p in j.depends]):
 
-                        # print "_submitted_jobs ", _submitted_jobs
+                    # append this job to the list of "already submitted jobs"
+                    sjobs.append(j.id)
 
-                        # run the job now (with empty dependencies)..
-                        j.run([])
+                    # run the job now (with empty dependencies)..
+                    j.run([])
 
-            # print "_simulation_events ", [e.job_num for e in _simulation_events]
+    def add_timer_event(self, t0, _events):
+        """
+        Add a time event
+        :param t0:
+        :param _events:
+        :return:
+        """
 
-        # Finally, terminate the event_dispatcher no more events expected..
-        events_handler_proc.terminate()
+        _current_time = datetime.now()
+        _time_from_start = (_current_time - t0).total_seconds()
+        _events.append(KronosEvent.from_time(_time_from_start))

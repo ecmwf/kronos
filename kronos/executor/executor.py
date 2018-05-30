@@ -42,10 +42,11 @@ class Executor(object):
         'file_read_size_min_pow',
         'file_read_size_max_pow',
 
-
+        # options specific for event based submission
         'execution_mode',
         'notification_host',
-        'notification_port'
+        'notification_port',
+        'time_event_cycles'
 
     ]
 
@@ -140,14 +141,19 @@ class Executor(object):
             self.execution_mode = config.get('execution_mode')
 
         if config.get('execution_mode') != "events" and config.get('notification_host'):
-            raise KeyError("parameter 'notification_host' should only be set if execution_mode = event")
+            raise KeyError("parameter 'notification_host' should only be set if execution_mode = events")
         else:
             self.notification_host = config.get('notification_host')
 
         if config.get('execution_mode') != "events" and config.get('notification_port'):
-            raise KeyError("parameter 'notification_port' should only be set if execution_mode = event")
+            raise KeyError("parameter 'notification_port' should only be set if execution_mode = events")
         else:
             self.notification_port = config.get('notification_port')
+
+        if config.get('execution_mode') != "events" and config.get('time_event_cycles'):
+            raise KeyError("parameter 'time_event_cycles' should only be set if execution_mode = events")
+        else:
+            self.time_event_cycles = config.get('time_event_cycles', 1)
 
     def set_job_submitted(self, job_num, submitted_id):
         self._submitted_jobs[job_num] = submitted_id

@@ -10,15 +10,6 @@ import socket
 from kronos.executor.kronos_event import KronosEvent
 
 
-def dispatcher_callback(event_queue, host, port):
-
-    # init the dispatcher
-    hdl = EventDispatcher(event_queue, server_host=host, server_port=port)
-
-    # get messages as they come, until terminate_signal signal is True
-    hdl.handle_incoming_messages()
-
-
 class EventDispatcher(object):
 
     """
@@ -27,7 +18,7 @@ class EventDispatcher(object):
 
     buffer_size = 4096
 
-    def __init__(self, event_queue, server_host='localhost', server_port=7363):
+    def __init__(self, server_host='localhost', server_port=7363):
 
         """
         Setup the socket and bind it to the appropriate port
@@ -35,8 +26,6 @@ class EventDispatcher(object):
 
         # full address of the server
         self.server_address = (server_host, server_port)
-        print "self.server_address ", self.server_address
-
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         print 'starting up on %s port %s' % self.server_address
 
@@ -44,8 +33,6 @@ class EventDispatcher(object):
         self.sock.bind(self.server_address)
         self.sock.listen(1)
         self.events = []
-
-        self.event_queue = event_queue
         self.terminate = False
 
     def __unicode__(self):
@@ -61,7 +48,7 @@ class EventDispatcher(object):
         :return:
         """
 
-        print "ready for listening.."
+        # print "server listening.."
 
         # keep accepting connections until all the jobs have completed
         while True:
@@ -84,13 +71,10 @@ class EventDispatcher(object):
                 # add this event to the list of events to be handled..
                 kronos_event = KronosEvent(msg)
 
-                print "got event! {}".format(kronos_event)
-
                 # store internally the full list of events
                 self.events.append(kronos_event)
 
-                # put this events in the queue, ready for dispatch
-                self.event_queue.put_nowait(self.events)
-
                 # ..and close the connection
                 connection.close()
+
+                break

@@ -33,6 +33,18 @@ class KronosEvent(object):
     def __str__(self):
         return unicode(self).encode('utf-8')
 
+    @classmethod
+    def from_time(cls, timestamp):
+
+        message = {
+            "app": "unknown",
+            "event": "timer",
+            "timestamp": timestamp,
+            "job_num": -1
+        }
+
+        return cls(json.dumps(message))
+
     def decode_message(self, message):
         """
         Decode the message
@@ -44,7 +56,10 @@ class KronosEvent(object):
             return
 
         # decode the string into a json..
-        message_json = json.loads(message[:-1])
+        try:
+            message_json = json.loads(message)
+        except ValueError:
+            message_json = json.loads(message[:-1])
 
         # check all the configurations
         for k, v in message_json.iteritems():
