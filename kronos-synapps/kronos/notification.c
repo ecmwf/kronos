@@ -15,9 +15,12 @@
 
 #include <arpa/inet.h>
 #include <errno.h>
+#include <fcntl.h>
 #include <netdb.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
+#include <sys/select.h>
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <unistd.h>
@@ -39,9 +42,30 @@ int open_notification_connection() {
     struct addrinfo hints;
     struct addrinfo* servinfo;
     struct addrinfo* p;
+    fd_set fds;
+    struct timeval timeout;
+    int err;
+    socklen_t err_len;
 
     void* addr;
     char str_addr[INET6_ADDRSTRLEN];
+    const char* env;
+
+    /* Default timeout of 60 seconds for notifications */
+
+    long notification_timeout = 60;
+    long l;
+
+    env = getenv("KRONOS_NOTIFICATION_TIMEOUT");
+    if (env) {
+        l = strtol(env, NULL, 10);
+        if (l > 1) {
+            notification_timeout = l;
+        } else {
+            fprintf(stderr, "Invalid value for KRONOS_NOTIFICATION_TIMEOUT (%s). Using default: %li",
+                    env, notification_timeout);
+        }
+    }
 
     /* Get socket/connection info from getaddrinfo --> ipv4/6 compatible */
 
@@ -73,11 +97,47 @@ int open_notification_connection() {
         inet_ntop(p->ai_family, addr, str_addr, sizeof(str_addr));
         TRACE2("Connecting to %s", str_addr);
 
-        if (connect(sockfd, p->ai_addr, p->ai_addrlen) == -1) {
+        /* Connect with timeout. Put the socket in non-blocking mode, and then select. */
+
+        fcntl(sockfd, F_SETFL, O_NONBLOCK);
+
+        if (connect(sockfd, p->ai_addr, p->ai_addrlen) == -1 && errno != EINPROGRESS) {
+            close(sockfd);
+            fprintf(stderr, "AAA Failed to connect to socket: (%d) %s\n", errno, strerror(errno));
+            continue;
+        }
+
+        FD_ZERO(&fds);
+        FD_SET(sockfd, &fds);
+        timeout.tv_sec = notification_timeout;
+        timeout.tv_usec = 0;
+
+        switch (select(sockfd + 1, NULL, &fds, NULL, &timeout) == 1) {
+        case 1:
+            err_len = sizeof(err);
+            getsockopt(sockfd, SOL_SOCKET, SO_ERROR, &err, &err_len);
+            if (err == 0) {
+                /* Success! */
+                break;
+            }
+            close(sockfd);
+            fprintf(stderr, "Failed to connect to socket: (%d) %s\n", err, strerror(err));
+            continue;
+        case 0:
+            close(sockfd);
+            fprintf(stderr, "Failed to connect to socket due to timeout (t = %li s)\n", notification_timeout);
+            continue;
+        default:
             close(sockfd);
             fprintf(stderr, "Failed to connect to socket: (%d) %s\n", errno, strerror(errno));
             continue;
-        }
+        };
+
+        /*if (connect(sockfd, p->ai_addr, p->ai_addrlen) == -1) {
+            close(sockfd);
+            fprintf(stderr, "Failed to connect to socket: (%d) %s\n", errno, strerror(errno));
+            continue;
+        }*/
 
         break;
     }
@@ -96,7 +156,7 @@ int open_notification_connection() {
 bool send_final_notification() {
 
     int sockfd;
-    long notification_size;
+    long notification_size, to_write, written;
     JSON* json;
 
     /* Hard-restrict the size of the json we send to 4096 bytes. Matches the receive buffer
@@ -105,13 +165,41 @@ bool send_final_notification() {
 
     const GlobalConfig* global_conf = global_config_instance();
 
-    if (!global_conf->enable_notifications) {
+    /* By default, we make 5 attempts */
+
+    long notification_attempts = 5;
+    long notification_retry_delay = 5;
+    long l;
+    long attempt;
+    const char* p;
+
+
+    if (!global_conf->enable_notifications || global_conf->mpi_rank != 0) {
         return true;
     }
 
-    if ((sockfd = open_notification_connection()) == -1) {
-        fprintf(stderr, "Failed to send notification\n");
-        return false;
+    /* Environment variable to override the attempts */
+
+    p = getenv("KRONOS_NOTIFICATION_ATTEMPTS");
+    if (p) {
+        l = strtol(p, NULL, 10);
+        if (l > 1) {
+            notification_attempts = l;
+        } else {
+            fprintf(stderr, "Invalid value for KRONOS_NOTIFICATION_ATTEMPTS (%s). Using default: %li",
+                    p, notification_attempts);
+        }
+    }
+
+    p = getenv("KRONOS_NOTIFICATION_RETRY_DELAY");
+    if (p) {
+        l = strtol(p, NULL, 10);
+        if (l > 1) {
+            notification_retry_delay = l;
+        } else {
+            fprintf(stderr, "Invalid value for KRONOS_NOTIFICATION_RETRY_DELAY (%s). Using default: %li",
+                    p, notification_retry_delay);
+        }
     }
 
     /* Construct notification message */
@@ -125,15 +213,48 @@ bool send_final_notification() {
     notification_size = write_json_string(json_buffer, sizeof(json_buffer), json);
     free_json(json);
 
-    /* Send message to the socket */
+    /* And we're go for the attempts */
 
-    TRACE1("Sending notification JSON");
-    write(sockfd, json_buffer, notification_size);
+    for (attempt = 0; attempt < notification_attempts; attempt++) {
 
-    /* Clean up and exit */
+        TRACE3("Sending notification JSON, attempt %li / %li", attempt + 1, notification_attempts);
 
-    close(sockfd);
-    return true;
+        if ((sockfd = open_notification_connection()) == -1) {
+            fprintf(stderr, "Failed to open notification connection\n");
+            if (attempt < notification_attempts-1) {
+                fprintf(stderr, "Sleeping for %li s ...\n", notification_retry_delay);
+                sleep(notification_retry_delay);
+            }
+            continue;
+        }
+
+        /* Send message to the socket */
+
+        TRACE1("Writing notification to socket");
+
+        p = json_buffer;
+        to_write = notification_size;
+        while (to_write > 0) {
+            if ((written = write(sockfd, p, to_write)) == -1) {
+                fprintf(stderr, "Writing to socket failed: (%d) %s\n", errno, strerror(errno));
+                break;
+            }
+            to_write -= written;
+            p += written;
+        }
+
+        close(sockfd);
+
+        /* success ? */
+        if (written > 0) {
+            TRACE1("Notification sent");
+            return true;
+        }
+    }
+
+    fprintf(stderr, "Sending notification failed\n");
+
+    return false;
 }
 
 /* ------------------------------------------------------------------------------------------------------------------ */
