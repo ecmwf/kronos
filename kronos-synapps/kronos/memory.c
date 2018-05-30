@@ -43,8 +43,8 @@ MEMParamsInternal get_mem_params(const MEMConfig* config) {
 
     MEMParamsInternal params;
 
-    params.node_mem = config->mem_kb*1024./ global_conf->nprocs;
-    /*params.node_mem = config->mem_kb*1024.;*/
+    /*params.node_mem = config->mem_kb*1024./ global_conf->nprocs;*/
+    params.node_mem = config->mem_kb*1024.;
 
     return params;
 }

@@ -121,5 +121,5 @@ class HPCJob(BaseJob):
         # Ensure that any spaces in the depend_string are handled correctly
         subprocess_args = ' '.join(subprocess_args).split(' ')
 
-        # print "Submitting job {}".format(self.id)
+        print "Submitting job {}".format(self.id)
         self.executor.thread_manager.subprocess_callback(self.submission_callback, *subprocess_args)

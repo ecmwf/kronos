@@ -30,7 +30,7 @@ class ExecutorDepsEvents(Executor):
         # loop over jobs and unlock jobs for which all dependencies are satisfied..
         event_queue = mp.Queue()
         events_handler_proc = mp.Process(target=dispatcher_callback,
-                                         args=(event_queue, self.host, self.port))
+                                         args=(event_queue, self.notification_host, self.notification_port))
         events_handler_proc.start()
 
         _simulation_events = []
@@ -80,7 +80,7 @@ class ExecutorDepsEvents(Executor):
                         # run the job now (with empty dependencies)..
                         j.run([])
 
-            print "_simulation_events ", [e.job_num for e in _simulation_events]
+            # print "_simulation_events ", [e.job_num for e in _simulation_events]
 
         # Finally, terminate the event_dispatcher no more events expected..
         events_handler_proc.terminate()

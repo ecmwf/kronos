@@ -103,7 +103,6 @@ set -euxa
 
 {launcher_command} -np {num_procs} {coordinator_binary} {input_file}
 
-python /perm/ma/maab/kronos_tcpip_runs/client_uniq.py "synthetic-app" "0" "complete" {job_num}
 """
 
 

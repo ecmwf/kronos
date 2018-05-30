@@ -17,7 +17,7 @@ class KronosEvent(object):
     accepted_keys = {
         "app": {"key_type": str},
         "event": {"key_type": str},
-        "step": {"key_type": int},
+        "timestamp": {"key_type": float},
         "job_num": {"key_type": int}
     }
 
@@ -43,7 +43,8 @@ class KronosEvent(object):
         if not len(message):
             return
 
-        message_json = json.loads(message)
+        # decode the string into a json..
+        message_json = json.loads(message[:-1])
 
         # check all the configurations
         for k, v in message_json.iteritems():

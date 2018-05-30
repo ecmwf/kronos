@@ -25,6 +25,8 @@ class EventDispatcher(object):
     Class that dispatches Kronos events
     """
 
+    buffer_size = 4096
+
     def __init__(self, event_queue, server_host='localhost', server_port=7363):
 
         """
@@ -64,7 +66,6 @@ class EventDispatcher(object):
         # keep accepting connections until all the jobs have completed
         while True:
 
-            print "** waiting for a connection..."
             connection, client_address = self.sock.accept()
 
             try:
@@ -72,8 +73,7 @@ class EventDispatcher(object):
 
                 # keep looping until there is data to be received..
                 while True:
-                    data = connection.recv(1024)
-                    # print 'received "%s"' % data
+                    data = connection.recv(self.buffer_size)
                     if data:
                         msg += data
                     else:

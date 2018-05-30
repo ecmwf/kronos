@@ -42,9 +42,10 @@ class Executor(object):
         'file_read_size_min_pow',
         'file_read_size_max_pow',
 
+
         'execution_mode',
-        'host',
-        'port'
+        'notification_host',
+        'notification_port'
 
     ]
 
@@ -138,15 +139,15 @@ class Executor(object):
         if config.get('execution_mode'):
             self.execution_mode = config.get('execution_mode')
 
-        if config.get('execution_mode') != "events" and config.get('host'):
-            raise KeyError("parameter 'host' should only be set if execution_mode = event")
+        if config.get('execution_mode') != "events" and config.get('notification_host'):
+            raise KeyError("parameter 'notification_host' should only be set if execution_mode = event")
         else:
-            self.host = config.get('host')
+            self.notification_host = config.get('notification_host')
 
-        if config.get('execution_mode') != "events" and config.get('port'):
-            raise KeyError("parameter 'port' should only be set if execution_mode = event")
+        if config.get('execution_mode') != "events" and config.get('notification_port'):
+            raise KeyError("parameter 'notification_port' should only be set if execution_mode = event")
         else:
-            self.port = config.get('port')
+            self.notification_port = config.get('notification_port')
 
     def set_job_submitted(self, job_num, submitted_id):
         self._submitted_jobs[job_num] = submitted_id
@@ -226,6 +227,10 @@ class Executor(object):
                 job_config['file_read_size_min_pow'] = self._file_read_size_min_pow
             if self._file_read_size_max_pow:
                 job_config['file_read_size_max_pow'] = self._file_read_size_max_pow
+
+            if self.execution_mode == "events":
+                job_config['notification_host'] = self.notification_host
+                job_config['notification_port'] = self.notification_port
 
             j = job_class(job_config, self, job_dir)
 

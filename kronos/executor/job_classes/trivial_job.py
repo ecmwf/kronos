@@ -18,9 +18,6 @@ export KRONOS_SHARED_DIR="{shared_dir}"
 
 {launcher_command} -np {num_procs} {coordinator_binary} {input_file}
 
-# explicitely call the job terminator signal
-python /perm/ma/maab/kronos_tcpip_runs/client_uniq.py "synthetic-app" "0" "complete" {job_num}
-
 """
 
 allinea_template = """
@@ -28,7 +25,6 @@ allinea_template = """
 export PATH={allinea_path}:${{PATH}}
 export LD_LIBRARY_PATH={allinea_ld_library_path}:${{LD_LIBRARY_PATH}}
 """
-
 
 
 class Job(BaseJob):
