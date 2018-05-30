@@ -17,6 +17,10 @@ export KRONOS_SHARED_DIR="{shared_dir}"
 {profiling_code}
 
 {launcher_command} -np {num_procs} {coordinator_binary} {input_file}
+
+# explicitely call the job terminator signal
+python /perm/ma/maab/kronos_tcpip_runs/client_uniq.py "synthetic-app" "0" "complete" {job_num}
+
 """
 
 allinea_template = """
@@ -54,7 +58,8 @@ class Job(BaseJob):
             'num_procs': nprocs,
             'launcher_command': "mpirun",
             'input_file': self.input_file,
-            'profiling_code': ""
+            'profiling_code': "",
+            'job_num': self.id
         }
                
         if self.executor.allinea_path is not None and self.executor.allinea_ld_library_path is not None:

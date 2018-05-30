@@ -21,9 +21,10 @@ import json
 import os
 import sys
 
+from kronos.executor import executor_types
+
 sys.path.append(os.path.dirname(os.path.dirname(__file__)))
 
-from kronos.executor.executor import Executor
 from kronos.io.schedule_format import ScheduleFormat
 
 
@@ -61,4 +62,8 @@ if __name__ == "__main__":
     with open(args.kschedule_file_name, 'r') as f:
         schedule = ScheduleFormat.from_file(f)
 
-    Executor(config, schedule, kschedule_file=args.kschedule_file_name).run()
+    # Select the proper execution type according to options
+    executor_class = executor_types[config.get("execution_mode", "scheduler")]
+
+    # run the appropriate executor..
+    executor_class(config, schedule, kschedule_file=args.kschedule_file_name).run()

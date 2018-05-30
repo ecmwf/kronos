@@ -24,10 +24,29 @@ class Executor(object):
         pass
 
     available_parameters = [
-        'coordinator_binary', 'enable_ipm', 'job_class', 'job_dir', 'job_dir_shared',
-        'procs_per_node', 'read_cache', 'allinea_path', 'allinea_ld_library_path', 'allinea_licence_file',
-        'local_tmpdir', 'submission_workers', 'enable_darshan', 'darshan_lib_path',
-        'file_read_multiplicity', 'file_read_size_min_pow', 'file_read_size_max_pow']
+        'coordinator_binary',
+        'enable_ipm',
+        'job_class',
+        'job_dir',
+        'job_dir_shared',
+        'procs_per_node',
+        'read_cache',
+        'allinea_path',
+        'allinea_ld_library_path',
+        'allinea_licence_file',
+        'local_tmpdir',
+        'submission_workers',
+        'enable_darshan',
+        'darshan_lib_path',
+        'file_read_multiplicity',
+        'file_read_size_min_pow',
+        'file_read_size_max_pow',
+
+        'execution_mode',
+        'host',
+        'port'
+
+    ]
 
     def __init__(self, config, schedule, kschedule_file=None):
         """
@@ -115,92 +134,19 @@ class Executor(object):
             print "File read min size (2 ^ {}) bytes".format(self._file_read_size_min_pow)
             print "File read max size (2 ^ {}) bytes".format(self._file_read_size_max_pow)
 
-    def run(self):
+        # check the execution mode settings
+        if config.get('execution_mode'):
+            self.execution_mode = config.get('execution_mode')
 
-        # Test the read cache
-        print "Testing read cache ..."
-        if not generate_read_files.test_read_cache(
-                self.read_cache_path,
-                self._file_read_multiplicity,
-                self._file_read_size_min_pow,
-                self._file_read_size_max_pow):
-
-            print "Read cache not filled, generating ..."
-
-            generate_read_files.generate_read_cache(
-                self.read_cache_path,
-                self._file_read_multiplicity,
-                self._file_read_size_min_pow,
-                self._file_read_size_max_pow
-            )
-            print "Generated."
+        if config.get('execution_mode') != "events" and config.get('host'):
+            raise KeyError("parameter 'host' should only be set if execution_mode = event")
         else:
-            print "OK."
+            self.host = config.get('host')
 
-        # Launched jobs, matched with their job-ids
-
-        jobs = []
-
-        for job_num, job_config in enumerate(self.job_iterator()):
-            job_dir = os.path.join(self.job_dir, "job-{}".format(job_num))
-            job_config['job_num'] = job_num
-
-            job_class_module_file = os.path.join(
-                os.path.dirname(__file__),
-                "job_classes/{}.py".format(job_config.get("job_class", self.config.get("job_class", "trivial_job")))
-            )
-            # print "==========> Job class module: {}".format(job_class_module_file)
-            job_class_module = imp.load_source('job', job_class_module_file)
-            job_class = job_class_module.Job
-
-            if self._file_read_multiplicity:
-                job_config['file_read_multiplicity'] = self._file_read_multiplicity
-            if self._file_read_size_min_pow:
-                job_config['file_read_size_min_pow'] = self._file_read_size_min_pow
-            if self._file_read_size_max_pow:
-                job_config['file_read_size_max_pow'] = self._file_read_size_max_pow
-
-            j = job_class(job_config, self, job_dir)
-
-            j.generate()
-            jobs.append(j)
-
-        # Work through the list of jobs. Launch the first job that is not blocked by any other
-        # job.
-        # n.b. job.run does not just simply return the ID, as it may be asynchronous. The job
-        # handler is responsible for calling back set_job_submitted
-
-        while len(jobs) != 0:
-            nqueueing = self.thread_manager.num_running
-
-            found_job = None
-            depend_ids = None
-            for j in jobs:
-
-                try:
-                    depends = j.depends
-                    depend_ids = [self._submitted_jobs[d] for d in depends]
-
-                    # We have found a job. Break out of the search
-                    found_job = j
-                    break
-
-                except KeyError:
-                    # Go on to the next job in the list
-                    pass
-
-            if found_job:
-                found_job.run(depend_ids)
-                jobs.remove(found_job)
-
-            else:
-                # If there are no unblocked jobs, but there are still jobs in the submit queue,
-                # wait until something happens
-                self.thread_manager.wait_until(nqueueing-1)
-
-        # Wait until we are done
-
-        self.thread_manager.wait()
+        if config.get('execution_mode') != "events" and config.get('port'):
+            raise KeyError("parameter 'port' should only be set if execution_mode = event")
+        else:
+            self.port = config.get('port')
 
     def set_job_submitted(self, job_num, submitted_id):
         self._submitted_jobs[job_num] = submitted_id
@@ -235,3 +181,63 @@ class Executor(object):
             job_repeats = job.get("repeat", 1)
             for i in range(job_repeats):
                 yield job
+
+    def generate_job_internals(self):
+
+        # Test the read cache
+        print "Testing read cache ..."
+        if not generate_read_files.test_read_cache(
+                self.read_cache_path,
+                self._file_read_multiplicity,
+                self._file_read_size_min_pow,
+                self._file_read_size_max_pow):
+
+            print "Read cache not filled, generating ..."
+
+            generate_read_files.generate_read_cache(
+                self.read_cache_path,
+                self._file_read_multiplicity,
+                self._file_read_size_min_pow,
+                self._file_read_size_max_pow
+            )
+            print "Generated."
+        else:
+            print "OK."
+
+        # Launched jobs, matched with their job-ids
+
+        jobs = []
+
+        for job_num, job_config in enumerate(self.job_iterator()):
+            job_dir = os.path.join(self.job_dir, "job-{}".format(job_num))
+            job_config['job_num'] = job_num
+
+            job_class_module_file = os.path.join(
+                os.path.dirname(__file__),
+                "job_classes/{}.py".format(job_config.get("job_class", self.config.get("job_class", "trivial_job")))
+            )
+
+            job_class_module = imp.load_source('job', job_class_module_file)
+            job_class = job_class_module.Job
+
+            if self._file_read_multiplicity:
+                job_config['file_read_multiplicity'] = self._file_read_multiplicity
+            if self._file_read_size_min_pow:
+                job_config['file_read_size_min_pow'] = self._file_read_size_min_pow
+            if self._file_read_size_max_pow:
+                job_config['file_read_size_max_pow'] = self._file_read_size_max_pow
+
+            j = job_class(job_config, self, job_dir)
+
+            j.generate()
+            jobs.append(j)
+
+        return jobs
+
+    def run(self):
+        """
+        Main function that manages the execution of the schedule
+        :return:
+        """
+
+        raise NotImplementedError

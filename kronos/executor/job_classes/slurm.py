@@ -102,6 +102,8 @@ cd {job_dir}
 set -euxa
 
 {launcher_command} -np {num_procs} {coordinator_binary} {input_file}
+
+python /perm/ma/maab/kronos_tcpip_runs/client_uniq.py "synthetic-app" "0" "complete" {job_num}
 """
 
 
@@ -143,7 +145,7 @@ class SLURMMixin(object):
     allinea_template = allinea_template
     allinea_lic_file_template = allinea_lic_file_template
         
-    submit_command = "sbatch_filter.py"
+    submit_command = "/home/ma/maab/git/kronos-core/kronos/executor/job_classes/sbatch_filter.py"
     depend_parameter = "--dependency=afterany:"
     depend_separator = ":"
     launcher_command = 'mpirun'
