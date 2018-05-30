@@ -40,8 +40,6 @@ class ExecutorDepsEvents(Executor):
         i_submission_cycle = 0
         while not all(j.id in _finished_jobs for j in jobs):
 
-            _finished_jobs = [e.job_num for e in _simulation_events if e.event == "complete"]
-
             # create a timer event every N cycles (just in case is needed)
             if not i_submission_cycle % self.time_event_cycles:
                 self.add_timer_event(time_0, _simulation_events)
@@ -53,7 +51,11 @@ class ExecutorDepsEvents(Executor):
             hdl.handle_incoming_messages()
             _simulation_events = hdl.events
 
+            # update list of completed jobs
+            _finished_jobs = [e.job_num for e in _simulation_events if e.event == "complete"]
+
             # print "_simulation_events ", [e.event for e in _simulation_events]
+            # print "_finished_jobs ", _finished_jobs
 
     def submit_eligible_jobs(self, _jobs, fjobs, sjobs):
         """

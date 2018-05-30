@@ -137,8 +137,7 @@ class Executor(object):
             print "File read max size (2 ^ {}) bytes".format(self._file_read_size_max_pow)
 
         # check the execution mode settings
-        if config.get('execution_mode'):
-            self.execution_mode = config.get('execution_mode')
+        self.execution_mode = config.get('execution_mode', "scheduler")
 
         if config.get('execution_mode') != "events" and config.get('notification_host'):
             raise KeyError("parameter 'notification_host' should only be set if execution_mode = events")
