@@ -16,7 +16,7 @@ class KronosEvent(object):
 
     accepted_keys = {
         "app": {"key_type": str},
-        "event": {"key_type": str},
+        "event": {"key_type": str, "choices": ["complete", "time"]},
         "timestamp": {"key_type": float},
         "job_num": {"key_type": int}
     }
@@ -38,7 +38,7 @@ class KronosEvent(object):
 
         message = {
             "app": "unknown",
-            "event": "timer",
+            "event": "time",
             "timestamp": timestamp,
             "job_num": -1
         }
@@ -63,8 +63,14 @@ class KronosEvent(object):
 
         # check all the configurations
         for k, v in message_json.iteritems():
+
+            # check keys against allowed keys
             if k not in self.accepted_keys:
                 raise ValueError("Unexpected configuration keyword provided - {}:{}".format(k, v))
+
+            # check values against valid choices (if any)
+            if self.accepted_keys[k].get("choices"):
+                assert v in self.accepted_keys[k]["choices"]
 
             # finally add all the attributes from the decoded message
             setattr(self, k, self.accepted_keys[k]["key_type"](v))
