@@ -25,6 +25,7 @@
 #include <stdlib.h>
 #include <assert.h>
 #include <errno.h>
+#include <math.h>
 
 static void write_kresults(const char* filename);
 
@@ -171,10 +172,13 @@ static StatisticsLogger* create_stats_logger(const char* name) {
 
     StatisticsRegistry* registry = stats_instance();
 
+    int test_val; /* Avoid warnings with GNU + pedantic */
+
     /* Ensure that an existing logger does not exist with this name */
     StatisticsLogger* logger = registry->loggers;
     while (logger != 0) {
-        assert(logger->name != 0 && strcmp(name, logger->name) != 0);
+        test_val = logger->name == 0 ? 0 : strcmp(name, logger->name);
+        assert(test_val != 0);
         logger = logger->next;
     }
 
@@ -285,11 +289,14 @@ TimeSeriesLogger *register_time_series(const char *name) {
 
     StatisticsRegistry* registry = stats_instance();
 
+    int test_val; /* Avoid warnings with GNU + pedantic */
+
     /* Ensure that an existing time series logger does not exist with this name */
 
     TimeSeriesLogger* logger = registry->timeSeriesLoggers;
     while (logger != 0) {
-        assert(logger->name != 0 && strcmp(name, logger->name) != 0);
+        test_val = logger->name == 0 ? 0 : strcmp(name, logger->name);
+        assert(test_val != 0);
         logger = logger->next;
     }
 
@@ -379,7 +386,7 @@ static void report_logger(FILE* fp, const StatisticsLogger* logger) {
 
     /* Report counts */
 
-    fprintf(fp, "%s:%d %s count: %d\n",
+    fprintf(fp, "%s:%d %s count: %lu\n",
            global_conf->hostname,
            global_conf->pid,
            logger->name,
@@ -426,8 +433,6 @@ void report_stats() {
 
     StatisticsRegistry* registry = stats_instance();
 
-    JSON* json;
-
     /* Report statistics to stdout */
 
     if (global_conf->print_statistics) {
@@ -447,8 +452,6 @@ void report_stats() {
 
 
 static JSON* logger_json(const StatisticsLogger* logger) {
-
-    const GlobalConfig* global_conf = global_config_instance();
 
     JSON* json;
     double average;

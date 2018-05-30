@@ -9,8 +9,10 @@
  */
 
 #include <stdlib.h>
-#include "kronos/memory.h"
+#include <errno.h>
+
 #include "kronos/global_config.h"
+#include "kronos/memory.h"
 #include "kronos/stats.h"
 #include "kronos/trace.h"
 #include "kronos/utility.h"
@@ -39,8 +41,6 @@ static TimeSeriesLogger* flops_time_series() {
 
 MEMParamsInternal get_mem_params(const MEMConfig* config) {
 
-    const GlobalConfig* global_conf = global_config_instance();
-
     MEMParamsInternal params;
 
     params.node_mem = config->mem_kb*1024./ global_conf->nprocs;
@@ -54,14 +54,10 @@ static int execute_mem(const void* data) {
 
     const MEMConfig* config = data;
     MEMParamsInternal params;
-    int error;
 
-    size_t mem_length;
     int page_size = sysconf(_SC_PAGESIZE);
     long n_bytes;
     char *alloc_mem_b;
-
-    error = 0;
 
     params = get_mem_params(config);
 
@@ -74,17 +70,12 @@ static int execute_mem(const void* data) {
     /* allocate the required memory */
     alloc_mem_b = (char *) malloc(n_bytes);
     if (!alloc_mem_b){
-        fprintf(stderr, "An error occurred during memory allocation\n");
-        error = -1;
-        return error;
+        fprintf(stderr, "An error occurred allocating %li bytes; (%d) %s\n", n_bytes, errno, strerror(errno));
+        return -1;
     }
 
     /* set mem to an arbitrary value */
     memset(alloc_mem_b, 'b', n_bytes);
-
-    TRACE2("----> sysconf(_SC_PAGESIZE): %li", sysconf(_SC_PAGESIZE));
-    TRACE2("----> n_bytes: %li", n_bytes);
-    /* TRACE2("----> alloc_mem_b: %c", alloc_mem_b[0]); */
 
     /* Log time series data */
     stats_stop_log(stats_instance(), params.node_mem);
@@ -94,11 +85,11 @@ static int execute_mem(const void* data) {
     /* free the allocated memory */
     free(alloc_mem_b);
 
-    return error;
+    return 0;
 }
 
 
-KernelFunctor* init_mem(const JSON* config_json) {
+KernelFunctor* init_memory_kernel(const JSON* config_json) {
 
     MEMConfig* config;
     KernelFunctor* functor;

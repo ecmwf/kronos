@@ -16,10 +16,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "kronos/json.h"
-#include "kronos/global_config.h"
+#include "kronos/file_write.h"
 #include "kronos/frames.h"
+#include "kronos/global_config.h"
+#include "kronos/json.h"
 #include "kronos/stats.h"
+#include "kronos/notification.h"
 
 
 /* ------------------------------------------------------------------------------------------------------------------ */
@@ -74,9 +76,10 @@ int main(int argc, char** argv)
 
             report_stats();
             free_stats_registry();
-            clean_global_config();
             close_write_files();
             free_json(json);
+            send_final_notification();
+            clean_global_config();
         } else {
             fprintf(stderr, "Error parsing json...\n");
         }
