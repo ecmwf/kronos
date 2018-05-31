@@ -58,9 +58,9 @@ ecbuild_add_library (
 
 ecbuild_add_executable(
 
-    TARGET kronos-coordinator
+    TARGET kronos-synapp
 
-    SOURCES coordinator.c
+    SOURCES synapp.c
 
     DEFINITIONS "${MPI_DEFINITIONS}"
 
