@@ -16,9 +16,9 @@ class KronosEvent(object):
 
     accepted_keys = {
         "app": {"key_type": str},
-        "event": {"key_type": str, "choices": ["complete", "time"]},
+        "event": {"key_type": str, "choices": ["complete", "time", "metadata-changes"]},
         "timestamp": {"key_type": float},
-        "job_num": {"key_type": int}
+        "job_id": {"key_type": int}
     }
 
     def __init__(self, message):
@@ -40,7 +40,7 @@ class KronosEvent(object):
             "app": "unknown",
             "event": "time",
             "timestamp": timestamp,
-            "job_num": -1
+            "job_id": -1
         }
 
         return cls(json.dumps(message))
@@ -73,4 +73,7 @@ class KronosEvent(object):
                 assert v in self.accepted_keys[k]["choices"]
 
             # finally add all the attributes from the decoded message
-            setattr(self, k, self.accepted_keys[k]["key_type"](v))
+            if self.accepted_keys[k].get("key_type"):
+                setattr(self, k, self.accepted_keys[k]["key_type"](v))
+            else:
+                setattr(self, k, v)

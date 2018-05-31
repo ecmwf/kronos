@@ -409,6 +409,7 @@ if __name__ == "__main__":
     print "len serial workflow.. {}".format(len(serial_workflows))
 
     # multiply workflows in parallel
+    # all_workflows = serial_workflows
     all_workflows = multiply_workflows(serial_workflows, args.parallel)
     print "len serial+parallel workflow.. {}".format(len(all_workflows))
 
