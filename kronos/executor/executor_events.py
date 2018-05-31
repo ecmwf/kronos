@@ -52,7 +52,7 @@ class ExecutorDepsEvents(Executor):
             _simulation_events = hdl.events
 
             # update list of completed jobs
-            _finished_jobs = [e.job_id for e in _simulation_events if e.event == "complete"]
+            _finished_jobs = [e.info["job"] for e in _simulation_events if e.type == "Complete"]
 
             # print "_simulation_events ", [e.event for e in _simulation_events]
             # print "_finished_jobs ", _finished_jobs

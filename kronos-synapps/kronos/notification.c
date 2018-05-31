@@ -208,10 +208,10 @@ bool send_final_notification() {
     json_info = json_object_new();
     json_object_insert(json_info, "app", json_string_new("kronos-synapp"));
     json_object_insert(json_info, "job", json_number_new(global_conf->job_num));
+    json_object_insert(json_info, "timestamp", json_number_new(take_time()));
 
     json = json_object_new();
-    json_object_insert(json, "event", json_string_new("complete"));
-    json_object_insert(json, "timestamp", json_number_new(take_time()));
+    json_object_insert(json, "type", json_string_new("Complete"));
     json_object_insert(json, "info", json_info);
 
     notification_size = write_json_string(json_buffer, sizeof(json_buffer), json);

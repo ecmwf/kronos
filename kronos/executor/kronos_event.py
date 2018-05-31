@@ -6,6 +6,8 @@
 # granted to it by virtue of its status as an intergovernmental organisation nor
 # does it submit to any jurisdiction.
 import json
+import jsonschema
+import os
 
 
 class KronosEvent(object):
@@ -14,21 +16,17 @@ class KronosEvent(object):
     A Kronos event that can be triggered by jobs
     """
 
-    accepted_keys = {
-        "app": {"key_type": str},
-        "event": {"key_type": str, "choices": ["complete", "time", "metadata-changes"]},
-        "timestamp": {"key_type": float},
-        "job_id": {"key_type": int}
-    }
+    # JSON schema of a kronos event
+    schema_json = os.path.join(os.path.dirname(__file__), "event_schema.json")
 
     def __init__(self, message):
 
         # check that the message is well formed and decode it
+        self.raw_message = message
         self.decode_message(message)
 
     def __unicode__(self):
-        return "KRONOS-EVENT:\n{}".format("\n".join(["-- {}: {}".format(k, getattr(self, k))
-                                                     for k, v in self.accepted_keys.iteritems()]))
+        return "KRONOS-EVENT:\n{}".format(self.raw_message)
 
     def __str__(self):
         return unicode(self).encode('utf-8')
@@ -37,10 +35,10 @@ class KronosEvent(object):
     def from_time(cls, timestamp):
 
         message = {
-            "app": "unknown",
-            "event": "time",
-            "timestamp": timestamp,
-            "job_id": -1
+            "type": "timer",
+            "info": {
+                "timestamp": timestamp
+            }
         }
 
         return cls(json.dumps(message))
@@ -62,18 +60,25 @@ class KronosEvent(object):
             message_json = json.loads(message[:-1])
 
         # check all the configurations
+        self.validate_json(message_json)
+
+        # get the top-level keys as attributes
         for k, v in message_json.iteritems():
+            setattr(self, k, v)
 
-            # check keys against allowed keys
-            if k not in self.accepted_keys:
-                raise ValueError("Unexpected configuration keyword provided - {}:{}".format(k, v))
+    @classmethod
+    def schema(cls):
+        """
+        Obtain the json schema for a kronos event
+        """
 
-            # check values against valid choices (if any)
-            if self.accepted_keys[k].get("choices"):
-                assert v in self.accepted_keys[k]["choices"]
+        with open(cls.schema_json, 'r') as fschema:
+            return json.load(fschema)
 
-            # finally add all the attributes from the decoded message
-            if self.accepted_keys[k].get("key_type"):
-                setattr(self, k, self.accepted_keys[k]["key_type"](v))
-            else:
-                setattr(self, k, v)
+    @classmethod
+    def validate_json(cls, js):
+        """
+        Do validation of a dictionary that has been loaded from (or will be written to) a JSON
+        """
+        # print "validating message: ", js
+        jsonschema.validate(js, cls.schema(), format_checker=jsonschema.FormatChecker())
