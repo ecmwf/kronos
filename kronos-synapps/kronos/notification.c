@@ -158,6 +158,7 @@ bool send_final_notification() {
     int sockfd;
     long notification_size, to_write, written;
     JSON* json;
+    JSON* json_info;
 
     /* Hard-restrict the size of the json we send to 4096 bytes. Matches the receive buffer
      * in the kronos executor */
@@ -204,11 +205,14 @@ bool send_final_notification() {
 
     /* Construct notification message */
 
+    json_info = json_object_new();
+    json_object_insert(json_info, "app", json_string_new("kronos-synapp"));
+    json_object_insert(json_info, "job", json_number_new(global_conf->job_num));
+
     json = json_object_new();
-    json_object_insert(json, "app", json_string_new("kronos-synapp"));
     json_object_insert(json, "event", json_string_new("complete"));
     json_object_insert(json, "timestamp", json_number_new(take_time()));
-    json_object_insert(json, "job_id", json_number_new(global_conf->job_num));
+    json_object_insert(json, "info", json_info);
 
     notification_size = write_json_string(json_buffer, sizeof(json_buffer), json);
     free_json(json);
