@@ -3,6 +3,7 @@
 import datetime
 import imp
 import os
+import socket
 import sys
 import time
 from shutil import copy2
@@ -142,12 +143,12 @@ class Executor(object):
         if config.get('execution_mode') != "events" and config.get('notification_host'):
             raise KeyError("parameter 'notification_host' should only be set if execution_mode = events")
         else:
-            self.notification_host = config.get('notification_host')
+            self.notification_host = config.get('notification_host', socket.gethostname())
 
         if config.get('execution_mode') != "events" and config.get('notification_port'):
             raise KeyError("parameter 'notification_port' should only be set if execution_mode = events")
         else:
-            self.notification_port = config.get('notification_port')
+            self.notification_port = config.get('notification_port', 7363)
 
         if config.get('execution_mode') != "events" and config.get('time_event_cycles'):
             raise KeyError("parameter 'time_event_cycles' should only be set if execution_mode = events")
