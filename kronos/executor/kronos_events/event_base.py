@@ -44,52 +44,6 @@ class EventBase(object):
 
         raise NotImplementedError
 
-    # @staticmethod
-    # def from_timestamp(timestamp):
-    #     """
-    #     Just a timer event from a simple timestamp
-    #     :param timestamp:
-    #     :return:
-    #     """
-    #
-    #     event_json = {
-    #         "type": "Timer",
-    #         "info": {
-    #             "timestamp": timestamp
-    #         }
-    #     }
-    #
-    #     return event_types[event_json["type"]](event_json)
-    #
-    # @staticmethod
-    # def from_json(event_json):
-    #     """
-    #     An event directly from a json structure
-    #     :param event_json:
-    #     :return:
-    #     """
-    #
-    #     return event_types[event_json["type"]](event_json)
-    #
-    # @staticmethod
-    # def from_string(event_string):
-    #     """
-    #     An event from a string (typically received through the network)
-    #     :param event_string:
-    #     :return:
-    #     """
-    #
-    #     if not len(event_string):
-    #         return
-    #
-    #     # decode the string into a json..
-    #     try:
-    #         event_json = json.loads(event_string)
-    #     except ValueError:
-    #         event_json = json.loads(event_string[:-1])
-    #
-    #     return event_types[event_json["type"]](event_json)
-
     @classmethod
     def schema(cls):
         """
