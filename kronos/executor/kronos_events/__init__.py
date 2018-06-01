@@ -5,7 +5,7 @@ from kronos.executor.kronos_events.event_metadatachange import EventMetadataChan
 from kronos.executor.kronos_events.event_time import EventTime
 
 event_types = {
-    "MetaDataChange": EventMetadataChange,
+    "MetadataChange": EventMetadataChange,
     "Time": EventTime,
     "Complete": EventComplete
 }
