@@ -69,6 +69,7 @@ class EventDispatcher(object):
             finally:
 
                 # add this event to the list of events to be handled..
+                # print "arrived msg: {}".format(msg)
                 kronos_event = EventFactory.from_string(msg)
 
                 # ..and close the connection

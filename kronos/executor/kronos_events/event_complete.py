@@ -13,8 +13,8 @@ class EventComplete(EventBase):
     An event that communicates a "time"
     """
 
-    def __init__(self, event_json):
-        super(EventComplete, self).__init__(event_json)
+    def __init__(self, event_json, validate_event=False):
+        super(EventComplete, self).__init__(event_json, validate_event=validate_event)
 
     def __eq__(self, other):
         """

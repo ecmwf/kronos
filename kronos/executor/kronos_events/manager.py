@@ -42,11 +42,6 @@ class Manager(object):
         else:
             filtered_events = self.__events
 
-        # print "filtered self.__events: \n", "\n".join(
-        #     ["\n".join("{}: {}".format(k,v) for k,v in e.info.items())
-        #      for e in filtered_events]
-        # )
-
         return filtered_events
 
     def wait_for_new_event(self):

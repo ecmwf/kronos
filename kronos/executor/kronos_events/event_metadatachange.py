@@ -13,8 +13,8 @@ class EventMetadataChange(EventBase):
     An event that communicates a metadata change
     """
 
-    def __init__(self, event_json):
-        super(EventMetadataChange, self).__init__(event_json)
+    def __init__(self, event_json, validate_event=False):
+        super(EventMetadataChange, self).__init__(event_json, validate_event=validate_event)
 
     def __eq__(self, other):
         """

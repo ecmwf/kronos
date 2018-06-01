@@ -19,13 +19,14 @@ class EventBase(object):
     # JSON schema of a kronos event
     schema_json = os.path.join(os.path.dirname(__file__), "schema.json")
 
-    def __init__(self, message_json):
+    def __init__(self, message_json, validate_event=False):
 
         # keeps the json internally
         self.__message_json = message_json
 
         # check all the configurations
-        self.validate_json(message_json)
+        if validate_event:
+            self.validate_json(message_json)
 
         # keep the top-level keys as attributes
         for k, v in message_json.iteritems():

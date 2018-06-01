@@ -14,10 +14,11 @@ event_types = {
 class EventFactory(object):
 
     @staticmethod
-    def from_timestamp(timestamp):
+    def from_timestamp(timestamp, validate_event=False):
         """
         Just a timer event from a simple timestamp
         :param timestamp:
+        :param validate_event:
         :return:
         """
 
@@ -28,23 +29,25 @@ class EventFactory(object):
             }
         }
 
-        return event_types[event_json["type"]](event_json)
+        return event_types[event_json["type"]](event_json, validate_event=validate_event)
 
     @staticmethod
-    def from_dictionary(event_json):
+    def from_dictionary(event_json, validate_event=False):
         """
         An event directly from a json structure
         :param event_json:
+        :param validate_event:
         :return:
         """
 
-        return event_types[event_json["type"]](event_json)
+        return event_types[event_json["type"]](event_json, validate_event=validate_event)
 
     @staticmethod
-    def from_string(event_string):
+    def from_string(event_string, validate_event=False):
         """
         An event from a string (typically received through the network)
         :param event_string:
+        :param validate_event:
         :return:
         """
 
@@ -57,4 +60,4 @@ class EventFactory(object):
         except ValueError:
             event_json = json.loads(event_string[:-1])
 
-        return event_types[event_json["type"]](event_json)
+        return event_types[event_json["type"]](event_json, validate_event=validate_event)

@@ -54,6 +54,7 @@ class ExecutorDepsEvents(Executor):
 
             # get updated list of completed jobs
             completed_job_ids = [e.info["job"] for e in event_manager.get_events(type_filter="Complete")]
+            # print "completed_job_ids: ", completed_job_ids
 
             # update cycle counter
             i_submission_cycle += 1
