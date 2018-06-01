@@ -2,8 +2,8 @@
 from datetime import datetime
 
 from kronos.executor.event_dispatcher import EventDispatcher
+from kronos.executor.event_manager import EventManager
 from kronos.executor.executor import Executor
-from kronos.executor.kronos_event import KronosEvent
 
 
 class ExecutorDepsEvents(Executor):
@@ -30,9 +30,9 @@ class ExecutorDepsEvents(Executor):
 
         # init the dispatcher
         hdl = EventDispatcher(server_host=self.notification_host, server_port=self.notification_port)
+        ev_manager = EventManager()
 
         # the simulation info
-        _simulation_events = []
         _submitted_jobs = []
         _finished_jobs = []
 
@@ -40,22 +40,21 @@ class ExecutorDepsEvents(Executor):
         i_submission_cycle = 0
         while not all(j.id in _finished_jobs for j in jobs):
 
-            # create a timer event every N cycles (just in case is needed)
+            # Add a timer event every N cycles (just in case..)
             if not i_submission_cycle % self.time_event_cycles:
-                self.add_timer_event(time_0, _simulation_events)
+                ev_manager.add_time_event((datetime.now() - time_0).total_seconds())
 
             # submit jobs (with several workers..)
             self.submit_eligible_jobs(jobs, _finished_jobs, _submitted_jobs)
 
-            # advance the cycle as soon as there is some new event(s)
-            hdl.handle_incoming_messages()
-            _simulation_events = hdl.events
+            # wait until next message has arrived from the dispatcher
+            ev_manager.update_events(hdl.get_next_message())
 
             # update list of completed jobs
-            _finished_jobs = [e.info["job"] for e in _simulation_events if e.type == "Complete"]
+            _finished_jobs = [e.info["job"] for e in ev_manager.get_events(type_filter="Complete")]
 
-            # print "_simulation_events ", [e.event for e in _simulation_events]
-            # print "_finished_jobs ", _finished_jobs
+            # update cycle counter
+            i_submission_cycle += 1
 
     def submit_eligible_jobs(self, _jobs, fjobs, sjobs):
         """
@@ -79,15 +78,3 @@ class ExecutorDepsEvents(Executor):
 
                     # run the job now (with empty dependencies)..
                     j.run([])
-
-    def add_timer_event(self, t0, _events):
-        """
-        Add a time event
-        :param t0:
-        :param _events:
-        :return:
-        """
-
-        _current_time = datetime.now()
-        _time_from_start = (_current_time - t0).total_seconds()
-        _events.append(KronosEvent.from_time(_time_from_start))

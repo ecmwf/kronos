@@ -19,52 +19,69 @@ class KronosEvent(object):
     # JSON schema of a kronos event
     schema_json = os.path.join(os.path.dirname(__file__), "event_schema.json")
 
-    def __init__(self, message):
+    def __init__(self, message_json):
 
-        # check that the message is well formed and decode it
-        self.raw_message = message
-        self.decode_message(message)
+        # keeps the json internally
+        self.__message_json = message_json
+
+        # check all the configurations
+        self.validate_json(message_json)
+
+        # keep the top-level keys as attributes
+        for k, v in message_json.iteritems():
+            setattr(self, k, v)
 
     def __unicode__(self):
-        return "KRONOS-EVENT:\n{}".format(self.raw_message)
+        return "KRONOS-EVENT:\n{}".format(self.__message_json)
 
     def __str__(self):
         return unicode(self).encode('utf-8')
 
     @classmethod
-    def from_time(cls, timestamp):
+    def from_timestamp(cls, timestamp):
+        """
+        Just a timer event from a simple timestamp
+        :param timestamp:
+        :return:
+        """
 
-        message = {
+        event_json = {
             "type": "timer",
             "info": {
                 "timestamp": timestamp
             }
         }
 
-        return cls(json.dumps(message))
+        return cls(event_json)
 
-    def decode_message(self, message):
+    @classmethod
+    def from_json(cls, event_json):
         """
-        Decode the message
-        :param message:
+        An event directly from a json structure
+        :param event_json:
         :return:
         """
 
-        if not len(message):
+        return cls(event_json)
+
+    @classmethod
+    def from_string(cls, event_string):
+        """
+        An event from a string (typically received through the network)
+        :param event_string:
+        :return:
+        """
+
+        if not len(event_string):
             return
 
         # decode the string into a json..
         try:
-            message_json = json.loads(message)
+            event_json = json.loads(event_string)
         except ValueError:
-            message_json = json.loads(message[:-1])
+            event_json = json.loads(event_string[:-1])
 
-        # check all the configurations
-        self.validate_json(message_json)
-
-        # get the top-level keys as attributes
-        for k, v in message_json.iteritems():
-            setattr(self, k, v)
+        return cls(event_json)
 
     @classmethod
     def schema(cls):

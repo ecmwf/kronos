@@ -61,10 +61,19 @@
                             },
                             "depends": {
                                 "type": "array",
-                                "description": "A list of job IDs that must be completed before this job runs",
+                                "description": "A list of job dependencies",
                                 "items": {
-                                    "type": "integer",
-                                    "minimum": 0
+                                    "oneOf":[
+                                        {
+                                            "type": "integer",
+                                            "description": "Simple case of dependencies: list of jobID's that a job depends on",
+                                            "minimum": 0
+                                        },
+                                        {
+                                            "type": "object",
+                                            "description": "Kronos event structure (Kronos-Event schema)"
+                                        }
+                                    ]
                                 }
                             },
                             "frames": {
@@ -265,10 +274,19 @@
                             },
                             "depends": {
                                 "type": "array",
-                                "description": "A list of job IDs that must be completed before this job runs",
+                                "description": "A list of job dependencies",
                                 "items": {
-                                    "type": "integer",
-                                    "minimum": 0
+                                    "oneOf":[
+                                        {
+                                            "type": "integer",
+                                            "description": "Simple case of dependencies: list of jobID's that a job depends on",
+                                            "minimum": 0
+                                        },
+                                        {
+                                            "type": "object",
+                                            "description": "Kronos event structure (Kronos-Event schema)"
+                                        }
+                                    ]
                                 }
                             },
                             "start_delay": {

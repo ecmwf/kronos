@@ -32,17 +32,17 @@ class EventDispatcher(object):
         # bind it to port and set it to listen status
         self.sock.bind(self.server_address)
         self.sock.listen(1)
-        self.events = []
+        self._events = []
         self.terminate = False
 
     def __unicode__(self):
 
-        return "KRONOS-HANDLER:\n{}".format("\n".join(["-- "+e.__str__() for e in self.events]))
+        return "KRONOS-HANDLER:\n{}".format("\n".join(["-- " + e.__str__() for e in self._events]))
 
     def __str__(self):
         return unicode(self).encode('utf-8')
 
-    def handle_incoming_messages(self):
+    def get_next_message(self):
         """
         Handles the incoming TCP events
         :return:
@@ -69,12 +69,12 @@ class EventDispatcher(object):
             finally:
 
                 # add this event to the list of events to be handled..
-                kronos_event = KronosEvent(msg)
-
-                # store internally the full list of events
-                self.events.append(kronos_event)
+                kronos_event = KronosEvent.from_string(msg)
 
                 # ..and close the connection
                 connection.close()
 
-                break
+                # store internally the full list of events
+                self._events.append(kronos_event)
+
+                return kronos_event
