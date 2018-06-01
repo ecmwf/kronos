@@ -23,6 +23,10 @@ class EventTime(EventBase):
         :return:
         """
 
+        print "self ", self
+        print "self ", other
+
+
         if self.type != other.type:
             return False
 

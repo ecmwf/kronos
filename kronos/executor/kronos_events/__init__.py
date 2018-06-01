@@ -31,7 +31,7 @@ class EventFactory(object):
         return event_types[event_json["type"]](event_json)
 
     @staticmethod
-    def from_json(event_json):
+    def from_dictionary(event_json):
         """
         An event directly from a json structure
         :param event_json:

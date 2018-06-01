@@ -57,7 +57,7 @@ class Manager(object):
 
         self.update_events(self.dispatcher.get_next_message())
 
-    def is_job_submittable(self, job):
+    def are_job_dependencies_fullfilled(self, job):
         """
         Returns if a job is ready for submission
         (i.e. all its dependencies events are fulfilled)

@@ -5,9 +5,9 @@
 # In applying this licence, ECMWF does not waive the privileges and immunities 
 # granted to it by virtue of its status as an intergovernmental organisation nor
 # does it submit to any jurisdiction.
+import os
 import json
 import jsonschema
-import os
 
 
 class EventBase(object):
@@ -58,5 +58,4 @@ class EventBase(object):
         """
         Do validation of a dictionary that has been loaded from (or will be written to) a JSON
         """
-        print "validating message: ", js
         jsonschema.validate(js, cls.schema(), format_checker=jsonschema.FormatChecker())

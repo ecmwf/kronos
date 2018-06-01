@@ -32,33 +32,33 @@ class ExecutorDepsEvents(Executor):
                                         server_port=self.notification_port)
 
         # init the event manager
-        ev_manager = Manager(ev_dispatcher)
+        event_manager = Manager(ev_dispatcher)
 
         # the submission loop info
         submitted_jobs = []
-        completed_jobs = []
+        completed_job_ids = []
         i_submission_cycle = 0
 
         time_0 = datetime.now()
-        while not all(j.id in completed_jobs for j in jobs):
+        while not all(j.id in completed_job_ids for j in jobs):
 
             # Add a timer event every N cycles (just in case..)
             if not i_submission_cycle % self.time_event_cycles:
-                ev_manager.add_time_event((datetime.now()-time_0).total_seconds())
+                event_manager.add_time_event((datetime.now()-time_0).total_seconds())
 
             # submit jobs (with several workers..)
-            self.submit_eligible_jobs(jobs, completed_jobs, submitted_jobs)
+            self.submit_eligible_jobs(jobs, event_manager, submitted_jobs)
 
             # wait until next message has arrived from the dispatcher
-            ev_manager.wait_for_new_event()
+            event_manager.wait_for_new_event()
 
-            # update list of completed jobs
-            completed_jobs = [e.info["job"] for e in ev_manager.get_events(type_filter="Complete")]
+            # get updated list of completed jobs
+            completed_job_ids = [e.info["job"] for e in event_manager.get_events(type_filter="Complete")]
 
             # update cycle counter
             i_submission_cycle += 1
 
-    def submit_eligible_jobs(self, _jobs, compl_jobs, sub_jobs):
+    def submit_eligible_jobs(self, _jobs, ev_manager, sub_jobs):
         """
         Submit the jobs eligible for submission
         :param _jobs:
@@ -67,13 +67,15 @@ class ExecutorDepsEvents(Executor):
         :return:
         """
 
+        compl_jobs = [e.info["job"] for e in ev_manager.get_events(type_filter="Complete")]
+
         for j in _jobs:
 
             # consider this job only if it has not yet run or submitted
             if (j.id not in compl_jobs) and (j.id not in sub_jobs):
 
                 # check if all its parent jobs have finished
-                if j.depends == [] or all([p in compl_jobs for p in j.depends]):
+                if j.depends == [] or ev_manager.are_job_dependencies_fullfilled(j):
 
                     # append this job to the list of "already submitted jobs"
                     sub_jobs.append(j.id)

@@ -1,9 +1,10 @@
 import json
 import os
 
+from kronos.executor.kronos_events import EventFactory
+
 
 class BaseJob(object):
-
     def __init__(self, job_config, executor, path):
         self.job_config = job_config
         self.path = path
@@ -24,9 +25,22 @@ class BaseJob(object):
         """
         Return a list of the job numbers that are depended on
         """
-        dependencies = self.job_config.get('depends', [])
 
-        # assert all(self.id > d for d in dependencies) or len(dependencies) == 0
+        # NOTE: dependencies can be either:
+        #  - integers (i.e. as used by the executor_schedule and interpreted as job-id to be completed)
+        #  - dictionaries (i.e. as used by the executor_events and used to describe event-based dependencies)
+        dependencies = []
+        if self.job_config.get('depends', []):
+
+            if all(isinstance(d, int) for d in self.job_config['depends']):
+                dependencies = self.job_config.get('depends', [])
+
+            elif all(isinstance(d, dict) for d in self.job_config['depends']):
+                dependencies = [EventFactory.from_dictionary(d) for d in self.job_config['depends']]
+            else:
+                raise ValueError("Dependencies for job {} must be either " +
+                                 "all integers or all 'kronos-event' dictionaries".format(self._job_num))
+
         return dependencies
 
     def generate(self):
@@ -61,4 +75,3 @@ class BaseJob(object):
             iii) Set an async timer to run it in the future?
         """
         raise NotImplementedError
-
