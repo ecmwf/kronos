@@ -29,7 +29,12 @@ class EventMetadataChange(EventBase):
         if self.info["job"] != other.info["job"]:
             return False
 
-        if self.metadata["step"] != other.metadata["step"]:
+        # Check that all the metadata match (keys and values)
+        if not all(k1 == k2 for k1, k2 in zip(sorted(self.metadata.keys()), sorted(other.metadata.keys()))):
             return False
+
+        for k in self.metadata.keys():
+            if self.metadata[k] != other.metadata[k]:
+                return False
 
         return True

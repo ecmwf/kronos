@@ -6,6 +6,7 @@
     "oneOf": [
 
 
+
         {
             "type": "object",
             "description": "Event sent from an application",
@@ -18,13 +19,7 @@
                 },
                 "metadata": {
                     "type": "object",
-                    "description": "Event metadata",
-                    "properties": {
-                        "step": {
-                            "type": "string",
-                            "description": "Step at which the application originated the event"
-                        }
-                    }
+                    "description": "Event metadata"
                 },
                 "info": {
                     "type": "object",
@@ -44,7 +39,8 @@
                         }
                     }
                 }
-            }
+            },
+            "required": ["type", "info", "metadata"]
         },
 
 
@@ -76,7 +72,8 @@
                         }
                     }
                 }
-            }
+            },
+            "required": ["type", "info"]
         },
 
 
@@ -102,7 +99,8 @@
                         "Time"
                     ]
                 }
-            }
+            },
+            "required": ["type", "info"]
         }
 
     ]
