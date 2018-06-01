@@ -7,7 +7,7 @@
 # does it submit to any jurisdiction.
 import socket
 
-from kronos.executor.kronos_event import KronosEvent
+from kronos.executor.kronos_events import EventFactory
 
 
 class EventDispatcher(object):
@@ -69,7 +69,7 @@ class EventDispatcher(object):
             finally:
 
                 # add this event to the list of events to be handled..
-                kronos_event = KronosEvent.from_string(msg)
+                kronos_event = EventFactory.from_string(msg)
 
                 # ..and close the connection
                 connection.close()

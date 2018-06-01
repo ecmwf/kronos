@@ -5,18 +5,22 @@
 # In applying this licence, ECMWF does not waive the privileges and immunities 
 # granted to it by virtue of its status as an intergovernmental organisation nor
 # does it submit to any jurisdiction.
-from kronos.executor.kronos_event import KronosEvent
+from kronos.executor.kronos_events import EventFactory
 
 
-class EventManager(object):
+class Manager(object):
     """
     A minimal manager of the simulation events
      - Stores the sequence of events passed in by the event dispatcher
      - It decides if a job is eligible for submission
     """
 
-    def __init__(self):
+    def __init__(self, event_dispatcher):
 
+        # uses an event dispatcher underneath
+        self.dispatcher = event_dispatcher
+
+        # list of events occurring during the simulation
         self.__events = []
 
     def update_events(self, new_event):
@@ -45,6 +49,14 @@ class EventManager(object):
 
         return filtered_events
 
+    def wait_for_new_event(self):
+        """
+        Wait until a message arrives from the dispatcher
+        :return:
+        """
+
+        self.update_events(self.dispatcher.get_next_message())
+
     def is_job_submittable(self, job):
         """
         Returns if a job is ready for submission
@@ -61,7 +73,7 @@ class EventManager(object):
         :param timestamp:
         :return:
         """
-        self.__events.append(KronosEvent.from_timestamp(timestamp))
+        self.__events.append(EventFactory.from_timestamp(timestamp))
 
 
 

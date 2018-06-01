@@ -99,7 +99,7 @@
                     "type": "string",
                     "description": "type of event",
                     "enum": [
-                        "timer"
+                        "Time"
                     ]
                 }
             }
