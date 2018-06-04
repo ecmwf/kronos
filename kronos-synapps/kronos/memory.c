@@ -42,9 +42,21 @@ static TimeSeriesLogger* flops_time_series() {
 MEMParamsInternal get_mem_params(const MEMConfig* config) {
 
     MEMParamsInternal params;
+    long max_alloc;
+    const char* env;
 
     /*params.node_mem = config->mem_kb*1024./ global_conf->nprocs;*/
     params.node_mem = config->mem_kb*1024.;
+
+    if ((env = getenv("KRONOS_PROC_MAX_MALLOC")) != 0) {
+
+        max_alloc = strtol(env, NULL, 10);
+        if (params.node_mem > max_alloc) {
+            fprintf(stderr, "*** WARNING: malloc size constrained by environment variable KRONOS_PROC_MAX_MALLOC ****");
+            fprintf(stderr, "malloc requested: %li bytes, will allocate: %li bytes", params.node_mem, max_alloc);
+            params.node_mem = max_alloc;
+        }
+    }
 
     return params;
 }
