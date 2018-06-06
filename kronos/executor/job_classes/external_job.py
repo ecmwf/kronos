@@ -71,8 +71,11 @@ class UserAppJob(BaseJob):
 
         # update the job submit template with all the configs
 
-        print self.job_config["config_params"]
+        #print self.job_config["config_params"]
         for param_name in self.needed_config_params:
+            assert self.job_config["config_params"].get(param_name) is not None
+
+        for param_name in self.job_config["config_params"].keys():
             script_format.update({param_name: self.job_config["config_params"][param_name]})
 
         with open(self.submit_script, 'w') as f:
