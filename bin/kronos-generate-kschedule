@@ -271,12 +271,16 @@ def multiply_workflows(_G, n_parallel):
     concatenated_G = copy.deepcopy(_G)
     tot_num_nodes = len(concatenated_G)
 
+    node_id_offset = max([n for n in concatenated_G.node])
+
     # (n_parallel-1 because we are already starting from one series of workflow..)
     for i_parallel in range(n_parallel-1):
-        i_parallel_graph = nx.relabel_nodes(_G, {n: n+tot_num_nodes*(i_parallel+1) for n in _G}, copy=True)
+
+        i_parallel_graph = nx.relabel_nodes(_G, {n: n+node_id_offset*(i_parallel+1) for n in _G}, copy=True)
 
         # Attach the newly created graph to the initial one
         concatenated_G = nx.union(concatenated_G, i_parallel_graph)
+        # concatenated_G = nx.disjoint_union(concatenated_G, i_parallel_graph)
 
     return concatenated_G
 
@@ -341,10 +345,18 @@ def generate_json_jobs_from_graph(_G, proto_json_data):
     _proto_jobs_lookup = {j["metadata"]["workload_name"]: j for j in proto_json_data["jobs"]}
     _jobs_all = []
 
+    nodes_in_G = [n for n in _G.node]
+
     for nn, n in enumerate(_G):
         job_name = _G.node[n]["jobname"]
         job_template = copy.deepcopy(_proto_jobs_lookup[job_name])
-        job_template["depends"] = _G.predecessors(n)
+
+        # dependencies
+        # job_template["depends"] = _G.predecessors(n)
+        pred_n = _G.predecessors(n)
+        dep_position_in_list = [nodes_in_G.index(nd) for nd in pred_n]
+        job_template["depends"] = dep_position_in_list
+
         job_template["metadata"]["job_name"] = "appID-{}".format(nn)
         _jobs_all.append(job_template)
 
@@ -423,3 +435,4 @@ if __name__ == "__main__":
     # write all the jobs to the output kschedule..
     with open(args.output, 'w') as f:
         json.dump(ksf_template, f, sort_keys=True, indent=4, separators=(',', ': '))
+        # json.dump(ksf_template, f, sort_keys=True, separators=(',', ': '))
