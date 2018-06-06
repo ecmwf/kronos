@@ -36,11 +36,10 @@ class ExecutorDepsEvents(Executor):
 
         # the submission loop info
         submitted_jobs = []
-        completed_job_ids = []
         i_submission_cycle = 0
 
         time_0 = datetime.now()
-        while not all(j.id in completed_job_ids for j in jobs):
+        while not all(j.id in submitted_jobs for j in jobs):
 
             # Add a timer event every N cycles (just in case..)
             if not i_submission_cycle % self.time_event_cycles:
@@ -50,11 +49,11 @@ class ExecutorDepsEvents(Executor):
             self.submit_eligible_jobs(jobs, event_manager, submitted_jobs)
 
             # wait until next message has arrived from the dispatcher
-            event_manager.wait_for_new_event()
+            if not all(j.id in submitted_jobs for j in jobs):
+                event_manager.wait_for_new_event()
 
             # get updated list of completed jobs
-            completed_job_ids = [e.info["job"] for e in event_manager.get_events(type_filter="Complete")]
-            # print "completed_job_ids: ", completed_job_ids
+            # print "completed jobs: {}".format([e.info["job"] for e in event_manager.get_events(type_filter="Complete")])
 
             # update cycle counter
             i_submission_cycle += 1
