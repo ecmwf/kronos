@@ -16,6 +16,18 @@ class EventComplete(EventBase):
     def __init__(self, event_json, validate_event=False):
         super(EventComplete, self).__init__(event_json, validate_event=validate_event)
 
+    def get_hashed(self):
+        """
+        Hashed version of this event
+        :return:
+        """
+
+        # create a hashable version of this event
+        return tuple((("type", self.type),
+                     ("app", self.info["app"]),
+                     ("job", self.info["job"]),
+                     ))
+
     def __eq__(self, other):
         """
         Check for equality of metadata change events

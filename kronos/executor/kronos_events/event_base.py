@@ -32,6 +32,13 @@ class EventBase(object):
         for k, v in message_json.iteritems():
             setattr(self, k, v)
 
+    def get_hashed(self):
+        """
+        Hashed version of this event
+        :return:
+        """
+        raise NotImplementedError
+
     def __unicode__(self):
         return "KRONOS-EVENT:\n{}".format(self.__message_json)
 

@@ -1,6 +1,7 @@
 import math
 import os
 import stat
+import subprocess
 
 from kronos.executor.job_classes.base_job import BaseJob
 
@@ -88,14 +89,14 @@ class HPCJob(BaseJob):
             HPCJob.cancel_file.write(self.cancel_file_head)
             os.chmod(cancel_file_path, stat.S_IRWXU | stat.S_IROTH | stat.S_IXOTH | stat.S_IRGRP | stat.S_IXGRP)
 
-        # sequence_id_job = filter(str.isdigit, output)
+        # Sequence_id_job = filter(str.isdigit, output)
         sequence_id_job = output.strip()
         HPCJob.cancel_file.write(self.cancel_file_line.format(sequence_id=sequence_id_job))
         HPCJob.cancel_file.flush()
 
         self.executor.set_job_submitted(self.id, sequence_id_job)
 
-    def run(self, depend_job_ids):
+    def run(self, depend_job_ids, multi_threading=True):
         """
         'Run' this job
 
@@ -122,4 +123,13 @@ class HPCJob(BaseJob):
         subprocess_args = ' '.join(subprocess_args).split(' ')
 
         print "Submitting job {}".format(self.id)
-        self.executor.thread_manager.subprocess_callback(self.submission_callback, *subprocess_args)
+
+        # multi-threaded option
+        if multi_threading:
+
+            self.executor.thread_manager.subprocess_callback(self.submission_callback, *subprocess_args)
+
+        else:  # run in a subprocess and call the callback manually
+
+            output = subprocess.check_output(subprocess_args)
+            self.submission_callback(output)

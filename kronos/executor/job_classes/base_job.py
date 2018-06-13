@@ -16,39 +16,35 @@ class BaseJob(object):
         if not (isinstance(self.start_delay, int) or isinstance(self.start_delay, float)):
             raise TypeError("Start delay must be a number")
 
-        # maintain a list of validated dependencies (so that we don't need to re-validate them all the times)
-        self.validated_dependencies = None
+        self.depends = self.build_dependencies()
 
     @property
     def id(self):
         return self._job_num
 
-    @property
-    def depends(self):
+    def build_dependencies(self):
         """
-        Return a list of the job numbers that are depended on
+        Build the list of dependencies for this job
+        :return:
         """
 
         # NOTE: dependencies can be either:
         #  - integers (i.e. as used by the executor_schedule and interpreted as job-id to be completed)
         #  - dictionaries (i.e. as used by the executor_events and used to describe event-based dependencies)
 
-        if self.validated_dependencies:
-            return self.validated_dependencies
-
-        self.validated_dependencies = []
+        _deps = []
         if self.job_config.get('depends', []):
 
             if all(isinstance(d, int) for d in self.job_config['depends']):
-                self.validated_dependencies = self.job_config.get('depends', [])
+                _deps = self.job_config.get('depends', [])
 
             elif all(isinstance(d, dict) for d in self.job_config['depends']):
-                self.validated_dependencies = [EventFactory.from_dictionary(d, validate_event=True) for d in self.job_config['depends']]
+                _deps = [EventFactory.from_dictionary(d, validate_event=False) for d in self.job_config['depends']]
             else:
                 raise ValueError("Dependencies for job {} must be either " +
                                  "all integers or all 'kronos-event' dictionaries".format(self._job_num))
 
-        return self.validated_dependencies
+        return _deps
 
     def generate(self):
 

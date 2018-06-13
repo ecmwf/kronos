@@ -19,17 +19,21 @@ class Manager(object):
 
         # uses an event dispatcher underneath
         self.dispatcher = event_dispatcher
+        self.dispatcher.start()
 
         # list of events occurring during the simulation
-        self.__events = []
+        # categorised by event type (for efficiency)
+        self.__events = {}
 
-    def update_events(self, new_event):
+    def update_events(self, new_events):
         """
         Accept a new event
         :param new_event:
         :return:
         """
-        self.__events.append(new_event)
+
+        for new_event in new_events:
+            self.__events.setdefault(new_event.type, []).append(new_event)
 
     def get_events(self, type_filter=None):
         """
@@ -38,29 +42,41 @@ class Manager(object):
         """
 
         if type_filter:
-            filtered_events = [e for e in self.__events if e.type == type_filter]
+            filtered_events = self.__events.get(type_filter, [])
         else:
-            filtered_events = self.__events
+            filtered_events = [ev for ev_type_list in self.__events.values() for ev in ev_type_list]
 
         return filtered_events
 
-    def wait_for_new_event(self):
+    def next_events(self, batch_size=1):
         """
         Wait until a message arrives from the dispatcher
         :return:
         """
 
-        self.update_events(self.dispatcher.get_next_message())
+        # get latest event from the dispatcher
+        latest_events = self.dispatcher.get_events_batch(batch_size=batch_size)
 
-    def are_job_dependencies_fullfilled(self, job):
+        # update internal list of events as appropriate
+        self.update_events(latest_events)
+
+        # return the event
+        return latest_events
+
+    def next_event(self):
         """
-        Returns if a job is ready for submission
-        (i.e. all its dependencies events are fulfilled)
-        :param job:
+        Wait until a message arrives from the dispatcher
         :return:
         """
 
-        return all(dep_ev in self.__events for dep_ev in job.depends)
+        # get latest event from the dispatcher
+        latest_event = self.dispatcher.get_next_message()
+
+        # update internal list of events as appropriate
+        self.update_events([latest_event])
+
+        # return the event
+        return latest_event
 
     def add_time_event(self, timestamp):
         """
@@ -68,7 +84,5 @@ class Manager(object):
         :param timestamp:
         :return:
         """
-        self.__events.append(EventFactory.from_timestamp(timestamp))
-
-
+        self.__events.setdefault("Time", []).append(EventFactory.from_timestamp(timestamp))
 
