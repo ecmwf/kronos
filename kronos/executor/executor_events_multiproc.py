@@ -1,7 +1,5 @@
 #!/usr/bin/env python
 from datetime import datetime
-import time
-
 import math
 
 from kronos.executor.job_submitter import JobSubmitter

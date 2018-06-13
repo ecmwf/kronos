@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 from datetime import datetime
-import time
 
 from kronos.executor.kronos_events.manager import Manager
 from kronos.executor.executor import Executor

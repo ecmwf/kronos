@@ -46,8 +46,8 @@ class Job(BaseJob):
     def generate_internal(self):
 
         nprocs = self.job_config.get('num_procs', 1)
-        nnodes = int(math.ceil(float(nprocs) / self.executor.procs_per_node))
-        # assert nnodes == 1
+        # nnodes = int(math.ceil(float(nprocs) / self.executor.procs_per_node))
+        # # assert nnodes == 1
 
         script_format = {
             'write_dir': self.path,
