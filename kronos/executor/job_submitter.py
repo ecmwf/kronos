@@ -77,7 +77,7 @@ class JobSubmitter(object):
             _submittable_jobs = []
             for new_event in new_events:
 
-                print "processing event ", new_event
+                # print "processing event ", new_event
 
                 # loop over all the jobs that depend on this event
                 jobs_depending_on_this_event = self.deps_to_jobs_tree.get(new_event.get_hashed(), [])

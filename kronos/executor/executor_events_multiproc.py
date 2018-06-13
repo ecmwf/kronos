@@ -67,7 +67,7 @@ class ExecutorDepsEventsMultiProc(Executor):
             # completed job id's
             completed_jobs = [e.info["job"] for e in event_manager.get_events(type_filter="Complete")]
 
-            print "completed jobs {}".format(completed_jobs)
+            # print "completed jobs {}".format(completed_jobs)
 
             # update cycle counter
             i_submission_cycle += 1
