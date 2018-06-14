@@ -7,17 +7,29 @@
 # does it submit to any jurisdiction.
 
 import multiprocessing
+import subprocess
+import sys
+
+from kronos.executor.job_classes.trivial_job_echo import Job
 
 
-def do_submit_submittable_jobs(submittable_jobs):
+def submit_job_from_args(submission_and_callback_params):
+    """
+    Helper function to submit a jobs from its submission (and callback) arguments
+    (workaround for distributing among processes the non-pickable job classes)
+    :param jid_and_subprocess_args:
+    :return:
+    """
 
-    # do the submit now (i.e. with no dependencies)..
-    _submitted_jobs = []
-    for j in submittable_jobs:
-        j.run([], multi_threading=True)
-        _submitted_jobs.append(j.id)
+    jid = submission_and_callback_params["jid"]
+    proc_args = submission_and_callback_params["submission_params"]
 
-    return _submitted_jobs
+    output = subprocess.check_output(proc_args)
+
+    # submission_callback(output)
+    Job.submission_callback_static(output, submission_and_callback_params["callback_params"])
+
+    return jid, output
 
 
 class JobSubmitter(object):
@@ -68,9 +80,13 @@ class JobSubmitter(object):
 
             _submittable_jobs = [j for j in self.jobs if not j.depends and j.id not in self.submitted_jobs]
 
+            if not _submittable_jobs:
+                print "WARNING: it looks like there are no more jobs (with no dependencies) left to be submitted." \
+                      "The simulation stops here!"
+                sys.exit(1)
+
             # submit the jobs
-            self.submitted_jobs.extend(do_submit_submittable_jobs(_submittable_jobs))
-            # self.submitted_jobs.extend(self.submitters_pool.map(do_submit_submittable_jobs, _submittable_jobs))
+            self.do_submit(_submittable_jobs)
 
         else:
 
@@ -91,9 +107,20 @@ class JobSubmitter(object):
                     if not j.depends and j.id not in self.submitted_jobs:
                         _submittable_jobs.append(j)
 
-            # submit the jobs
-            self.submitted_jobs.extend(do_submit_submittable_jobs(_submittable_jobs))
-            # self.submitted_jobs.extend(self.submitters_pool.map(do_submit_submittable_jobs, _submittable_jobs))
+            self.do_submit(_submittable_jobs)
+
+    def do_submit(self, submittable_jobs):
+        """
+        Do the submit with the pool of workers
+        :param submittable_jobs:
+        :return:
+        """
+
+        # submit the jobs
+        submission_and_callback_params = [j.get_submission_and_callback_params() for j in submittable_jobs]
+        submission_output = self.submitters_pool.map(submit_job_from_args, submission_and_callback_params)
+        print "\n".join("Submitted job: {}".format(out[0]) for out in submission_output)
+        self.submitted_jobs.extend([j.id for j in submittable_jobs])
 
 
 

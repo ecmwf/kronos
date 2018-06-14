@@ -96,18 +96,47 @@ class HPCJob(BaseJob):
 
         self.executor.set_job_submitted(self.id, sequence_id_job)
 
-    def run(self, depend_job_ids, multi_threading=True):
+    def get_submission_and_callback_params(self, depend_job_ids):
         """
-        'Run' this job
-
-            This has a flexible meaning, depending on the setup. There can be many strategies here.
-
-            i) Add to list to run
-            ii) Run it immediately
-            iii) Set an async timer to run it in the future?
+        Get all the necessary params to call the static version of the callback
+        (needed to use of the static callback function without job instance..)
+        :return:
         """
 
-        self.executor.wait_until(self.start_delay)
+        return {
+            "jid": self.id,
+            "submission_params": self.get_submission_arguments(depend_job_ids),
+            "callback_params": {
+                                "cancel_file": HPCJob.cancel_file,
+                                "executor_job_dir": self.executor.job_dir,
+                                "cancel_file_head": self.cancel_file_head,
+                                "cancel_file_line": self.cancel_file_line
+                                }
+        }
+
+    @staticmethod
+    def submission_callback_static(self, output, **callback_params):
+        """
+        Static function that does the callback (everything but informing the executor of the
+        submission of the jobs! - record of the submitted jobs has to be handled by the caller)
+        :param self:
+        :param output:
+        :param callback_params:
+        :return:
+        """
+
+        if callback_params["callback_params"]["cancel_file"] is None:
+            cancel_file_path = os.path.join(callback_params["callback_params"]["executor_job_dir"], "killjobs")
+            cancel_file = open(cancel_file_path, 'w')
+            cancel_file.write(self.cancel_file_head)
+            os.chmod(cancel_file_path, stat.S_IRWXU | stat.S_IROTH | stat.S_IXOTH | stat.S_IRGRP | stat.S_IXGRP)
+
+        # Sequence_id_job = filter(str.isdigit, output)
+        sequence_id_job = output.strip()
+        cancel_file.write(callback_params["callback_params"]["cancel_file_line"].format(sequence_id=sequence_id_job))
+        cancel_file.flush()
+
+    def get_submission_arguments(self, depend_job_ids):
 
         subprocess_args = []
         subprocess_args.append(self.submit_command)
@@ -121,6 +150,24 @@ class HPCJob(BaseJob):
 
         # Ensure that any spaces in the depend_string are handled correctly
         subprocess_args = ' '.join(subprocess_args).split(' ')
+
+        return subprocess_args
+
+    def run(self, depend_job_ids, multi_threading=True):
+        """
+        'Run' this job
+
+            This has a flexible meaning, depending on the setup. There can be many strategies here.
+
+            i) Add to list to run
+            ii) Run it immediately
+            iii) Set an async timer to run it in the future?
+        """
+
+        self.executor.wait_until(self.start_delay)
+
+        # get the submission params
+        subprocess_args = self.get_submission_arguments(depend_job_ids)
 
         print "Submitting job {}".format(self.id)
 

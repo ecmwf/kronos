@@ -78,6 +78,40 @@ class Job(BaseJob):
 
         self.executor.set_job_submitted(self.id, "")
 
+    def get_submission_and_callback_params(self):
+        """
+        Get all the necessary params to call the static version of the callback
+        (needed to use of the static callback function without job instance..)
+        :return:
+        """
+
+        return {
+            "jid": self.id,
+            "submission_params": self.get_submission_arguments(),
+            "callback_params": None
+        }
+
+    @staticmethod
+    def submission_callback_static(output, callback_params):
+        """
+        Static function that does the callback (everything but informing the executor of the
+        submission of the jobs! - record of the submitted jobs has to be handled by the caller)
+        :param output:
+        :param callback_params:
+        :return:
+        """
+
+        # nothing to do for the trivial job..
+        pass
+
+    def get_submission_arguments(self):
+        subprocess_args = ["bash", self.run_script]
+        subprocess_args = ' '.join(subprocess_args).split(' ')
+        return subprocess_args
+
+    def get_killall_script_name(self):
+        return None
+
     def run(self, depend_job_ids, multi_threading=True):
         """
         'Run' this job
@@ -91,18 +125,14 @@ class Job(BaseJob):
 
         self.executor.wait_until(self.start_delay)
 
-        subprocess_args = ["bash", self.run_script]
-
-        subprocess_args = ' '.join(subprocess_args).split(' ')
-
         print "Submitting job {}".format(self.id)
 
         # multi-threaded option
         if multi_threading:
 
-            self.executor.thread_manager.subprocess_callback(self.submission_callback, *subprocess_args)
+            self.executor.thread_manager.subprocess_callback(self.submission_callback, *self.get_submission_arguments())
 
         else:  # run in a subprocess and call the callback manually
 
-            output = subprocess.check_output(subprocess_args)
+            output = subprocess.check_output(self.get_submission_arguments())
             self.submission_callback(output)

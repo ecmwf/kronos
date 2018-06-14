@@ -34,13 +34,18 @@ class ExecutorDepsEventsMultiProc(Executor):
         jobs = self.generate_job_internals()
 
         # init the event dispatcher and manager
-        ev_dispatcher = EventDispatcher(server_host=self.notification_host, server_port=self.notification_port)
+        ev_dispatcher = EventDispatcher(server_host=self.notification_host,
+                                        server_port=self.notification_port
+                                        )
 
         # init the event manager
         event_manager = Manager(ev_dispatcher)
 
         # init the job submitter
-        job_submitter = JobSubmitter(jobs, event_manager, n_submitters=5)
+        job_submitter = JobSubmitter(jobs,
+                                     event_manager,
+                                     n_submitters=self.n_submitters,
+                                     n_events_per_worker=self.event_batch_size_proc)
 
         # the submission loop info
         completed_jobs = []
@@ -50,7 +55,7 @@ class ExecutorDepsEventsMultiProc(Executor):
         new_events = None
         while not all(j.id in completed_jobs for j in jobs):
 
-            # Add a timer event every N cycles (just in case..)
+            # Add a timer event every N cycles (just in case it's needed..)
             if not i_submission_cycle % self.time_event_cycles:
                 event_manager.add_time_event((datetime.now()-time_0).total_seconds())
 
@@ -59,8 +64,7 @@ class ExecutorDepsEventsMultiProc(Executor):
 
             # Get next message from manager
             if not all(j.id in completed_jobs for j in jobs):
-                new_events = event_manager.next_events(batch_size=10)
-                # new_event = event_manager.next_event()
+                new_events = event_manager.next_events(batch_size=self.event_batch_size)
 
             # completed job id's
             completed_jobs = [e.info["job"] for e in event_manager.get_events(type_filter="Complete")]
