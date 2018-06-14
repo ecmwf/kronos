@@ -14,16 +14,21 @@ class ExecutorDepsEventsMultiProc(Executor):
 
     """
 
-    event_batch_size = 20
-    event_batch_size_proc = 5
-    n_submitters = int(math.ceil(event_batch_size / float(event_batch_size_proc)))
-
     def __init__(self, config, schedule, kschedule_file=None):
         """
         Initialisation. Passed a dictionary of configurations
         """
 
         super(ExecutorDepsEventsMultiProc, self).__init__(config, schedule, kschedule_file=kschedule_file)
+
+        self.event_batch_size = config.get("event_batch_size", 1)
+        self.event_batch_size_proc = config.get("event_batch_size_proc", 1)
+        self.n_submitters = int(math.ceil(self.event_batch_size / float(self.event_batch_size_proc)))
+
+        print "======= Executor multiproc config: ======="
+        print "event_batch_size: {}".format(self.event_batch_size)
+        print "event_batch_size_proc: {}".format(self.event_batch_size_proc)
+        print "n_submitters: {}".format(self.n_submitters)
 
     def run(self):
         """

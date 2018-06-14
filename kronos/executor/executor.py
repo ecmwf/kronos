@@ -47,7 +47,9 @@ class Executor(object):
         'execution_mode',
         'notification_host',
         'notification_port',
-        'time_event_cycles'
+        'time_event_cycles',
+        "event_batch_size",
+        "event_batch_size_proc"
 
     ]
 
