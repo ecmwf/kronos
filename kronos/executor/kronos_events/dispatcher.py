@@ -35,7 +35,7 @@ class EventDispatcher(object):
 
         # bind it to port and set it to listen status
         self.sock.bind(self.server_address)
-        self.sock.listen(10)
+        self.sock.listen(1024)
         self.terminate = False
 
         # listener process
