@@ -49,7 +49,7 @@ class Executor(object):
         'notification_port',
         'time_event_cycles',
         "event_batch_size",
-        "event_batch_size_proc"
+        "n_submitters"
 
     ]
 
