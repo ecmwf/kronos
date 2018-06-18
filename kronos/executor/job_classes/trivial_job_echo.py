@@ -15,10 +15,7 @@ export KRONOS_SHARED_DIR="{shared_dir}"
 
 {profiling_code}
 
-#python -c "import time; time.sleep(1)"
-echo "{job_num} has done!"
-
-python /perm/ma/maab/kronos_tcpip_runs/send_complete_msg.py nebula 7363 {job_num}
+python /perm/ma/maab/kronos_tcpip_runs/send_complete_msg.py nebula 7363 {job_num} > {write_dir}/output_{job_num}.log 2>&1
 
 """
 
