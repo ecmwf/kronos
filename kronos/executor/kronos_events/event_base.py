@@ -40,7 +40,8 @@ class EventBase(object):
         raise NotImplementedError
 
     def __unicode__(self):
-        return "KRONOS-EVENT:\n{}".format(self.__message_json)
+        return "KRONOS-EVENT: type:{}; job:{}".format(self.__message_json["type"],
+                                                      self.__message_json["info"].get("job"))
 
     def __str__(self):
         return unicode(self).encode('utf-8')
