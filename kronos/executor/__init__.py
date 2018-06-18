@@ -1,11 +1,10 @@
-from kronos.executor.executor_events import ExecutorDepsEvents
+
 from kronos.executor.executor_schedule import ExecutorDepsScheduler
-from kronos.executor.executor_events_multiproc import ExecutorDepsEventsMultiProc
+from kronos.executor.executor_events_par import ExecutorDepsEventsMultiProc
 
 # type of executors from config..
 executor_types = {
     "scheduler": ExecutorDepsScheduler,
-    "events": ExecutorDepsEvents,
-    "events_multiproc": ExecutorDepsEventsMultiProc,
+    "events": ExecutorDepsEventsMultiProc
 }
 

@@ -38,7 +38,6 @@ class ExecutorDepsScheduler(Executor):
                 try:
                     depends = j.depends
                     depend_ids = [self._submitted_jobs[d] for d in depends]
-                    # print "depend_ids ", depend_ids
 
                     # We have found a job. Break out of the search
                     found_job = j
@@ -58,5 +57,4 @@ class ExecutorDepsScheduler(Executor):
                 self.thread_manager.wait_until(nqueueing-1)
 
         # Wait until we are done
-
         self.thread_manager.wait()

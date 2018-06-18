@@ -48,8 +48,8 @@ class Executor(object):
         'notification_host',
         'notification_port',
         'time_event_cycles',
-        "event_batch_size",
-        "n_submitters"
+        'event_batch_size',
+        'n_submitters'
 
     ]
 
@@ -139,7 +139,7 @@ class Executor(object):
             print "File read min size (2 ^ {}) bytes".format(self._file_read_size_min_pow)
             print "File read max size (2 ^ {}) bytes".format(self._file_read_size_max_pow)
 
-        # check the execution mode settings
+        # check the EVENTS execution mode settings
         self.execution_mode = config.get('execution_mode', "scheduler")
 
         if config.get('execution_mode') != "events" and config.get('notification_host'):
@@ -156,6 +156,16 @@ class Executor(object):
             raise KeyError("parameter 'time_event_cycles' should only be set if execution_mode = events")
         else:
             self.time_event_cycles = config.get('time_event_cycles', 1)
+
+        if config.get('execution_mode') != "events" and config.get('event_batch_size'):
+            raise KeyError("parameter 'event_batch_size' should only be set if execution_mode = events")
+        else:
+            self.time_event_cycles = config.get('event_batch_size', 1)
+
+        if config.get('execution_mode') != "events" and config.get('n_submitters'):
+            raise KeyError("parameter 'n_submitters' should only be set if execution_mode = events")
+        else:
+            self.time_event_cycles = config.get('n_submitters', 1)
 
     def set_job_submitted(self, job_num, submitted_id):
         self._submitted_jobs[job_num] = submitted_id

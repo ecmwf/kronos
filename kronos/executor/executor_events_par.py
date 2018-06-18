@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-# from datetime import datetime
+from datetime import datetime
 from kronos.executor.job_submitter import JobSubmitter
 from kronos.executor.kronos_events.manager import Manager
 from kronos.executor.executor import Executor
@@ -43,13 +43,13 @@ class ExecutorDepsEventsMultiProc(Executor):
         completed_jobs = []
         i_submission_cycle = 0
 
-        # time_0 = datetime.now()
+        time_0 = datetime.now()
         new_events = []
         while not all(j.id in completed_jobs for j in jobs):
 
-            # # Add a timer event every N cycles (just in case it's needed..)
-            # if not i_submission_cycle % self.time_event_cycles:
-            #     event_manager.add_time_event((datetime.now()-time_0).total_seconds())
+            # Add a timer event every N cycles (just in case it's needed..)
+            if not i_submission_cycle % self.time_event_cycles:
+                event_manager.add_time_event((datetime.now()-time_0).total_seconds())
 
             # submit jobs
             # print "1) searching for eligible jobs.."
