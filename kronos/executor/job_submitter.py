@@ -9,7 +9,6 @@
 import multiprocessing
 import subprocess
 
-import os
 from kronos.executor.job_classes.trivial_job_echo import Job
 
 

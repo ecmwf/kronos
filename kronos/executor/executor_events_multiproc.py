@@ -1,7 +1,5 @@
 #!/usr/bin/env python
 # from datetime import datetime
-import math
-
 from kronos.executor.job_submitter import JobSubmitter
 from kronos.executor.kronos_events.manager import Manager
 from kronos.executor.executor import Executor
