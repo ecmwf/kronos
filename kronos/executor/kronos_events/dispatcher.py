@@ -20,29 +20,30 @@ class EventDispatcher(object):
 
     buffer_size = 4096
 
-    def __init__(self, server_host='localhost', server_port=7363):
+    def __init__(self, queue, server_host='localhost', server_port=7363):
 
         """
         Setup the socket and bind it to the appropriate port
         """
 
         # full address of the server
+        self.server_host = server_host
+        self.server_port = server_port
         self.server_address = (server_host, server_port)
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         print 'starting up on %s port %s' % self.server_address
 
         # bind it to port and set it to listen status
         self.sock.bind(self.server_address)
-        self.sock.listen(1)
-        self._events = []
+        self.sock.listen(10)
         self.terminate = False
 
         # listener process
-        self.listener_queue = multiprocessing.Queue()
+        self.listener_queue = queue
         self.listener_proc = multiprocessing.Process(target=self._listen_for_messages)
 
     def __unicode__(self):
-        return "KRONOS-HANDLER:\n{}".format("\n".join(["-- " + e.__str__() for e in self._events]))
+        return "KRONOS-DISPATCHER: host:{}, port:{} ".format(self.server_host, self.server_port)
 
     def __str__(self):
         return unicode(self).encode('utf-8')
@@ -74,22 +75,19 @@ class EventDispatcher(object):
                     if data:
                         msg += data
                     else:
+
+                        # with open("dispatched_events.log", "a") as myfile:
+                        #     myfile.write("received msg: {}\n".format(msg))
+
+                        # store event in the queue (and wait until there is space in the queue)
+                        self.listener_queue.put(msg, block=True)
+
                         break
 
             finally:
 
-                # add this event to the list of events to be handled..
-                print "arrived msg: {}".format(msg)
-                kronos_event = EventFactory.from_string(msg)
-
                 # # ..and close the connection
                 connection.close()
-
-                # store internally the full list of events
-                self.listener_queue.put(kronos_event)
-                self._events.append(kronos_event)
-
-                # return kronos_event
 
     def get_next_message(self):
         return self.listener_queue.get()
@@ -101,14 +99,22 @@ class EventDispatcher(object):
         :return:
         """
 
+        # _batch = [self.listener_queue.get(block=True)]
         _batch = []
+
+        queue_empty_reached=False
         try:
             while len(_batch) < batch_size:
-                _batch.append(self.listener_queue.get(block=False))
+
+                msg = self.listener_queue.get(block=False)
+                kronos_event = EventFactory.from_string(msg, validate_event=False)
+                _batch.append(kronos_event)
+
         except Queue.Empty:
+            queue_empty_reached=True
             pass
 
-        return _batch
+        return queue_empty_reached, _batch
 
     def stop(self):
         self.listener_proc.terminate()
