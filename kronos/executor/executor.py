@@ -142,6 +142,9 @@ class Executor(object):
         # check the EVENTS execution mode settings
         self.execution_mode = config.get('execution_mode', "scheduler")
 
+        if config.get('execution_mode') == "events" and config.get('submission_workers'):
+            raise KeyError("parameter 'submission_workers' should only be set if execution_mode = scheduler")
+
         if config.get('execution_mode') != "events" and config.get('notification_host'):
             raise KeyError("parameter 'notification_host' should only be set if execution_mode = events")
         else:

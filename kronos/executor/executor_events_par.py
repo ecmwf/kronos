@@ -5,7 +5,7 @@ from kronos.executor.kronos_events.manager import Manager
 from kronos.executor.executor import Executor
 
 
-class ExecutorDepsEventsMultiProc(Executor):
+class ExecutorEventsPar(Executor):
     """
     An ExecutorDepsScheduler passes a schedule of jobs to the real scheduler to be executed.
 
@@ -16,7 +16,7 @@ class ExecutorDepsEventsMultiProc(Executor):
         Initialisation. Passed a dictionary of configurations
         """
 
-        super(ExecutorDepsEventsMultiProc, self).__init__(config, schedule, kschedule_file=kschedule_file)
+        super(ExecutorEventsPar, self).__init__(config, schedule, kschedule_file=kschedule_file)
 
         self.event_batch_size = config.get("event_batch_size", 1)
         self.n_submitters = config.get("n_submitters", 1)
