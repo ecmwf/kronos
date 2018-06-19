@@ -69,7 +69,8 @@ class Manager(object):
             # print "Empty queue reached!"
             pass
 
-        print "got events: \n{}".format("\n".join(str(ev) for ev in latest_events))
+        if latest_events:
+            print "got events: \n{}".format("\n".join(str(ev) for ev in latest_events))
 
         # # write this structure to a file
         # with open("log_events.log", "a") as myfile:

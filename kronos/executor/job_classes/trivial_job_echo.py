@@ -15,7 +15,7 @@ export KRONOS_SHARED_DIR="{shared_dir}"
 
 {profiling_code}
 
-python /perm/ma/maab/kronos_tcpip_runs/send_complete_msg.py nebula 7363 {job_num} > {write_dir}/output_{job_num}.log 2>&1
+python path_to_installer/send_complete_msg.py nebula 7363 {job_num} > {write_dir}/output_{job_num}.log 2>&1
 
 """
 
