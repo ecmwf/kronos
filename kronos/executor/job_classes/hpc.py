@@ -96,12 +96,14 @@ class HPCJob(BaseJob):
 
         self.executor.set_job_submitted(self.id, sequence_id_job)
 
-    def get_submission_and_callback_params(self, depend_job_ids):
+    def get_submission_and_callback_params(self, depend_job_ids=None):
         """
         Get all the necessary params to call the static version of the callback
         (needed to use of the static callback function without job instance..)
         :return:
         """
+
+        depend_job_ids = depend_job_ids if depend_job_ids else []
 
         return {
             "jid": self.id,
