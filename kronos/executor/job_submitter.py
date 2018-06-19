@@ -87,7 +87,7 @@ class JobSubmitter(object):
             _submittable_jobs = [j for j in self.jobs if not j.depends and j.id not in self.submitted_jobs]
 
             if not _submittable_jobs:
-                print "WARNING: looks like there are no dependency-free jobs to be submitted. let's continue.."
+                # print "WARNING: looks like there are no dependency-free jobs to be submitted. let's continue.."
                 return None
             else:
 

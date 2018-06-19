@@ -41,6 +41,7 @@ class ExecutorEventsPar(Executor):
 
         # the submission loop info
         completed_jobs = []
+        completed_jobs_prev = []
         i_submission_cycle = 0
 
         time_0 = datetime.now()
@@ -62,7 +63,9 @@ class ExecutorEventsPar(Executor):
 
             # completed job id's
             completed_jobs = [e.info["job"] for e in event_manager.get_events(type_filter="Complete")]
-            print "completed_jobs: {}/{}".format(len(completed_jobs), len(jobs))
+            if len(completed_jobs) > len(completed_jobs_prev):
+                print "completed_jobs: {}/{}".format(len(completed_jobs), len(jobs))
+                completed_jobs_prev = completed_jobs
 
             # update cycle counter
             i_submission_cycle += 1
