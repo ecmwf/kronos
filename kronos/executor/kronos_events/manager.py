@@ -33,6 +33,9 @@ class Manager(object):
         # categorised by event type (for efficiency)
         self.__events = {}
 
+        # just a quick sum
+        self._total_n_processed_events = 0
+
     def update_events(self, new_events):
         """
         Accept a new event
@@ -56,6 +59,14 @@ class Manager(object):
 
         return filtered_events
 
+    def get_total_n_events(self):
+        """
+        total number of events processed so far (for sanity checks)
+        :return:
+        """
+
+        return self._total_n_processed_events
+
     def next_events(self, batch_size=1):
         """
         Wait until a message arrives from the dispatcher
@@ -70,7 +81,7 @@ class Manager(object):
             pass
 
         if latest_events:
-            print "got events: \n{}".format("\n".join(str(ev) for ev in latest_events))
+            print "New events [total: {}]: \n{}".format(self._total_n_processed_events, "\n".join(str(ev) for ev in latest_events))
 
         # # write this structure to a file
         # with open("log_events.log", "a") as myfile:
@@ -78,6 +89,9 @@ class Manager(object):
 
         # update internal list of events as appropriate
         self.update_events(latest_events)
+
+        # update total n of processed events so far..
+        self._total_n_processed_events += len(latest_events)
 
         # return the event
         return latest_events

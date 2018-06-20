@@ -71,4 +71,5 @@ class ExecutorEventsPar(Executor):
             i_submission_cycle += 1
 
         # Finally stop the event dispatcher
+        print "Total #events received: {}".format(event_manager.get_total_n_events())
         event_manager.stop_dispatcher()
