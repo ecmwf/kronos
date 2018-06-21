@@ -9,8 +9,6 @@
 import multiprocessing
 import subprocess
 
-from kronos.executor.job_classes.trivial_job_echo import Job
-
 
 def submit_job_from_args(submission_and_callback_params):
     """
@@ -25,8 +23,8 @@ def submit_job_from_args(submission_and_callback_params):
 
     output = subprocess.check_output(proc_args)
 
-    # submission_callback(output)
-    Job.submission_callback_static(output, submission_and_callback_params["callback_params"])
+    # TODO: callback not strictly needed anymore, but it would be nice to retain..
+    # Job.submission_callback_static(output, submission_and_callback_params["callback_params"])
 
     return jid, output
 
@@ -105,15 +103,7 @@ class JobSubmitter(object):
                 jobs_depending_on_this_event = self.deps_to_jobs_tree.get(new_event.get_hashed(), [])
                 for j in jobs_depending_on_this_event:
 
-                    # print "--job:{}".format(j.id)
-
-                    # # if this dependency is still in the job list of dependencies, remove it
-                    # if new_event in j.depends:
-                    #     j.depends.remove(new_event)
-                    #
-                    # # if there are no dependencies left at this point, this job is ready for submission..
-                    # if not j.depends and j.id not in self.submitted_jobs:
-                    #     _submittable_jobs.append(j)
+                    # print "--> job:{}".format(j.id)
 
                     # new structure
                     if new_event.get_hashed() in self.job_to_deps[j.id]:
@@ -122,7 +112,11 @@ class JobSubmitter(object):
                     if not self.job_to_deps[j.id] and j.id not in self.submitted_jobs:
                         _submittable_jobs.append(j)
 
-            # print "..deps all checked!"
+                        # list of submitted jobs should be updated already here
+                        # to prevent that multiple message with the same content
+                        # would submit the same job multiple time..
+                        self.submitted_jobs.append(j.id)
+
             self.do_submit(_submittable_jobs)
 
     def do_submit(self, submittable_jobs):
@@ -133,12 +127,9 @@ class JobSubmitter(object):
         """
 
         # submit the jobs
-        # print "submitting jobs.."
         submission_and_callback_params = [j.get_submission_and_callback_params() for j in submittable_jobs]
         submission_output = self.submitters_pool.map(submit_job_from_args, submission_and_callback_params)
         print "\n".join("Submitted job: {}".format(out[0]) for out in submission_output)
-        self.submitted_jobs.extend([j.id for j in submittable_jobs])
-        # print "..jobs all submitted!"
 
         # # write this structure to a file
         # with open("log_events.log", "a") as myfile:
