@@ -9,6 +9,8 @@ import logging
 import multiprocessing
 import subprocess
 
+logger = logging.getLogger(__name__)
+
 
 def submit_job_from_args(submission_and_callback_params):
     """
@@ -40,9 +42,6 @@ class JobSubmitter(object):
         self.jobs = jobs
         self.event_manager = event_manager
         self.submitted_jobs = []
-
-        # logger
-        self.logger = logging.getLogger("executor")
 
         # structure for efficiently finding submittable jobs
         self.deps_to_jobs_tree, self.job_to_deps = self.build_deps_to_job_tree()
@@ -86,7 +85,7 @@ class JobSubmitter(object):
             self.submitted_jobs.extend([j.id for j in _submittable_jobs])
 
             if not _submittable_jobs:
-                self.logger.debug("looks like there are no dependency-free jobs to be submitted. let's continue..")
+                logger.debug("looks like there are no dependency-free jobs to be submitted. let's continue..")
                 return None
             else:
 
@@ -128,7 +127,7 @@ class JobSubmitter(object):
         submission_output = self.submitters_pool.map(submit_job_from_args, submission_and_callback_params)
 
         for jid in submission_output:
-            self.logger.info("Submitted job: {}".format(jid[0]))
+            logger.info("Submitted job: {}".format(jid[0]))
 
 
 

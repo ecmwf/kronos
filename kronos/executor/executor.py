@@ -19,11 +19,11 @@ from kronos.executor.subprocess_callback import SubprocessManager
 
 
 # -------- setup a logger for the executor --------
-logger = logging.getLogger("executor")
+logger = logging.getLogger("kronos.executor")
 logger.setLevel(logging.INFO)
 
 # to file
-fh = logging.FileHandler('executor.log', mode='w')
+fh = logging.FileHandler('kronos-executor.log', mode='w')
 fh.setLevel(logging.DEBUG)
 fh.setFormatter(logging.Formatter('%(asctime)s; %(name)s; %(levelname)s; %(message)s'))
 logger.addHandler(fh)

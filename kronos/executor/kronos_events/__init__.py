@@ -1,4 +1,5 @@
 import json
+import logging
 
 from kronos.executor.kronos_events.event_complete import EventComplete
 from kronos.executor.kronos_events.event_metadatachange import EventMetadataChange
@@ -9,6 +10,8 @@ event_types = {
     "Time": EventTime,
     "Complete": EventComplete
 }
+
+logger = logging.getLogger(__name__)
 
 
 class EventFactory(object):

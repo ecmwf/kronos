@@ -11,6 +11,8 @@ import multiprocessing
 from kronos.executor.kronos_events import EventFactory
 from kronos.executor.kronos_events.dispatcher import EventDispatcher
 
+logger = logging.getLogger(__name__)
+
 
 class Manager(object):
     """
@@ -36,9 +38,6 @@ class Manager(object):
 
         # just a quick sum
         self._total_n_processed_events = 0
-
-        # logger
-        self.logger = logging.getLogger("executor")
 
     def update_events(self, new_events):
         """
@@ -81,13 +80,13 @@ class Manager(object):
         queue_empty_reached, latest_events = self.dispatcher.get_events_batch(batch_size=batch_size)
 
         if queue_empty_reached:
-            self.logger.debug("Empty queue reached!")
+            logger.debug("Empty queue reached!")
 
         if latest_events:
-            self.logger.info("New events arrived [Total so far: {}]".format(self._total_n_processed_events))
+            logger.info("New events arrived [Total so far: {}]".format(self._total_n_processed_events))
 
             for ev in latest_events:
-                self.logger.info(str(ev))
+                logger.info(str(ev))
 
         # update internal list of events as appropriate
         self.update_events(latest_events)

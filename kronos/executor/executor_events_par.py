@@ -5,6 +5,8 @@ from kronos.executor.job_submitter import JobSubmitter
 from kronos.executor.kronos_events.manager import Manager
 from kronos.executor.executor import Executor
 
+logger = logging.getLogger(__name__)
+
 
 class ExecutorEventsPar(Executor):
     """
@@ -22,12 +24,9 @@ class ExecutorEventsPar(Executor):
         self.event_batch_size = config.get("event_batch_size", 1)
         self.n_submitters = config.get("n_submitters", 1)
 
-        # logger
-        self.logger = logging.getLogger("executor")
-
-        self.logger.info("======= Executor multiproc config: =======")
-        self.logger.info("event_batch_size: {}".format(self.event_batch_size))
-        self.logger.info("n_submitters: {}".format(self.n_submitters))
+        logger.info("======= Executor multiproc config: =======")
+        logger.info("event_batch_size: {}".format(self.event_batch_size))
+        logger.info("n_submitters: {}".format(self.n_submitters))
 
     def run(self):
         """
@@ -66,12 +65,12 @@ class ExecutorEventsPar(Executor):
             # completed job id's
             completed_jobs = [e.info["job"] for e in event_manager.get_events(type_filter="Complete")]
             if len(completed_jobs) > len(completed_jobs_prev):
-                self.logger.info("completed_jobs: {}/{}".format(len(completed_jobs), len(jobs)))
+                logger.info("completed_jobs: {}/{}".format(len(completed_jobs), len(jobs)))
                 completed_jobs_prev = completed_jobs
 
             # update cycle counter
             i_submission_cycle += 1
 
         # Finally stop the event dispatcher
-        self.logger.info("Total #events received: {}".format(event_manager.get_total_n_events()))
+        logger.info("Total #events received: {}".format(event_manager.get_total_n_events()))
         event_manager.stop_dispatcher()
