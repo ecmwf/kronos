@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+import logging
 from datetime import datetime
 from kronos.executor.job_submitter import JobSubmitter
 from kronos.executor.kronos_events.manager import Manager
@@ -21,9 +22,12 @@ class ExecutorEventsPar(Executor):
         self.event_batch_size = config.get("event_batch_size", 1)
         self.n_submitters = config.get("n_submitters", 1)
 
-        print "======= Executor multiproc config: ======="
-        print "event_batch_size: {}".format(self.event_batch_size)
-        print "n_submitters: {}".format(self.n_submitters)
+        # logger
+        self.logger = logging.getLogger("executor")
+
+        self.logger.info("======= Executor multiproc config: =======")
+        self.logger.info("event_batch_size: {}".format(self.event_batch_size))
+        self.logger.info("n_submitters: {}".format(self.n_submitters))
 
     def run(self):
         """
@@ -53,23 +57,21 @@ class ExecutorEventsPar(Executor):
                 event_manager.add_time_event((datetime.now()-time_0).total_seconds())
 
             # submit jobs
-            # print "1) searching for eligible jobs.."
             job_submitter.submit_eligible_jobs(new_events=new_events)
 
             # Get next message from manager
-            # print "2) getting batch of events.."
             if not all(j.id in completed_jobs for j in jobs):
                 new_events = event_manager.next_events(batch_size=self.event_batch_size)
 
             # completed job id's
             completed_jobs = [e.info["job"] for e in event_manager.get_events(type_filter="Complete")]
             if len(completed_jobs) > len(completed_jobs_prev):
-                print "completed_jobs: {}/{}".format(len(completed_jobs), len(jobs))
+                self.logger.info("completed_jobs: {}/{}".format(len(completed_jobs), len(jobs)))
                 completed_jobs_prev = completed_jobs
 
             # update cycle counter
             i_submission_cycle += 1
 
         # Finally stop the event dispatcher
-        print "Total #events received: {}".format(event_manager.get_total_n_events())
+        self.logger.info("Total #events received: {}".format(event_manager.get_total_n_events()))
         event_manager.stop_dispatcher()

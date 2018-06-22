@@ -5,7 +5,7 @@
 # In applying this licence, ECMWF does not waive the privileges and immunities 
 # granted to it by virtue of its status as an intergovernmental organisation nor
 # does it submit to any jurisdiction.
-
+import logging
 import multiprocessing
 import subprocess
 
@@ -40,6 +40,9 @@ class JobSubmitter(object):
         self.jobs = jobs
         self.event_manager = event_manager
         self.submitted_jobs = []
+
+        # logger
+        self.logger = logging.getLogger("executor")
 
         # structure for efficiently finding submittable jobs
         self.deps_to_jobs_tree, self.job_to_deps = self.build_deps_to_job_tree()
@@ -89,7 +92,7 @@ class JobSubmitter(object):
             self.submitted_jobs.extend([j.id for j in _submittable_jobs])
 
             if not _submittable_jobs:
-                # print "WARNING: looks like there are no dependency-free jobs to be submitted. let's continue.."
+                self.logger.debug("looks like there are no dependency-free jobs to be submitted. let's continue..")
                 return None
             else:
 
@@ -101,13 +104,9 @@ class JobSubmitter(object):
             _submittable_jobs = []
             for new_event in new_events:
 
-                # print "checking deps for event {}..".format(new_event)
-
                 # loop over all the jobs that depend on this event
                 jobs_depending_on_this_event = self.deps_to_jobs_tree.get(new_event.get_hashed(), [])
                 for j in jobs_depending_on_this_event:
-
-                    # print "--> job:{}".format(j.id)
 
                     # new structure
                     if new_event.get_hashed() in self.job_to_deps[j.id]:
@@ -133,7 +132,7 @@ class JobSubmitter(object):
         # submit the jobs
         submission_and_callback_params = [j.get_submission_and_callback_params() for j in submittable_jobs]
         submission_output = self.submitters_pool.map(submit_job_from_args, submission_and_callback_params)
-        print "\n".join("Submitted job: {}".format(out[0]) for out in submission_output)
+        self.logger.info("\n".join("Submitted job: {}".format(out[0]) for out in submission_output))
 
         # # write this structure to a file
         # with open("log_events.log", "a") as myfile:

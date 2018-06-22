@@ -5,6 +5,7 @@
 # In applying this licence, ECMWF does not waive the privileges and immunities 
 # granted to it by virtue of its status as an intergovernmental organisation nor
 # does it submit to any jurisdiction.
+import logging
 import multiprocessing
 
 from kronos.executor.kronos_events import EventFactory
@@ -35,6 +36,9 @@ class Manager(object):
 
         # just a quick sum
         self._total_n_processed_events = 0
+
+        # logger
+        self.logger = logging.getLogger("executor")
 
     def update_events(self, new_events):
         """
@@ -77,11 +81,10 @@ class Manager(object):
         queue_empty_reached, latest_events = self.dispatcher.get_events_batch(batch_size=batch_size)
 
         if queue_empty_reached:
-            # print "Empty queue reached!"
-            pass
+            self.logger.debug("Empty queue reached!")
 
         if latest_events:
-            print "New events [total: {}]: \n{}".format(self._total_n_processed_events, "\n".join(str(ev) for ev in latest_events))
+            self.logger.info("New events [total: {}]: \n{}".format(self._total_n_processed_events, "\n".join(str(ev) for ev in latest_events)))
 
         # # write this structure to a file
         # with open("log_events.log", "a") as myfile:

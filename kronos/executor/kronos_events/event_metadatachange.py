@@ -31,6 +31,12 @@ class EventMetadataChange(EventBase):
                      )
                     )
 
+    def __unicode__(self):
+        return "KRONOS-EVENT: type:{}; job:{}; metadata:{}".format(self.__message_json["type"],
+                                                                   self.__message_json["info"].get("job"),
+                                                                   ", ".join(["{}:{}".format(k, v) for k, v in self.metadata.iteritems()])
+                                                                   )
+
     def __eq__(self, other):
         """
         Check for equality of metadata change events

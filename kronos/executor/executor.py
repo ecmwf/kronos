@@ -1,11 +1,14 @@
 #!/usr/bin/env python
 
-import datetime
 import imp
 import os
-import socket
 import sys
 import time
+
+import socket
+import datetime
+import logging
+
 from shutil import copy2
 
 sys.path.append(os.path.dirname(os.path.dirname(__file__)))
@@ -13,6 +16,23 @@ sys.path.append(os.path.dirname(os.path.dirname(__file__)))
 from kronos.executor.global_config import global_config
 from kronos.executor import generate_read_files
 from kronos.executor.subprocess_callback import SubprocessManager
+
+
+# -------- setup a logger for the executor --------
+logger = logging.getLogger("executor")
+logger.setLevel(logging.INFO)
+
+# to file
+fh = logging.FileHandler('executor.log', mode='w')
+fh.setLevel(logging.DEBUG)
+fh.setFormatter(logging.Formatter('%(asctime)s; %(name)s; %(levelname)s; %(message)s'))
+logger.addHandler(fh)
+
+# to stdout
+ch = logging.StreamHandler()
+ch.setLevel(logging.INFO)
+ch.setFormatter(logging.Formatter('%(asctime)s; %(name)s; %(levelname)s; %(message)s'))
+logger.addHandler(ch)
 
 
 class Executor(object):
@@ -62,7 +82,7 @@ class Executor(object):
             if k not in self.available_parameters:
                 raise self.InvalidParameter("Unknown parameter ({}) supplied".format(k))
 
-        print "Config: {}".format(config)
+        logger.info("Config: {}".format(config))
         self.config = global_config.copy()
         self.config.update(config)
 
@@ -72,14 +92,14 @@ class Executor(object):
         self.local_tmpdir = config.get("local_tmpdir", None)
         self.job_dir = config.get("job_dir", os.path.join(os.getcwd(), "run"))
 
-        print "Job executing dir: {}".format(self.job_dir)
+        logger.info("Job executing dir: {}".format(self.job_dir))
 
         # take the timestamp to be used to archive run folders (if existing)
         time_stamp_now = datetime.datetime.now().strftime('%Y%m%d%H%M%S')
 
         if os.path.exists(self.job_dir):
             time_stamped_output = self.job_dir+"."+time_stamp_now
-            print "Path {} already exists, moving it into: {}".format(self.job_dir, time_stamped_output)
+            logger.warning("Path {} already exists, moving it into: {}".format(self.job_dir, time_stamped_output))
             os.rename(self.job_dir, time_stamped_output)
 
         os.makedirs(self.job_dir)
@@ -89,11 +109,11 @@ class Executor(object):
 
         # shared dir
         self.job_dir_shared = config.get("job_dir_shared", os.path.join(os.getcwd(), "run/shared"))
-        print "Shared output directory: {}".format(self.job_dir_shared)
+        logger.info("Shared output directory: {}".format(self.job_dir_shared))
 
         if os.path.exists(self.job_dir_shared):
             time_stamped_shared = self.job_dir_shared + "." + time_stamp_now
-            print "Path {} already exists, moving it into: {}".format(self.job_dir_shared, time_stamped_shared)
+            logger.warning("Path {} already exists, moving it into: {}".format(self.job_dir_shared, time_stamped_shared))
             os.rename(self.job_dir_shared, time_stamped_shared)
 
         os.makedirs(self.job_dir_shared)
@@ -134,10 +154,10 @@ class Executor(object):
         self._file_read_size_max_pow = config.get('file_read_size_max_pow', None)
 
         if self._file_read_multiplicity or self._file_read_size_min_pow or self._file_read_size_max_pow:
-            print "Using customised read cache parameters: "
-            print "Read cache multiplicity: {}".format(self._file_read_multiplicity)
-            print "File read min size (2 ^ {}) bytes".format(self._file_read_size_min_pow)
-            print "File read max size (2 ^ {}) bytes".format(self._file_read_size_max_pow)
+            logger.info("Using customised read cache parameters: ")
+            logger.info("Read cache multiplicity: {}".format(self._file_read_multiplicity))
+            logger.info("File read min size (2 ^ {}) bytes".format(self._file_read_size_min_pow))
+            logger.info("File read max size (2 ^ {}) bytes".format(self._file_read_size_max_pow))
 
         # check the EVENTS execution mode settings
         self.execution_mode = config.get('execution_mode', "scheduler")
@@ -207,14 +227,14 @@ class Executor(object):
     def generate_job_internals(self):
 
         # Test the read cache
-        print "Testing read cache ..."
+        logger.info("Testing read cache ...")
         if not generate_read_files.test_read_cache(
                 self.read_cache_path,
                 self._file_read_multiplicity,
                 self._file_read_size_min_pow,
                 self._file_read_size_max_pow):
 
-            print "Read cache not filled, generating ..."
+            logger.info("Read cache not filled, generating ...")
 
             generate_read_files.generate_read_cache(
                 self.read_cache_path,
@@ -222,9 +242,9 @@ class Executor(object):
                 self._file_read_size_min_pow,
                 self._file_read_size_max_pow
             )
-            print "Generated."
+            logger.info("Generated.")
         else:
-            print "OK."
+            logger.info("OK.")
 
         # Launched jobs, matched with their job-ids
 
@@ -244,8 +264,10 @@ class Executor(object):
 
             if self._file_read_multiplicity:
                 job_config['file_read_multiplicity'] = self._file_read_multiplicity
+
             if self._file_read_size_min_pow:
                 job_config['file_read_size_min_pow'] = self._file_read_size_min_pow
+
             if self._file_read_size_max_pow:
                 job_config['file_read_size_max_pow'] = self._file_read_size_max_pow
 
