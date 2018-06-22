@@ -62,12 +62,6 @@ class JobSubmitter(object):
             for d in j.depends:
                 _deps_2_jobs.setdefault(d.get_hashed(), []).append(j)
 
-        # # write this structure to a file
-        # if os.path.exists("log_events.log"): os.remove("log_events.log")
-        # with open("log_events.log", "w") as myfile:
-        #     for k,v in _deps_2_jobs.iteritems():
-        #         myfile.write( "complete_job-{}: {}\n".format(k[2][1], ",".join([str(j.id) for j in v])) )
-
         # structure j.id->dependency
         job_2_deps = {}
         for j in self.jobs:
@@ -135,10 +129,6 @@ class JobSubmitter(object):
 
         for jid in submission_output:
             self.logger.info("Submitted job: {}".format(jid[0]))
-
-        # # write this structure to a file
-        # with open("log_events.log", "a") as myfile:
-        #     myfile.write("\n"+"\n".join("Submitted job: {}".format(out[0]) for out in submission_output))
 
 
 

@@ -89,10 +89,6 @@ class Manager(object):
             for ev in latest_events:
                 self.logger.info(str(ev))
 
-        # # write this structure to a file
-        # with open("log_events.log", "a") as myfile:
-        #     myfile.write("\ngot events: \n{}".format("\n".join(str(ev) for ev in latest_events)))
-
         # update internal list of events as appropriate
         self.update_events(latest_events)
 
