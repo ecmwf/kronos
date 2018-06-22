@@ -32,8 +32,8 @@ class EventMetadataChange(EventBase):
                     )
 
     def __unicode__(self):
-        return "KRONOS-EVENT: type:{}; job:{}; metadata:{}".format(self.__message_json["type"],
-                                                                   self.__message_json["info"].get("job"),
+        return "KRONOS-EVENT: type:{}; job:{}; metadata::{}".format(self.type,
+                                                                   self.info.get("job"),
                                                                    ", ".join(["{}:{}".format(k, v) for k, v in self.metadata.iteritems()])
                                                                    )
 

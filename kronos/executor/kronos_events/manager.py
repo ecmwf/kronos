@@ -84,7 +84,10 @@ class Manager(object):
             self.logger.debug("Empty queue reached!")
 
         if latest_events:
-            self.logger.info("New events [total: {}]: \n{}".format(self._total_n_processed_events, "\n".join(str(ev) for ev in latest_events)))
+            self.logger.info("New events arrived [Total so far: {}]".format(self._total_n_processed_events))
+
+            for ev in latest_events:
+                self.logger.info(str(ev))
 
         # # write this structure to a file
         # with open("log_events.log", "a") as myfile:

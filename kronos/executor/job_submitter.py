@@ -132,7 +132,9 @@ class JobSubmitter(object):
         # submit the jobs
         submission_and_callback_params = [j.get_submission_and_callback_params() for j in submittable_jobs]
         submission_output = self.submitters_pool.map(submit_job_from_args, submission_and_callback_params)
-        self.logger.info("\n".join("Submitted job: {}".format(out[0]) for out in submission_output))
+
+        for jid in submission_output:
+            self.logger.info("Submitted job: {}".format(jid[0]))
 
         # # write this structure to a file
         # with open("log_events.log", "a") as myfile:
