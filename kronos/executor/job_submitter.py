@@ -82,7 +82,11 @@ class JobSubmitter(object):
         # If there is no valid event inside search for dependency-free jobs
         if not any(new_events):
 
+            # jobs sent for submission
             _submittable_jobs = [j for j in self.jobs if not j.depends and j.id not in self.submitted_jobs]
+
+            # mark them as submitted now (so they won't be re-added)
+            self.submitted_jobs.extend([j.id for j in _submittable_jobs])
 
             if not _submittable_jobs:
                 # print "WARNING: looks like there are no dependency-free jobs to be submitted. let's continue.."
