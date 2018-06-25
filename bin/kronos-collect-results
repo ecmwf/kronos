@@ -53,12 +53,14 @@ if __name__ == "__main__":
         sys.exit(1)
     else:
         kschedule_file = kschedule_files[0]
+        print "collecting kschedule {}".format(kschedule_file)
         tar_file.add(os.path.join(args.path_run, kschedule_file), arcname=os.path.join("run_data", kschedule_file))
 
     # add the LOG FILE(s) into the tarball (if any)
     log_files = [x for x in os.listdir(args.path_run) if os.path.isfile(os.path.join(args.path_run, x)) and x.endswith('.log')]
     if log_files:
         for log_file in log_files:
+            print "collecting log file {}".format(log_file)
             tar_file.add(os.path.join(args.path_run, log_file), arcname=os.path.join("run_data", log_file))
 
     files_to_be_collected = [
