@@ -1,9 +1,12 @@
 #!/usr/bin/env python
 import logging
 from datetime import datetime
+
+import os
 from kronos.executor.job_submitter import JobSubmitter
 from kronos.executor.kronos_events.manager import Manager
 from kronos.executor.executor import Executor
+from shutil import copy2
 
 logger = logging.getLogger(__name__)
 
@@ -74,3 +77,15 @@ class ExecutorEventsPar(Executor):
         # Finally stop the event dispatcher
         logger.info("Total #events received: {}".format(event_manager.get_total_n_events()))
         event_manager.stop_dispatcher()
+
+    def unsetup(self):
+        """
+        Copy the log file into the output directory
+        :return:
+        """
+
+        if os.path.exists(os.path.join(os.getcwd(), "kronos-executor.log")):
+            print "copying {} into {}".format(os.path.join(os.getcwd(), "kronos-executor.log"), self.job_dir)
+            copy2(os.path.join(os.getcwd(), "kronos-executor.log"), self.job_dir)
+
+        print "all done."

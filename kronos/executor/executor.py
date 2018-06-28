@@ -289,3 +289,11 @@ class Executor(object):
         """
 
         raise NotImplementedError
+
+    def unsetup(self):
+        """
+        Does any post-run tasks (e.g. clean-up files, etc..)
+        :return:
+        """
+
+        print "all done."

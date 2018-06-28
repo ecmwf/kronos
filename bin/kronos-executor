@@ -74,5 +74,11 @@ if __name__ == "__main__":
     # Select the proper execution type according to options
     executor_class = executor_types[config.get("execution_mode", "scheduler")]
 
-    # run the appropriate executor..
-    executor_class(config, schedule, kschedule_file=args.kschedule_file_name).run()
+    # instantiate the appropriate executor..
+    selected_executor = executor_class(config, schedule, kschedule_file=args.kschedule_file_name)
+
+    # run
+    selected_executor.run()
+
+    # and finally do any un-setup tasks (if any at all)
+    selected_executor.unsetup()
