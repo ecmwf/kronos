@@ -147,7 +147,7 @@ class NODEFileInfo(FileInfo):
 
         return task_block
 
-    def get_time_series(self):
+    def calc_mpi_time_series(self, n_bins=10):
         """
         Return time series build from the stats in NODE file
         :return: timesignals
@@ -163,7 +163,6 @@ class NODEFileInfo(FileInfo):
         kb_p2p = sum([(e["mb_send"] + e["mb_recv"]) / 2. for itask in mpi_ops.values() for e in itask if e["type"] == "p2p"]) * 1024.
         n_p2p = sum([(e["n_send"] + e["n_recv"]) / 2. for itask in mpi_ops.values() for e in itask if e["type"] == "p2p"])
 
-        n_bins = 10
         d_bin = raps_runtime / float(n_bins)
         run_times = [d_bin * v for v in range(n_bins + 1)]
 
@@ -236,12 +235,60 @@ class LOGFileInfo(FileInfo):
         return raps_args
 
 
+class OUTFileInfo(FileInfo):
+    """
+    Info from the ifs.out file
+    """
+
+    def __init__(self, file_name):
+        super(OUTFileInfo, self).__init__(file_name)
+
+    def calc_io_timeseries(self, n_bins=10):
+        """
+        Generate some approximated time-series from multio logs
+        :return:
+        """
+
+        n_writes=[]
+        b_writes = []
+        for line in self._file_lines:
+
+            if "Multio" in line and "num iwritefdb" in line:
+                n_writes.append(int(line.split("num iwritefdb")[1].split(":")[1].strip()))
+
+            if "Multio" in line and "bytes iwritefdb (tot, avg, std dev)" in line:
+                b_writes.append( int( line.split("bytes iwritefdb (tot, avg, std dev)")[1].split()[1].strip().replace(",","") ) )
+
+        if not n_writes:
+            print "WARNING: no iwritefdb found!"
+
+        if not b_writes:
+            print "WARNING: no bytes iwritefdb found!"
+
+        print "b_writes"
+        print "\n".join([str(n) for n in b_writes])
+
+        print "n_writes"
+        print "\n".join([str(n) for n in n_writes])
+
+        d_bin = raps_runtime / float(n_bins)
+        run_times = [d_bin * v for v in range(n_bins + 1)]
+
+        timesignals = {
+            "kb_write": TimeSignal("kb_write").from_values("kb_write", run_times, [sum(b_writes)/1024./float(len(run_times))]*len(run_times), priority=1),
+            "n_write": TimeSignal("n_write").from_values("n_write", run_times, [sum(n_writes)/float(len(run_times))]*len(run_times), priority=1),
+        }
+
+        return timesignals
+
+
 if __name__ == "__main__":
 
     # Parser for the required arguments
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawTextHelpFormatter)
     parser.add_argument("raps_output_path", type=str, help="Path of the RAPS output")
     parser.add_argument("-o", "--output", type=str, help="Name of the kprofile [output.kprofile]", default="output.kprofile")
+    parser.add_argument("-n", "--nbins", type=int, help="N-bin for generating the time series", default=10)
 
     # print the help if no arguments are passed
     if len(sys.argv) == 1:
@@ -253,12 +300,16 @@ if __name__ == "__main__":
 
     # collect info from the NODE file
     node_file_info = NODEFileInfo(os.path.join(args.raps_output_path, "NODE.001_01"))
-    timesignals = node_file_info.get_time_series()
+    timesignals = node_file_info.calc_mpi_time_series(args.nbins)
     raps_start_time, raps_runtime = node_file_info.get_times()
 
     # info from the ifs.log file
     log_info = LOGFileInfo(os.path.join(args.raps_output_path, "ifs.log"))
     raps_args = log_info.get_commandline_arguments()
+
+    # info from ifs.out
+    out_info = OUTFileInfo(os.path.join(args.raps_output_path, "ifs.out"))
+    timesignals.update(out_info.calc_io_timeseries(args.nbins))
 
     # assemble a JOB
     job = ModelJob(
