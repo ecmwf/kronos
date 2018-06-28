@@ -64,8 +64,8 @@ class NODEFileInfo(FileInfo):
         "SEND/RECV IN GETSPEC WAM": "p2p",
         "TRSTOM_COMMS": "p2p",
         "TRMTOS_COMMS": "p2p",
-        # "TRGTOL_COMMS": "p2p", TODO: THIS NEEDS TO BE INCLUDED..
-        "TRGTOL_COMMS (GPNORM)": "p2p",
+        "TRGTOL_COMMS                                ": "p2p",
+        "TRGTOL_COMMS (GPNORM)                       ": "p2p",
         "TRLTOG_COMMS": "p2p"
     }
 
@@ -76,7 +76,6 @@ class NODEFileInfo(FileInfo):
     def get_comm_stats(self):
         """
         Collect communications statistics from the NODE file
-        :param nodefile_lines:
         :return:
         """
 
@@ -150,7 +149,8 @@ class NODEFileInfo(FileInfo):
     def calc_mpi_time_series(self, n_bins=10):
         """
         Return time series build from the stats in NODE file
-        :return: timesignals
+        :param n_bins:
+        :return:
         """
 
         # get raw COMM stats
@@ -178,7 +178,6 @@ class NODEFileInfo(FileInfo):
     def get_times(self):
         """
         Extract runtime from the NODE file
-        :param nodefile_lines:
         :return:
         """
 
@@ -217,7 +216,6 @@ class LOGFileInfo(FileInfo):
     def get_commandline_arguments(self):
         """
         Return a dictionary with the command line arguments of the RAPS run (from ifs.log file)
-        :param logfile_lines:
         :return:
         """
 
@@ -246,6 +244,7 @@ class OUTFileInfo(FileInfo):
     def calc_io_timeseries(self, n_bins=10):
         """
         Generate some approximated time-series from multio logs
+        :param n_bins:
         :return:
         """
 
