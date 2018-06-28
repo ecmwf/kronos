@@ -265,12 +265,6 @@ class OUTFileInfo(FileInfo):
         if not b_writes:
             print "WARNING: no bytes iwritefdb found!"
 
-        print "b_writes"
-        print "\n".join([str(n) for n in b_writes])
-
-        print "n_writes"
-        print "\n".join([str(n) for n in n_writes])
-
         d_bin = raps_runtime / float(n_bins)
         run_times = [d_bin * v for v in range(n_bins + 1)]
 
