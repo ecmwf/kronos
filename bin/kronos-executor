@@ -72,7 +72,7 @@ if __name__ == "__main__":
         schedule = ScheduleFormat.from_file(f)
 
     # Select the proper execution type according to options
-    executor_class = executor_types[config.get("execution_mode", "scheduler")]
+    executor_class = executor_types[config.get("execution_mode", "events")]
 
     # instantiate the appropriate executor..
     selected_executor = executor_class(config, schedule, kschedule_file=args.kschedule_file_name)

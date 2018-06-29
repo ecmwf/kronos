@@ -24,8 +24,8 @@ class ExecutorEventsPar(Executor):
 
         super(ExecutorEventsPar, self).__init__(config, schedule, kschedule_file=kschedule_file)
 
-        self.event_batch_size = config.get("event_batch_size", 1)
-        self.n_submitters = config.get("n_submitters", 1)
+        self.event_batch_size = config.get("event_batch_size", 10)
+        self.n_submitters = config.get("n_submitters", 4)
 
         logger.info("======= Executor multiproc config: =======")
         logger.info("event_batch_size: {}".format(self.event_batch_size))
