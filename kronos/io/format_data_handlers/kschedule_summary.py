@@ -19,20 +19,20 @@ class KScheduleDataSummary(object):
     _format_len = 20
     aggregation_unit = None
 
-    def __init__(self, ksf_data, metric_name, job_match_re=None, n_bins=10):
+    def __init__(self, ksf_data, filter_jobs, metric_name, n_bins=10):
 
         self.ksf_data = ksf_data
         self.metric_name = metric_name
-        self.job_match_re = job_match_re
         self.n_bins = n_bins
-        self.filtered_jobs = ksf_data.filter_jobs(self.job_match_re)
+
+        # filtered_jobs are passed explicitly (so we can compute them only once..)
+        self.filtered_jobs = filter_jobs
 
     def get_summary(self):
 
         print "\n==== SUMMARY OF {} [{}]: ({}) ====\n".format(self.metric_name.upper(),
                                                               signal_types[self.metric_name]["print_info"]["raw_units"],
                                                               signal_types[self.metric_name]["print_info"]["description"].upper())
-        print "- {} jobs match the filter: {} -\n".format(len(self.filtered_jobs), self.job_match_re)
 
         print self.distribution_summary()
 
@@ -113,9 +113,6 @@ class KScheduleDataSummaryPerCall(KScheduleDataSummary):
 
     def get_series(self):
         return KScheduleData.per_call_series(self.filtered_jobs, self.metric_name)
-
-
-
 
 # map between classes and their "aggregation unit" (e.g. kernel, job, etc..)
 kschedule_summary_handlers = {cls.aggregation_unit: cls for cls in KScheduleDataSummary.__subclasses__()}
