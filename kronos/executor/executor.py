@@ -160,7 +160,7 @@ class Executor(object):
             logger.info("File read max size (2 ^ {}) bytes".format(self._file_read_size_max_pow))
 
         # check the EVENTS execution mode settings
-        self.execution_mode = config.get('execution_mode', "scheduler")
+        self.execution_mode = config.get('execution_mode', "events")
 
         if config.get('execution_mode') == "events" and config.get('submission_workers'):
             raise KeyError("parameter 'submission_workers' should only be set if execution_mode = scheduler")
