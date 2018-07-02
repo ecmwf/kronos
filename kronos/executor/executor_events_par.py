@@ -28,8 +28,10 @@ class ExecutorEventsPar(Executor):
         self.n_submitters = config.get("n_submitters", 4)
 
         logger.info("======= Executor multiproc config: =======")
-        logger.info("event_batch_size: {}".format(self.event_batch_size))
-        logger.info("n_submitters: {}".format(self.n_submitters))
+        logger.info("events notification host: {}".format(self.notification_host))
+        logger.info("events notification port: {}".format(self.notification_port))
+        logger.info("events batch size       : {}".format(self.event_batch_size))
+        logger.info("job submitting processes: {}".format(self.n_submitters))
 
     def run(self):
         """
