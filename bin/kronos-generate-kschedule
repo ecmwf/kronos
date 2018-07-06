@@ -93,36 +93,27 @@ def build_graph_from_workflow_prototype(kschedule_json_data, qty_id):
     for n in G:
         ancestors_dict[n] = nx.ancestors(G, n)
 
-    # # ===========================================
-    # # subdivision of nodes by dependency-depth level
-    # longest_path_to_root = {}
-    # for n in G:
-    #     if n not in root_nodes:
-    #
-    #         print "Calculating depth level for node: {}".format(n)
-    #         node_ancestors = ancestors_dict[n]
-    #         path_lenghts = {}
-    #         for i_root in root_nodes:
-    #             if i_root in node_ancestors:
-    #                 path_lenghts[i_root] = nx.shortest_path_length(G, source=i_root, target=n)
-    #
-    #         best_canditdate_for_farthest_root = max(path_lenghts, key=path_lenghts.get)
-    #
-    #         all_simple_path = nx.all_simple_paths(G, source=best_canditdate_for_farthest_root, target=n)
-    #
-    #         # longest path to any root node
-    #         longest_path_to_root[n] = max([len(p) for p in all_simple_path])
-    #     else: # root nodes have no parents => 0 distance
-    #         longest_path_to_root[n] = 0
-
-    # # ============= for testing only ============
-    # import pickle
-    # with open('/home/ma/maab/workspace/itt_1_tools/lp_to_root.pickle', 'wb') as f:
-    #     pickle.dump(longest_path_to_root, f)
-    # ---------------------
-    import pickle
-    longest_path_to_root = pickle.load(open('/home/ma/maab/workspace/itt_1_tools/lp_to_root.pickle'))
     # ===========================================
+    # subdivision of nodes by dependency-depth level
+    longest_path_to_root = {}
+    for n in G:
+        if n not in root_nodes:
+
+            print "Calculating depth level for node: {}".format(n)
+            node_ancestors = ancestors_dict[n]
+            path_lenghts = {}
+            for i_root in root_nodes:
+                if i_root in node_ancestors:
+                    path_lenghts[i_root] = nx.shortest_path_length(G, source=i_root, target=n)
+
+            best_canditdate_for_farthest_root = max(path_lenghts, key=path_lenghts.get)
+
+            all_simple_path = nx.all_simple_paths(G, source=best_canditdate_for_farthest_root, target=n)
+
+            # longest path to any root node
+            longest_path_to_root[n] = max([len(p) for p in all_simple_path])
+        else: # root nodes have no parents => 0 distance
+            longest_path_to_root[n] = 0
 
     # number of "processors" summed up per graph depth level
     node_depth_sums = [0] * max(longest_path_to_root.values())
