@@ -32,8 +32,8 @@ class ExporterBase(object):
     def check_export_config(self, export_config, out_path, **kwargs):
 
         # create output dir if it does not exists..
-        if not os.path.isdir(out_path):
-            os.mkdir(out_path)
+        if not os.path.exists(out_path):
+            os.makedirs(out_path)
 
         # check that export type is consistent with the class type
         if export_config["type"] != self.export_type:
