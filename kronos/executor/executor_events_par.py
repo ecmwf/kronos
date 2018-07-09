@@ -68,7 +68,7 @@ class ExecutorEventsPar(Executor):
                 new_events = event_manager.next_events(batch_size=self.event_batch_size)
 
             # completed job id's
-            completed_jobs = [e.info["job"] for e in event_manager.get_events(type_filter="Complete")]
+            completed_jobs = set([e.info["job"] for e in event_manager.get_events(type_filter="Complete")])
             if len(completed_jobs) > len(completed_jobs_prev):
                 logger.info("completed_jobs: {}/{}".format(len(completed_jobs), len(jobs)))
                 completed_jobs_prev = completed_jobs
