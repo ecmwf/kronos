@@ -87,6 +87,6 @@ class ExecutorEventsPar(Executor):
         """
 
         if os.path.exists(os.path.join(os.getcwd(), "kronos-executor.log")):
-            logger.info("all done.")
+            logger.info("kronos simulation completed.")
             logger.info("copying {} into {}".format(os.path.join(os.getcwd(), "kronos-executor.log"), self.job_dir))
             copy2(os.path.join(os.getcwd(), "kronos-executor.log"), self.job_dir)
