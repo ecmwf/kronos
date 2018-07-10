@@ -124,7 +124,11 @@ if __name__ == "__main__":
         if "all" in args.metrics:
             metrics_to_test += signal_types.keys()
 
+        filtered_jobs = kschedule_data.filter_jobs(args.filter)
+        print "\n{} jobs match the filter: {}\n".format(len(filtered_jobs), args.filter if args.filter else "ALL")
+
         for i_param in metrics_to_test:
-            kschedule_summary_handlers[args.summary](kschedule_data, i_param,
-                                                     job_match_re=args.filter,
+            kschedule_summary_handlers[args.summary](kschedule_data,
+                                                     filtered_jobs,
+                                                     i_param,
                                                      n_bins=args.nbins if args.nbins else 10).get_summary()

@@ -18,6 +18,8 @@ ecbuild_add_library (
         kronos_version.c
         cpu.c
         cpu.h
+        memory.c
+        memory.h
         file_read.c
         file_read.h
         file_write.c
@@ -40,6 +42,8 @@ ecbuild_add_library (
         trace.h
         utility.c
         utility.h
+        notification.c
+        notification.h
 
     DEFINITIONS "${MPI_DEFINITIONS}"
 
@@ -54,9 +58,9 @@ ecbuild_add_library (
 
 ecbuild_add_executable(
 
-    TARGET kronos-coordinator
+    TARGET kronos-synapp
 
-    SOURCES coordinator.c
+    SOURCES synapp.c
 
     DEFINITIONS "${MPI_DEFINITIONS}"
 

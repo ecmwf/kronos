@@ -26,6 +26,7 @@ class KResultsData(object):
 
     res_file_root = "statistics"
     res_file_ext = "kresults"
+#    res_file_ext = "krf"
 
     def __init__(self, jobs=None, sim_name=None, sim_path=None, n_procs_node=None):
 

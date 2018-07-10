@@ -1,10 +1,14 @@
 #!/usr/bin/env python
 
-import datetime
 import imp
 import os
 import sys
 import time
+
+import socket
+import datetime
+import logging
+
 from shutil import copy2
 
 sys.path.append(os.path.dirname(os.path.dirname(__file__)))
@@ -12,6 +16,23 @@ sys.path.append(os.path.dirname(os.path.dirname(__file__)))
 from kronos.executor.global_config import global_config
 from kronos.executor import generate_read_files
 from kronos.executor.subprocess_callback import SubprocessManager
+
+
+# -------- setup a logger for the executor --------
+logger = logging.getLogger("kronos.executor")
+logger.setLevel(logging.INFO)
+
+# to file
+fh = logging.FileHandler('kronos-executor.log', mode='w')
+fh.setLevel(logging.DEBUG)
+fh.setFormatter(logging.Formatter('%(asctime)s; %(name)s; %(levelname)s; %(message)s'))
+logger.addHandler(fh)
+
+# to stdout
+ch = logging.StreamHandler()
+ch.setLevel(logging.INFO)
+ch.setFormatter(logging.Formatter('%(asctime)s; %(name)s; %(levelname)s; %(message)s'))
+logger.addHandler(ch)
 
 
 class Executor(object):
@@ -24,10 +45,33 @@ class Executor(object):
         pass
 
     available_parameters = [
-        'coordinator_binary', 'enable_ipm', 'job_class', 'job_dir', 'job_dir_shared',
-        'procs_per_node', 'read_cache', 'allinea_path', 'allinea_ld_library_path', 'allinea_licence_file',
-        'local_tmpdir', 'submission_workers', 'enable_darshan', 'darshan_lib_path',
-        'file_read_multiplicity', 'file_read_size_min_pow', 'file_read_size_max_pow']
+        'coordinator_binary',
+        'enable_ipm',
+        'job_class',
+        'job_dir',
+        'job_dir_shared',
+        'procs_per_node',
+        'read_cache',
+        'allinea_path',
+        'allinea_ld_library_path',
+        'allinea_licence_file',
+        'local_tmpdir',
+        'submission_workers',
+        'enable_darshan',
+        'darshan_lib_path',
+        'file_read_multiplicity',
+        'file_read_size_min_pow',
+        'file_read_size_max_pow',
+
+        # options specific for event based submission
+        'execution_mode',
+        'notification_host',
+        'notification_port',
+        'time_event_cycles',
+        'event_batch_size',
+        'n_submitters'
+
+    ]
 
     def __init__(self, config, schedule, kschedule_file=None):
         """
@@ -38,7 +82,7 @@ class Executor(object):
             if k not in self.available_parameters:
                 raise self.InvalidParameter("Unknown parameter ({}) supplied".format(k))
 
-        print "Config: {}".format(config)
+        logger.info("Config: {}".format(config))
         self.config = global_config.copy()
         self.config.update(config)
 
@@ -48,14 +92,14 @@ class Executor(object):
         self.local_tmpdir = config.get("local_tmpdir", None)
         self.job_dir = config.get("job_dir", os.path.join(os.getcwd(), "run"))
 
-        print "Job executing dir: {}".format(self.job_dir)
+        logger.info("Job executing dir: {}".format(self.job_dir))
 
         # take the timestamp to be used to archive run folders (if existing)
         time_stamp_now = datetime.datetime.now().strftime('%Y%m%d%H%M%S')
 
         if os.path.exists(self.job_dir):
             time_stamped_output = self.job_dir+"."+time_stamp_now
-            print "Path {} already exists, moving it into: {}".format(self.job_dir, time_stamped_output)
+            logger.warning("Path {} already exists, moving it into: {}".format(self.job_dir, time_stamped_output))
             os.rename(self.job_dir, time_stamped_output)
 
         os.makedirs(self.job_dir)
@@ -65,11 +109,11 @@ class Executor(object):
 
         # shared dir
         self.job_dir_shared = config.get("job_dir_shared", os.path.join(os.getcwd(), "run/shared"))
-        print "Shared output directory: {}".format(self.job_dir_shared)
+        logger.info("Shared output directory: {}".format(self.job_dir_shared))
 
         if os.path.exists(self.job_dir_shared):
             time_stamped_shared = self.job_dir_shared + "." + time_stamp_now
-            print "Path {} already exists, moving it into: {}".format(self.job_dir_shared, time_stamped_shared)
+            logger.warning("Path {} already exists, moving it into: {}".format(self.job_dir_shared, time_stamped_shared))
             os.rename(self.job_dir_shared, time_stamped_shared)
 
         os.makedirs(self.job_dir_shared)
@@ -110,97 +154,41 @@ class Executor(object):
         self._file_read_size_max_pow = config.get('file_read_size_max_pow', None)
 
         if self._file_read_multiplicity or self._file_read_size_min_pow or self._file_read_size_max_pow:
-            print "Using customised read cache parameters: "
-            print "Read cache multiplicity: {}".format(self._file_read_multiplicity)
-            print "File read min size (2 ^ {}) bytes".format(self._file_read_size_min_pow)
-            print "File read max size (2 ^ {}) bytes".format(self._file_read_size_max_pow)
+            logger.info("Using customised read cache parameters: ")
+            logger.info("Read cache multiplicity: {}".format(self._file_read_multiplicity))
+            logger.info("File read min size (2 ^ {}) bytes".format(self._file_read_size_min_pow))
+            logger.info("File read max size (2 ^ {}) bytes".format(self._file_read_size_max_pow))
 
-    def run(self):
+        # check the EVENTS execution mode settings
+        self.execution_mode = config.get('execution_mode', "events")
 
-        # Test the read cache
-        print "Testing read cache ..."
-        if not generate_read_files.test_read_cache(
-                self.read_cache_path,
-                self._file_read_multiplicity,
-                self._file_read_size_min_pow,
-                self._file_read_size_max_pow):
+        if config.get('execution_mode') == "events" and config.get('submission_workers'):
+            raise KeyError("parameter 'submission_workers' should only be set if execution_mode = scheduler")
 
-            print "Read cache not filled, generating ..."
-
-            generate_read_files.generate_read_cache(
-                self.read_cache_path,
-                self._file_read_multiplicity,
-                self._file_read_size_min_pow,
-                self._file_read_size_max_pow
-            )
-            print "Generated."
+        if config.get('execution_mode') != "events" and config.get('notification_host'):
+            raise KeyError("parameter 'notification_host' should only be set if execution_mode = events")
         else:
-            print "OK."
+            self.notification_host = config.get('notification_host', socket.gethostname())
 
-        # Launched jobs, matched with their job-ids
+        if config.get('execution_mode') != "events" and config.get('notification_port'):
+            raise KeyError("parameter 'notification_port' should only be set if execution_mode = events")
+        else:
+            self.notification_port = config.get('notification_port', 7363)
 
-        jobs = []
+        if config.get('execution_mode') != "events" and config.get('time_event_cycles'):
+            raise KeyError("parameter 'time_event_cycles' should only be set if execution_mode = events")
+        else:
+            self.time_event_cycles = config.get('time_event_cycles', 1)
 
-        for job_num, job_config in enumerate(self.job_iterator()):
-            job_dir = os.path.join(self.job_dir, "job-{}".format(job_num))
-            job_config['job_num'] = job_num
+        if config.get('execution_mode') != "events" and config.get('event_batch_size'):
+            raise KeyError("parameter 'event_batch_size' should only be set if execution_mode = events")
+        else:
+            self.time_event_cycles = config.get('event_batch_size', 1)
 
-            job_class_module_file = os.path.join(
-                os.path.dirname(__file__),
-                "job_classes/{}.py".format(job_config.get("job_class", self.config.get("job_class", "trivial_job")))
-            )
-            # print "==========> Job class module: {}".format(job_class_module_file)
-            job_class_module = imp.load_source('job', job_class_module_file)
-            job_class = job_class_module.Job
-
-            if self._file_read_multiplicity:
-                job_config['file_read_multiplicity'] = self._file_read_multiplicity
-            if self._file_read_size_min_pow:
-                job_config['file_read_size_min_pow'] = self._file_read_size_min_pow
-            if self._file_read_size_max_pow:
-                job_config['file_read_size_max_pow'] = self._file_read_size_max_pow
-
-            j = job_class(job_config, self, job_dir)
-
-            j.generate()
-            jobs.append(j)
-
-        # Work through the list of jobs. Launch the first job that is not blocked by any other
-        # job.
-        # n.b. job.run does not just simply return the ID, as it may be asynchronous. The job
-        # handler is responsible for calling back set_job_submitted
-
-        while len(jobs) != 0:
-            nqueueing = self.thread_manager.num_running
-
-            found_job = None
-            depend_ids = None
-            for j in jobs:
-
-                try:
-                    depends = j.depends
-                    depend_ids = [self._submitted_jobs[d] for d in depends]
-
-                    # We have found a job. Break out of the search
-                    found_job = j
-                    break
-
-                except KeyError:
-                    # Go on to the next job in the list
-                    pass
-
-            if found_job:
-                found_job.run(depend_ids)
-                jobs.remove(found_job)
-
-            else:
-                # If there are no unblocked jobs, but there are still jobs in the submit queue,
-                # wait until something happens
-                self.thread_manager.wait_until(nqueueing-1)
-
-        # Wait until we are done
-
-        self.thread_manager.wait()
+        if config.get('execution_mode') != "events" and config.get('n_submitters'):
+            raise KeyError("parameter 'n_submitters' should only be set if execution_mode = events")
+        else:
+            self.time_event_cycles = config.get('n_submitters', 1)
 
     def set_job_submitted(self, job_num, submitted_id):
         self._submitted_jobs[job_num] = submitted_id
@@ -235,3 +223,77 @@ class Executor(object):
             job_repeats = job.get("repeat", 1)
             for i in range(job_repeats):
                 yield job
+
+    def generate_job_internals(self):
+
+        # Test the read cache
+        logger.info("Testing read cache ...")
+        if not generate_read_files.test_read_cache(
+                self.read_cache_path,
+                self._file_read_multiplicity,
+                self._file_read_size_min_pow,
+                self._file_read_size_max_pow):
+
+            logger.info("Read cache not filled, generating ...")
+
+            generate_read_files.generate_read_cache(
+                self.read_cache_path,
+                self._file_read_multiplicity,
+                self._file_read_size_min_pow,
+                self._file_read_size_max_pow
+            )
+            logger.info("Generated.")
+        else:
+            logger.info("OK.")
+
+        # Launched jobs, matched with their job-ids
+
+        jobs = []
+
+        for job_num, job_config in enumerate(self.job_iterator()):
+            job_dir = os.path.join(self.job_dir, "job-{}".format(job_num))
+            job_config['job_num'] = job_num
+
+            job_class_module_file = os.path.join(
+                os.path.dirname(__file__),
+                "job_classes/{}.py".format(job_config.get("job_class", self.config.get("job_class", "trivial_job")))
+            )
+
+            job_class_module = imp.load_source('job', job_class_module_file)
+            job_class = job_class_module.Job
+
+            if self._file_read_multiplicity:
+                job_config['file_read_multiplicity'] = self._file_read_multiplicity
+
+            if self._file_read_size_min_pow:
+                job_config['file_read_size_min_pow'] = self._file_read_size_min_pow
+
+            if self._file_read_size_max_pow:
+                job_config['file_read_size_max_pow'] = self._file_read_size_max_pow
+
+            if self.execution_mode == "events":
+                job_config['notification_host'] = self.notification_host
+                job_config['notification_port'] = self.notification_port
+
+            j = job_class(job_config, self, job_dir)
+
+            j.generate()
+            jobs.append(j)
+
+        return jobs
+
+    def run(self):
+        """
+        Main function that manages the execution of the schedule
+        :return:
+        """
+
+        raise NotImplementedError
+
+    def unsetup(self):
+        """
+        Does any post-run tasks (e.g. clean-up files, etc..)
+        :return:
+        """
+
+        print "all done."

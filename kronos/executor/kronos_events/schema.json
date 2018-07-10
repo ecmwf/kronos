@@ -1,0 +1,107 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema",
+    "type": "object" ,
+    "title": "Kronos Schedule Format",
+    "description": "Schema of a Kronos Event",
+    "oneOf": [
+
+
+
+        {
+            "type": "object",
+            "description": "Event sent from an application",
+            "additionalProperties": false,
+            "properties": {
+                "type": {
+                    "type": "string",
+                    "description": "A change in metadata of an application",
+                    "enum": ["MetadataChange"]
+                },
+                "metadata": {
+                    "type": "object",
+                    "description": "Event metadata"
+                },
+                "info": {
+                    "type": "object",
+                    "description": "Information relative to the event",
+                    "properties": {
+                        "app": {
+                            "type": "string",
+                            "description": "Application type that originated the event"
+                        },
+                        "job": {
+                            "type": "string",
+                            "description": "unique job id (within the simulation)"
+                        },
+                        "job_name": {
+                            "type": "string",
+                            "description": "Name of the job that originated the event"
+                        }
+                    }
+                }
+            },
+            "required": ["type", "info", "metadata"]
+        },
+
+
+        {
+            "type": "object",
+            "description": "Event sent from an application upon completion",
+            "additionalProperties": false,
+            "properties": {
+                "type": {
+                    "type": "string",
+                    "description": "type of event",
+                    "enum": ["Complete"]
+                },
+                "info": {
+                    "type": "object",
+                    "description": "Information relative to the event",
+                    "properties": {
+                        "app": {
+                            "type": "string",
+                            "description": "Application type that originated the event"
+                        },
+                        "job": {
+                            "type": "integer",
+                            "description": "unique job id (within the simulation)"
+                        },
+                        "timestamp": {
+                            "type": "number",
+                            "description": "Timestamp of the the event"
+                        }
+                    }
+                }
+            },
+            "required": ["type", "info"]
+        },
+
+
+        {
+            "type": "object",
+            "description": "Simple event sent from a timer",
+            "additionalProperties": false,
+            "properties": {
+                "info": {
+                    "type": "object",
+                    "description": "Information relative to the event",
+                    "properties": {
+                        "timestamp": {
+                            "type": "number",
+                            "description": "Timestamp of the event"
+                        }
+                    }
+                },
+                "type": {
+                    "type": "string",
+                    "description": "type of event",
+                    "enum": [
+                        "Time"
+                    ]
+                }
+            },
+            "required": ["type", "info"]
+        }
+
+    ]
+}

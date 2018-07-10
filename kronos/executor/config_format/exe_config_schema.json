@@ -52,6 +52,20 @@
     "file_read_multiplicity": {
       "type": "integer",
       "description": "Number of files (for each file size) used to randomize the read calls of the synthetic apps"
+    },
+
+    "execution_mode": {
+      "type": "string",
+      "description": "Job-dependency mechanism",
+      "enum": ["events", "scheduler"]
+    },
+    "event_batch_size": {
+      "type": "integer",
+      "description": "Number of events processed by the executor at once (to be set only if execution_mode: events)"
+    },
+    "n_submitters": {
+      "type": "integer",
+      "description": "Number of submitting processes (to be set only if execution_mode: events)"
     }
   }
 }

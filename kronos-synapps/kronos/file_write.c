@@ -194,13 +194,14 @@ bool open_write_file(bool o_direct) {
     return true;
 }
 
-bool write_to_file(int fd, long size) {
+bool write_to_file(int fd, long size, int* actual_number_writes) {
 
     long remaining;
     long chunk_size;
     int result;
     bool success;
     char* buffer = 0;
+    long int bytes_to_write;
 
     /* Loop over chunks of the maximum chunk size, until all written */
 
@@ -214,20 +215,29 @@ bool write_to_file(int fd, long size) {
 
         buffer = malloc(chunk_size);
 
-        stats_start(stats_instance());
+        bytes_to_write = chunk_size;
+        while (bytes_to_write > 0) {
 
-        result = write(fd, buffer, chunk_size);
+            /* Start the timer now..*/
+            stats_start(stats_instance());
 
-        stats_stop_log_bytes(stats_instance(), chunk_size);
+            result = write(fd, buffer, bytes_to_write);
+            (*actual_number_writes)++;
+
+            if (result == -1) {
+                fprintf(stderr, "A write error occurred: %d (%s)\n", errno, strerror(errno));
+                success = false;
+                break;
+            }
+
+            /* ..and log this specific write for stats*/
+            stats_stop_log_bytes(stats_instance(), result);
+
+            bytes_to_write -= result;
+        }
 
         free(buffer);
         buffer = 0;
-
-        if (result == -1) {
-            fprintf(stderr, "A write error occurred: %d (%s)\n", errno, strerror(errno));
-            success = false;
-        }
-
         remaining -= chunk_size;
     }
 
@@ -430,8 +440,11 @@ static int execute_file_write(const void* data) {
     FileWriteParamsInternal params = get_write_params(config);
     const WriteFileInfo* file_info;
 
-    int i, file_cnt, error;
-    char* buffer;
+    /* n.b. Write operations may not write the requested number of bytes. Track the
+     *      actual number of writes used, rather than the requested number in params */
+    int actual_number_writes = 0;
+
+    int file_cnt, error;
 
     assert(!config->mmap);
 
@@ -440,7 +453,6 @@ static int execute_file_write(const void* data) {
     TRACE4("Writing to %li files, %li writes of %li bytes each", params.num_files, params.num_writes, params.write_size);
 
     /* If we don't have enough open files, open more files! */
-
     while (global_file_count < params.num_files) {
         if (!open_write_file(config->o_direct)) {
             fprintf(stderr, "An error occurred in the file write kernel");
@@ -455,7 +467,7 @@ static int execute_file_write(const void* data) {
     for (file_cnt = 0; file_cnt < params.num_writes; file_cnt++) {
 
         TRACE3("Writing %li bytes to %s", params.write_size, file_info->filename);
-        if (!write_to_file(file_info->fd, params.write_size)) {
+        if (!write_to_file(file_info->fd, params.write_size, &actual_number_writes)) {
             fprintf(stderr, "A write error occurred on file: %s\n", file_info->filename);
             error = -1;
         }
@@ -483,7 +495,7 @@ static int execute_file_write(const void* data) {
         close_write_files();
 
     log_time_series_add_chunk_data(bytes_written_time_series(), params.num_writes * params.write_size);
-    log_time_series_add_chunk_data(writes_time_series(), params.num_writes);
+    log_time_series_add_chunk_data(writes_time_series(), actual_number_writes);
     log_time_series_chunk();
 
     return error;

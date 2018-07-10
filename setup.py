@@ -19,7 +19,7 @@ test_requirements = [
 
 setup(
     name='kronos',
-    version='0.3.0',
+    version='0.4.0',
     description="Workload extraction, modelling and duplication for HPC systems",
     long_description=readme + '\n\n' + history,
     author="Tiago Quintino, Antonino Bonanni, Simon Smart",
@@ -63,6 +63,7 @@ setup(
         'bin/kronos-find-and-match-external-apps',
         'bin/kronos-write-external-app-runs',
         'bin/kronos-generate-kschedule',
+        'bin/kronos-raps-output-to-kpf'
 
     ],
     include_package_data=True,

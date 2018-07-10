@@ -1,4 +1,3 @@
-import math
 import os
 import stat
 import subprocess
@@ -6,7 +5,7 @@ import subprocess
 from kronos.executor.job_classes.base_job import BaseJob
 
 
-class HPCJob(BaseJob):
+class UserAppJob(BaseJob):
 
     submit_script_template = None
     ipm_template = None
@@ -22,57 +21,62 @@ class HPCJob(BaseJob):
     cancel_file_head = None
     cancel_file_line = None
 
+    needed_config_params = None
+
     def __init__(self, job_config, executor, path):
-        super(HPCJob, self).__init__(job_config, executor, path)
+        super(UserAppJob, self).__init__(job_config, executor, path)
 
         self.submit_script = os.path.join(self.path, "submit_script")
 
+    def check_job_config(self):
+        """
+        Make sure that all the parameters needed are in the config list
+        :return:
+        """
+
+        if not self.needed_config_params:
+            raise KeyError("No parameters to be passed to the job submit template have been defined!")
+
+        for config_param in self.needed_config_params:
+            assert config_param in self.job_config["config_params"]
+
+    def customised_generated_internals(self, script_format):
+        """
+        Place-holder for user-defined generation of parts of the submit script..
+        For instance, can be used for composing an environment variable to be passed to the
+        user-defined-application prior to the run. It can easily combine kschedule config
+        parameters and kronos executor configuration parameters.
+        :param script_format:
+        :return:
+        """
+        pass
+
     def generate_internal(self):
 
-        nprocs = self.job_config.get('num_procs', 1)
-        nnodes = int(math.ceil(float(nprocs) / self.executor.procs_per_node))
-
+        # update the template with the config parameters
         script_format = {
-            'write_dir': self.path,
-            'read_dir': self.executor.read_cache_path,
-            'shared_dir': self.executor.job_dir_shared,
-            'procs_per_node': min(self.executor.procs_per_node, nprocs),
-            'coordinator_binary': self.executor.coordinator_binary,
-            'coordinator_library_path': os.path.join( os.path.dirname(self.executor.coordinator_binary),"../lib"),     
-            'queue': 'np',
-            'num_procs': nprocs,
-            'num_nodes': nnodes,
-            'num_hyperthreads': 1,
-            'input_file': self.input_file,
-            'job_dir': self.path,
-            'profiling_code': "",
-            'experiment_id': 'synthApp_{}_{}_{}'.format(nprocs, nnodes, self.id),
+            'job_name': 'kronos-app-{}'.format(self.id),
             'job_num': self.id,
             'job_output_file': os.path.join(self.path, "output"),
             'job_error_file': os.path.join(self.path, "error"),
-            'launcher_command': self.launcher_command
+            'launcher_command': self.launcher_command,
+            'write_dir': self.path,
+            'read_dir': self.executor.read_cache_path,
+            'shared_dir': self.executor.job_dir_shared,
+            'input_file': self.input_file
         }
 
-        # Enable IPM logging if desired
-        if self.executor.enable_ipm:
-            script_format['profiling_code'] += self.ipm_template.format(**script_format)
+        # place-holder for user-defined generation of parts of the submit script..
+        self.customised_generated_internals(script_format)
 
-        # Enable Darshan logging if desired
-        if self.executor.enable_darshan:
-            script_format['darshan_lib_path'] = self.executor.darshan_lib_path
-            script_format['profiling_code'] += self.darshan_template.format(**script_format)
+        # update the job submit template with all the configs
 
-        # Enable Allinea map if desired
-        if self.executor.allinea_path is not None and self.executor.allinea_ld_library_path is not None:
-            script_format['allinea_path'] = self.executor.allinea_path
-            script_format['allinea_ld_library_path'] = self.executor.allinea_ld_library_path
-            script_format['launcher_command'] = self.allinea_launcher_command
-            
-            # append allinea licence file if specified..
-            if self.executor.allinea_licence_file:
-                script_format['allinea_licence_file'] = self.executor.allinea_licence_file
-                self.allinea_template += self.allinea_lic_file_template
-            script_format['profiling_code'] += self.allinea_template.format(**script_format)
+        # print self.job_config["config_params"]
+        for param_name in self.needed_config_params:
+            assert self.job_config["config_params"].get(param_name) is not None
+
+        for param_name in self.job_config["config_params"].keys():
+            script_format.update({param_name: self.job_config["config_params"][param_name]})
 
         with open(self.submit_script, 'w') as f:
             f.write(self.submit_script_template.format(**script_format))
@@ -83,16 +87,16 @@ class HPCJob(BaseJob):
         """
         This is the callback function
         """
-        if HPCJob.cancel_file is None:
+        if UserAppJob.cancel_file is None:
             cancel_file_path = os.path.join(self.executor.job_dir, "killjobs")
-            HPCJob.cancel_file = open(cancel_file_path, 'w')
-            HPCJob.cancel_file.write(self.cancel_file_head)
+            UserAppJob.cancel_file = open(cancel_file_path, 'w')
+            UserAppJob.cancel_file.write(self.cancel_file_head)
             os.chmod(cancel_file_path, stat.S_IRWXU | stat.S_IROTH | stat.S_IXOTH | stat.S_IRGRP | stat.S_IXGRP)
 
-        # Sequence_id_job = filter(str.isdigit, output)
+        # sequence_id_job = filter(str.isdigit, output)
         sequence_id_job = output.strip()
-        HPCJob.cancel_file.write(self.cancel_file_line.format(sequence_id=sequence_id_job))
-        HPCJob.cancel_file.flush()
+        UserAppJob.cancel_file.write(self.cancel_file_line.format(sequence_id=sequence_id_job))
+        UserAppJob.cancel_file.flush()
 
         self.executor.set_job_submitted(self.id, sequence_id_job)
 
@@ -109,7 +113,7 @@ class HPCJob(BaseJob):
             "jid": self.id,
             "submission_params": self.get_submission_arguments(depend_job_ids),
             "callback_params": {
-                                "cancel_file": HPCJob.cancel_file,
+                                "cancel_file": UserAppJob.cancel_file,
                                 "executor_job_dir": self.executor.job_dir,
                                 "cancel_file_head": self.cancel_file_head,
                                 "cancel_file_line": self.cancel_file_line

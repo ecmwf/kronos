@@ -215,6 +215,43 @@ int init_global_config(const JSON* json, int argc, char** argv) {
     global_config.start_time3 = take_time();
 
     /*
+     * Host to send notification JSONs to
+     */
+
+    global_config.notification_port = 7363;
+    global_config.enable_notifications = false;
+    global_config.job_num = 0;
+
+    if ((tmp_json = json_object_get(json, "notification_host")) != NULL) {
+        if (json_as_string(tmp_json, global_config.notification_host, HOST_NAME_MAX) != 0) {
+            error = -1;
+            fprintf(stderr, "Error reading notification_host as string from global configuration\nGot:");
+            print_json(stderr, tmp_json);
+            fprintf(stderr, "\n");
+        } else {
+            global_config.enable_notifications = true;
+        }
+    }
+
+    if ((tmp_json = json_object_get(json, "notification_port")) != NULL) {
+        if (json_as_integer(tmp_json, &global_config.notification_port) != 0) {
+            error = -1;
+            fprintf(stderr, "Error reading notification_port as integer from global configuration\nGot:");
+            print_json(stderr, tmp_json);
+            fprintf(stderr, "\n");
+        }
+    }
+
+    if ((tmp_json = json_object_get(json, "job_num")) != NULL) {
+        if (json_as_integer(tmp_json, &global_config.job_num) != 0) {
+            error = -1;
+            fprintf(stderr, "Error reading job_num as integer from global configuration\nGot:");
+            print_json(stderr, tmp_json);
+            fprintf(stderr, "\n");
+        }
+    }
+
+    /*
      * Processes and MPI
      */
 
@@ -280,6 +317,12 @@ int init_global_config(const JSON* json, int argc, char** argv) {
         printf("Hostname: %s\n", global_config.hostname);
         printf("Trace output: %s\n", (global_config.enable_trace ? "true":"false"));
         printf("Print statistics: %s\n", (global_config.print_statistics ? "true":"false"));
+        printf("Finalisation status notification: %s\n", global_config.enable_notifications ? "enabled" : "disabled");
+        if (global_config.enable_notifications) {
+            printf("Notification hostname: %s\n", global_config.notification_host);
+            printf("Notification port: %li\n", global_config.notification_port);
+        }
+        printf("Job ID number: %li\n", global_config.job_num);
         printf("Initial timestamp: %f, %s\n",
                (double)global_config.start_time, asctime(localtime(&global_config.start_time)));
 #ifdef HAVE_MPI

@@ -17,6 +17,7 @@ export KRONOS_SHARED_DIR="{shared_dir}"
 {profiling_code}
 
 {launcher_command} -np {num_procs} {coordinator_binary} {input_file}
+
 """
 
 allinea_template = """
@@ -24,7 +25,6 @@ allinea_template = """
 export PATH={allinea_path}:${{PATH}}
 export LD_LIBRARY_PATH={allinea_ld_library_path}:${{LD_LIBRARY_PATH}}
 """
-
 
 
 class Job(BaseJob):
@@ -54,7 +54,8 @@ class Job(BaseJob):
             'num_procs': nprocs,
             'launcher_command': "mpirun",
             'input_file': self.input_file,
-            'profiling_code': ""
+            'profiling_code': "",
+            'job_num': self.id
         }
                
         if self.executor.allinea_path is not None and self.executor.allinea_ld_library_path is not None:

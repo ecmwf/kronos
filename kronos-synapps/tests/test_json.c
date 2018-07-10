@@ -791,8 +791,6 @@ void test_object_get_double() {
 
 void test_object_iterate() {
 
-    double value;
-
     JSON* json = json_from_string("{ \"elem1\": 123.45, \"elem2\": \"hi there\", \"elem3\": 666 }");
 
     const JSON* elem;

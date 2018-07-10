@@ -2,8 +2,14 @@ from kronos.executor.job_classes.hpc import HPCJob
 
 #####################################################################################################
 # This file is an example of a job submit template needed to run the executor on a HPC system. This template is
-# called "pbs.py" and is an example template that can be used to submit jobs to a PBS scheduler. In order to
-# instruct the executor to use this template, the following entry should be set in the executor configuration file:
+# called "pbs.py" and can be used to submit jobs to a PBS scheduler.
+#
+# NOTE: The scheduler configurations need to be adapted to the specific system that kronos is going to be run on
+# For example, the "EC_<>" options below refer to specific settings for the ECMWF scheduler system and
+# are not relevant/applicable to any other system)
+#
+# In order to instruct the executor to use this template, the following entry should be set in the executor
+# configuration file:
 #
 # - "job_class": "pbs"
 #
@@ -88,7 +94,6 @@ job_template = """#!/bin/sh
 #PBS -l EC_hyperthreads={num_hyperthreads}
 #PBS -o {job_output_file}
 #PBS -e {job_error_file}
-#PBS -h
 
 # Configure the locations for the synthetic app to dump/load files in the i/o kernels
 export KRONOS_WRITE_DIR="{write_dir}"

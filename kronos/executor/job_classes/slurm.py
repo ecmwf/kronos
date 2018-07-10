@@ -102,6 +102,7 @@ cd {job_dir}
 set -euxa
 
 {launcher_command} -np {num_procs} {coordinator_binary} {input_file}
+
 """
 
 

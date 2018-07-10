@@ -21,10 +21,20 @@ import json
 import os
 import sys
 
+# from kronos.executor import executor_types
+
 sys.path.append(os.path.dirname(os.path.dirname(__file__)))
 
-from kronos.executor.executor import Executor
 from kronos.io.schedule_format import ScheduleFormat
+from kronos.executor.executor_schedule import ExecutorDepsScheduler
+from kronos.executor.executor_events_par import ExecutorEventsPar
+
+
+# type of executors from config..
+executor_types = {
+    "scheduler": ExecutorDepsScheduler,
+    "events": ExecutorEventsPar
+}
 
 
 if __name__ == "__main__":
@@ -61,4 +71,14 @@ if __name__ == "__main__":
     with open(args.kschedule_file_name, 'r') as f:
         schedule = ScheduleFormat.from_file(f)
 
-    Executor(config, schedule, kschedule_file=args.kschedule_file_name).run()
+    # Select the proper execution type according to options
+    executor_class = executor_types[config.get("execution_mode", "events")]
+
+    # instantiate the appropriate executor..
+    selected_executor = executor_class(config, schedule, kschedule_file=args.kschedule_file_name)
+
+    # run
+    selected_executor.run()
+
+    # and finally do any un-setup tasks (if any at all)
+    selected_executor.unsetup()

@@ -43,7 +43,7 @@ if __name__ == "__main__":
     else:
         tar_file = tarfile.open(args.tarball_path, "w:gz")
 
-    # check that the run path contains one (and one only) kschedule file
+    # add the KSCHEDULE FILE into the tarball
     kschedule_files = [x for x in os.listdir(args.path_run) if os.path.isfile(os.path.join(args.path_run, x)) and x.endswith('.kschedule')]
     if not kschedule_files:
         print "Specified path does not contain the KSchedule file!"
@@ -53,6 +53,15 @@ if __name__ == "__main__":
         sys.exit(1)
     else:
         kschedule_file = kschedule_files[0]
+        print "collecting kschedule {}".format(kschedule_file)
+        tar_file.add(os.path.join(args.path_run, kschedule_file), arcname=os.path.join("run_data", kschedule_file))
+
+    # add the LOG FILE(s) into the tarball (if any)
+    log_files = [x for x in os.listdir(args.path_run) if os.path.isfile(os.path.join(args.path_run, x)) and x.endswith('.log')]
+    if log_files:
+        for log_file in log_files:
+            print "collecting log file {}".format(log_file)
+            tar_file.add(os.path.join(args.path_run, log_file), arcname=os.path.join("run_data", log_file))
 
     files_to_be_collected = [
         'submit_script',
@@ -86,7 +95,6 @@ if __name__ == "__main__":
             file_abs_path = os.path.join(sub_dir_path_abs, file_name)
             tar_file.add(file_abs_path, arcname=os.path.join("run_data", os.path.join(job_dir, file_name)))
 
-    tar_file.add(os.path.join(args.path_run, kschedule_file), arcname=os.path.join("run_data", kschedule_file))
     tar_file.close()
 
     print "done!"
