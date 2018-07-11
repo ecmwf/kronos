@@ -14,7 +14,7 @@
             "properties": {
                 "token": {
                     "type": "string",
-                    "description": "A unique token that identifies the simulation",
+                    "description": "A unique token that identifies the simulation"
                 },
                 "type": {
                     "type": "string",
@@ -55,7 +55,7 @@
             "properties": {
                 "token": {
                     "type": "string",
-                    "description": "A unique token that identifies the simulation",
+                    "description": "A unique token that identifies the simulation"
                 },
                 "type": {
                     "type": "string",
@@ -92,7 +92,7 @@
             "properties": {
                 "token": {
                     "type": "string",
-                    "description": "A unique token that identifies the simulation",
+                    "description": "A unique token that identifies the simulation"
                 },
                 "info": {
                     "type": "object",
