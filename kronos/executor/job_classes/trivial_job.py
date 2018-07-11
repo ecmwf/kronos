@@ -13,6 +13,7 @@ module load openmpi
 export KRONOS_WRITE_DIR="{write_dir}"
 export KRONOS_READ_DIR="{read_dir}"
 export KRONOS_SHARED_DIR="{shared_dir}"
+export KRONOS_TOKEN="{simulation_token}"
 
 {profiling_code}
 
@@ -32,13 +33,28 @@ class Job(BaseJob):
     def __init__(self, job_config, executor, path):
         super(Job, self).__init__(job_config, executor, path)
 
-        print "Trivial JOBS..."
+        # print "Trivial JOBS..."
         print "Inside class {}".format(job_config)
         print "Job dir: {}".format(path)
 
         self.run_script = os.path.join(self.path, "run_script")
         self.allinea_launcher_command = "map --profile mpirun"
         self.allinea_template = allinea_template
+
+    def get_submission_and_callback_params(self, depend_job_ids=None):
+        """
+        Get all the necessary params to call the static version of the callback
+        (needed to use of the static callback function without job instance..)
+        :return:
+        """
+
+        depend_job_ids = depend_job_ids if depend_job_ids else []
+
+        return {
+            "jid": self.id,
+            "submission_params": self.get_submission_arguments(depend_job_ids),
+            "callback_params": {}
+        }
 
     def generate_internal(self):
 
@@ -55,7 +71,8 @@ class Job(BaseJob):
             'launcher_command': "mpirun",
             'input_file': self.input_file,
             'profiling_code': "",
-            'job_num': self.id
+            'job_num': self.id,
+            'simulation_token': self.executor.simulation_token
         }
                
         if self.executor.allinea_path is not None and self.executor.allinea_ld_library_path is not None:
@@ -68,6 +85,9 @@ class Job(BaseJob):
             f.write(job_template.format(**script_format))
 
         os.chmod(self.run_script, stat.S_IRWXU | stat.S_IROTH | stat.S_IXOTH | stat.S_IRGRP | stat.S_IXGRP)
+
+    def get_submission_arguments(self, depend_job_ids):
+        return ["bash", self.run_script]
 
     def run(self, depend_jobs_ids):
         """

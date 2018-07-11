@@ -21,13 +21,16 @@ class Manager(object):
      - It decides if a job is eligible for submission
     """
 
-    def __init__(self, server_host='localhost', server_port=7363):
+    def __init__(self, server_host='localhost', server_port=7363, sim_token=None):
 
         # queue to communicate events with the listener..
         queue = multiprocessing.Queue()
 
         # init the event dispatcher and manager
-        self.dispatcher = EventDispatcher(queue, server_host=server_host, server_port=server_port)
+        self.dispatcher = EventDispatcher(queue,
+                                          server_host=server_host,
+                                          server_port=server_port,
+                                          sim_token=sim_token)
 
         # uses an event dispatcher underneath
         self.dispatcher.start()

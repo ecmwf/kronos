@@ -93,6 +93,7 @@ job_template = """#!/bin/bash
 export KRONOS_WRITE_DIR="{write_dir}"
 export KRONOS_READ_DIR="{read_dir}"
 export KRONOS_SHARED_DIR="{shared_dir}"
+export KRONOS_TOKEN="{simulation_token}"
 
 export LD_LIBRARY_PATH={coordinator_library_path}:${{LD_LIBRARY_PATH}}
 

@@ -50,7 +50,8 @@ class HPCJob(BaseJob):
             'job_num': self.id,
             'job_output_file': os.path.join(self.path, "output"),
             'job_error_file': os.path.join(self.path, "error"),
-            'launcher_command': self.launcher_command
+            'launcher_command': self.launcher_command,
+            'simulation_token': self.executor.simulation_token
         }
 
         # Enable IPM logging if desired

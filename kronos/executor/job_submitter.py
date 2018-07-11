@@ -22,7 +22,6 @@ def submit_job_from_args(submission_and_callback_params):
 
     jid = submission_and_callback_params["jid"]
     proc_args = submission_and_callback_params["submission_params"]
-
     output = subprocess.check_output(proc_args)
 
     # TODO: callback not strictly needed anymore, but it would be nice to retain..

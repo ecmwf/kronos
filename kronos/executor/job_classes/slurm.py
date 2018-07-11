@@ -91,6 +91,7 @@ job_template = """#!/bin/sh
 export KRONOS_WRITE_DIR="{write_dir}"
 export KRONOS_READ_DIR="{read_dir}"
 export KRONOS_SHARED_DIR="{shared_dir}"
+export KRONOS_TOKEN="{simulation_token}"
 
 module load openmpi
 

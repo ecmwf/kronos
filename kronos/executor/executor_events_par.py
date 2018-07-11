@@ -42,7 +42,9 @@ class ExecutorEventsPar(Executor):
         jobs = self.generate_job_internals()
 
         # init the event manager
-        event_manager = Manager(server_host=self.notification_host, server_port=self.notification_port)
+        event_manager = Manager(server_host=self.notification_host,
+                                server_port=self.notification_port,
+                                sim_token=self.simulation_token)
 
         # init the job submitter
         job_submitter = JobSubmitter(jobs, event_manager, n_submitters=self.n_submitters)

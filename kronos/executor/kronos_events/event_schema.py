@@ -20,7 +20,5 @@ class EventSchema(object):
         Obtain the json schema for a kronos event
         """
 
-        print "read schema!!!!!!"
-
         with open(cls.schema_json, 'r') as fschema:
             return json.load(fschema)

@@ -9,6 +9,8 @@ import socket
 import datetime
 import logging
 
+import random
+
 from shutil import copy2
 
 sys.path.append(os.path.dirname(os.path.dirname(__file__)))
@@ -82,9 +84,13 @@ class Executor(object):
             if k not in self.available_parameters:
                 raise self.InvalidParameter("Unknown parameter ({}) supplied".format(k))
 
-        logger.info("Config: {}".format(config))
         self.config = global_config.copy()
         self.config.update(config)
+
+        # A token that uniquely identifies the simulation
+        self.simulation_token = random.getrandbits(128)
+
+        logger.info("Config: {}".format(config))
 
         self.schedule = schedule
 

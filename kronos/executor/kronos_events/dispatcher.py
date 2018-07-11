@@ -5,11 +5,14 @@
 # In applying this licence, ECMWF does not waive the privileges and immunities 
 # granted to it by virtue of its status as an intergovernmental organisation nor
 # does it submit to any jurisdiction.
+import logging
 import socket
 import multiprocessing
 import Queue
 
 from kronos.executor.kronos_events import EventFactory
+
+logger = logging.getLogger(__name__)
 
 
 class EventDispatcher(object):
@@ -20,7 +23,7 @@ class EventDispatcher(object):
 
     buffer_size = 4096
 
-    def __init__(self, queue, server_host='localhost', server_port=7363):
+    def __init__(self, queue, server_host='localhost', server_port=7363, sim_token=None):
 
         """
         Setup the socket and bind it to the appropriate port
@@ -31,12 +34,14 @@ class EventDispatcher(object):
         self.server_port = server_port
         self.server_address = (server_host, server_port)
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        print 'starting up on %s port %s' % self.server_address
 
         # bind it to port and set it to listen status
         self.sock.bind(self.server_address)
         self.sock.listen(1024)
         self.terminate = False
+
+        # Unique simulation hash
+        self.sim_token = sim_token
 
         # listener process
         self.listener_queue = queue
@@ -99,7 +104,6 @@ class EventDispatcher(object):
         :return:
         """
 
-        # _batch = [self.listener_queue.get(block=True)]
         _batch = []
 
         queue_empty_reached=False
@@ -108,7 +112,13 @@ class EventDispatcher(object):
 
                 msg = self.listener_queue.get(block=False)
                 kronos_event = EventFactory.from_string(msg, validate_event=False)
-                _batch.append(kronos_event)
+
+                # If this message comes from this simulation, append it..
+                if hasattr(kronos_event, "token"):
+                    if str(kronos_event.token) == str(self.sim_token):
+                        _batch.append(kronos_event)
+                    else:
+                        logger.warning("arrived message NOT from the current simulation: {}".format(kronos_event))
 
         except Queue.Empty:
             queue_empty_reached=True

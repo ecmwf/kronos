@@ -12,6 +12,10 @@
             "description": "Event sent from an application",
             "additionalProperties": false,
             "properties": {
+                "token": {
+                    "type": "string",
+                    "description": "A unique token that identifies the simulation",
+                },
                 "type": {
                     "type": "string",
                     "description": "A change in metadata of an application",
@@ -49,6 +53,10 @@
             "description": "Event sent from an application upon completion",
             "additionalProperties": false,
             "properties": {
+                "token": {
+                    "type": "string",
+                    "description": "A unique token that identifies the simulation",
+                },
                 "type": {
                     "type": "string",
                     "description": "type of event",
@@ -82,6 +90,10 @@
             "description": "Simple event sent from a timer",
             "additionalProperties": false,
             "properties": {
+                "token": {
+                    "type": "string",
+                    "description": "A unique token that identifies the simulation",
+                },
                 "info": {
                     "type": "object",
                     "description": "Information relative to the event",
