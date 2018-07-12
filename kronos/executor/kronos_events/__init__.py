@@ -72,15 +72,15 @@ class EventFactory(object):
             try:
                 event_json = json.loads(event_string[:-1])
             except ValueError:
-                logger.warning("Event decoding FAILED. message {}".format(event_string))
+                logger.warning("Event decoding FAILED => message discarded {}".format(event_string))
                 return None
 
         if isinstance(event_json, unicode):
-            logger.warning("Event decoding FAILED. message {}".format(event_string))
+            logger.warning("Event decoding FAILED => message discarded {}".format(event_string))
             return None
 
         if not event_json.get("type"):
-            logger.warning("Event instantiation FAILED. 'type' key missing in message {}".format(event_json))
+            logger.warning("Event parsing FAILED (missing 'type') => message discarded {}".format(event_json))
             return None
 
         return event_types[event_json["type"]](event_json, validate_event=validate_event)
