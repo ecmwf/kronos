@@ -9,7 +9,7 @@ import socket
 import datetime
 import logging
 
-import random
+import uuid
 
 from shutil import copy2
 
@@ -88,7 +88,7 @@ class Executor(object):
         self.config.update(config)
 
         # A token that uniquely identifies the simulation
-        self.simulation_token = random.getrandbits(128)
+        self.simulation_token = uuid.uuid4()
 
         logger.info("Config: {}".format(config))
 
