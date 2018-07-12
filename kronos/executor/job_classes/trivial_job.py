@@ -34,8 +34,8 @@ class Job(BaseJob):
         super(Job, self).__init__(job_config, executor, path)
 
         # print "Trivial JOBS..."
-        print "Inside class {}".format(job_config)
-        print "Job dir: {}".format(path)
+        # print "Inside class {}".format(job_config)
+        # print "Job dir: {}".format(path)
 
         self.run_script = os.path.join(self.path, "run_script")
         self.allinea_launcher_command = "map --profile mpirun"

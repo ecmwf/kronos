@@ -106,22 +106,26 @@ class EventDispatcher(object):
 
         _batch = []
 
-        queue_empty_reached=False
+        queue_empty_reached = False
         try:
             while len(_batch) < batch_size:
 
                 msg = self.listener_queue.get(block=False)
                 kronos_event = EventFactory.from_string(msg, validate_event=False)
 
-                # If this message comes from this simulation, append it..
-                if hasattr(kronos_event, "token"):
-                    if str(kronos_event.token) == str(self.sim_token):
-                        _batch.append(kronos_event)
+                if kronos_event:
+
+                    # Dispatch only legitimate messages (i.e. TOKEN present and correct)
+                    if hasattr(kronos_event, "token"):
+                        if str(kronos_event.token) == str(self.sim_token):
+                            _batch.append(kronos_event)
+                        else:
+                            logger.warning("INCORRECT TOKEN {} => message discarded: {}".format(kronos_event.token, kronos_event))
                     else:
-                        logger.warning("arrived message NOT from the current simulation: {}".format(kronos_event))
+                        logger.warning("TOKEN NOT found => message discarded: {}".format(kronos_event))
 
         except Queue.Empty:
-            queue_empty_reached=True
+            queue_empty_reached = True
             pass
 
         return queue_empty_reached, _batch
