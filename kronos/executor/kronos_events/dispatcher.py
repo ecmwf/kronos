@@ -120,9 +120,18 @@ class EventDispatcher(object):
                         if str(kronos_event.token) == str(self.sim_token):
                             _batch.append(kronos_event)
                         else:
-                            logger.warning("INCORRECT TOKEN {} => message discarded: {}".format(kronos_event.token, kronos_event))
+                            logger.warning("INCORRECT TOKEN {} => message discarded: {}".format(kronos_event.token, msg))
                     else:
-                        logger.warning("TOKEN NOT found => message discarded: {}".format(kronos_event))
+
+                        # one last attempt to find the token
+                        # TODO: ideally we would keep the check of the token at the top level only..
+                        if hasattr(kronos_event, "info"):
+                            if kronos_event.info.get("token", "") == str(self.sim_token):
+                                _batch.append(kronos_event)
+                            else:
+                                logger.warning("TOKEN NOT found => message discarded: {}".format(msg))
+                        else:
+                            logger.warning("TOKEN NOT found => message discarded: {}".format(msg))
 
         except Queue.Empty:
             queue_empty_reached = True
