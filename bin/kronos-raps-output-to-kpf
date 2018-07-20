@@ -253,7 +253,7 @@ class OUTFileInfo(FileInfo):
         for line in self._file_lines:
 
             if "Multio" in line and "num iwritefdb" in line:
-                n_writes.append(int(line.split("num iwritefdb")[1].split(":")[1].strip()))
+                n_writes.append(int(line.split("num iwritefdb")[1].split(":")[1].replace(",", "").strip()))
 
             if "Multio" in line and "bytes iwritefdb (tot, avg, std dev)" in line:
                 b_writes.append( int( line.split("bytes iwritefdb (tot, avg, std dev)")[1].split()[1].strip().replace(",","") ) )
