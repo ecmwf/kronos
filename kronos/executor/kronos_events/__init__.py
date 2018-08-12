@@ -3,10 +3,12 @@ import logging
 
 from kronos.executor.kronos_events.event_complete import EventComplete
 from kronos.executor.kronos_events.event_metadatachange import EventMetadataChange
+from kronos.executor.kronos_events.event_notifymetadata import EventNotifyMetadata
 from kronos.executor.kronos_events.event_time import EventTime
 
 event_types = {
     "MetadataChange": EventMetadataChange,
+    "NotifyMetadata": EventNotifyMetadata,
     "Time": EventTime,
     "Complete": EventComplete
 }
