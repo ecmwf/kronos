@@ -82,7 +82,7 @@ FileWriteParamsInternal get_write_params(const FileWriteConfig* config) {
     params.num_writes = global_distribute_work(config->writes);
 
     nfiles = (global_conf->nprocs > config->files) ? global_conf->nprocs : config->files;
-    params.num_files = global_distribute_work(nfiles);
+    params.num_files = global_distribute_work_element(nfiles, &params.first_file_index);
 
     /* n.b. Convert kb to bytes */
     params.write_size = 1024 * config->kilobytes / config->writes;
@@ -128,9 +128,9 @@ static WriteFileInfo* global_file_list = 0;
 static int global_file_count = 0;
 
 
-void close_write_files() {
+void close_write_files(WriteFileInfo** file_list, int* file_count) {
 
-    WriteFileInfo* file_info = global_file_list;
+    WriteFileInfo* file_info = *file_list;
     WriteFileInfo* next;
     int count = 0;
 
@@ -146,53 +146,71 @@ void close_write_files() {
         file_info = next;
     }
 
-    if (count != global_file_count) {
+    if (count != *file_count) {
         fprintf(stderr, "non-fatal ERROR: Incorrect number of files closed: %d, expected %d\n",
-                count, global_file_count);
+                count, *file_count);
     }
 
-    global_file_count = 0;
-    global_file_list = 0;
+    *file_count = 0;
+    *file_list = 0;
 }
 
 
-bool open_write_file(bool o_direct) {
+bool open_write_file(const char* filename, bool o_direct, WriteFileInfo** file_list_base, int* file_count) {
 
     int flags;
 
     WriteFileInfo* file_info = malloc(sizeof(WriteFileInfo));
 
-    if (get_file_write_name(file_info->filename, sizeof(file_info->filename)) == 0) {
+    strncpy(file_info->filename, filename, sizeof(file_info->filename));
 
-        flags = O_WRONLY | O_CREAT | O_EXCL;
-        assert(!o_direct);
-        /*if (o_direct)
-            flags |= O_DIRECT;*/
+    flags = O_WRONLY | O_CREAT | O_EXCL;
+    assert(!o_direct);
+    /*if (o_direct)
+        flags |= O_DIRECT;*/
 
-        /* n.b. umask set to 0027 in global_config.c */
-        TRACE2("Creating and opening file: %s", file_info->filename);
-        file_info->fd = open(file_info->filename, flags, S_IRUSR | S_IWUSR | S_IRGRP); /* S_IWGRP */
+    /* n.b. umask set to 0027 in global_config.c */
+    TRACE2("Creating and opening file: %s", file_info->filename);
+    file_info->fd = open(file_info->filename, flags, S_IRUSR | S_IWUSR | S_IRGRP); /* S_IWGRP */
 
-        if (file_info->fd == -1) {
-            fprintf(stderr, "An error occurred opening the file %s for write: %d (%s)\n",
-                    file_info->filename, errno, strerror(errno));
-            free(file_info);
-            return false;
-        }
-
-        file_info->next = global_file_list;
-        global_file_list = file_info;
-
-        global_file_count++;
-
-    } else {
-        fprintf(stderr, "An error occurred getting the write filename\n");
+    if (file_info->fd == -1) {
+        fprintf(stderr, "An error occurred opening the file %s for write: %d (%s)\n",
+                file_info->filename, errno, strerror(errno));
         free(file_info);
         return false;
     }
 
+    file_info->next = *file_list_base;
+    *file_list_base = file_info;
+
+    (*file_count)++;
+
     return true;
 }
+
+
+void close_global_write_files() {
+
+    TRACE1("Closing global write files");
+
+    close_write_files(&global_file_list, &global_file_count);
+}
+
+
+bool open_global_write_file(bool o_direct) {
+
+    char filename[PATH_MAX];
+
+    TRACE1("Opening a global file for write");
+
+    if (get_file_write_name(filename, sizeof(filename)) == 0) {
+        return open_write_file(filename, o_direct, &global_file_list, &global_file_count);
+    } else {
+        fprintf(stderr, "An error occurred getting the write filename\n");
+        return false;
+    }
+}
+
 
 bool write_to_file(int fd, long size, int* actual_number_writes) {
 
@@ -433,12 +451,79 @@ static int execute_file_write(const void* data) {
 }
 #endif
 
+
+static WriteFileInfo* get_write_files(const FileWriteConfig* config, const FileWriteParamsInternal* params) {
+
+    WriteFileInfo* file_list;
+    int num_files;
+    int i, j;
+
+    /* Are we just using the global files? */
+
+    if (config->file_list == 0) {
+
+        /* If we don't have enough open files, open more files! */
+        while (global_file_count < params->num_files) {
+            if (!open_global_write_file(config->o_direct)) {
+                fprintf(stderr, "An error occurred in the file write kernel\n");
+                return 0;
+            }
+        }
+
+        return global_file_list;
+    }
+
+    /* Otherwise open the appropriate files */
+
+    assert(params->first_file_index < config->files);
+    assert(params->first_file_index + params->num_files <= config->files);
+
+    file_list = 0;
+    num_files = 0;
+
+    for (i = 0; i < params->num_files; i++) {
+        if (!open_write_file(config->file_list[i + params->first_file_index],
+                             config->o_direct, &file_list, &num_files)) {
+
+            close_write_files(&file_list, &num_files);
+            fprintf(stderr, "An error occurred in the file write kernel\n");
+            return 0;
+        };
+    }
+
+    assert(num_files == params->num_files);
+
+    return file_list;
+}
+
+
+static void done_write_files(const FileWriteConfig* config, const FileWriteParamsInternal* params, WriteFileInfo* file_info) {
+
+    int num_files;
+
+    /* Are we just using the global files? */
+
+    if (config->file_list == 0) {
+
+        /* If configured to do so, close the relevant files */
+        if (!config->continue_files)
+            close_global_write_files();
+        return;
+    }
+
+    /* Otherwise we always clean up */
+
+    num_files = params->num_files;
+    close_write_files(&file_info, &num_files);
+}
+
 static int execute_file_write(const void* data) {
 
     const FileWriteConfig* config = data;
 
     FileWriteParamsInternal params = get_write_params(config);
-    const WriteFileInfo* file_info;
+    WriteFileInfo* base_file_info;
+    WriteFileInfo* file_info;
 
     /* n.b. Write operations may not write the requested number of bytes. Track the
      *      actual number of writes used, rather than the requested number in params */
@@ -452,18 +537,17 @@ static int execute_file_write(const void* data) {
 
     TRACE4("Writing to %li files, %li writes of %li bytes each", params.num_files, params.num_writes, params.write_size);
 
-    /* If we don't have enough open files, open more files! */
-    while (global_file_count < params.num_files) {
-        if (!open_write_file(config->o_direct)) {
-            fprintf(stderr, "An error occurred in the file write kernel");
-            error = -1;
-            return error;
-        }
+    if (params.num_writes > 0) {
+        assert(params.num_files > 0);
+        base_file_info = get_write_files(config, &params);
+        if (!base_file_info) return -1;
+    } else {
+        base_file_info = 0;
     }
 
     /* Do the writes! */
 
-    file_info = global_file_list;
+    file_info = base_file_info;
     for (file_cnt = 0; file_cnt < params.num_writes; file_cnt++) {
 
         TRACE3("Writing %li bytes to %s", params.write_size, file_info->filename);
@@ -474,7 +558,7 @@ static int execute_file_write(const void* data) {
 
         /* Loop around the available files */
         if ((file_cnt + 1) % params.num_files == 0) {
-            file_info = global_file_list;
+            file_info = base_file_info;
         } else {
             file_info = file_info->next;
         }
@@ -482,17 +566,16 @@ static int execute_file_write(const void* data) {
 
     /* Flush everything */
 
-    file_info = global_file_list;
+    file_info = base_file_info;
     for (file_cnt = 0; file_cnt < params.num_files; file_cnt++) {
         TRACE2("Syncing file: %s\n", file_info->filename);
         fsync(file_info->fd);
         file_info = file_info->next;
     }
 
-    /* If configured to do so, close the relevant files */
+    /* Cleanup */
 
-    if (!config->continue_files)
-        close_write_files();
+    done_write_files(config, &params, base_file_info);
 
     log_time_series_add_chunk_data(bytes_written_time_series(), params.num_writes * params.write_size);
     log_time_series_add_chunk_data(writes_time_series(), actual_number_writes);
@@ -502,14 +585,36 @@ static int execute_file_write(const void* data) {
 }
 
 
+static void free_data_file_write(void* data) {
+
+    FileWriteConfig* config = data;
+    int i;
+
+    /* Clean up the list of files */
+    if (config->file_list) {
+        for (i = 0; i < config->files; i++) {
+            if (config->file_list[i]) free(config->file_list[i]);
+        }
+        free(config->file_list);
+    }
+
+    free(config);
+}
+
+
 KernelFunctor* init_file_write(const JSON* config_json) {
+
+    const GlobalConfig* global_conf = global_config_instance();
 
     FileWriteConfig* config;
     KernelFunctor* functor;
+    const char* relative_path;
+    int i;
 
     TRACE();
 
     config = malloc(sizeof(FileWriteConfig));
+    config->file_list = 0;
 
     if (json_object_get_integer(config_json, "kb_write", &config->kilobytes) != 0 ||
         json_object_get_integer(config_json, "n_write", &config->writes) != 0 ||
@@ -541,9 +646,44 @@ KernelFunctor* init_file_write(const JSON* config_json) {
         return NULL;
     }
 
+    /* Are we specifying explicitly the files to write to? */
+    const JSON* files_list = json_object_get(config_json, "files");
+    if (files_list) {
+
+        if (!json_is_array(files_list)) {
+            fprintf(stderr, "Invalid files list specified for file-write kernel\n");
+            free(config);
+            return NULL;
+        }
+
+        int file_count = json_array_length(files_list);
+        if (file_count != config->files) {
+            fprintf(stderr, "Number of files specified does not match nfiles in file-write\n");
+            free(config);
+            return NULL;
+        }
+
+        config->file_list = calloc(file_count, sizeof(char*));
+
+        for (i = 0; i < config->files; i++) {
+
+            if (json_as_string_ptr(json_array_element(files_list, i), relative_path) != 0) {
+                fprintf(stderr, "Invalid path specified in files field for file-write\n");
+                free_data_file_write(config);
+                return NULL;
+            };
+
+            config->file_list[i] = malloc(PATH_MAX);
+            strcpy(config->file_list[i], global_conf->file_shared_path);
+            strcat(config->file_list[i], "/");
+            strcat(config->file_list[i], relative_path);
+        }
+    }
+
     functor = malloc(sizeof(KernelFunctor));
     functor->next = NULL;
     functor->execute = &execute_file_write;
+    functor->free_data = &free_data_file_write;
     functor->data = config;
 
     return functor;

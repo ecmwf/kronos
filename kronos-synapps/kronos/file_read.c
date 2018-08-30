@@ -311,6 +311,7 @@ KernelFunctor* init_file_read(const JSON* config_json) {
         functor = malloc(sizeof(KernelFunctor));
         functor->next = NULL;
         functor->execute = &execute_file_read;
+        functor->free_data = NULL;
         functor->data = config;
     } else {
         free(config);

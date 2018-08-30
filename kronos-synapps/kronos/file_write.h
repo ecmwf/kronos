@@ -32,6 +32,9 @@ typedef struct FileWriteConfig {
     bool o_direct;
     bool continue_files;
 
+    /* Files to write to (absolute filenames). Null if we use the global files. */
+    char** file_list;
+
 } FileWriteConfig;
 
 KernelFunctor* init_file_write(const JSON* config_json);
@@ -45,6 +48,7 @@ typedef struct FileWriteParamsInternal {
 
     long write_size;
     long num_files;
+    long first_file_index;
     long num_writes;
 
 } FileWriteParamsInternal;

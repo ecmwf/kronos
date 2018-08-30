@@ -268,6 +268,7 @@ KernelFunctor* init_mpi(const JSON* config_json) {
     functor = malloc(sizeof(KernelFunctor));
     functor->next = NULL;
     functor->execute = &execute_mpi;
+    functor->free_data = NULL;
     functor->data = config;
 
     return functor;
