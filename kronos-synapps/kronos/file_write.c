@@ -17,9 +17,11 @@
 #include <stdlib.h>
 #include <string.h>
 #include <fcntl.h>
+#include <libgen.h>
 #include <errno.h>
 #include <unistd.h>
 #include <sys/mman.h>
+#include <sys/stat.h>
 #include <sys/types.h>
 
 #include "kronos/configure_write_files.h"
@@ -156,9 +158,37 @@ void close_write_files(WriteFileInfo** file_list, int* file_count) {
 }
 
 
+/* n.b. due to use of dirname, this may MODIFY filename
+ *      -- NON CONST -- */
+static bool mkdir_if_needed(char* dir) {
+
+    char copy_dirname[PATH_MAX];
+    struct stat st;
+
+    if (stat(dir, &st) == 0) {
+        if (!S_ISDIR(st.st_mode)) {
+            fprintf(stderr, "Attempting to mkdir existing non-directory: %s\n", dir);
+            return false;
+        }
+    } else {
+        strcpy(copy_dirname, dir);
+        if (mkdir_if_needed(dirname(copy_dirname))) {
+            if (mkdir(dir, S_IRWXU | S_IRWXG) == -1 && errno != EEXIST) {
+                fprintf(stderr, "Error creating directory: %s (%d) %s\n", dir, errno, strerror(errno));
+                return false;
+            };
+        } else {
+            return false;
+        }
+    }
+    return true;
+}
+
+
 bool open_write_file(const char* filename, bool o_direct, WriteFileInfo** file_list_base, int* file_count) {
 
     int flags;
+    char copy_filename[PATH_MAX];
 
     WriteFileInfo* file_info = malloc(sizeof(WriteFileInfo));
 
@@ -168,6 +198,13 @@ bool open_write_file(const char* filename, bool o_direct, WriteFileInfo** file_l
     assert(!o_direct);
     /*if (o_direct)
         flags |= O_DIRECT;*/
+
+    strcpy(copy_filename, file_info->filename);
+    if (!mkdir_if_needed(dirname(copy_filename))) {
+        fprintf(stderr, "Target write directory does not exist and cannot be created\n");
+        free(file_info);
+        return false;
+    }
 
     /* n.b. umask set to 0027 in global_config.c */
     TRACE2("Creating and opening file: %s", file_info->filename);
@@ -663,11 +700,17 @@ KernelFunctor* init_file_write(const JSON* config_json) {
             return NULL;
         }
 
+        if (file_count < global_conf->nprocs) {
+            fprintf(stderr, "Insufficient specified write files for MPI configuration in file-write\n");
+            free(config);
+            return NULL;
+        }
+
         config->file_list = calloc(file_count, sizeof(char*));
 
         for (i = 0; i < config->files; i++) {
 
-            if (json_as_string_ptr(json_array_element(files_list, i), relative_path) != 0) {
+            if (json_as_string_ptr(json_array_element(files_list, i), &relative_path) != 0) {
                 fprintf(stderr, "Invalid path specified in files field for file-write\n");
                 free_data_file_write(config);
                 return NULL;
