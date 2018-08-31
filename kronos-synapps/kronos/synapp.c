@@ -76,7 +76,7 @@ int main(int argc, char** argv)
 
             report_stats();
             free_stats_registry();
-            close_write_files();
+            close_global_write_files();
             free_json(json);
             send_final_notification();
             clean_global_config();

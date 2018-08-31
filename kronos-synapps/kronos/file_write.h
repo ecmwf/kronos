@@ -58,6 +58,6 @@ FileWriteParamsInternal get_write_params(const FileWriteConfig* config);
 
 int get_file_write_name(char* path_out, size_t max_len);
 
-void close_write_files();
+void close_global_write_files();
 
 #endif /* kronos_file_write_H */
