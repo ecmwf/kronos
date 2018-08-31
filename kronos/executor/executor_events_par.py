@@ -4,6 +4,7 @@ from datetime import datetime
 
 import os
 from kronos.executor.job_submitter import JobSubmitter
+from kronos.executor.kronos_events import EventComplete
 from kronos.executor.kronos_events.manager import Manager
 from kronos.executor.executor import Executor
 from shutil import copy2
@@ -84,19 +85,19 @@ class ExecutorEventsPar(Executor):
         # print TOTAL TIMED simulation time (= T_end_last_timed_job - T_start_first_timed_job)
         if job_submitter.initial_submission_time:
 
-            # All arrived messages (may contain duplicates)
-            completed_jobs_events = event_manager.get_events(type_filter="Complete")
-
             jobid_to_timed_flag = {j.id: j.is_job_timed for j in jobs}
-            timed_timestamps = [e.info.get("timestamp") for e in completed_jobs_events
-                                if jobid_to_timed_flag[e.info("job")]]
+            completed_jobs_and_timings = [(ev, time) for (ev, time) in event_manager.get_timed_events()
+                                          if isinstance(ev, EventComplete)]
 
-            if timed_timestamps:
-                last_timed_msg_timestamp = max(timed_timestamps)
+            times_of_timed_jobs = [time for (ev, time) in completed_jobs_and_timings
+                                   if jobid_to_timed_flag[ev.info["job"]]]
+
+            if times_of_timed_jobs:
+                last_timed_msg_timestamp = max(times_of_timed_jobs)
                 timed_simulation_time = last_timed_msg_timestamp - job_submitter.initial_submission_time
                 logger.info("SIMULATION TIME: {}".format(timed_simulation_time))
             else:
-                logger.info("INFO: simulation time not available (no timed messaged found..)")
+                logger.warning("INFO: simulation time not available (no timed messaged found..)")
 
         else:
             logger.info("No timed jobs found.")

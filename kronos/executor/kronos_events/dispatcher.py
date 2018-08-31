@@ -9,8 +9,10 @@ import logging
 import socket
 import multiprocessing
 import Queue
+from datetime import datetime
 
 from kronos.executor.kronos_events import EventFactory
+from kronos.shared_tools.shared_utils import datetime2epochs
 
 logger = logging.getLogger(__name__)
 
@@ -47,6 +49,9 @@ class EventDispatcher(object):
         self.listener_queue = queue
         self.listener_proc = multiprocessing.Process(target=self._listen_for_messages)
 
+        # log of all events with timings taken upon msg reception
+        self.timed_events = []
+
     def __unicode__(self):
         return "KRONOS-DISPATCHER: host:{}, port:{} ".format(self.server_host, self.server_port)
 
@@ -81,17 +86,14 @@ class EventDispatcher(object):
                         msg += data
                     else:
 
-                        # with open("dispatched_events.log", "a") as myfile:
-                        #     myfile.write("received msg: {}\n".format(msg))
-
-                        # store event in the queue (and wait until there is space in the queue)
-                        self.listener_queue.put(msg, block=True)
+                        # store event and timestamp in the queue (and wait until there is space in the queue)
+                        self.listener_queue.put((msg, datetime2epochs(datetime.now())), block=True)
 
                         break
 
             finally:
 
-                # # ..and close the connection
+                # ..and close the connection
                 connection.close()
 
     def get_next_message(self):
@@ -110,7 +112,9 @@ class EventDispatcher(object):
         try:
             while len(_batch) < batch_size:
 
-                msg = self.listener_queue.get(block=False)
+                # get msg and timestamp from the queue
+                (msg, msg_timestamp) = self.listener_queue.get(block=False)
+
                 kronos_event = EventFactory.from_string(msg, validate_event=False)
 
                 if kronos_event:
@@ -119,6 +123,7 @@ class EventDispatcher(object):
                     if hasattr(kronos_event, "token"):
                         if str(kronos_event.token) == str(self.sim_token):
                             _batch.append(kronos_event)
+                            self.timed_events.append((kronos_event, msg_timestamp))
                         else:
                             logger.warning("INCORRECT TOKEN {} => message discarded: {}".format(kronos_event.token, msg))
                     else:
@@ -128,6 +133,7 @@ class EventDispatcher(object):
                         if hasattr(kronos_event, "info"):
                             if kronos_event.info.get("token", "") == str(self.sim_token):
                                 _batch.append(kronos_event)
+                                self.timed_events.append((kronos_event, msg_timestamp))
                             else:
                                 logger.warning("TOKEN NOT found => message discarded: {}".format(msg))
                         else:

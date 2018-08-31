@@ -130,3 +130,10 @@ class Manager(object):
         """
         self.dispatcher.stop()
 
+    def get_timed_events(self):
+        """
+        Returns a list of timed events (times taken at msg reception)
+        :return:
+        """
+        return self.dispatcher.timed_events
+
