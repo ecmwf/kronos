@@ -80,14 +80,34 @@ class ExecutorEventsPar(Executor):
 
         # Finally stop the event dispatcher
         logger.info("Total #events received: {}".format(event_manager.get_total_n_events()))
-        event_manager.stop_dispatcher()
+
+        # print TOTAL TIMED simulation time (= T_end_last_timed_job - T_start_first_timed_job)
+        if job_submitter.initial_submission_time:
+
+            # All arrived messages (may contain duplicates)
+            completed_jobs_events = event_manager.get_events(type_filter="Complete")
+
+            jobid_to_timed_flag = {j.id: j.is_job_timed for j in jobs}
+            timed_timestamps = [e.info.get("timestamp") for e in completed_jobs_events
+                                if jobid_to_timed_flag[e.info("job")]]
+
+            if timed_timestamps:
+                last_timed_msg_timestamp = max(timed_timestamps)
+                timed_simulation_time = last_timed_msg_timestamp - job_submitter.initial_submission_time
+                logger.info("SIMULATION TIME: {}".format(timed_simulation_time))
+            else:
+                logger.info("INFO: simulation time not available (no timed messaged found..)")
+
+        else:
+            logger.info("No timed jobs found.")
 
     def unsetup(self):
         """
-        Copy the log file into the output directory
+        Various after-run tasks
         :return:
         """
 
+        # Copy the log file into the output directory
         if os.path.exists(os.path.join(os.getcwd(), "kronos-executor.log")):
             logger.info("kronos simulation completed.")
             logger.info("copying {} into {}".format(os.path.join(os.getcwd(), "kronos-executor.log"), self.job_dir))

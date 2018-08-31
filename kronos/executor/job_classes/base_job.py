@@ -18,6 +18,9 @@ class BaseJob(object):
 
         self.depends = self.build_dependencies()
 
+        # True if this job is accounted for simulation runtime
+        self.is_job_timed = job_config.get('timed', False)
+
     @property
     def id(self):
         return self._job_num
