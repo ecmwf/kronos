@@ -646,6 +646,8 @@ KernelFunctor* init_file_write(const JSON* config_json) {
     FileWriteConfig* config;
     KernelFunctor* functor;
     const char* relative_path;
+    const JSON* files_list;
+    int file_count;
     int i;
 
     TRACE();
@@ -684,7 +686,7 @@ KernelFunctor* init_file_write(const JSON* config_json) {
     }
 
     /* Are we specifying explicitly the files to write to? */
-    const JSON* files_list = json_object_get(config_json, "files");
+    files_list = json_object_get(config_json, "files");
     if (files_list) {
 
         if (!json_is_array(files_list)) {
@@ -693,7 +695,7 @@ KernelFunctor* init_file_write(const JSON* config_json) {
             return NULL;
         }
 
-        int file_count = json_array_length(files_list);
+        file_count = json_array_length(files_list);
         if (file_count != config->files) {
             fprintf(stderr, "Number of files specified does not match nfiles in file-write\n");
             free(config);

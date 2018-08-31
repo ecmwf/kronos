@@ -34,12 +34,12 @@
 static void test_global_distribute() {
 
     GlobalConfig* gconfig = (GlobalConfig*)global_config_instance();
+    long first_elem;
 
     gconfig->nprocs = 3;
     gconfig->mpi_rank = 0;
 
     reset_global_distribute();
-    long first_elem;
     assert(global_distribute_work_element(8, &first_elem) == 3);
     assert(first_elem == 0);
     assert(global_distribute_work_element(8, &first_elem) == 3);
