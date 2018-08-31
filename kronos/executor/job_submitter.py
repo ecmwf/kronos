@@ -8,6 +8,9 @@
 import logging
 import multiprocessing
 import subprocess
+from datetime import datetime
+
+from kronos.shared_tools.shared_utils import datetime2epochs
 
 logger = logging.getLogger(__name__)
 
@@ -41,6 +44,7 @@ class JobSubmitter(object):
         self.jobs = jobs
         self.event_manager = event_manager
         self.submitted_jobs = []
+        self.initial_submission_time = None
 
         # structure for efficiently finding submittable jobs
         self.deps_to_jobs_tree, self.job_to_deps = self.build_deps_to_job_tree()
@@ -124,6 +128,10 @@ class JobSubmitter(object):
         # submit the jobs
         submission_and_callback_params = [j.get_submission_and_callback_params() for j in submittable_jobs]
         submission_output = self.submitters_pool.map(submit_job_from_args, submission_and_callback_params)
+
+        # start the timer if any of the submitted jobs was a "timed" job
+        if any([j.is_job_timed for j in submittable_jobs]) and not self.initial_submission_time:
+            self.initial_submission_time = datetime2epochs(datetime.now())
 
         for jid in submission_output:
             logger.info("Submitted job: {}".format(jid[0]))
