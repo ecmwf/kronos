@@ -75,19 +75,20 @@ FileWriteParamsInternal get_write_params(const FileWriteConfig* config) {
 
     const GlobalConfig* global_conf = global_config_instance();
     FileWriteParamsInternal params;
-    long nfiles;
+    long nfiles, nwrites;
 
     /* The writes are shared out as uniformly as possible across the processors */
 
     assert(config->writes > 0);
 
-    params.num_writes = global_distribute_work(config->writes);
+    nwrites = (global_conf->nprocs > config->writes) ? global_conf->nprocs : config->writes;
+    params.num_writes = global_distribute_work(nwrites);
 
     nfiles = (global_conf->nprocs > config->files) ? global_conf->nprocs : config->files;
     params.num_files = global_distribute_work_element(nfiles, &params.first_file_index);
 
     /* n.b. Convert kb to bytes */
-    params.write_size = 1024 * config->kilobytes / config->writes;
+    params.write_size = 1024 * config->kilobytes / nwrites;
 
     return params;
 }
@@ -185,7 +186,7 @@ static bool mkdir_if_needed(char* dir) {
 }
 
 
-bool open_write_file(const char* filename, bool o_direct, WriteFileInfo** file_list_base, int* file_count) {
+bool open_write_file(const char* filename, bool o_direct, WriteFileInfo** file_list_base, int* file_count, bool excl) {
 
     int flags;
     char copy_filename[PATH_MAX];
@@ -194,7 +195,10 @@ bool open_write_file(const char* filename, bool o_direct, WriteFileInfo** file_l
 
     strncpy(file_info->filename, filename, sizeof(file_info->filename));
 
-    flags = O_WRONLY | O_CREAT | O_EXCL;
+    flags = O_WRONLY | O_CREAT;
+    if (excl) {
+        flags |= O_EXCL;
+    }
     assert(!o_direct);
     /*if (o_direct)
         flags |= O_DIRECT;*/
@@ -215,6 +219,13 @@ bool open_write_file(const char* filename, bool o_direct, WriteFileInfo** file_l
                 file_info->filename, errno, strerror(errno));
         free(file_info);
         return false;
+    }
+
+    /* If we are opening a named file, which may already exist, make sure we write to
+     * the end of the file */
+
+    if (!excl) {
+        lseek(file_info->fd, 0, SEEK_END);
     }
 
     file_info->next = *file_list_base;
@@ -241,7 +252,7 @@ bool open_global_write_file(bool o_direct) {
     TRACE1("Opening a global file for write");
 
     if (get_file_write_name(filename, sizeof(filename)) == 0) {
-        return open_write_file(filename, o_direct, &global_file_list, &global_file_count);
+        return open_write_file(filename, o_direct, &global_file_list, &global_file_count, true);
     } else {
         fprintf(stderr, "An error occurred getting the write filename\n");
         return false;
@@ -520,7 +531,7 @@ static WriteFileInfo* get_write_files(const FileWriteConfig* config, const FileW
 
     for (i = 0; i < params->num_files; i++) {
         if (!open_write_file(config->file_list[i + params->first_file_index],
-                             config->o_direct, &file_list, &num_files)) {
+                             config->o_direct, &file_list, &num_files, false)) {
 
             close_write_files(&file_list, &num_files);
             fprintf(stderr, "An error occurred in the file write kernel\n");
@@ -648,12 +659,15 @@ KernelFunctor* init_file_write(const JSON* config_json) {
     const char* relative_path;
     const JSON* files_list;
     int file_count;
+    bool success;
     int i;
 
     TRACE();
 
     config = malloc(sizeof(FileWriteConfig));
     config->file_list = 0;
+
+    success = true;
 
     if (json_object_get_integer(config_json, "kb_write", &config->kilobytes) != 0 ||
         json_object_get_integer(config_json, "n_write", &config->writes) != 0 ||
@@ -663,8 +677,7 @@ KernelFunctor* init_file_write(const JSON* config_json) {
         config->files <= 0) {
 
         fprintf(stderr, "Invalid parameters specified in file-write config\n");
-        free(config);
-        return NULL;
+        success = false;
     }
 
     if (json_object_get_boolean(config_json, "mmap", &config->mmap) != 0) {
@@ -681,55 +694,64 @@ KernelFunctor* init_file_write(const JSON* config_json) {
 
     if (config->mmap) {
         fprintf(stderr, "mmap currently not supported for file-tracking behaviour. See NEX-114");
-        free(config);
-        return NULL;
+        success = false;
     }
 
     /* Are we specifying explicitly the files to write to? */
+
     files_list = json_object_get(config_json, "files");
     if (files_list) {
 
         if (!json_is_array(files_list)) {
             fprintf(stderr, "Invalid files list specified for file-write kernel\n");
-            free(config);
-            return NULL;
+            success = false;
         }
 
-        file_count = json_array_length(files_list);
-        if (file_count != config->files) {
-            fprintf(stderr, "Number of files specified does not match nfiles in file-write\n");
-            free(config);
-            return NULL;
+        if (success) {
+            file_count = json_array_length(files_list);
+            if (file_count != config->files) {
+                fprintf(stderr, "Number of files specified does not match nfiles in file-write\n");
+                success = false;
+            }
+
+            if (file_count < global_conf->nprocs) {
+                fprintf(stderr, "Insufficient specified write files for MPI configuration in file-write\n");
+                success = false;
+            }
         }
 
-        if (file_count < global_conf->nprocs) {
-            fprintf(stderr, "Insufficient specified write files for MPI configuration in file-write\n");
-            free(config);
-            return NULL;
-        }
+        if (success) {
 
-        config->file_list = calloc(file_count, sizeof(char*));
+            config->file_list = calloc(file_count, sizeof(char*));
 
-        for (i = 0; i < config->files; i++) {
+            for (i = 0; i < config->files; i++) {
 
-            if (json_as_string_ptr(json_array_element(files_list, i), &relative_path) != 0) {
-                fprintf(stderr, "Invalid path specified in files field for file-write\n");
-                free_data_file_write(config);
-                return NULL;
-            };
+                if (json_as_string_ptr(json_array_element(files_list, i), &relative_path) != 0) {
+                    fprintf(stderr, "Invalid path specified in files field for file-write\n");
+                    success = false;
+                    break;
+                };
 
-            config->file_list[i] = malloc(PATH_MAX);
-            strcpy(config->file_list[i], global_conf->file_shared_path);
-            strcat(config->file_list[i], "/");
-            strcat(config->file_list[i], relative_path);
+                config->file_list[i] = malloc(PATH_MAX);
+                strcpy(config->file_list[i], global_conf->file_shared_path);
+                strcat(config->file_list[i], "/");
+                strcat(config->file_list[i], relative_path);
+            }
         }
     }
 
-    functor = malloc(sizeof(KernelFunctor));
-    functor->next = NULL;
-    functor->execute = &execute_file_write;
-    functor->free_data = &free_data_file_write;
-    functor->data = config;
+    /* If the configuration is valid, then this is good! */
+
+    if (success) {
+        functor = malloc(sizeof(KernelFunctor));
+        functor->next = NULL;
+        functor->execute = &execute_file_write;
+        functor->free_data = &free_data_file_write;
+        functor->data = config;
+    } else {
+        free_data_file_write(config);
+        functor = NULL;
+    }
 
     return functor;
 }
