@@ -330,6 +330,24 @@ int execute_file_read(const void* data) {
 }
 
 
+static void free_data_file_read(void* data) {
+
+    FileReadConfig* config = data;
+    int i;
+
+    /* Clean up the list of files */
+    if (config->file_list) {
+        assert(config->nfiles > 0);
+        for (i = 0; i < config->nfiles; i++) {
+            if (config->file_list[i]) free(config->file_list[i]);
+        }
+        free(config->file_list);
+    }
+
+    free(config);
+}
+
+
 KernelFunctor* init_file_read(const JSON* config_json) {
 
     const GlobalConfig* global_conf = global_config_instance();
@@ -422,10 +440,10 @@ KernelFunctor* init_file_read(const JSON* config_json) {
         functor = malloc(sizeof(KernelFunctor));
         functor->next = NULL;
         functor->execute = &execute_file_read;
-        functor->free_data = NULL;
+        functor->free_data = &free_data_file_read;
         functor->data = config;
     } else {
-        free(config);
+        free_data_file_read(config);
         functor = NULL;
     }
 
