@@ -153,6 +153,7 @@ static void test_read_params_too_small() {
 
     config.reads = 1;
     config.kilobytes = 1;
+    config.file_list = 0;
 
     params = get_read_params(&config);
 
