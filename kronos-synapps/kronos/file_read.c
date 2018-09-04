@@ -99,9 +99,10 @@ FileReadParamsInternal get_read_params(const FileReadConfig* config) {
 
         for (i = 0; i < config->nfiles; i++) {
             assert(config->file_list[i] != 0);
-            if (!stat(config->file_list[i], &st)) {
-                fprintf(stderr, "Could not get file size for %s in file-read\n", config->file_list[i]);
+            if (stat(config->file_list[i], &st) == -1) {
+                fprintf(stderr, "Could not get file size for %s in file-read (%d): %s\n", config->file_list[i], errno, strerror(errno));
                 free(params.file_sizes);
+                params.file_sizes = 0; /* Reports the error */
                 break;
             }
             params.file_sizes[i] = st.st_size;
