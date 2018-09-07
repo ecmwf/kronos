@@ -265,7 +265,6 @@ static long select_random_read_path(const FileReadConfig* config, const FileRead
         *offset = rand() % (file_size - params->read_size);
     }
 
-    *offset = 0;
     return path_len;
 }
 
