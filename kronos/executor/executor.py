@@ -98,6 +98,9 @@ class Executor(object):
         self.local_tmpdir = config.get("local_tmpdir", None)
         self.job_dir = config.get("job_dir", os.path.join(os.getcwd(), "run"))
 
+        # its own dir
+        self.executor_file_dir = os.path.dirname(__file__)
+
         logger.info("Job executing dir: {}".format(self.job_dir))
 
         # take the timestamp to be used to archive run folders (if existing)
