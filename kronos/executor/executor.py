@@ -260,12 +260,29 @@ class Executor(object):
             job_dir = os.path.join(self.job_dir, "job-{}".format(job_num))
             job_config['job_num'] = job_num
 
-            job_class_module_file = os.path.join(
-                os.path.dirname(__file__),
-                "job_classes/{}.py".format(job_config.get("job_class", self.config.get("job_class", "trivial_job")))
-            )
+            # get job template name (either from the job config or from the global config, if present)
+            job_template_name = job_config.get("job_class", self.config.get("job_class", "trivial_job"))
+            job_classes_dir = os.path.join(os.path.dirname(__file__), "job_classes")
 
+            # now search for the template file in the cwd first..
+            if os.path.isfile( "{}.py".format(os.path.join(os.getcwd(), job_template_name)) ):
+
+                job_class_module_file = "{}.py".format(os.path.join(os.getcwd(), job_template_name))
+
+            elif os.path.isfile( os.path.join(job_classes_dir, "{}.py".format(job_template_name)) ):
+
+                job_class_module_file = os.path.join(os.path.dirname(__file__), "job_classes/{}.py".format(job_template_name))
+
+            else:
+
+                logger.error("template file {}.py not found neither in {} nor in {}".format(job_template_name,
+                                                                                            os.getcwd(),
+                                                                                            job_classes_dir))
+                raise IOError
+
+            # now load the module
             job_class_module = imp.load_source('job', job_class_module_file)
+
             job_class = job_class_module.Job
 
             if self._file_read_multiplicity:
