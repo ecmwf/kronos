@@ -92,12 +92,6 @@ class ExecutorEventsPar(Executor):
         :return:
         """
 
-        # Copy the log file into the output directory
-        if os.path.exists(os.path.join(os.getcwd(), "kronos-executor.log")):
-            logger.info("kronos simulation completed.")
-            logger.info("copying {} into {}".format(os.path.join(os.getcwd(), "kronos-executor.log"), self.job_dir))
-            copy2(os.path.join(os.getcwd(), "kronos-executor.log"), self.job_dir)
-
         # print TOTAL TIMED simulation time (= T_end_last_timed_job - T_start_first_timed_job)
         if self.job_submitter.initial_submission_time:
 
@@ -117,6 +111,12 @@ class ExecutorEventsPar(Executor):
 
         else:
             logger.info("No timed jobs found.")
+
+        # Copy the log file into the output directory
+        if os.path.exists(os.path.join(os.getcwd(), "kronos-executor.log")):
+            logger.info("kronos simulation completed.")
+            logger.info("copying {} into {}".format(os.path.join(os.getcwd(), "kronos-executor.log"), self.job_dir))
+            copy2(os.path.join(os.getcwd(), "kronos-executor.log"), self.job_dir)
 
         # finally terminate the dispatcher process
         self.event_manager.stop_dispatcher()
