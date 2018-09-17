@@ -19,7 +19,6 @@ def submit_job_from_args(submission_and_callback_params):
     """
     Helper function to submit a jobs from its submission (and callback) arguments
     (workaround for distributing among processes the non-pickable job classes)
-    :param jid_and_subprocess_args:
     :return:
     """
 
@@ -27,10 +26,21 @@ def submit_job_from_args(submission_and_callback_params):
     proc_args = submission_and_callback_params["submission_params"]
     output = subprocess.check_output(proc_args)
 
+    submit_job_from_args.t_queue.put( (datetime.now(), jid) )
+
     # TODO: callback not strictly needed anymore, but it would be nice to retain..
     # Job.submission_callback_static(output, submission_and_callback_params["callback_params"])
 
     return jid, output
+
+
+def f_init(q):
+    """
+    just to initialise the submitting function time queue
+    :param q:
+    :return:
+    """
+    submit_job_from_args.t_queue = q
 
 
 class JobSubmitter(object):
@@ -50,7 +60,8 @@ class JobSubmitter(object):
         self.deps_to_jobs_tree, self.job_to_deps = self.build_deps_to_job_tree()
 
         # workers pool
-        self.submitters_pool = multiprocessing.Pool(processes=n_submitters)
+        self.tsub_queue = multiprocessing.Queue()
+        self.submitters_pool = multiprocessing.Pool(n_submitters, f_init, [self.tsub_queue])
 
     def build_deps_to_job_tree(self):
         """
@@ -129,12 +140,18 @@ class JobSubmitter(object):
         submission_and_callback_params = [j.get_submission_and_callback_params() for j in submittable_jobs]
         submission_output = self.submitters_pool.map(submit_job_from_args, submission_and_callback_params)
 
+        min_submission_time = None
+        for jid in submission_output:
+
+            tt_jj = self.tsub_queue.get()
+            t_ep = datetime2epochs(tt_jj[0])
+            logger.info("[Proc Time: {} (ep: {})] ---> Submitted job: {}".format(tt_jj[0], t_ep, tt_jj[1]))
+
+            min_submission_time = min( t_ep, min_submission_time ) if min_submission_time else t_ep
+
         # start the timer if any of the submitted jobs was a "timed" job
         if any([j.is_job_timed for j in submittable_jobs]) and not self.initial_submission_time:
-            self.initial_submission_time = datetime2epochs(datetime.now())
-
-        for jid in submission_output:
-            logger.info("Submitted job: {}".format(jid[0]))
+            self.initial_submission_time = min_submission_time
 
 
 

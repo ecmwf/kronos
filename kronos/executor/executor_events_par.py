@@ -105,16 +105,21 @@ class ExecutorEventsPar(Executor):
             if times_of_timed_jobs:
                 last_timed_msg_timestamp = max(times_of_timed_jobs)
                 timed_simulation_time = last_timed_msg_timestamp - self.job_submitter.initial_submission_time
-                logger.info("SIMULATION TIME: {}".format(timed_simulation_time))
+
+                logger.info("=" * 37)
+                logger.info("SIMULATION TIME: {:20.2f}".format(timed_simulation_time))
+                logger.info("SIMULATION  T_0: {:20.2f}".format(self.job_submitter.initial_submission_time))
+                logger.info("SIMULATION  T_1: {:20.2f}".format(last_timed_msg_timestamp))
+                logger.info("=" * 37)
             else:
                 logger.warning("INFO: simulation time not available (no timed messaged found..)")
 
         else:
-            logger.info("No timed jobs found.")
+            logger.info("No timed jobs found.".upper())
 
         # Copy the log file into the output directory
         if os.path.exists(os.path.join(os.getcwd(), "kronos-executor.log")):
-            logger.info("kronos simulation completed.")
+            logger.info("kronos simulation completed.".upper())
             logger.info("copying {} into {}".format(os.path.join(os.getcwd(), "kronos-executor.log"), self.job_dir))
             copy2(os.path.join(os.getcwd(), "kronos-executor.log"), self.job_dir)
 
