@@ -55,7 +55,7 @@ class UserAppJob(BaseJob):
 
         # update the template with the config parameters
         script_format = {
-            'job_name': 'kronos-app-{}'.format(self.id),
+            'job_name': 'kron-{}'.format(self.id),
             'job_num': self.id,
             'job_output_file': os.path.join(self.path, "output"),
             'job_error_file': os.path.join(self.path, "error"),
