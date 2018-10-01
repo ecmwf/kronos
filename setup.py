@@ -19,7 +19,7 @@ test_requirements = [
 
 setup(
     name='kronos',
-    version='0.4.0',
+    version='0.5.0',
     description="Workload extraction, modelling and duplication for HPC systems",
     long_description=readme + '\n\n' + history,
     author="Tiago Quintino, Antonino Bonanni, Simon Smart",
