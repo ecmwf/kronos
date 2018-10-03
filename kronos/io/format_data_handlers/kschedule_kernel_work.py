@@ -52,6 +52,8 @@ class KernelWorkDistribution(object):
         "kb_pairwise": ["process", "call"],
         "n_collective": ["process"],
         "kb_collective": ["process", "call"],
+
+        "kb_mem": ["process"],
     }
 
     def __init__(self, jobs_data):
