@@ -87,7 +87,7 @@ from kronos.executor.job_classes.hpc import HPCJob
 
 job_template = """#!/bin/sh
 #PBS -N {experiment_id}
-#PBS -q {queue}
+#PBS -q np
 #PBS -l EC_nodes={num_nodes}
 #PBS -l EC_total_tasks={num_procs}
 #PBS -l EC_threads_per_task=1

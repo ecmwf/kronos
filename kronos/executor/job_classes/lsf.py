@@ -82,7 +82,7 @@ from kronos.executor.job_classes.hpc import HPCJob
 job_template = """#!/bin/bash
 #BSUB -L /bin/bash
 #BSUB -J {experiment_id}
-#BSUB -q {queue}
+#BSUB -q queue_name
 #BSUB -n {num_procs}
 #BSUB -R "affinity[thread(2):cpubind=thread:distribute=pack] span[ptile=80] select[hname==p10a32 || hname==p10a47 || hname==p10a35 || hname==p10a38 || hname==p10a26 || hname==p10a44 || hname==p10a30 || hname==p10a46 || hname=p10a42 || hname==p10a43 || hname==p10a45 || hname==p10a52]"
 #BSUB -o {job_output_file}
