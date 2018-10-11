@@ -59,7 +59,7 @@ class ExecutorEventsPar(Executor):
         completed_jobs_prev = []
         i_submission_cycle = 0
 
-        time_0 = datetime.now()
+        # time_0 = datetime.now()
         new_events = []
         while not all(j.id in completed_jobs for j in self.jobs):
 
