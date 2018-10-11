@@ -63,9 +63,10 @@ class ExecutorEventsPar(Executor):
         new_events = []
         while not all(j.id in completed_jobs for j in self.jobs):
 
-            # Add a timer event every N cycles (just in case it's needed..)
-            if not i_submission_cycle % self.time_event_cycles:
-                self.event_manager.add_time_event((datetime.now()-time_0).total_seconds())
+            # NOTE: To be used with great care as number/size of time message could be huge..
+            # # Add a timer event every N cycles (just in case it's needed..)
+            # if not i_submission_cycle % self.time_event_cycles:
+            #     self.event_manager.add_time_event((datetime.now()-time_0).total_seconds())
 
             # submit jobs
             self.job_submitter.submit_eligible_jobs(new_events=new_events)
