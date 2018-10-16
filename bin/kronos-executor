@@ -10,9 +10,20 @@
 
 """
 
-Kronos Executor is the main command that executes the kronos
-schedule on an HPC system. Configuration file is JSON format (see kronos-format-config-exe).
-Schedule must be a KSchedule file (execute kronos-format-kschedule for details)
+Kronos Executor is the main command that executes the Kronos schedule on an HPC system.
+
+The executor is invoked as follows:
+
+> kronos-executor -c <config>.json <schedule>.kschedule
+
+For details on how to configure the configurations file <config>.json, run:
+
+> kronos-format-config-exe -s
+
+The schedule must be in KSchedule file format. The following command provides details of the
+kschedule schema:
+
+> kronos-format-kschedule -s
 
 """
 
