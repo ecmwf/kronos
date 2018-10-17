@@ -17,6 +17,8 @@ export KRONOS_TOKEN="{simulation_token}"
 
 {profiling_code}
 
+cd {write_dir}
+
 {launcher_command} -np {num_procs} {coordinator_binary} {input_file}
 
 """
@@ -37,7 +39,7 @@ class Job(BaseJob):
         # print "Inside class {}".format(job_config)
         # print "Job dir: {}".format(path)
 
-        self.run_script = os.path.join(self.path, "run_script")
+        self.run_script = os.path.join(self.path, "submit_script")
         self.allinea_launcher_command = "map --profile mpirun"
         self.allinea_template = allinea_template
 
@@ -103,10 +105,7 @@ class Job(BaseJob):
         """
         print "Running {}".format(self.run_script)
 
-        cwd = os.getcwd()
-        os.chdir(self.path)
         with open('output', 'w') as fout, open('error', 'w') as ferror :
             subprocess.call(self.run_script, stdout=fout, stderr=ferror, stdin=None, shell=True)
-        os.chdir(cwd)
 
         self.executor.set_job_submitted(self.id, [])
