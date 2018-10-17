@@ -9,7 +9,7 @@ import unittest
 sys.path.append(os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), 'kronos_py'))
 sys.path.append(os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))), 'bin'))
 
-from kronos.executor.job_classes.base_job import BaseJob
+from kronos.executor.base_job import BaseJob
 from testutils import scratch_tmpdir
 
 

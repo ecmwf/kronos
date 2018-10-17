@@ -1,4 +1,4 @@
-from kronos.executor.job_classes.hpc import HPCJob
+from kronos.executor.hpc import HPCJob
 
 
 job_template = """#!/bin/bash

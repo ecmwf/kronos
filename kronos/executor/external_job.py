@@ -2,7 +2,7 @@ import os
 import stat
 import subprocess
 
-from kronos.executor.job_classes.base_job import BaseJob
+from kronos.executor.base_job import BaseJob
 
 
 class UserAppJob(BaseJob):
@@ -35,7 +35,8 @@ class UserAppJob(BaseJob):
         """
 
         if not self.needed_config_params:
-            raise KeyError("No parameters to be passed to the job submit template have been defined!")
+            raise KeyError("No parameters to be passed to the job submit "
+                           "template have been defined!")
 
         for config_param in self.needed_config_params:
             assert config_param in self.job_config["config_params"]

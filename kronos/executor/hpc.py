@@ -3,7 +3,7 @@ import os
 import stat
 import subprocess
 
-from kronos.executor.job_classes.base_job import BaseJob
+from kronos.executor.base_job import BaseJob
 
 
 class HPCJob(BaseJob):
