@@ -5,6 +5,10 @@ import subprocess
 
 from kronos.executor.job_classes.base_job import BaseJob
 
+# Very basic job submit template for running Kronos on a workstation
+# without job scheduling system. The job will run on a subprocess.
+
+
 job_template = """
 #!/bin/sh
 
