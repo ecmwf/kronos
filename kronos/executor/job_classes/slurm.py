@@ -146,7 +146,7 @@ class SLURMMixin(object):
     allinea_template = allinea_template
     allinea_lic_file_template = allinea_lic_file_template
         
-    submit_command = "/gpfs/lxg/shared_tmp/maab/kronos_lxg/kronos-installer/kronos-0.5.0-Source/kronos/executor/job_classes/sbatch_filter.py"
+    submit_command = "sbatch"
     depend_parameter = "--dependency=afterany:"
     depend_separator = ":"
     launcher_command = 'mpirun'
