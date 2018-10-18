@@ -106,12 +106,12 @@ def print_formatted_class_stats(class_name, per_class_job_stats):
     n_fields = 3
 
     ordered_keys = [
-        "read",
-        "write",
-        "mpi-collective",
-        "mpi-pairwise",
-        "cpu",
-        "file-flush"
+        ("read", "file-read"),
+        ("write", "file-write"),
+        ("file-flush", "file-flush"),
+        ("mpi-collective", "mpi-collective"),
+        ("mpi-pairwise", "mpi-pairwise"),
+        ("cpu", "flops"),
     ]
 
     keys_units = {
@@ -134,7 +134,7 @@ def print_formatted_class_stats(class_name, per_class_job_stats):
         print "{}".format("-" * (_fl + 1) * n_fields)
 
         # Print the relevant metrics for each stats class
-        for k in ordered_keys:
+        for k, name in ordered_keys:
 
             if k in class_stats.keys():
                 v = class_stats[k]
@@ -145,13 +145,13 @@ def print_formatted_class_stats(class_name, per_class_job_stats):
                 conv_fact = stats_metric_info["conv"]
                 elaps_time = v["elapsed"]
 
-                print "{:<{l}s}|{:>{lmu}.2f} {}|{:>{lmfour}.2f} [s]|".format(k,
-                                                                               counter_to_print * conv_fact,
-                                                                               keys_units[k],
-                                                                               elaps_time,
-                                                                               l=_fl,
-                                                                               lmfour=_fl-4,
-                                                                               lmu=_fl-len(keys_units[k])-1)
+                print "{:<{l}s}|{:>{lmu}.2f} {}|{:>{lmfour}.2f} [s]|".format(name,
+                                                                             counter_to_print * conv_fact,
+                                                                             keys_units[k],
+                                                                             elaps_time,
+                                                                             l=_fl,
+                                                                             lmfour=_fl-4,
+                                                                             lmu=_fl-len(keys_units[k])-1)
 
         # h-line
         print "{}".format("-" * (_fl + 1) * n_fields)
