@@ -109,7 +109,7 @@
                                     }
                                 }
                             },
-                            "(cpu|mkdir|rmdir)": {
+                            "(cpu|mkdir|rmdir|file_flush)": {
                                 "type": "object",
                                 "description": "Data logging for timed operations",
                                 "required": ["count", "elapsed", "averageElapsed", "sumSquaredElapsed", "stddevElapsed"],

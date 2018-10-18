@@ -110,7 +110,8 @@ def print_formatted_class_stats(class_name, per_class_job_stats):
         "write",
         "mpi-collective",
         "mpi-pairwise",
-        "cpu"
+        "cpu",
+        "file-flush"
     ]
 
     keys_units = {
@@ -119,6 +120,7 @@ def print_formatted_class_stats(class_name, per_class_job_stats):
         "mpi-collective": "[GiB]",
         "mpi-pairwise": "[GiB]",
         "cpu": "  [G]",
+        "file-flush": "  [-]"
     }
 
     # get the stats for this class (if present..)

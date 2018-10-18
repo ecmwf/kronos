@@ -43,7 +43,7 @@ static StatisticsLogger* file_flush_logger() {
     static StatisticsLogger* logger = 0;
 
     if (logger == 0)
-        logger = create_stats_times_logger("file_flush");
+        logger = create_stats_times_logger("file-flush");
 
     return logger;
 }

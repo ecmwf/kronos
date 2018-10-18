@@ -68,7 +68,16 @@ kresults_stats_info = OrderedDict((
                         "to_sum": ["count", "elapsed", "bytes"],
                         "def_rate": ["bytes", "elapsed"],
                         "per_process": ["bytes", "count"]
-                        })
+                        }),
+
+    ("file-flush", {"conv": 1.0,
+                    "label_sum": "#flushes",
+                    "label_rate": "[flushes/sec]",
+                    "label_metric": "count",
+                    "to_sum": ["count", "elapsed"],
+                    "def_rate": ["count", "elapsed"],
+                    "per_process": []
+                    }),
 ))
 
 
