@@ -38,6 +38,16 @@
  * initialised on the first call.
  */
 
+static StatisticsLogger* file_flush_logger() {
+
+    static StatisticsLogger* logger = 0;
+
+    if (logger == 0)
+        logger = create_stats_times_logger("file_flush");
+
+    return logger;
+}
+
 static StatisticsLogger* stats_instance() {
 
     static StatisticsLogger* logger = 0;
@@ -616,9 +626,14 @@ static int execute_file_write(const void* data) {
 
     file_info = base_file_info;
     for (file_cnt = 0; file_cnt < params.num_files; file_cnt++) {
+
+        stats_start(file_flush_logger());
+
         TRACE2("Syncing file: %s\n", file_info->filename);
         fsync(file_info->fd);
         file_info = file_info->next;
+
+        stats_stop_log(file_flush_logger(), 1);
     }
 
     /* Cleanup */
