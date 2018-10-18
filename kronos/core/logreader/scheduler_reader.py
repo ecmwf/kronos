@@ -222,7 +222,7 @@ def read_accounting_logs(filename_in):
     #  '"stdin"',
     #  '"stdout"',
     #  '"stderr"',
-    #  '"experiment_id"']
+    #  '"job_name"']
 
     with open(filename_in, 'rb') as csvfile:
 

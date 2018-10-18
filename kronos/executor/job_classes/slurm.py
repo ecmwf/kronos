@@ -22,7 +22,7 @@ from kronos.executor.hpc import HPCJob
 #    the template below ("submit_script_template"). The rest of the template needs to be adapted to the host HPC system
 #    and scheduler as appropriate
 #
-#     experiment_id: "job-ID"
+#     job_name: "job-ID"
 #
 #     num_nodes: "Number of nodes requested from the system. The Executor requests a number of nodes that is
 #                 equal to N_processes (as specified in the KSchedule for each synthetic app) divided by the
@@ -81,7 +81,7 @@ from kronos.executor.hpc import HPCJob
 
 job_template = """#!/bin/sh
 
-#SBATCH --job-name={experiment_id}
+#SBATCH --job-name={job_name}
 #SBATCH -N {num_nodes}
 #SBATCH --ntasks={num_procs}
 #SBATCH --cpus-per-task=1

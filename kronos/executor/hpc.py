@@ -45,7 +45,7 @@ class HPCJob(BaseJob):
             'input_file': self.input_file,
             'job_dir': self.path,
             'profiling_code': "",
-            'experiment_id': 'synthApp_{}_{}_{}'.format(nprocs, nnodes, self.id),
+            'job_name': 'synthApp_{}_{}_{}'.format(nprocs, nnodes, self.id),
             'job_num': self.id,
             'job_output_file': os.path.join(self.path, "output"),
             'job_error_file': os.path.join(self.path, "error"),

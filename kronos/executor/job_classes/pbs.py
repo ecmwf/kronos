@@ -28,7 +28,7 @@ from kronos.executor.hpc import HPCJob
 #    the template below ("submit_script_template"). The rest of the template needs to be adapted to the host HPC system
 #    and scheduler as appropriate
 #
-#     experiment_id: "job-ID"
+#     job_name: "job-ID"
 #
 #     num_nodes: "Number of nodes requested from the system. The Executor requests a number of nodes that is
 #                 equal to N_processes (as specified in the KSchedule for each synthetic app) divided by the
@@ -87,7 +87,7 @@ from kronos.executor.hpc import HPCJob
 
 
 job_template = """#!/bin/sh
-#PBS -N {experiment_id}
+#PBS -N {job_name}
 #PBS -q np
 #PBS -l EC_nodes={num_nodes}
 #PBS -l EC_total_tasks={num_procs}
@@ -108,7 +108,7 @@ export LD_LIBRARY_PATH={coordinator_library_path}:${{LD_LIBRARY_PATH}}
 cd {job_dir}
 
 # Export an EC experiment ID (to assist identifying the job in darshan logs)
-export EC_experiment_id="{experiment_id}"
+export EC_experiment_id="{job_name}"
 
 {profiling_code}
 

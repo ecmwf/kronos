@@ -3,7 +3,7 @@ from kronos.executor.hpc import HPCJob
 
 job_template = """#!/bin/bash
 #BSUB -L /bin/bash
-#BSUB -J {experiment_id}
+#BSUB -J {job_name}
 #BSUB -q queue_name
 #BSUB -n {num_procs}
 #BSUB -R "affinity[thread(2):cpubind=thread:distribute=pack] span[ptile=80] select[hname==p10a32 || hname==p10a47 || hname==p10a35 || hname==p10a38 || hname==p10a26 || hname==p10a44 || hname==p10a30 || hname==p10a46 || hname=p10a42 || hname==p10a43 || hname==p10a45 || hname==p10a52]"
@@ -23,7 +23,7 @@ export LD_LIBRARY_PATH={coordinator_library_path}:${{LD_LIBRARY_PATH}}
 cd {job_dir}
 
 # Export an EC experiment ID (to assist identifying the job in darshan logs)
-export EC_experiment_id="{experiment_id}"
+export EC_experiment_id="{job_name}"
 
 {profiling_code}
 
