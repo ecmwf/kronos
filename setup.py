@@ -60,11 +60,7 @@ setup(
         'bin/kronos-generate-dummy-jobs',
         
         # additional tools
-        'bin/kronos-find-and-match-external-apps',
-        'bin/kronos-write-external-app-runs',
-        'bin/kronos-generate-kschedule',
-        'bin/kronos-raps-output-to-kpf'
-
+        'bin/kronos-generate-kschedule'
     ],
     include_package_data=True,
     install_requires=requirements,
