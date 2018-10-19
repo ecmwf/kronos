@@ -9,16 +9,16 @@
       "type": "boolean",
       "description": "Verbose flag"
     },
-    "experiment_list": {
+    "simulation_list": {
       "type": "array",
       "description": "Tags of simulation list (used to label plots and/or tabular data)",
       "items": {
         "type": "string"
       }
     },
-    "experiment_paths": {
+    "simulation_paths": {
       "type": "array",
-      "description": "Paths of simulations (path containing the job-<jobID> sub-folders. They corresponds to the experiment_list tags)",
+      "description": "Paths of simulations (path containing the job-<jobID> sub-folders. They corresponds to the simulation_list tags)",
       "items": {
         "type": "string"
       }

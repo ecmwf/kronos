@@ -18,8 +18,8 @@ class ExportConfig(object):
 
     output_path = None
     job_classes = None
-    experiment_list = None
-    experiment_paths = None
+    simulation_list = None
+    simulation_paths = None
     exports = None
     n_procs_node = None
 

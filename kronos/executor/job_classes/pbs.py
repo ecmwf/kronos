@@ -107,8 +107,8 @@ export LD_LIBRARY_PATH={coordinator_library_path}:${{LD_LIBRARY_PATH}}
 # Change to the original directory for submission
 cd {job_dir}
 
-# Export an EC experiment ID (to assist identifying the job in darshan logs)
-export EC_experiment_id="{job_name}"
+# Export an EC simulation ID (to assist identifying the job in darshan logs)
+export EC_simulation_id="{job_name}"
 
 {profiling_code}
 

@@ -55,7 +55,7 @@ if __name__ == "__main__":
 
     # Labelled list of simulations
     labelled_kronos_sims = [KResultsData.read_from_sim_paths(path, tag, n_procs_node=config.n_procs_node)
-                            for tag, path in zip(config.experiment_list, config.experiment_paths)]
+                            for tag, path in zip(config.simulation_list, config.simulation_paths)]
 
     # Pre-calculate data ready for export
     sim_set = KResultsDataSet(labelled_kronos_sims)
