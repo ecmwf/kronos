@@ -9,7 +9,7 @@
       "type": "boolean",
       "description": "Verbose flag"
     },
-    "simulation_list": {
+    "simulation_labels": {
       "type": "array",
       "description": "Tags of simulation list (used to label plots and/or tabular data)",
       "items": {
