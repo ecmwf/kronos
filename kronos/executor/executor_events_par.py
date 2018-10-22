@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 import logging
-from datetime import datetime
 
 import os
 from kronos.executor.job_submitter import JobSubmitter
