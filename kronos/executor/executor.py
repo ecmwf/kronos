@@ -94,6 +94,7 @@ class Executor(object):
         self.simulation_token = uuid.uuid4()
 
         logger.info("Config: {}".format(config))
+        logger.info("Simulation Token: {}".format(self.simulation_token))
 
         self.schedule = schedule
 
