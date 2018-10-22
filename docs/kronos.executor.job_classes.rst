@@ -4,22 +4,6 @@ kronos.executor.job_classes package
 Submodules
 ----------
 
-kronos.executor.job_classes.base_job module
--------------------------------------------
-
-.. automodule:: kronos.executor.job_classes.base_job
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-kronos.executor.job_classes.hpc module
---------------------------------------
-
-.. automodule:: kronos.executor.job_classes.hpc
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
 kronos.executor.job_classes.lsf module
 --------------------------------------
 

@@ -7,7 +7,6 @@ Subpackages
 .. toctree::
 
     kronos.core.post_process.export_config
-    kronos.core.post_process.tests
 
 Submodules
 ----------
