@@ -284,6 +284,124 @@ static void test_write_file() {
     strncpy(gconfig->hostname, host_storage, sizeof(gconfig->hostname));
 }
 
+static void test_write_specified_files() {
+
+    /* Const cast, so we can manipulate the global config and make it look like we have multiple procs. */
+    GlobalConfig* gconfig = (GlobalConfig*)global_config_instance();
+    KernelFunctor* kernel;
+    JSON* json;
+    FILE* file;
+    int i;
+
+    char path_storage[PATH_MAX], host_storage[PATH_MAX], path_tmp[PATH_MAX];
+    const char* tmpdir;
+
+    tmpdir = getenv("TMPDIR");
+    assert(tmpdir != NULL);
+
+    /* Switch our own path into place */
+    strncpy(path_storage, gconfig->file_write_path, sizeof(gconfig->file_write_path));
+    strncpy(gconfig->file_shared_path, tmpdir, sizeof(gconfig->file_write_path));
+
+    /* On the second pass, consider just one MPI rank */
+    for (i = 0; i < 2; i++){
+
+        /* Ensure we are clean */
+
+        snprintf(path_tmp, PATH_MAX, "%s/kronos-test-basedir/file1", tmpdir);
+        if (access(path_tmp, F_OK) != -1) remove(path_tmp);
+        snprintf(path_tmp, PATH_MAX, "%s/kronos-test-basedir/file2", tmpdir);
+        if (access(path_tmp, F_OK) != -1) remove(path_tmp);
+
+        reset_global_distribute();
+
+        /* Initialise a kernel to do some writing, and execute it */
+
+        json = json_from_string("{\"name\": \"file-write\", \"kb_write\": 1000, "
+                                "\"n_write\": 4, \"mmap\": false, \"n_files\": 2, "
+                                "\"files\": [\"kronos-test-basedir/file1\", \"kronos-test-basedir/file2\"]}");
+        assert(json);
+
+        kernel = kernel_factory(json);
+        assert(kernel);
+
+        kernel->execute(kernel->data);
+
+        free_kernel(kernel);
+        free_json(json);
+
+        /* Test that the appropriate files have been created (and clean them up)
+         * n.b. the file number sequence continues from the other tests */
+
+        snprintf(path_tmp, PATH_MAX, "%s/kronos-test-basedir/file1", tmpdir);
+
+        if (i == 0) {
+            assert(access(path_tmp, F_OK) != -1);
+            file = fopen(path_tmp, "r");
+            assert(file != NULL);
+            fseek(file, 0L, SEEK_END);
+            assert(ftell(file) == 500 * 1024);
+            fclose(file);
+
+            remove(path_tmp);
+        } else {
+            assert(access(path_tmp, F_OK) == -1);
+        }
+
+        snprintf(path_tmp, PATH_MAX, "%s/kronos-test-basedir/file2", tmpdir);
+
+        assert(access(path_tmp, F_OK) != -1);
+        file = fopen(path_tmp, "r");
+        assert(file != NULL);
+        fseek(file, 0L, SEEK_END);
+        assert(ftell(file) == 500 * 1024);
+        fclose(file);
+
+        remove(path_tmp);
+
+        /* Switch to just one MPI rank of a multi-rank problem */
+        gconfig->nprocs = 2;
+        gconfig->mpi_rank = 1;
+    }
+
+    /* Restore the global config */
+    strcpy(gconfig->file_shared_path, path_storage);
+    strncpy(gconfig->hostname, host_storage, sizeof(gconfig->hostname));
+    gconfig->nprocs = 1;
+    gconfig->mpi_rank = 0;
+}
+
+static void test_write_specified_files_underspecified() {
+
+    /* Const cast, so we can manipulate the global config and make it look like we have multiple procs. */
+    GlobalConfig* gconfig = (GlobalConfig*)global_config_instance();
+    KernelFunctor* kernel;
+    JSON* json;
+
+    /* Switch to just one MPI rank of a multi-rank problem */
+    gconfig->nprocs = 3;
+    gconfig->mpi_rank = 1;
+
+    reset_global_distribute();
+
+    /* Initialise a kernel to do some writing.
+     * n.b. Insufficient files specified --> error initting kernel */
+
+    json = json_from_string("{\"name\": \"file-write\", \"kb_write\": 1000, "
+                            "\"n_write\": 4, \"mmap\": false, \"n_files\": 2, "
+                            "\"files\": [\"kronos-test-basedir/file1\", \"kronos-test-basedir/file2\"]}");
+    assert(json);
+
+    kernel = kernel_factory(json);
+    assert(!kernel);
+
+    free_json(json);
+
+    /* And reset configuration */
+    gconfig->nprocs = 1;
+    gconfig->mpi_rank = 0;
+}
+
 /* ------------------------------------------------------------------------------------------------------------------ */
 
 int main() {
@@ -298,6 +416,8 @@ int main() {
     test_write_filename();
     test_write_kernel_init();
     test_write_file();
+    test_write_specified_files();
+    test_write_specified_files_underspecified();
 
     clean_global_config();
     return 0;

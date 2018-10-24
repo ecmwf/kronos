@@ -1,4 +1,4 @@
-# (C) Copyright 1996-2017 ECMWF.
+# (C) Copyright 1996-2018 ECMWF.
 # 
 # This software is licensed under the terms of the Apache Licence Version 2.0
 # which can be obtained at http://www.apache.org/licenses/LICENSE-2.0. 
@@ -68,7 +68,16 @@ kresults_stats_info = OrderedDict((
                         "to_sum": ["count", "elapsed", "bytes"],
                         "def_rate": ["bytes", "elapsed"],
                         "per_process": ["bytes", "count"]
-                        })
+                        }),
+
+    ("file-flush", {"conv": 1.0,
+                    "label_sum": "#flushes",
+                    "label_rate": "[flushes/sec]",
+                    "label_metric": "count",
+                    "to_sum": ["count", "elapsed"],
+                    "def_rate": ["count", "elapsed"],
+                    "per_process": []
+                    }),
 ))
 
 

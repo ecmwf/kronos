@@ -1,4 +1,4 @@
-# (C) Copyright 1996-2017 ECMWF.
+# (C) Copyright 1996-2018 ECMWF.
 # 
 # This software is licensed under the terms of the Apache Licence Version 2.0
 # which can be obtained at http://www.apache.org/licenses/LICENSE-2.0. 
@@ -19,8 +19,6 @@ class EventSchema(object):
         """
         Obtain the json schema for a kronos event
         """
-
-        print "read schema!!!!!!"
 
         with open(cls.schema_json, 'r') as fschema:
             return json.load(fschema)

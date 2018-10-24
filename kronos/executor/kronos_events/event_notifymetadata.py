@@ -8,13 +8,13 @@
 from kronos.executor.kronos_events.event_base import EventBase
 
 
-class EventMetadataChange(EventBase):
+class EventNotifyMetadata(EventBase):
     """
-    An event that communicates a metadata change
+    An event that communicates a metadata notification
     """
 
     def __init__(self, event_json, validate_event=False):
-        super(EventMetadataChange, self).__init__(event_json, validate_event=validate_event)
+        super(EventNotifyMetadata, self).__init__(event_json, validate_event=validate_event)
 
     def get_hashed(self):
         """
@@ -39,7 +39,7 @@ class EventMetadataChange(EventBase):
 
     def __eq__(self, other):
         """
-        Check for equality of metadata change events
+        Check for equality of metadata notification  events
         :param other:
         :return:
         """

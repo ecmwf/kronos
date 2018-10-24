@@ -31,6 +31,7 @@ typedef struct KernelFunctor {
     struct KernelFunctor* next;
 
     int (*execute)(const void* data);
+    void (*free_data)(void* data);
 
     void* data;
 
@@ -54,6 +55,7 @@ int execute_kernel_list(const KernelFunctor* kernels);
  * the same nodes ending up with more reads and more writes, for example.
  */
 long global_distribute_work(long nelems);
+long global_distribute_work_element(long nelems, long* first_element);
 
 /* For use in the test suite */
 void reset_global_distribute();

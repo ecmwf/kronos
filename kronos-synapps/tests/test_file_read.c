@@ -34,55 +34,83 @@
 static void test_global_distribute() {
 
     GlobalConfig* gconfig = (GlobalConfig*)global_config_instance();
+    long first_elem;
 
     gconfig->nprocs = 3;
     gconfig->mpi_rank = 0;
 
     reset_global_distribute();
-    assert(global_distribute_work(8) == 3);
-    assert(global_distribute_work(8) == 3);
-    assert(global_distribute_work(8) == 2);
-    assert(global_distribute_work(8) == 3);
-    assert(global_distribute_work(8) == 3);
-    assert(global_distribute_work(8) == 2);
+    assert(global_distribute_work_element(8, &first_elem) == 3);
+    assert(first_elem == 0);
+    assert(global_distribute_work_element(8, &first_elem) == 3);
+    assert(first_elem == 0);
+    assert(global_distribute_work_element(8, &first_elem) == 2);
+    assert(first_elem == 0);
+    assert(global_distribute_work_element(8, &first_elem) == 3);
+    assert(first_elem == 0);
+    assert(global_distribute_work_element(8, &first_elem) == 3);
+    assert(first_elem == 0);
+    assert(global_distribute_work_element(8, &first_elem) == 2);
+    assert(first_elem == 0);
 
     gconfig->nprocs = 3;
     gconfig->mpi_rank = 1;
 
     reset_global_distribute();
-    assert(global_distribute_work(8) == 3);
-    assert(global_distribute_work(8) == 2);
-    assert(global_distribute_work(8) == 3);
-    assert(global_distribute_work(8) == 3);
-    assert(global_distribute_work(8) == 2);
-    assert(global_distribute_work(8) == 3);
+    assert(global_distribute_work_element(8, &first_elem) == 3);
+    assert(first_elem == 3);
+    assert(global_distribute_work_element(8, &first_elem) == 2);
+    assert(first_elem == 3);
+    assert(global_distribute_work_element(8, &first_elem) == 3);
+    assert(first_elem == 2);
+    assert(global_distribute_work_element(8, &first_elem) == 3);
+    assert(first_elem == 3);
+    assert(global_distribute_work_element(8, &first_elem) == 2);
+    assert(first_elem == 3);
+    assert(global_distribute_work_element(8, &first_elem) == 3);
+    assert(first_elem == 2);
 
     gconfig->nprocs = 3;
     gconfig->mpi_rank = 2;
 
     reset_global_distribute();
-    assert(global_distribute_work(8) == 2);
-    assert(global_distribute_work(8) == 3);
-    assert(global_distribute_work(8) == 3);
-    assert(global_distribute_work(8) == 2);
-    assert(global_distribute_work(8) == 3);
-    assert(global_distribute_work(8) == 3);
+    assert(global_distribute_work_element(8, &first_elem) == 2);
+    assert(first_elem == 6);
+    assert(global_distribute_work_element(8, &first_elem) == 3);
+    assert(first_elem == 5);
+    assert(global_distribute_work_element(8, &first_elem) == 3);
+    assert(first_elem == 5);
+    assert(global_distribute_work_element(8, &first_elem) == 2);
+    assert(first_elem == 6);
+    assert(global_distribute_work_element(8, &first_elem) == 3);
+    assert(first_elem == 5);
+    assert(global_distribute_work_element(8, &first_elem) == 3);
+    assert(first_elem == 5);
 
     gconfig->nprocs = 3;
     gconfig->mpi_rank = 0;
 
     reset_global_distribute();
-    assert(global_distribute_work(6) == 2);
-    assert(global_distribute_work(6) == 2);
-    assert(global_distribute_work(6) == 2);
+    assert(global_distribute_work_element(6, &first_elem) == 2);
+    assert(first_elem == 0);
+    assert(global_distribute_work_element(6, &first_elem) == 2);
+    assert(first_elem == 0);
+    assert(global_distribute_work_element(6, &first_elem) == 2);
+    assert(first_elem == 0);
     gconfig->mpi_rank = 1;
-    assert(global_distribute_work(6) == 2);
-    assert(global_distribute_work(6) == 2);
-    assert(global_distribute_work(6) == 2);
+    assert(global_distribute_work_element(6, &first_elem) == 2);
+    assert(first_elem == 2);
+    assert(global_distribute_work_element(6, &first_elem) == 2);
+    assert(first_elem == 2);
+    assert(global_distribute_work_element(6, &first_elem) == 2);
+    assert(first_elem == 2);
     gconfig->mpi_rank = 2;
-    assert(global_distribute_work(6) == 2);
-    assert(global_distribute_work(6) == 2);
-    assert(global_distribute_work(6) == 2);
+    assert(global_distribute_work_element(6, &first_elem) == 2);
+    assert(first_elem == 4);
+    assert(global_distribute_work_element(6, &first_elem) == 2);
+    assert(first_elem == 4);
+    assert(global_distribute_work_element(6, &first_elem) == 2);
+    assert(first_elem == 4);
 
     /* Safely restore the global config */
 
@@ -125,6 +153,7 @@ static void test_read_params_too_small() {
 
     config.reads = 1;
     config.kilobytes = 1;
+    config.file_list = 0;
 
     params = get_read_params(&config);
 

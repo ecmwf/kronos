@@ -1,4 +1,4 @@
-# (C) Copyright 1996-2017 ECMWF.
+# (C) Copyright 1996-2018 ECMWF.
 # 
 # This software is licensed under the terms of the Apache Licence Version 2.0
 # which can be obtained at http://www.apache.org/licenses/LICENSE-2.0. 
@@ -102,16 +102,26 @@ def calc_histogram(values, n_bins):
 def print_formatted_class_stats(class_name, per_class_job_stats):
 
     # Show summary per class
-    _fl = 18
+    _fl = 25
     n_fields = 3
 
     ordered_keys = [
-        "read",
-        "write",
-        "mpi-collective",
-        "mpi-pairwise",
-        "cpu"
+        ("read", "file-read"),
+        ("write", "file-write"),
+        ("file-flush", "file-flush"),
+        ("mpi-collective", "mpi-collective"),
+        ("mpi-pairwise", "mpi-pairwise"),
+        ("cpu", "flops"),
     ]
+
+    keys_units = {
+        "read": "[GiB]",
+        "write": "[GiB]",
+        "mpi-collective": "[GiB]",
+        "mpi-pairwise": "[GiB]",
+        "cpu": "  [G]",
+        "file-flush": "  [-]"
+    }
 
     # get the stats for this class (if present..)
     class_stats = per_class_job_stats.get(class_name)
@@ -120,11 +130,11 @@ def print_formatted_class_stats(class_name, per_class_job_stats):
 
         # Header
         print "{}".format("-" * (_fl + 1) * n_fields)
-        print "{:<{l}s}|{:^{l}s}|{:^{l}s}|".format("Name", "Total [G/GiB]", "Total Time", l=_fl)
+        print "{:<{l}s}|{:^{l}s}|{:^{l}s}|".format("Name", "Total", "Total Time", l=_fl)
         print "{}".format("-" * (_fl + 1) * n_fields)
 
         # Print the relevant metrics for each stats class
-        for k in ordered_keys:
+        for k, name in ordered_keys:
 
             if k in class_stats.keys():
                 v = class_stats[k]
@@ -135,7 +145,13 @@ def print_formatted_class_stats(class_name, per_class_job_stats):
                 conv_fact = stats_metric_info["conv"]
                 elaps_time = v["elapsed"]
 
-                print "{:<{l}s}|{:>{l}.2f}|{:>{l}.2f}|".format(k, counter_to_print * conv_fact, elaps_time, l=_fl)
+                print "{:<{l}s}|{:>{lmu}.2f} {}|{:>{lmfour}.2f} [s]|".format(name,
+                                                                             counter_to_print * conv_fact,
+                                                                             keys_units[k],
+                                                                             elaps_time,
+                                                                             l=_fl,
+                                                                             lmfour=_fl-4,
+                                                                             lmu=_fl-len(keys_units[k])-1)
 
         # h-line
         print "{}".format("-" * (_fl + 1) * n_fields)

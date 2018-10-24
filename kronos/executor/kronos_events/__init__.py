@@ -3,15 +3,21 @@ import logging
 
 from kronos.executor.kronos_events.event_complete import EventComplete
 from kronos.executor.kronos_events.event_metadatachange import EventMetadataChange
+from kronos.executor.kronos_events.event_notifymetadata import EventNotifyMetadata
 from kronos.executor.kronos_events.event_time import EventTime
 
 event_types = {
     "MetadataChange": EventMetadataChange,
+    "NotifyMetadata": EventNotifyMetadata,
     "Time": EventTime,
     "Complete": EventComplete
 }
 
 logger = logging.getLogger(__name__)
+
+
+class KronosEventException(Exception):
+    pass
 
 
 class EventFactory(object):
@@ -43,6 +49,10 @@ class EventFactory(object):
         :return:
         """
 
+        if not event_json.get("type"):
+            logger.warning("Event instantiation FAILED. 'type' key missing in {}".format(event_json))
+            return None
+
         return event_types[event_json["type"]](event_json, validate_event=validate_event)
 
     @staticmethod
@@ -55,12 +65,24 @@ class EventFactory(object):
         """
 
         if not len(event_string):
-            return
+            return None
 
-        # decode the string into a json..
+        # try to decode the string into a json..
         try:
             event_json = json.loads(event_string)
         except ValueError:
-            event_json = json.loads(event_string[:-1])
+            try:
+                event_json = json.loads(event_string[:-1])
+            except ValueError:
+                logger.warning("Event decoding FAILED => message discarded {}".format(event_string))
+                return None
+
+        if isinstance(event_json, unicode):
+            logger.warning("Event decoding FAILED => message discarded {}".format(event_string))
+            return None
+
+        if not event_json.get("type"):
+            logger.warning("Event parsing FAILED (missing 'type') => message discarded {}".format(event_json))
+            return None
 
         return event_types[event_json["type"]](event_json, validate_event=validate_event)

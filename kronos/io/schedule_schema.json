@@ -55,6 +55,10 @@
                                 "type": "number",
                                 "description": "job start delay (in sec) relative to the first job"
                             },
+                            "timed": {
+                                "type": "boolean",
+                                "description": "if true, job will be accounted for in the calculation of the total runtime"
+                            },
                             "num_procs": {
                                 "type": "number",
                                 "description": "number of processes that the job will run on"
@@ -292,6 +296,10 @@
                             "start_delay": {
                                 "type": "number",
                                 "description": "job start delay (in sec) relative to the first job"
+                            },
+                            "timed": {
+                                "type": "boolean",
+                                "description": "if true, job will be accounted for in the calculation of the total runtime"
                             },
                             "config_params": {
                                 "type": "object",

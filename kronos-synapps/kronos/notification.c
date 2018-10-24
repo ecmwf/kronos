@@ -170,6 +170,8 @@ bool send_final_notification() {
 
     long notification_attempts = 5;
     long notification_retry_delay = 5;
+    const char* kronos_token = "UNKNOWN";
+
     long l;
     long attempt;
     const char* p;
@@ -203,6 +205,15 @@ bool send_final_notification() {
         }
     }
 
+    /* kronos-simulation hash string */
+    p = getenv("KRONOS_TOKEN");
+    if (p) {
+        kronos_token = p;
+    } else {
+        fprintf(stderr, "KRONOS_TOKEN (%s). Using default: %s", p, kronos_token);
+    }
+
+
     /* Construct notification message */
     json_info = json_object_new();
     json_object_insert(json_info, "app", json_string_new("kronos-synapp"));
@@ -212,6 +223,7 @@ bool send_final_notification() {
     json = json_object_new();
     json_object_insert(json, "type", json_string_new("Complete"));
     json_object_insert(json, "info", json_info);
+    json_object_insert(json, "token", json_string_new(kronos_token));
 
     notification_size = write_json_string(json_buffer, sizeof(json_buffer), json);
     free_json(json);

@@ -1,4 +1,4 @@
-from kronos.executor.job_classes.hpc import HPCJob
+from kronos.executor.hpc import HPCJob
 
 #####################################################################################################
 # This file is an example of a job submit template needed to run the executor on a HPC system. This template is
@@ -28,7 +28,7 @@ from kronos.executor.job_classes.hpc import HPCJob
 #    the template below ("submit_script_template"). The rest of the template needs to be adapted to the host HPC system
 #    and scheduler as appropriate
 #
-#     experiment_id: "job-ID"
+#     job_name: "job-ID"
 #
 #     num_nodes: "Number of nodes requested from the system. The Executor requests a number of nodes that is
 #                 equal to N_processes (as specified in the KSchedule for each synthetic app) divided by the
@@ -49,6 +49,7 @@ from kronos.executor.job_classes.hpc import HPCJob
 #
 #     job_dir: "job output directory"
 #
+#
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # Variables to be manually set by the user
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -58,19 +59,19 @@ from kronos.executor.job_classes.hpc import HPCJob
 #
 #    submit_command: "The command used to submit jobs to the scheduler (e.g. "qsub" for PBS)"
 #
+#    launcher_command: "Command to begin the parallel part of the job (e.g. "aprun" for PBS on cray systems)"
+#
+#
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# Other Variables - ONLY RELEVANT IF SCHEDULER DEPENDENCIES ARE TO BE USED (not the default Kronos option)
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#
 #    depend_parameter: "The argument used to specify job dependencies to the scheduler on the command line.
 #                      (e.g. "-W depend=afterany:" for PBS)."
 #
 #    depend_separator = "separator used when constructing the job dependency list for submission to the
 #                       scheduler (e.g. for pbs use ":")"
 #
-#    launcher_command: "Command to begin the parallel part of the job (e.g. "aprun" for PBS on cray systems)"
-#
-#    cancel_file_head: "header of the "killjobs" bash script that Kronos automatically generates in the output folder"
-#
-#    cancel_file_line: "this is the list of job IDs that will be killed by the the killjobs script is invoked"
-#
-#                      - NB: the variable "sequence_id" with the list of job ID's is provided by Kronos
 #
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # Other Variables
@@ -86,8 +87,8 @@ from kronos.executor.job_classes.hpc import HPCJob
 
 
 job_template = """#!/bin/sh
-#PBS -N {experiment_id}
-#PBS -q {queue}
+#PBS -N {job_name}
+#PBS -q np
 #PBS -l EC_nodes={num_nodes}
 #PBS -l EC_total_tasks={num_procs}
 #PBS -l EC_threads_per_task=1
@@ -99,14 +100,15 @@ job_template = """#!/bin/sh
 export KRONOS_WRITE_DIR="{write_dir}"
 export KRONOS_READ_DIR="{read_dir}"
 export KRONOS_SHARED_DIR="{shared_dir}"
+export KRONOS_TOKEN="{simulation_token}"
 
 export LD_LIBRARY_PATH={coordinator_library_path}:${{LD_LIBRARY_PATH}}
 
 # Change to the original directory for submission
 cd {job_dir}
 
-# Export an EC experiment ID (to assist identifying the job in darshan logs)
-export EC_experiment_id="{experiment_id}"
+# Export an EC simulation ID (to assist identifying the job in darshan logs)
+export EC_simulation_id="{job_name}"
 
 {profiling_code}
 

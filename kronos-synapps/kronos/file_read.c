@@ -19,6 +19,7 @@
 #include <string.h>
 #include <unistd.h>
 #include <sys/mman.h>
+#include <sys/stat.h>
 #include <sys/types.h>
 
 #include <errno.h>
@@ -71,7 +72,9 @@ FileReadParamsInternal get_read_params(const FileReadConfig* config) {
 
     const GlobalConfig* global_conf = global_config_instance();
 
-    long total_size;
+    long total_size, max_read_size;
+    int i;
+    struct stat st;
     FileReadParamsInternal params;
 
     assert(config->reads > 0);
@@ -79,16 +82,41 @@ FileReadParamsInternal get_read_params(const FileReadConfig* config) {
     /* n.b. Convert kb to bytes */
     params.num_reads = global_distribute_work(config->reads);
     params.read_size = 1024 * config->kilobytes / config->reads;
+    params.file_sizes = 0;
 
     if (params.read_size < global_conf->file_read_size_min) {
         params.read_size = global_conf->file_read_size_min;
     }
 
-    if (params.read_size > global_conf->file_read_size_max) {
+    /* Check that all referenced files exist, and have appropriate sizes */
+
+    max_read_size = global_conf->file_read_size_max;
+
+    if (config->file_list) {
+
+        assert(config->nfiles > 0);
+        params.file_sizes = calloc(config->nfiles, sizeof(long));
+
+        for (i = 0; i < config->nfiles; i++) {
+            assert(config->file_list[i] != 0);
+            if (stat(config->file_list[i], &st) == -1) {
+                fprintf(stderr, "Could not get file size for %s in file-read (%d): %s\n", config->file_list[i], errno, strerror(errno));
+                free(params.file_sizes);
+                params.file_sizes = 0; /* Reports the error */
+                break;
+            }
+            params.file_sizes[i] = st.st_size;
+            if (st.st_size < max_read_size) max_read_size = st.st_size;
+        }
+    }
+
+    /* Ensure that all reads are small enough for the source files */
+
+    if (params.read_size > max_read_size) {
         total_size = params.num_reads * params.read_size;
 
-        params.num_reads = 1 + ((total_size - 1) / global_conf->file_read_size_max);
-        params.read_size = global_conf->file_read_size_max;
+        params.num_reads = 1 + ((total_size - 1) / max_read_size);
+        params.read_size = max_read_size;
     }
 
     return params;
@@ -196,18 +224,66 @@ static bool file_read_c_api(const char* file_path, long offset, long read_size, 
 
 }
 
+/*
+ * Select a file to read from at random.
+ */
+
+static long select_random_read_path(const FileReadConfig* config, const FileReadParamsInternal* params, char* file_path, long path_len, int* offset) {
+
+    const GlobalConfig* global_conf = global_config_instance();
+
+    int file_index;
+    long file_size;
+
+    /* Select a random file from those available, either in supplied list, or globally */
+
+    if (config->file_list) {
+
+        assert(config->nfiles > 0);
+        file_index = rand() % config->nfiles;
+        strncpy(file_path, config->file_list[file_index], path_len);
+        path_len = strlen(config->file_list[file_index]);
+
+        file_size = params->file_sizes[file_index];
+
+    } else {
+
+        /* Use the global read cache */
+
+        file_index = rand() % global_conf->file_read_multiplicity;
+        path_len = snprintf(file_path, PATH_MAX, "%s/read-cache-%d", global_conf->file_read_path, file_index);
+
+        file_size = global_conf->file_read_size_max;
+    }
+
+    /* Where in the file should we read from? */
+
+    assert(params->read_size <= file_size);
+    if (params->read_size == file_size) {
+        *offset = 0;
+    } else {
+        *offset = rand() % (file_size - params->read_size);
+    }
+
+    return path_len;
+}
+
 
 int execute_file_read(const void* data) {
 
     const FileReadConfig* config = data;
-    const GlobalConfig* global_conf = global_config_instance();
 
-    int count, file_index, written, error, offset;
+    int count, written, error, offset;
     bool success;
     char file_path[PATH_MAX];
     char * read_buffer;
 
     FileReadParamsInternal params = get_read_params(config);
+
+    if (config->file_list != 0 && params.file_sizes == 0) {
+        fprintf(stderr, "Error getting file information for specified file list in file-read\n");
+        return -1;
+    }
 
     TRACE3("Read %li files, %li bytes each.", params.num_reads, params.read_size);
 
@@ -218,19 +294,9 @@ int execute_file_read(const void* data) {
     error = 0;
     for (count = 0; count < params.num_reads; count++) {
 
-        /* Pick a random file to read from */
-        file_index = rand() % global_conf->file_read_multiplicity;
-
-        /* Pick a random offset to read from within the file
-         * but only if the read_size is smaller than max file read size
-         */
-        if(global_conf->file_read_size_max == params.read_size)
-            offset = 0;
-        else
-            offset = rand() % (global_conf->file_read_size_max - params.read_size);
-
+        written = select_random_read_path(config, &params, file_path, sizeof(file_path), &offset);
         success = false;
-        written = snprintf(file_path, PATH_MAX, "%s/read-cache-%d", global_conf->file_read_path, file_index);
+
         if (written > 0 && written < PATH_MAX) {
 
             TRACE4("Reading %ld bytes from file %s, offset %ld ...", params.read_size, file_path, offset);
@@ -258,21 +324,47 @@ int execute_file_read(const void* data) {
     log_time_series_add_chunk_data(reads_time_series(), params.num_reads);
     log_time_series_chunk();
 
+    if (params.file_sizes != 0) free(params.file_sizes);
     free(read_buffer);
 
     return error;
 }
 
 
+static void free_data_file_read(void* data) {
+
+    FileReadConfig* config = data;
+    int i;
+
+    /* Clean up the list of files */
+    if (config->file_list) {
+        assert(config->nfiles > 0);
+        for (i = 0; i < config->nfiles; i++) {
+            if (config->file_list[i]) free(config->file_list[i]);
+        }
+        free(config->file_list);
+    }
+
+    free(config);
+}
+
+
 KernelFunctor* init_file_read(const JSON* config_json) {
+
+    const GlobalConfig* global_conf = global_config_instance();
 
     FileReadConfig* config;
     KernelFunctor* functor;
+    const char* relative_path;
+    const JSON* files_list;
     bool success;
+    int i;
 
     TRACE();
 
     config = malloc(sizeof(FileReadConfig));
+    config->file_list = 0;
+    config->nfiles = 0;
 
     success = true;
 
@@ -307,13 +399,52 @@ KernelFunctor* init_file_read(const JSON* config_json) {
         success = false;
     }*/
 
+    /* Are we specifying explicitly the files to read from? */
+
+    files_list = json_object_get(config_json, "files");
+    if (files_list) {
+
+        if (!json_is_array(files_list)) {
+            fprintf(stderr, "Invalid files list specified for file-read kernel\n");
+            success = false;
+        }
+
+        if (success) {
+            config->nfiles = json_array_length(files_list);
+            if (config->nfiles < 1) {
+                fprintf(stderr, "At least one file is required for specifying read source in file-read\n");
+                success = false;
+            }
+        }
+
+        if (success) {
+
+            config->file_list = calloc(config->nfiles, sizeof(char*));
+
+            for (i = 0; i < config->nfiles; i++) {
+
+                if (json_as_string_ptr(json_array_element(files_list, i), &relative_path) != 0) {
+                    fprintf(stderr, "Invalid path specified in files field for file-read\n");
+                    success = false;
+                    break;
+                };
+
+                config->file_list[i] = malloc(PATH_MAX);
+                strcpy(config->file_list[i], global_conf->file_shared_path);
+                strcat(config->file_list[i], "/");
+                strcat(config->file_list[i], relative_path);
+            }
+        }
+    }
+
     if (success) {
         functor = malloc(sizeof(KernelFunctor));
         functor->next = NULL;
         functor->execute = &execute_file_read;
+        functor->free_data = &free_data_file_read;
         functor->data = config;
     } else {
-        free(config);
+        free_data_file_read(config);
         functor = NULL;
     }
 

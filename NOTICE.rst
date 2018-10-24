@@ -2,7 +2,7 @@
 NOTICE
 ======
 
-Copyright 1996-2017 ECMWF
+Copyright 1996-2018 ECMWF
 -------------------------
 
 This product is developed by the

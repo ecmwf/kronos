@@ -121,6 +121,7 @@ KernelFunctor* init_memory_kernel(const JSON* config_json) {
     functor = malloc(sizeof(KernelFunctor));
     functor->next = NULL;
     functor->execute = &execute_mem;
+    functor->free_data = NULL;
     functor->data = config;
 
     return functor;

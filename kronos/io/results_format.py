@@ -1,4 +1,4 @@
-# (C) Copyright 1996-2017 ECMWF.
+# (C) Copyright 1996-2018 ECMWF.
 #
 # This software is licensed under the terms of the Apache Licence Version 2.0
 # which can be obtained at http://www.apache.org/licenses/LICENSE-2.0.
@@ -76,7 +76,7 @@ class ResultsFormat(JSONIoFormat):
             "created": self.created,
             "uid": self.uid,
             "ranks": self.ranks,
-            "kronosVersion": "0.4.0",
+            "kronosVersion": "0.5.0",
             "kronosSHA1": "none"
         }
 

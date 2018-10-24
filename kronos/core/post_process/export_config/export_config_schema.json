@@ -2,23 +2,23 @@
   "$schema": "http://json-schema.org/draft-04/schema",
   "type": "object",
   "title": "Kronos post-processing configuration file format",
-  "description": "The post-processing configuration file format controls the post-processing of Kronos runs",
+  "description": "The post-processing configuration file format controls the post-processing of Kronos runs ",
   "additionalProperties": false,
   "properties": {
     "verbose": {
       "type": "boolean",
       "description": "Verbose flag"
     },
-    "experiment_list": {
+    "simulation_labels": {
       "type": "array",
       "description": "Tags of simulation list (used to label plots and/or tabular data)",
       "items": {
         "type": "string"
       }
     },
-    "experiment_paths": {
+    "simulation_paths": {
       "type": "array",
-      "description": "Paths of simulations (path containing the job-<jobID> sub-folders. They corresponds to the experiment_list tags)",
+      "description": "Paths of simulations (path containing the job-<jobID> sub-folders. They corresponds to the simulation_list tags)",
       "items": {
         "type": "string"
       }
@@ -29,11 +29,11 @@
     },
     "n_procs_node": {
       "type": "integer",
-      "description": "N procs per node used to run the cases (TODO: this info needs to be removed..)"
+      "description": "N procs per node used to run the cases (this is needed to plot the number of nodes used by the jobs)"
     },
     "job_classes": {
       "type": "object",
-      "description": "List of classes that jobs will be grouped into for the post-processing"
+      "description": "List of classes that jobs will be grouped into for the post-processing (job classes are defined by regex expressions applicable to job \"workload names\")"
     },
     "exports": {
       "type": "array",

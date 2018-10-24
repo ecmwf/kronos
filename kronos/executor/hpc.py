@@ -3,7 +3,7 @@ import os
 import stat
 import subprocess
 
-from kronos.executor.job_classes.base_job import BaseJob
+from kronos.executor.base_job import BaseJob
 
 
 class HPCJob(BaseJob):
@@ -38,19 +38,19 @@ class HPCJob(BaseJob):
             'shared_dir': self.executor.job_dir_shared,
             'procs_per_node': min(self.executor.procs_per_node, nprocs),
             'coordinator_binary': self.executor.coordinator_binary,
-            'coordinator_library_path': os.path.join( os.path.dirname(self.executor.coordinator_binary),"../lib"),     
-            'queue': 'np',
+            'coordinator_library_path': os.path.join( os.path.dirname(self.executor.coordinator_binary),"../lib"),
             'num_procs': nprocs,
             'num_nodes': nnodes,
             'num_hyperthreads': 1,
             'input_file': self.input_file,
             'job_dir': self.path,
             'profiling_code': "",
-            'experiment_id': 'synthApp_{}_{}_{}'.format(nprocs, nnodes, self.id),
+            'job_name': 'synthApp_{}_{}_{}'.format(nprocs, nnodes, self.id),
             'job_num': self.id,
             'job_output_file': os.path.join(self.path, "output"),
             'job_error_file': os.path.join(self.path, "error"),
-            'launcher_command': self.launcher_command
+            'launcher_command': self.launcher_command,
+            'simulation_token': self.executor.simulation_token
         }
 
         # Enable IPM logging if desired

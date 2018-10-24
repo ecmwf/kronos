@@ -1,4 +1,4 @@
-# (C) Copyright 1996-2017 ECMWF.
+# (C) Copyright 1996-2018 ECMWF.
 # 
 # This software is licensed under the terms of the Apache Licence Version 2.0
 # which can be obtained at http://www.apache.org/licenses/LICENSE-2.0. 
@@ -40,8 +40,8 @@ class EventBase(object):
         raise NotImplementedError
 
     def __unicode__(self):
-        return "KRONOS-EVENT: type:{}; job:{}".format(self.__message_json["type"],
-                                                      self.__message_json["info"].get("job"))
+        return "KRONOS-EVENT: type: {}; job: {}".format(self.__message_json["type"],
+                                                        self.__message_json["info"].get("job"))
 
     def __str__(self):
         return unicode(self).encode('utf-8')

@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-# (C) Copyright 1996-2017 ECMWF.
+# (C) Copyright 1996-2018 ECMWF.
 #
 # This software is licensed under the terms of the Apache Licence Version 2.0
 # which can be obtained at http://www.apache.org/licenses/LICENSE-2.0.
@@ -55,7 +55,7 @@ if __name__ == "__main__":
 
     # Labelled list of simulations
     labelled_kronos_sims = [KResultsData.read_from_sim_paths(path, tag, n_procs_node=config.n_procs_node)
-                            for tag, path in zip(config.experiment_list, config.experiment_paths)]
+                            for tag, path in zip(config.simulation_labels, config.simulation_paths)]
 
     # Pre-calculate data ready for export
     sim_set = KResultsDataSet(labelled_kronos_sims)

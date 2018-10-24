@@ -1,15 +1,20 @@
-# (C) Copyright 1996-2017 ECMWF.
+# (C) Copyright 1996-2018 ECMWF.
 # 
 # This software is licensed under the terms of the Apache Licence Version 2.0
 # which can be obtained at http://www.apache.org/licenses/LICENSE-2.0. 
 # In applying this licence, ECMWF does not waive the privileges and immunities 
 # granted to it by virtue of its status as an intergovernmental organisation nor
 # does it submit to any jurisdiction.
+import logging
 import socket
 import multiprocessing
 import Queue
+from datetime import datetime
 
 from kronos.executor.kronos_events import EventFactory
+from kronos.shared_tools.shared_utils import datetime2epochs
+
+logger = logging.getLogger(__name__)
 
 
 class EventDispatcher(object):
@@ -20,7 +25,7 @@ class EventDispatcher(object):
 
     buffer_size = 4096
 
-    def __init__(self, queue, server_host='localhost', server_port=7363):
+    def __init__(self, queue, server_host='localhost', server_port=7363, sim_token=None):
 
         """
         Setup the socket and bind it to the appropriate port
@@ -31,16 +36,21 @@ class EventDispatcher(object):
         self.server_port = server_port
         self.server_address = (server_host, server_port)
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        print 'starting up on %s port %s' % self.server_address
 
         # bind it to port and set it to listen status
         self.sock.bind(self.server_address)
         self.sock.listen(1024)
         self.terminate = False
 
+        # Unique simulation hash
+        self.sim_token = sim_token
+
         # listener process
         self.listener_queue = queue
         self.listener_proc = multiprocessing.Process(target=self._listen_for_messages)
+
+        # log of all events with timings taken upon msg reception
+        self.timed_events = []
 
     def __unicode__(self):
         return "KRONOS-DISPATCHER: host:{}, port:{} ".format(self.server_host, self.server_port)
@@ -76,17 +86,14 @@ class EventDispatcher(object):
                         msg += data
                     else:
 
-                        # with open("dispatched_events.log", "a") as myfile:
-                        #     myfile.write("received msg: {}\n".format(msg))
-
-                        # store event in the queue (and wait until there is space in the queue)
-                        self.listener_queue.put(msg, block=True)
+                        # store event and timestamp in the queue (and wait until there is space in the queue)
+                        self.listener_queue.put((msg, datetime2epochs(datetime.now())), block=True)
 
                         break
 
             finally:
 
-                # # ..and close the connection
+                # ..and close the connection
                 connection.close()
 
     def get_next_message(self):
@@ -99,19 +106,41 @@ class EventDispatcher(object):
         :return:
         """
 
-        # _batch = [self.listener_queue.get(block=True)]
         _batch = []
 
-        queue_empty_reached=False
+        queue_empty_reached = False
         try:
             while len(_batch) < batch_size:
 
-                msg = self.listener_queue.get(block=False)
+                # get msg and timestamp from the queue
+                (msg, msg_timestamp) = self.listener_queue.get(block=False)
+
                 kronos_event = EventFactory.from_string(msg, validate_event=False)
-                _batch.append(kronos_event)
+
+                if kronos_event:
+
+                    # Dispatch only legitimate messages (i.e. TOKEN present and correct)
+                    if hasattr(kronos_event, "token"):
+                        if str(kronos_event.token) == str(self.sim_token):
+                            _batch.append(kronos_event)
+                            self.timed_events.append((kronos_event, msg_timestamp))
+                        else:
+                            logger.warning("INCORRECT TOKEN {} => message discarded: {}".format(kronos_event.token, msg))
+                    else:
+
+                        # one last attempt to find the token
+                        # TODO: ideally we would keep the check of the token at the top level only..
+                        if hasattr(kronos_event, "info"):
+                            if kronos_event.info.get("token", "") == str(self.sim_token):
+                                _batch.append(kronos_event)
+                                self.timed_events.append((kronos_event, msg_timestamp))
+                            else:
+                                logger.warning("TOKEN NOT found => message discarded: {}".format(msg))
+                        else:
+                            logger.warning("TOKEN NOT found => message discarded: {}".format(msg))
 
         except Queue.Empty:
-            queue_empty_reached=True
+            queue_empty_reached = True
             pass
 
         return queue_empty_reached, _batch

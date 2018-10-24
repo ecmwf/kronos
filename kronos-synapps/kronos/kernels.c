@@ -160,7 +160,11 @@ void free_kernel(KernelFunctor* kernel) {
     assert(kernel != NULL);
     assert(kernel->data != NULL);
 
-    free(kernel->data);
+    if (kernel->free_data) {
+        kernel->free_data(kernel->data);
+    } else {
+        free(kernel->data);
+    }
     free(kernel);
 }
 
@@ -171,9 +175,17 @@ static long work_accumulator = 0;
 
 
 long global_distribute_work(long nelems) {
+    return global_distribute_work_element(nelems, 0);
+}
+
+long global_distribute_work_element(long nelems, long* first_element) {
+
+    /* if first_element is not null, it is set to the first element that this
+     * node should consider. i.e. we have been allocated elements:
+     * first element, first_element+1, ..., first_element+nelems-1 */
 
     const GlobalConfig* global_conf = global_config_instance();
-    long accumulator_new, nelems_local;
+    long accumulator_new, nelems_local, first;
 
     assert(nelems > 0);
     assert(global_conf->nprocs > 0);
@@ -184,12 +196,35 @@ long global_distribute_work(long nelems) {
     accumulator_new = (work_accumulator + nelems) % global_conf->nprocs;
 
     if (accumulator_new > work_accumulator) {
-        if (global_conf->mpi_rank >= work_accumulator && global_conf->mpi_rank < accumulator_new)
+        if (global_conf->mpi_rank < work_accumulator) {
+            first = global_conf->mpi_rank * nelems_local;
+        } else if (global_conf->mpi_rank >= accumulator_new) {
+            first = ((work_accumulator * nelems_local) +
+                     ((accumulator_new - work_accumulator) * (nelems_local + 1)) +
+                     ((global_conf->mpi_rank - accumulator_new) * nelems_local));
+        } else {
+            first = ((work_accumulator * nelems_local) +
+                     ((global_conf->mpi_rank - work_accumulator) * (nelems_local + 1)));
             nelems_local++;
+        }
     } else if (accumulator_new < work_accumulator) {
-        if (global_conf->mpi_rank >= work_accumulator || global_conf->mpi_rank < accumulator_new)
+        if (global_conf->mpi_rank >= work_accumulator) {
+            first = ((accumulator_new * (nelems_local+1)) +
+                     ((work_accumulator - accumulator_new) * nelems_local) +
+                     ((global_conf->mpi_rank - work_accumulator) * (nelems_local+1)));
             nelems_local++;
+        } else if (global_conf->mpi_rank < accumulator_new) {
+            first = global_conf->mpi_rank * (nelems_local+1);
+            nelems_local++;
+        } else {
+            first = ((accumulator_new * (nelems_local+1)) +
+                     ((global_conf->mpi_rank - accumulator_new) * nelems_local));
+        }
+    } else {
+        first = global_conf->mpi_rank * nelems_local;
     }
+
+    if (first_element) *first_element = first;
 
     work_accumulator = accumulator_new;
 

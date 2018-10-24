@@ -1,4 +1,4 @@
-# (C) Copyright 1996-2017 ECMWF.
+# (C) Copyright 1996-2018 ECMWF.
 # 
 # This software is licensed under the terms of the Apache Licence Version 2.0
 # which can be obtained at http://www.apache.org/licenses/LICENSE-2.0. 
@@ -222,7 +222,7 @@ def read_accounting_logs(filename_in):
     #  '"stdin"',
     #  '"stdout"',
     #  '"stderr"',
-    #  '"experiment_id"']
+    #  '"job_name"']
 
     with open(filename_in, 'rb') as csvfile:
 

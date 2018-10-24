@@ -1,4 +1,4 @@
-# (C) Copyright 1996-2017 ECMWF.
+# (C) Copyright 1996-2018 ECMWF.
 # 
 # This software is licensed under the terms of the Apache Licence Version 2.0
 # which can be obtained at http://www.apache.org/licenses/LICENSE-2.0. 
@@ -21,13 +21,16 @@ class Manager(object):
      - It decides if a job is eligible for submission
     """
 
-    def __init__(self, server_host='localhost', server_port=7363):
+    def __init__(self, server_host='localhost', server_port=7363, sim_token=None):
 
         # queue to communicate events with the listener..
         queue = multiprocessing.Queue()
 
         # init the event dispatcher and manager
-        self.dispatcher = EventDispatcher(queue, server_host=server_host, server_port=server_port)
+        self.dispatcher = EventDispatcher(queue,
+                                          server_host=server_host,
+                                          server_port=server_port,
+                                          sim_token=sim_token)
 
         # uses an event dispatcher underneath
         self.dispatcher.start()
@@ -126,4 +129,11 @@ class Manager(object):
         :return:
         """
         self.dispatcher.stop()
+
+    def get_timed_events(self):
+        """
+        Returns a list of timed events (times taken at msg reception)
+        :return:
+        """
+        return self.dispatcher.timed_events
 

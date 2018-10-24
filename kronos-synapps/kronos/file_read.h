@@ -31,6 +31,11 @@ typedef struct FileReadConfig {
     bool o_direct;
     bool invalidate;
 
+    /* Files to read from (absolute filenames). Null if we use the global files. */
+
+    long nfiles;
+    char** file_list;
+
 } FileReadConfig;
 
 KernelFunctor* init_file_read(const JSON* config_json);
@@ -45,6 +50,10 @@ typedef struct FileReadParamsInternal {
     long read_size;
 
     long num_reads;
+
+    /* Only used with file list as above */
+
+    long* file_sizes;
 
 } FileReadParamsInternal;
 

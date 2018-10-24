@@ -1,4 +1,4 @@
-# (C) Copyright 1996-2017 ECMWF.
+# (C) Copyright 1996-2018 ECMWF.
 # 
 # This software is licensed under the terms of the Apache Licence Version 2.0
 # which can be obtained at http://www.apache.org/licenses/LICENSE-2.0. 
@@ -52,6 +52,8 @@ class KernelWorkDistribution(object):
         "kb_pairwise": ["process", "call"],
         "n_collective": ["process"],
         "kb_collective": ["process", "call"],
+
+        "kb_mem": ["process"],
     }
 
     def __init__(self, jobs_data):

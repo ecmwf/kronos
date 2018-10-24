@@ -9,6 +9,8 @@ import socket
 import datetime
 import logging
 
+import uuid
+
 from shutil import copy2
 
 sys.path.append(os.path.dirname(os.path.dirname(__file__)))
@@ -22,16 +24,19 @@ from kronos.executor.subprocess_callback import SubprocessManager
 logger = logging.getLogger("kronos.executor")
 logger.setLevel(logging.INFO)
 
+msg_format = '%(asctime)s; %(name)s; %(levelname)s; %(message)s'
+# msg_format = '%(created)f %(message)s'
+
 # to file
 fh = logging.FileHandler('kronos-executor.log', mode='w')
 fh.setLevel(logging.DEBUG)
-fh.setFormatter(logging.Formatter('%(asctime)s; %(name)s; %(levelname)s; %(message)s'))
+fh.setFormatter(logging.Formatter(msg_format))
 logger.addHandler(fh)
 
 # to stdout
 ch = logging.StreamHandler()
 ch.setLevel(logging.INFO)
-ch.setFormatter(logging.Formatter('%(asctime)s; %(name)s; %(levelname)s; %(message)s'))
+ch.setFormatter(logging.Formatter(msg_format))
 logger.addHandler(ch)
 
 
@@ -82,15 +87,23 @@ class Executor(object):
             if k not in self.available_parameters:
                 raise self.InvalidParameter("Unknown parameter ({}) supplied".format(k))
 
-        logger.info("Config: {}".format(config))
         self.config = global_config.copy()
         self.config.update(config)
+
+        # A token that uniquely identifies the simulation
+        self.simulation_token = uuid.uuid4()
+
+        logger.info("Config: {}".format(config))
+        logger.info("Simulation Token: {}".format(self.simulation_token))
 
         self.schedule = schedule
 
         # job dir
         self.local_tmpdir = config.get("local_tmpdir", None)
         self.job_dir = config.get("job_dir", os.path.join(os.getcwd(), "run"))
+
+        # its own dir
+        self.executor_file_dir = os.path.dirname(__file__)
 
         logger.info("Job executing dir: {}".format(self.job_dir))
 
@@ -254,12 +267,29 @@ class Executor(object):
             job_dir = os.path.join(self.job_dir, "job-{}".format(job_num))
             job_config['job_num'] = job_num
 
-            job_class_module_file = os.path.join(
-                os.path.dirname(__file__),
-                "job_classes/{}.py".format(job_config.get("job_class", self.config.get("job_class", "trivial_job")))
-            )
+            # get job template name (either from the job config or from the global config, if present)
+            job_template_name = job_config.get("job_class", self.config.get("job_class", "trivial_job"))
+            job_classes_dir = os.path.join(os.path.dirname(__file__), "job_classes")
 
+            # now search for the template file in the cwd first..
+            if os.path.isfile( "{}.py".format(os.path.join(os.getcwd(), job_template_name)) ):
+
+                job_class_module_file = "{}.py".format(os.path.join(os.getcwd(), job_template_name))
+
+            elif os.path.isfile( os.path.join(job_classes_dir, "{}.py".format(job_template_name)) ):
+
+                job_class_module_file = os.path.join(os.path.dirname(__file__), "job_classes/{}.py".format(job_template_name))
+
+            else:
+
+                logger.error("template file {}.py not found neither in {} nor in {}".format(job_template_name,
+                                                                                            os.getcwd(),
+                                                                                            job_classes_dir))
+                raise IOError
+
+            # now load the module
             job_class_module = imp.load_source('job', job_class_module_file)
+
             job_class = job_class_module.Job
 
             if self._file_read_multiplicity:

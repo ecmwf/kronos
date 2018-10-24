@@ -2,7 +2,7 @@ import os
 import stat
 import subprocess
 
-from kronos.executor.job_classes.base_job import BaseJob
+from kronos.executor.base_job import BaseJob
 
 
 class UserAppJob(BaseJob):
@@ -35,7 +35,8 @@ class UserAppJob(BaseJob):
         """
 
         if not self.needed_config_params:
-            raise KeyError("No parameters to be passed to the job submit template have been defined!")
+            raise KeyError("No parameters to be passed to the job submit "
+                           "template have been defined!")
 
         for config_param in self.needed_config_params:
             assert config_param in self.job_config["config_params"]
@@ -55,7 +56,7 @@ class UserAppJob(BaseJob):
 
         # update the template with the config parameters
         script_format = {
-            'job_name': 'kronos-app-{}'.format(self.id),
+            'job_name': 'kron-{}'.format(self.id),
             'job_num': self.id,
             'job_output_file': os.path.join(self.path, "output"),
             'job_error_file': os.path.join(self.path, "error"),
@@ -63,7 +64,8 @@ class UserAppJob(BaseJob):
             'write_dir': self.path,
             'read_dir': self.executor.read_cache_path,
             'shared_dir': self.executor.job_dir_shared,
-            'input_file': self.input_file
+            'input_file': self.input_file,
+            'simulation_token': self.executor.simulation_token
         }
 
         # place-holder for user-defined generation of parts of the submit script..

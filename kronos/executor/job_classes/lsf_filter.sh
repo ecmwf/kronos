@@ -1,4 +1,11 @@
 #!/bin/bash
+
+# Example of "filter" file to parse the output of the LSF scheduler upon
+# job submission and extract the job ID only.
+#
+# NOTE: This filter is only needed when the job dependencies are delegated
+# to the scheduler (it is NOT needed when Kronos events mechanism is used).
+
 file=${@: -1}
 if [ $# -gt 1 ] ; then
     cond=$2

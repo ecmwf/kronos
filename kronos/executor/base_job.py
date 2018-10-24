@@ -18,6 +18,9 @@ class BaseJob(object):
 
         self.depends = self.build_dependencies()
 
+        # True if this job is accounted for simulation runtime
+        self.is_job_timed = job_config.get('timed', False)
+
     @property
     def id(self):
         return self._job_num
@@ -28,9 +31,15 @@ class BaseJob(object):
         :return:
         """
 
+        # -------------------------------------------------------------------------
         # NOTE: dependencies can be either:
-        #  - integers (i.e. as used by the executor_schedule and interpreted as job-id to be completed)
-        #  - dictionaries (i.e. as used by the executor_events and used to describe event-based dependencies)
+        #
+        #  - integers (i.e. as used by the executor_schedule and interpreted
+        #    as job-id to be completed)
+        #
+        #  - dictionaries (i.e. as used by the executor_events and used to describe
+        #    event-based dependencies)
+        # -------------------------------------------------------------------------
 
         _deps = []
         if self.job_config.get('depends', []):
@@ -55,8 +64,9 @@ class BaseJob(object):
 
         self.generate_internal()
 
-        # Put the json (to be passed to the synthetic app) inside the directory. This runs after generate so that
-        # (in principle) the derived class can modify the input during the generate_internal call.
+        # Put the json (to be passed to the synthetic app) inside the directory. This runs after
+        # generate so that (in principle) the derived class can modify the input during the
+        # generate_internal call.
         with open(self.input_file, 'w') as f:
             json.dump(self.job_config, f)
 

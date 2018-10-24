@@ -11,6 +11,14 @@ Subpackages
 Submodules
 ----------
 
+kronos.io.format_data_handlers.converter_kprofile_kresults module
+-----------------------------------------------------------------
+
+.. automodule:: kronos.io.format_data_handlers.converter_kprofile_kresults
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 kronos.io.format_data_handlers.kresults_data module
 ---------------------------------------------------
 
