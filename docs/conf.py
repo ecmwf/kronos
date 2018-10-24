@@ -18,7 +18,6 @@
 #
 # import os
 # import sys
-# sys.path.insert(0, u'/home/ma/maab/git/kronos-core')
 
 
 # -- General configuration ------------------------------------------------
