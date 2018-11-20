@@ -9,12 +9,8 @@
 
 """
 
-============================================================================
-       **DEVELOPMENT TOOL** - USAGE OF THIS TOOL IS UNSUPPORTED
-============================================================================
-
 Utility to generate an "approximated" kresults file from a kprofile
-(this can eb used by kronos to build an "approximated" kresults file from
+(this can be used by kronos to build an "approximated" kresults file from
 generic applications)
 
 """
@@ -22,7 +18,6 @@ generic applications)
 import argparse
 import sys
 
-# from kronos.io.definitions import kresults_ts_names_map
 from kronos.io.format_data_handlers.converter_kprofile_kresults import ConverterKprofileKresults
 from kronos.io.profile_format import ProfileFormat
 
