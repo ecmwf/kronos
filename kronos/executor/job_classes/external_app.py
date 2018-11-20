@@ -1,4 +1,3 @@
-import json
 
 import os
 from kronos.executor.external_job import UserAppJob
