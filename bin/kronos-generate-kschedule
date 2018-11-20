@@ -72,7 +72,8 @@ def build_graph_from_workflow_prototype(kschedule_json_data, qty_id):
         jobname = job["metadata"]["workload_name"]
 
         # Add node (and parent nodes) into the graph
-        G.add_node(jj, jobname=jobname, start_delay=job['start_delay'], n_procs=job[weight_qty_map[qty_id]], orig_idx=jj)
+        G.add_node(jj, jobname=jobname, start_delay=job['start_delay'],
+                   n_procs=job[weight_qty_map[qty_id]], orig_idx=jj)
 
         # For each of the depend nodes add node + directed edge (depend -> node)
         for d in deps:
@@ -108,17 +109,18 @@ def build_graph_from_workflow_prototype(kschedule_json_data, qty_id):
 
             best_canditdate_for_farthest_root = max(path_lenghts, key=path_lenghts.get)
 
-            all_simple_path = nx.all_simple_paths(G, source=best_canditdate_for_farthest_root, target=n)
+            all_simple_path = nx.all_simple_paths(G, source=best_canditdate_for_farthest_root,
+                                                  target=n)
 
             # longest path to any root node
             longest_path_to_root[n] = max([len(p) for p in all_simple_path])
-        else: # root nodes have no parents => 0 distance
+        else:  # root nodes have no parents => 0 distance
             longest_path_to_root[n] = 0
 
     # number of "processors" summed up per graph depth level
     node_depth_sums = [0] * max(longest_path_to_root.values())
     for n in G:
-        node_lvl_idx = longest_path_to_root[n]-1 if longest_path_to_root[n] else 0
+        node_lvl_idx = longest_path_to_root[n] - 1 if longest_path_to_root[n] else 0
         node_depth_sums[node_lvl_idx] += G.node[n]["n_procs"]
 
     print "Grouped #processors per depth level"
@@ -159,7 +161,7 @@ def concatenate_workflows(G_proto, nd_lvl, overlap, kill_head, kill_tail, n_seri
     else:
 
         # kill level can be at most at one level before link_lvl_idx
-        kill_lvl_idx = min(kill_lvl_idx-1, link_lvl_idx-1)
+        kill_lvl_idx = min(kill_lvl_idx - 1, link_lvl_idx - 1)
         kill_lvl_idx = max(kill_lvl_idx, 0)
 
     print "link_lvl_idx: {}".format(link_lvl_idx)
@@ -191,12 +193,14 @@ def concatenate_workflows(G_proto, nd_lvl, overlap, kill_head, kill_tail, n_seri
 
     # 1) *** (n_serial-2) because we are already starting from the proto workflow..) and the last workflow ***
     # needs to be truncated by "kill_tail" before being attached
-    for i_serial in range(n_serial-2):
+    for i_serial in range(n_serial - 2):
 
-        print "{}): attaching {} nodes".format(i_serial+2, len(G_proto))
+        print "{}): attaching {} nodes".format(i_serial + 2, len(G_proto))
 
         # Create another graph with the same structure of the initial one but relabelled nodes
-        i_serial_graph = nx.relabel_nodes(G_proto, {n: n + tot_num_nodes_g_proto * (i_serial + 1) for n in G_proto}, copy=True)
+        i_serial_graph = nx.relabel_nodes(G_proto,
+                                          {n: n + tot_num_nodes_g_proto * (i_serial + 1) for n in
+                                           G_proto}, copy=True)
 
         # Attach the newly created graph to the initial one
         concatenated_G = nx.union(concatenated_G, i_serial_graph)
@@ -215,10 +219,12 @@ def concatenate_workflows(G_proto, nd_lvl, overlap, kill_head, kill_tail, n_seri
         ovl_node_source += tot_num_nodes_g_proto
 
     # 2) *** Now truncate and attach the LAST workload of the series.. ***
-    i_serial = n_serial-2
+    i_serial = n_serial - 2
 
     # Create another graph with the same structure of the initial one but relabelled nodes
-    i_serial_graph = nx.relabel_nodes(G_proto, {n: n + tot_num_nodes_g_proto * (i_serial + 1) for n in G_proto}, copy=True)
+    i_serial_graph = nx.relabel_nodes(G_proto,
+                                      {n: n + tot_num_nodes_g_proto * (i_serial + 1) for n in
+                                       G_proto}, copy=True)
 
     # idx of node from which the tail will be cut off
     kill_tail_lvl_idx = int(max(nd_lvl.values()) * kill_tail)
@@ -228,9 +234,11 @@ def concatenate_workflows(G_proto, nd_lvl, overlap, kill_head, kill_tail, n_seri
     first_node_offset = G_proto.nodes()[0] + tot_num_nodes_g_proto * (i_serial + 1)
 
     # pass the kill level to the truncation function for chopping off a section of the last workflow..
-    last_graph_truncated = truncate_workflow_tail(i_serial_graph, kill_tail_lvl_idx, nd_lvl, first_node_offset)
+    last_graph_truncated = truncate_workflow_tail(i_serial_graph, kill_tail_lvl_idx, nd_lvl,
+                                                  first_node_offset)
 
-    print "{}): attaching {} nodes from workflow {}".format(n_serial, len(last_graph_truncated), "last_graph_truncated")
+    print "{}): attaching {} nodes from workflow {}".format(n_serial, len(last_graph_truncated),
+                                                            "last_graph_truncated")
 
     # Attach the newly created graph to the initial one
     concatenated_G = nx.union(concatenated_G, last_graph_truncated)
@@ -265,9 +273,10 @@ def multiply_workflows(_G, n_parallel):
     node_id_offset = max([n for n in concatenated_G.node])
 
     # (n_parallel-1 because we are already starting from one series of workflow..)
-    for i_parallel in range(n_parallel-1):
-
-        i_parallel_graph = nx.relabel_nodes(_G, {n: n+node_id_offset*(i_parallel+1) for n in _G}, copy=True)
+    for i_parallel in range(n_parallel - 1):
+        i_parallel_graph = nx.relabel_nodes(_G,
+                                            {n: n + node_id_offset * (i_parallel + 1) for n in _G},
+                                            copy=True)
 
         # Attach the newly created graph to the initial one
         concatenated_G = nx.union(concatenated_G, i_parallel_graph)
@@ -316,7 +325,7 @@ def truncate_workflow_tail(_G, tail_kill_idx, nd_lvl, _offset):
 
     _removed = []
     for n in _G:
-        if nd_lvl[n-_offset] > tail_kill_idx:
+        if nd_lvl[n - _offset] > tail_kill_idx:
             truncated_G.remove_node(n)
             _removed.append(n)
 
@@ -357,24 +366,31 @@ def generate_json_jobs_from_graph(_G, proto_json_data):
 if __name__ == "__main__":
 
     # Parser for the required arguments
-    parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawTextHelpFormatter)
+    parser = argparse.ArgumentParser(description=__doc__,
+                                     formatter_class=argparse.RawTextHelpFormatter)
     parser.add_argument("input_kschedule_path", type=str, help="Kronos input kschedule")
 
     parser.add_argument("-q", "--quantity", type=str, help="Node weight quantity", default="N")
 
-    parser.add_argument("-l", "--overlap", type=float, help="Workflows concatenation overlap, in [0,1]", default=0.5)
+    parser.add_argument("-l", "--overlap", type=float,
+                        help="Workflows concatenation overlap, in [0,1]", default=0.5)
 
-    parser.add_argument("-kh", "--kill_head", type=float, help="Workflows head kill fraction, in [0,1]: "
-                                                               "removed fraction of first concatenated workload", default=0.5)
+    parser.add_argument("-kh", "--kill_head", type=float,
+                        help="Workflows head kill fraction, in [0,1]: "
+                             "removed fraction of first concatenated workload", default=0.5)
 
-    parser.add_argument("-kt", "--kill_tail", type=float, help="Workflows tail kill fraction, in [0,1]: "
-                                                               "removed fraction of last concatenated workload", default=0.5)
+    parser.add_argument("-kt", "--kill_tail", type=float,
+                        help="Workflows tail kill fraction, in [0,1]: "
+                             "removed fraction of last concatenated workload", default=0.5)
 
-    parser.add_argument("-s", "--serial", type=int, help="Number of serially dependent workflows", default=1)
+    parser.add_argument("-s", "--serial", type=int, help="Number of serially dependent workflows",
+                        default=1)
 
-    parser.add_argument("-p", "--parallel", type=int, help="Number of parallel workflows", default=3)
+    parser.add_argument("-p", "--parallel", type=int, help="Number of parallel workflows",
+                        default=3)
 
-    parser.add_argument("-o", "--output", type=str, help="Name of output kschedule", default="output.kschedule")
+    parser.add_argument("-o", "--output", type=str, help="Name of output kschedule",
+                        default="output.kschedule")
 
     # print the help if no arguments are passed
     if len(sys.argv) == 1:
@@ -398,7 +414,8 @@ if __name__ == "__main__":
     assert 0 <= args.kill_tail <= 1
 
     # Build the first prototypical workflow
-    proto_workflow_graph, node_depth_lvl = build_graph_from_workflow_prototype(kschedule_json_data_orig, args.quantity)
+    proto_workflow_graph, node_depth_lvl = build_graph_from_workflow_prototype(
+        kschedule_json_data_orig, args.quantity)
     print "len proto workflow.. {}".format(len(proto_workflow_graph))
 
     # concatenate serial repetitions of workflows (one after another..)
