@@ -80,7 +80,7 @@
                         "description": "Time dependent profiling data for the specified job and metrics",
                         "additionalProperties": false,
                         "patternProperties": {
-                            "(n_write|n_read|kb_write|kb_read|n_pairwise|kb_pairwise|n_collective|kb_collective|flops)": {
+                            "(n_write|n_read|kb_write|kb_read|n_pairwise|kb_pairwise|n_collective|kb_collective|flops|kb_mem)": {
                                 "type": "object",
                                 "description": "Time series data for a specific metric:\n\nflops - Number of floating point operations\n\nIO:\nn_read/write: Number of reads/writes\nkb_read/write: Kilobytes read/written\n\nMPI:\nn_pairwise/collective - Number of pairwise or collective MPI operations\nkb_pairwise/collective - Kilobytes communicated in pairwise or collective operations\n\nn.b. Lengths of times and values arrays must match.",
                                 "properties": {
