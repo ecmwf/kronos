@@ -9,42 +9,276 @@
 
 """
 
-============================================================================
-       **DEVELOPMENT TOOL** - USAGE OF THIS TOOL IS UNSUPPORTED
-============================================================================
+Tool to generate a simple workload for testing purposes only.
+It can be used to preliminary-test modelling algorithms.
 
-This tool generates a simplistic workload - configuration needed in the file
 """
 
-import os
 import sys
+import copy
 import argparse
 
 try:
     import cPickle as pickle
-except:
+except ImportError:
     import pickle
 
 import numpy as np
 from datetime import date
 
 from kronos.core.time_signal.time_signal import TimeSignal
-from kronos.core.time_signal.definitions import signal_types
+from kronos.core.time_signal.definitions import time_signal_names
+
 from kronos.core.jobs import ModelJob
 from kronos.io.profile_format import ProfileFormat
-from kronos.core import time_signal
 
 
-def kronos_dummy_workload():
+class UserGeneratedJob(object):
     """
-    This function produces and example of simplified workload
+    A user-generated job (mainly a name and a dictionary
+    of generated timesignals)
+    """
+
+    # len of the prototype signals
+    _len_proto_signals = 100
+
+    # prototype signals to chose from.
+    # Each time-signal will stem from one of the
+    # prototype signals of this list
+    proto_signals = [
+
+        # sin with 5 full cycles
+        np.abs(np.sin(np.linspace(0, 5 * 2 * np.pi, _len_proto_signals))),
+
+        # cos with 3 full cycles
+        np.abs(np.cos(np.linspace(0, 3 * 2 * np.pi, _len_proto_signals))),
+
+        # central "dirac"-type of signal
+        np.asarray([val if _len_proto_signals / 3 < val < 2 * _len_proto_signals / 3 else 0.
+                    for val in range(_len_proto_signals)])
+
+    ]
+
+    # default values of n_proc and n_nodes
+    n_procs = 1
+    n_nodes = 1
+
+    def __init__(self, name=None, timesignals=None, ts_scales=None):
+
+        self.name = name
+        self.timesignals = timesignals if timesignals else {}
+        self.ts_scales = ts_scales if ts_scales else {}
+
+        # scaleup factors
+        scale_up_factors = {ts_name: 1.0 for ts_name in time_signal_names}
+        scale_up_factors.update(ts_scales)
+
+    def add_timesignal(self, timesignal):
+        """
+        Append another timesignal to the job
+        :param timesignal:
+        :return:
+        """
+        self.timesignals.update({timesignal.name: timesignal})
+
+    @staticmethod
+    def from_random_proto_signals(job_name=None, seed=0, ts_scales=None):
+        """
+        Generate a job from randomly chosen signals (from signal prototypes..)
+        :param job_name:
+        :param seed:
+        :return:
+        """
+
+        ts_scales = ts_scales if ts_scales else {}
+
+        np.random.seed(seed)
+
+        timesignals = {}
+        for ts_name in time_signal_names:
+
+            xvalues = np.arange(UserGeneratedJob._len_proto_signals)
+
+            # toss a coin to decide which signal type to choose
+            proto_signal_idx = np.random.randint(len(UserGeneratedJob.proto_signals))
+            yvalues = np.asarray(UserGeneratedJob.proto_signals[proto_signal_idx])
+
+            if ts_scales:
+                yvalues = yvalues * ts_scales[ts_name]
+
+            timesignals[ts_name] = TimeSignal.from_values(ts_name,
+                                                          xvalues,
+                                                          yvalues,
+                                                          priority=10)
+
+        return UserGeneratedJob(name=job_name,
+                                timesignals=timesignals,
+                                ts_scales=ts_scales)
+
+    def model_job(self):
+        """
+        Return a model job from this job
+        :return:
+        """
+
+        return ModelJob(
+            time_start=0,
+            duration=UserGeneratedJob._len_proto_signals,
+            ncpus=self.n_procs,
+            nnodes=self.n_nodes,
+            timesignals=self.timesignals,
+            label=self.name
+        )
+
+
+class UserGeneratedJobSet(object):
+    """
+    A Set of usergeneratedjobs, it coordinates the generation
+    of UserGeneratedJobs (e.g. from a few prototype jobs)
+    """
+
+    def __init__(self, jobs=None, job_labels=None):
+
+        # the core jobs
+        self.jobs = jobs
+
+        # in case the jobs are labelled..
+        self.job_labels = job_labels
+
+    @staticmethod
+    def from_prototype_jobs(proto_jobs, n_jobs=1, seed=0):
+
+        # seed the random module
+        np.random.seed(seed)
+
+        # randomly choose a proto job and copy from it
+        generated_jobs = []
+        job_labels = []
+        for job in range(n_jobs):
+            proto_job_idx = np.random.randint(len(proto_jobs))
+
+            job_labels.append(proto_job_idx)
+            generated_jobs.append(copy.deepcopy(proto_jobs[proto_job_idx]))
+
+        return UserGeneratedJobSet(jobs=generated_jobs,
+                                   job_labels=job_labels)
+
+    def model_jobs(self):
+        """
+        Returns model jobs
+        :return:
+        """
+
+        for job in self.jobs:
+            yield job.model_job()
+
+
+def kprofile_generator(user_args, scale_ups=None):
+    """
+    Generates the jobs of the KProfile to be written out
+    :param user_args:
+    :param scale_ups:
     :return:
-    kprofile_handle: kprofile format object containing the user-defined workload
-    class_idx_vec: list of indices identifying jobs by reference to the prototypical jobs [model_job_classes]
-    model_job_classes: list of prototypical jobs
     """
 
     # factors to "scale up" each generated job..
+    scale_up_factors = {ts_name: 1.0 for ts_name in time_signal_names}
+
+    if scale_ups:
+        scale_up_factors.update(scale_ups)
+
+    # 1. First, randomly generate the proto-jobs from proto-signals
+    proto_jobs = []
+    for job_id in range(user_args.n_proto_jobs):
+        user_job = UserGeneratedJob.from_random_proto_signals(job_name="job-{}".format(job_id),
+                                                              seed=job_id)
+        proto_jobs.append(user_job)
+
+    print "{} proto jobs generated!".format(len(proto_jobs))
+
+    # 2. Then, generate all the other jobs spawn from the proto-jobs
+    job_set = UserGeneratedJobSet.from_prototype_jobs(proto_jobs=proto_jobs,
+                                                      n_jobs=user_args.n_jobs)
+
+    print "{} jobs generated!".format(len(job_set.jobs))
+    # ----------------------------------------------------------------
+
+    return proto_jobs, job_set
+
+
+def write_job_class_labels(file_output_name, labels_vec):
+    """
+    Write file class labels to output file
+    :param file_output_name:
+    :param labels_vec:
+    :return:
+    """
+
+    # In addition to the KProfile also writes other two files with the indices and
+    # prototypical classes from which the jobs have been generated
+    with open(file_output_name, "w") as f:
+        f.write("\n".join([str(l) for l in labels_vec]))
+
+
+def write_job_prototype_classes(file_output_name, model_job_classes):
+    """
+    Write job class prototypes to output file
+    :param file_output_name:
+    :param model_job_classes:
+    :return:
+    """
+
+    # Write out the prototype classes of the jobs into a csv file (for validation purposes..)
+    with open(file_output_name, "w") as f:
+        # header row
+        f.write(" ".join(["{}-{}".format(ts, str(val))
+                          for ts in time_signal_names
+                          for val in range(args.ts_len)]))
+
+        f.write("\n")
+
+        # entry
+        f.write("\n".join([
+            " ".join([str(val)
+                      for tsk, tsv in ts_proto_class.timesignals.iteritems()
+                      for val in tsv.yvalues])
+            for ts_proto_class in model_job_classes]))
+
+
+if __name__ == "__main__":
+
+    parser = argparse.ArgumentParser(description=__doc__,
+                                     formatter_class=argparse.RawTextHelpFormatter)
+
+    parser.add_argument("krpofile_output_name", help="Name of generated .KProfile file")
+
+    parser.add_argument("--scale",
+                        help="Scaling factor of the time signals",
+                        type=float)
+
+    parser.add_argument("--ts_len",
+                        help="Length of the time signals",
+                        default=10, type=int)
+
+    parser.add_argument("--n_proto_jobs",
+                        help="N prototypical jobs from which all the other jobs are spawn",
+                        default=3, type=int)
+
+    parser.add_argument("--n_jobs", help="N of jobs to generate from the job prototypes",
+                        default=10, type=int)
+
+    # print the help if no arguments are passed
+    if len(sys.argv) == 1:
+        parser.print_help()
+        sys.exit(1)
+
+    # parse the arguments..
+    args = parser.parse_args()
+
+    # make sure that the final extension is .kprofile
+    if args.krpofile_output_name.split(".")[-1] != "kprofile":
+        args.krpofile_output_name += ".kprofile"
+
     scale_up_factors = {
         "kb_collective": 1.0e3,
         "n_collective": 1.0e3,
@@ -57,169 +291,20 @@ def kronos_dummy_workload():
         "kb_pairwise": 1.0e3
     }
 
-    # probability of missing signal = 0.8 # 0 ->no ts available, 1 -> all ts available
-    ts_probability = 0.9
+    # generate the jobs
+    proto_jobs, job_set = kprofile_generator(args, scale_ups=scale_up_factors)
 
-    # define number of classes
-    # n_procs = 2
-    # n_nodes = 1
-    # t_length = 20.0
-    N_apps = 1000
+    # generate a kprofile from these model jobs..
+    kprofile_handle = ProfileFormat(uid=None,
+                                    model_jobs=job_set.model_jobs(),
+                                    created=date.today(),
+                                    workload_tag="user_defined_workload")
 
-    # ---------- type of CPU signal (MPI and IO signals are being generated from theser information as well)
-    # 0:low,low,low
-    # 1:low,high,low
-    # 2:high,low,high
-    jobs_duration = 3
-    time_xvalues = np.linspace(0.0, jobs_duration, 3)
-    ops_types = {
-        0: np.asarray([0.5, 0.5, 0.5]),
-        1: np.asarray([0.1, 1, 0.1]),
-        2: np.asarray([1., 0.1, 1]),
-    }
+    # write out the generated kprofile file
+    kprofile_handle.write_filename(args.krpofile_output_name, indent=4)
 
-    # --------------- overall level of signals
-    # 0:low
-    # 1:medium
-    # 2:high
-    ops_level = np.asarray([1, 4, 8])
+    # write job class labels to output file
+    write_job_class_labels(args.krpofile_output_name + ".job_labels", job_set.job_labels)
 
-    # combinations of signals type and level (for class )
-    class_idx_set = [(ot, ol) for ot in ops_types for ol in ops_level]
-
-    # create all the random indices in one go
-    np.random.seed(0)
-    ts_prob_mat = np.random.random(size=(N_apps, len(signal_types.keys())))
-    cpu_type_vec = np.random.randint(len(ops_types), size=N_apps)
-    overall_level_idx_vec = np.random.randint(len(ops_level), size=N_apps)
-
-    # random distribution of start times
-    apps_start_times = np.random.normal(loc=30.0, scale=10.0, size=N_apps)
-    print "max start time: {}".format(max(apps_start_times))
-
-    apps_start_times[apps_start_times < 0.0] = 0.0
-
-    # //////////////////////////////////// collect job models ///////////////////////////////////////////////
-    model_job_list = []
-    class_idx_vec = np.zeros(N_apps, dtype=int)
-    for app in range(0, N_apps):
-
-        #     app_time_start = np.random.random()*t_length
-        app_time_start = apps_start_times[app]
-
-        #     cpu_type = np.random.randint(len(ops_types))
-        cpu_type = cpu_type_vec[app]
-        overall_level = ops_level[overall_level_idx_vec[app]]
-        n_nodes = overall_level_idx_vec[app] + 1
-        n_procs = n_nodes * 24
-
-        class_idx_vec[app] = class_idx_set.index((cpu_type, overall_level))
-        if class_idx_vec[app] not in range(0, 9):
-            raise ValueError("class index out of range!")
-
-        if cpu_type == 0:
-            mpi_io_type = 0
-        elif cpu_type == 1:
-            mpi_io_type = 2
-        elif cpu_type == 2:
-            mpi_io_type = 1
-
-        timesignals = {}
-        for tt, ts_name in enumerate(signal_types.keys()):
-            if ts_name == 'flops':
-                time_yvalues = ops_types[cpu_type] * scale_up_factors['flops'] * overall_level
-            elif ts_name != 'flops':
-                time_yvalues = ops_types[mpi_io_type] * scale_up_factors[ts_name] * overall_level
-
-            # create the timesignal
-            ts_prob = ts_prob_mat[app, tt]
-
-            if ts_prob <= ts_probability:
-                ts = TimeSignal(ts_name).from_values(ts_name, time_xvalues, time_yvalues, priority=10)
-                timesignals[ts_name] = ts
-            else:
-                timesignals[ts_name] = None
-
-        job = ModelJob(
-            time_start=app_time_start,
-            duration=jobs_duration,
-            ncpus=n_procs,
-            nnodes=n_nodes,
-            timesignals=timesignals,
-            label="app_id-{}".format(app)
-        )
-
-        model_job_list.append(job)
-
-    print "done jobs!"
-    # ----------------------------------------------------------------
-
-    # --------------------- collect job classes ----------------------
-    model_job_classes = []
-    count = 0
-    for cpu_type in range(0, len(ops_types)):
-        for overall_level in ops_level:
-
-            n_nodes = overall_level + 1
-            n_procs = n_nodes * 24
-            app_time_start = 0.0
-
-            if cpu_type == 0:
-                mpi_io_type = 0
-            elif cpu_type == 1:
-                mpi_io_type = 2
-            elif cpu_type == 2:
-                mpi_io_type = 1
-
-            timesignals = {}
-            for ts_name in time_signal.time_signal_names:
-                if ts_name == 'flops':
-                    time_yvalues = ops_types[cpu_type] * scale_up_factors['flops'] * overall_level
-                elif ts_name != 'flops':
-                    time_yvalues = ops_types[mpi_io_type] * scale_up_factors[ts_name] * overall_level
-
-                # create the time-signal
-                ts = TimeSignal(ts_name).from_values(ts_name, time_xvalues, time_yvalues)
-                timesignals[ts_name] = ts
-
-            job = ModelJob(
-                time_start=app_time_start,
-                duration=jobs_duration,
-                ncpus=n_procs,
-                nnodes=n_nodes,
-                timesignals=timesignals,
-                label="app_id-{}".format(count)
-            )
-
-            model_job_classes.append(job)
-
-            count += 1
-
-    return ProfileFormat(model_jobs=model_job_list,
-                         created=date.today(),
-                         uid=None,
-                         workload_tag="user_wl"), class_idx_vec, model_job_classes
-
-if __name__ == "__main__":
-
-    parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawTextHelpFormatter)
-    parser.add_argument("kprofile_output", help="Path of KProfile output file")
-
-    # print the help if no arguments are passed
-    if len(sys.argv) == 1:
-        parser.print_help()
-        sys.exit(1)
-
-    # parse the arguments..
-    args = parser.parse_args()
-
-    kprofile_handle, class_idx_vec, model_job_classes = kronos_dummy_workload()
-    kprofile_handle.write_filename(args.kprofile_output)
-
-    # In addition to the KProfile also writes other two files with the indices and prototypical classes
-    # from which the jobs have been generated
-    with open(os.path.splitext(args.kprofile_output)[0]+"_class_idx_vec", "w") as f:
-        pickle.dump(class_idx_vec, f)
-
-    with open(os.path.splitext(args.kprofile_output)[0] + "_model_job_classes", "w") as f:
-        pickle.dump(model_job_classes, f)
+    # write job prototype classes file output
+    write_job_prototype_classes(args.krpofile_output_name + ".job_classes", proto_jobs)
