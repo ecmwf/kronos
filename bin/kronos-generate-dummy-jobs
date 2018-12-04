@@ -39,26 +39,6 @@ class UserGeneratedJob(object):
     of generated timesignals)
     """
 
-    # len of the prototype signals
-    _len_proto_signals = 100
-
-    # prototype signals to chose from.
-    # Each time-signal will stem from one of the
-    # prototype signals of this list
-    proto_signals = [
-
-        # sin with 5 full cycles
-        np.abs(np.sin(np.linspace(0, 5 * 2 * np.pi, _len_proto_signals))),
-
-        # cos with 3 full cycles
-        np.abs(np.cos(np.linspace(0, 3 * 2 * np.pi, _len_proto_signals))),
-
-        # central "dirac"-type of signal
-        np.asarray([val if _len_proto_signals / 3 < val < 2 * _len_proto_signals / 3 else 0.
-                    for val in range(_len_proto_signals)])
-
-    ]
-
     # default values of n_proc and n_nodes
     n_procs = 1
     n_nodes = 1
@@ -82,11 +62,37 @@ class UserGeneratedJob(object):
         self.timesignals.update({timesignal.name: timesignal})
 
     @staticmethod
-    def from_random_proto_signals(job_name=None, seed=0, ts_scales=None):
+    def proto_signals(ts_len=5):
+        """
+        Return prototype signals
+        :param ts_len:
+        :return:
+        """
+
+        # prototype signals to chose from.
+        # Each time-signal will stem from one of the
+        # prototype signals of this list
+        return [
+
+            # sin with 5 full cycles
+            np.abs(np.sin(np.linspace(0, 5 * 2 * np.pi, ts_len))),
+
+            # cos with 3 full cycles
+            np.abs(np.cos(np.linspace(0, 3 * 2 * np.pi, ts_len))),
+
+            # central "dirac"-type of signal
+            np.asarray([val if ts_len/3 < val < 2*ts_len/3 else 0. for val in range(ts_len)])
+
+        ]
+
+    @staticmethod
+    def from_random_proto_signals(job_name=None, seed=0, ts_scales=None, ts_len=10):
         """
         Generate a job from randomly chosen signals (from signal prototypes..)
         :param job_name:
         :param seed:
+        :param ts_scales:
+        :param ts_len:
         :return:
         """
 
@@ -94,14 +100,16 @@ class UserGeneratedJob(object):
 
         np.random.seed(seed)
 
+        proto_signals = UserGeneratedJob.proto_signals(ts_len=ts_len)
+
         timesignals = {}
         for ts_name in time_signal_names:
 
-            xvalues = np.arange(UserGeneratedJob._len_proto_signals)
+            xvalues = np.arange(ts_len)
 
             # toss a coin to decide which signal type to choose
-            proto_signal_idx = np.random.randint(len(UserGeneratedJob.proto_signals))
-            yvalues = np.asarray(UserGeneratedJob.proto_signals[proto_signal_idx])
+            proto_signal_idx = np.random.randint(len(proto_signals))
+            yvalues = np.asarray(proto_signals[proto_signal_idx])
 
             if ts_scales:
                 yvalues = yvalues * ts_scales[ts_name]
@@ -115,6 +123,14 @@ class UserGeneratedJob(object):
                                 timesignals=timesignals,
                                 ts_scales=ts_scales)
 
+    def max_duration(self):
+        """
+        Max signal duration
+        :return:
+        """
+
+        return max([max(tsv.xvalues) for tsk, tsv in self.timesignals.iteritems()])
+
     def model_job(self):
         """
         Return a model job from this job
@@ -123,7 +139,7 @@ class UserGeneratedJob(object):
 
         return ModelJob(
             time_start=0,
-            duration=UserGeneratedJob._len_proto_signals,
+            duration=self.max_duration(),
             ncpus=self.n_procs,
             nnodes=self.n_nodes,
             timesignals=self.timesignals,
@@ -191,7 +207,8 @@ def kprofile_generator(user_args, scale_ups=None):
     proto_jobs = []
     for job_id in range(user_args.n_proto_jobs):
         user_job = UserGeneratedJob.from_random_proto_signals(job_name="job-{}".format(job_id),
-                                                              seed=job_id)
+                                                              seed=job_id,
+                                                              ts_len=user_args.ts_len)
         proto_jobs.append(user_job)
 
     print "{} proto jobs generated!".format(len(proto_jobs))
