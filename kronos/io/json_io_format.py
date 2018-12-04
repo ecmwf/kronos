@@ -79,7 +79,7 @@ class JSONIoFormat(object):
             "uid": os.getuid(),
         }
 
-    def write(self, f):
+    def write(self, f, indent=None):
         """
         Exports the data in the required format.
         """
@@ -87,11 +87,11 @@ class JSONIoFormat(object):
 
         self.validate_json(output_dict)
 
-        json.dump(output_dict, f)
+        json.dump(output_dict, f, indent=indent)
 
-    def write_filename(self, filename):
+    def write_filename(self, filename, indent=None):
         with open(filename, 'w') as f:
-            self.write(f)
+            self.write(f, indent=indent)
 
     @classmethod
     def from_file(cls, f, validate_json=True):
