@@ -12,6 +12,12 @@
 Tool to generate a simple workload for testing purposes only.
 It can be used to preliminary-test modelling algorithms.
 
+It works by generating a set of jobs, each job being spawn from a set of prototype jobs.
+The prototype jobs are generated from time signals (time signals are generated
+from a set of prototype time signals.
+
+
+
 """
 
 import sys
@@ -188,53 +194,37 @@ class UserGeneratedJobSet(object):
         for job in self.jobs:
             yield job.model_job()
 
+    def write_job_class_labels(self, filename):
+        """
+        Write file class labels to output file
+        :param filename:
+        :return:
+        """
 
-def kprofile_generator(user_args, scale_ups=None):
-    """
-    Generates the jobs of the KProfile to be written out
-    :param user_args:
-    :param scale_ups:
-    :return:
-    """
+        with open(filename, "w") as f:
+            f.write("\n".join([str(l) for l in self.job_labels]))
 
-    # factors to "scale up" each generated job..
-    scale_up_factors = {ts_name: 1.0 for ts_name in time_signal_names}
+    def write_input_matrix_to_file(self, filename):
+        """
+        Output input matrix to file
+        :param filename:
+        :return:
+        """
 
-    if scale_ups:
-        scale_up_factors.update(scale_ups)
+        # Write out the prototype classes of the jobs into a csv file (for validation purposes..)
+        with open(filename, "w") as f:
 
-    # 1. First, randomly generate the proto-jobs from proto-signals
-    proto_jobs = []
-    for job_id in range(user_args.n_proto_jobs):
-        user_job = UserGeneratedJob.from_random_proto_signals(job_name="job-{}".format(job_id),
-                                                              seed=job_id,
-                                                              ts_len=user_args.ts_len)
-        proto_jobs.append(user_job)
+            # header row
+            f.write(" ".join(["{}-{}".format(ts, str(val))
+                              for ts in time_signal_names
+                              for val in range(args.ts_len)]))
 
-    print "{} proto jobs generated!".format(len(proto_jobs))
+            f.write("\n")
 
-    # 2. Then, generate all the other jobs spawn from the proto-jobs
-    job_set = UserGeneratedJobSet.from_prototype_jobs(proto_jobs=proto_jobs,
-                                                      n_jobs=user_args.n_jobs)
-
-    print "{} jobs generated!".format(len(job_set.jobs))
-    # ----------------------------------------------------------------
-
-    return proto_jobs, job_set
-
-
-def write_job_class_labels(file_output_name, labels_vec):
-    """
-    Write file class labels to output file
-    :param file_output_name:
-    :param labels_vec:
-    :return:
-    """
-
-    # In addition to the KProfile also writes other two files with the indices and
-    # prototypical classes from which the jobs have been generated
-    with open(file_output_name, "w") as f:
-        f.write("\n".join([str(l) for l in labels_vec]))
+            # entry
+            f.write("\n".join([
+                " ".join([str(y) for tsk in time_signal_names for y in j.timesignals[tsk].yvalues])
+                for j in self.jobs]))
 
 
 def write_job_prototype_classes(file_output_name, model_job_classes):
@@ -247,6 +237,7 @@ def write_job_prototype_classes(file_output_name, model_job_classes):
 
     # Write out the prototype classes of the jobs into a csv file (for validation purposes..)
     with open(file_output_name, "w") as f:
+
         # header row
         f.write(" ".join(["{}-{}".format(ts, str(val))
                           for ts in time_signal_names
@@ -256,10 +247,8 @@ def write_job_prototype_classes(file_output_name, model_job_classes):
 
         # entry
         f.write("\n".join([
-            " ".join([str(val)
-                      for tsk, tsv in ts_proto_class.timesignals.iteritems()
-                      for val in tsv.yvalues])
-            for ts_proto_class in model_job_classes]))
+            " ".join([str(y) for tsk in time_signal_names for y in j.timesignals[tsk].yvalues])
+            for j in model_job_classes]))
 
 
 if __name__ == "__main__":
@@ -283,6 +272,9 @@ if __name__ == "__main__":
 
     parser.add_argument("--n_jobs", help="N of jobs to generate from the job prototypes",
                         default=10, type=int)
+
+    parser.add_argument("--write_input", help="N of jobs to generate from the job prototypes",
+                        action="store_true")
 
     # print the help if no arguments are passed
     if len(sys.argv) == 1:
@@ -308,8 +300,28 @@ if __name__ == "__main__":
         "kb_pairwise": 1.0e3
     }
 
-    # generate the jobs
-    proto_jobs, job_set = kprofile_generator(args, scale_ups=scale_up_factors)
+    # factors to "scale up" each generated job..
+    scale_up_factors = {ts_name: 1.0 for ts_name in time_signal_names}
+
+    if args.scale:
+        scale_up_factors.update(scale_up_factors)
+
+    # 1. First, randomly generate the proto-jobs from proto-signals
+    proto_jobs = []
+    for job_id in range(args.n_proto_jobs):
+        user_job = UserGeneratedJob.from_random_proto_signals(job_name="job-{}".format(job_id),
+                                                              seed=job_id,
+                                                              ts_len=args.ts_len)
+        proto_jobs.append(user_job)
+
+    print "{} prototype jobs generated!".format(len(proto_jobs))
+
+    # 2. Then, generate all the other jobs spawn from the proto-jobs
+    job_set = UserGeneratedJobSet.from_prototype_jobs(proto_jobs=proto_jobs,
+                                                      n_jobs=args.n_jobs)
+
+    print "{} jobs generated!".format(len(job_set.jobs))
+    # ----------------------------------------------------------------
 
     # generate a kprofile from these model jobs..
     kprofile_handle = ProfileFormat(uid=None,
@@ -321,7 +333,10 @@ if __name__ == "__main__":
     kprofile_handle.write_filename(args.krpofile_output_name, indent=4)
 
     # write job class labels to output file
-    write_job_class_labels(args.krpofile_output_name + ".job_labels", job_set.job_labels)
+    job_set.write_job_class_labels(args.krpofile_output_name + ".job_labels")
 
     # write job prototype classes file output
     write_job_prototype_classes(args.krpofile_output_name + ".job_classes", proto_jobs)
+
+    if args.write_input:
+        job_set.write_input_matrix_to_file(args.krpofile_output_name + ".job_input")
