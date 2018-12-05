@@ -194,8 +194,8 @@ class KronosModel(object):
         # apply operations on workloads (if required..)
         class_operations_config = self.config_classification.get('operations', None)
 
+        cutout_workloads = []
         if class_operations_config is not None:
-            cutout_workloads = []
             for op_config in class_operations_config:
 
                 if op_config['type'] == "split":
