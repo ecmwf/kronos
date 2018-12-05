@@ -84,24 +84,24 @@ class KronosModel(object):
         if self.config_fill_in:
             self._apply_workload_fillin()
 
-            # calculate metrics of total sums over all the original workloads
-            # TODO: the calculation of the original sums should go somewhere else..
-            self.total_metrics_wl_orig = {}
-            for wl in self.workloads:
-                tot = wl.total_metrics_sum_dict
-                for k, v in tot.iteritems():
+        # calculate metrics of total sums over all the original workloads
+        # TODO: the calculation of the original sums should go somewhere else..
+        self.total_metrics_wl_orig = {}
+        for wl in self.workloads:
+            tot = wl.total_metrics_sum_dict
+            for k, v in tot.iteritems():
 
-                    if self.total_metrics_wl_orig.get(k):
-                        self.total_metrics_wl_orig[k] += v
-                    else:
-                        self.total_metrics_wl_orig[k] = v
+                if self.total_metrics_wl_orig.get(k):
+                    self.total_metrics_wl_orig[k] += v
+                else:
+                    self.total_metrics_wl_orig[k] = v
 
-            self.tot_n_jobs_wl_original = len([j for wl in self.workloads for j in wl.jobs])
+        self.tot_n_jobs_wl_original = len([j for wl in self.workloads for j in wl.jobs])
 
-            # Calc max execution time for all the workloads..
-            t_min = min(j.time_start for wl in self.workloads for j in wl.jobs)
-            t_max = max(j.time_start for wl in self.workloads for j in wl.jobs)
-            self.tot_duration_wl_original = t_max - t_min
+        # Calc max execution time for all the workloads..
+        t_min = min(j.time_start for wl in self.workloads for j in wl.jobs)
+        t_max = max(j.time_start for wl in self.workloads for j in wl.jobs)
+        self.tot_duration_wl_original = t_max - t_min
 
         # 2) apply classification
         if self.config_classification:
@@ -151,7 +151,11 @@ class KronosModel(object):
         Report.add_measure(ModelMeasure("Scaled metrics sums - error [%]", relative_metrics_totals, __name__))
 
         # calculate the measure relative to the number of jobs..
-        t_scaling = self.config_generator['total_submit_interval'] / self.tot_duration_wl_original
+        if self.tot_duration_wl_original:
+            t_scaling = self.config_generator['total_submit_interval'] / self.tot_duration_wl_original
+        else:
+            t_scaling = 0.0
+
         dt_orig = self.tot_duration_wl_original
         dt_sapps = sa_workload.max_sa_time_interval()
         Report.add_measure(ModelMeasure("relative_time_interval [%]", (dt_orig-dt_sapps/t_scaling)/dt_orig*100., __name__))

@@ -15,7 +15,6 @@ import app_kernels
 from exceptions_iows import ConfigurationError
 from jobs import ModelJob
 from kronos.core.time_signal.definitions import time_signal_names
-# from kronos.core.time_signal.definitions import signal_types
 from kronos.io.schedule_format import ScheduleFormat
 from kronos.shared_tools.print_colour import print_colour
 
@@ -52,7 +51,8 @@ class SyntheticWorkload(object):
     def total_metrics_dict(self, include_scaling_factors=False):
 
         if not self._scaling_factors:
-            raise ConfigurationError("scaling factors not set!")
+            print "scaling factors not set!, defaulting to 1.0"
+            self._scaling_factors = {k: 1.0 for k in time_signal_names}
 
         tot = {}
         fact = 1.0  # default tuning factor
