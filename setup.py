@@ -57,7 +57,7 @@ setup(
 
         # development tools
         'bin/kronos-enquire-global-config',
-        'bin/kronos-generate-dummy-jobs',
+        'bin/kronos-generate-test-workload',
         
         # additional tools
         'bin/kronos-generate-kschedule'
