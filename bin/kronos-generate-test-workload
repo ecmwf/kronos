@@ -18,8 +18,9 @@ from a set of prototype time signals.
 
 """
 
-import argparse
 import sys
+import argparse
+import numpy as np
 
 from kronos.shared_tools.user_generated_jobs import UserGeneratedJob
 from kronos.shared_tools.user_generated_jobs import UserGeneratedJobSet
@@ -93,11 +94,13 @@ if __name__ == "__main__":
     if args.scale:
         scale_up_factors.update(scale_up_factors)
 
+    # 0. set the numpy random seed
+    np.random.seed(0)
+
     # 1. First, randomly generate the proto-jobs from proto-signals
     proto_jobs = []
     for job_id in range(args.n_proto_jobs):
         user_job = UserGeneratedJob.from_random_proto_signals(job_name="job-{}".format(job_id),
-                                                              seed=job_id,
                                                               ts_len=args.ts_len)
         proto_jobs.append(user_job)
 

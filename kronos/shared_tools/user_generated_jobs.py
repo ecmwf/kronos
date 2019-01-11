@@ -67,19 +67,16 @@ class UserGeneratedJob(object):
         ]
 
     @staticmethod
-    def from_random_proto_signals(job_name=None, seed=0, ts_scales=None, ts_len=10):
+    def from_random_proto_signals(job_name=None, ts_scales=None, ts_len=10):
         """
         Generate a job from randomly chosen signals (from signal prototypes..)
         :param job_name:
-        :param seed:
         :param ts_scales:
         :param ts_len:
         :return:
         """
 
         ts_scales = ts_scales if ts_scales else {}
-
-        np.random.seed(seed)
 
         proto_signals = UserGeneratedJob.proto_signals(ts_len=ts_len)
 
@@ -106,14 +103,12 @@ class UserGeneratedJob(object):
                                 timesignals=timesignals,
                                 ts_scales=ts_scales)
 
-    def apply_ts_probability(self, prob, seed=0):
+    def apply_ts_probability(self, prob):
         """
         Toss a coin for each timesignal and decide whether to keep it or drop it
         if a time-signal is dropped, replace its values with -1
         :return:
         """
-
-        np.random.seed(seed)
 
         pruned_time_signals = {}
         for tsk, tsv in self.timesignals.iteritems():
@@ -174,21 +169,18 @@ class UserGeneratedJobSet(object):
         self.job_labels = job_labels
 
     @staticmethod
-    def from_prototype_jobs(proto_jobs, n_jobs=1, seed=0, ts_probability=1.0):
-
-        # seed the random module
-        np.random.seed(seed)
+    def from_prototype_jobs(proto_jobs, n_jobs=1, ts_probability=1.0):
 
         # randomly choose a proto job and copy from it
         generated_jobs = []
         job_labels = []
         for job in range(n_jobs):
+
             proto_job_idx = np.random.randint(len(proto_jobs))
 
             job_labels.append(proto_job_idx)
             new_job = copy.deepcopy(proto_jobs[proto_job_idx])
             new_job.apply_ts_probability(prob=ts_probability)
-
             generated_jobs.append(new_job)
 
         return UserGeneratedJobSet(jobs=generated_jobs,

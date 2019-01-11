@@ -60,13 +60,13 @@ class UserJobTests(unittest.TestCase):
 
         # probability 0 meant that all the signals will be removed
         job_no_ts = copy.deepcopy(job)
-        job_no_ts.apply_ts_probability(0.0, seed=0)
+        job_no_ts.apply_ts_probability(0.0)
         for tsv in job_no_ts.timesignals.values():
             self.assertTrue(all([y == -1 for y in tsv.yvalues]))
 
         # probability 1 meant that all the signals are retained
         job_no_ts = copy.deepcopy(job)
-        job_no_ts.apply_ts_probability(1.0, seed=0)
+        job_no_ts.apply_ts_probability(1.0)
         for tsv in job_no_ts.timesignals.values():
             self.assertTrue(all([y != -1 for y in tsv.yvalues]))
 
