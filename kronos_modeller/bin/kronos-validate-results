@@ -1,0 +1,113 @@
+#!/usr/bin/env python
+# (C) Copyright 1996-2018 ECMWF.
+#
+# This software is licensed under the terms of the Apache Licence Version 2.0
+# which can be obtained at http://www.apache.org/licenses/LICENSE-2.0.
+# In applying this licence, ECMWF does not waive the privileges and immunities
+# granted to it by virtue of its status as an intergovernmental organisation nor
+# does it submit to any jurisdiction.
+
+"""
+
+============================================================================
+       **DEVELOPMENT TOOL** - USAGE OF THIS TOOL IS UNSUPPORTED
+============================================================================
+
+Script that checks if Kronos has executed a specific metrics as prescribed by the KSchedule file.
+It loops over the job output folders, it sums all the values of the selected metric found
+in the .KResults files and compares the sum with the sum retrieved from the KSchedule file
+(the test is considered PASS if the difference is < 1%)
+
+"""
+
+import argparse
+import os
+import sys
+
+from kronos.kronos_executor.io import KScheduleData
+from kronos.kronos_modeller.time_signal.definitions import signal_types
+
+from kronos_modeller.format_data_handlers.kresults_data import KResultsData
+
+if __name__ == "__main__":
+
+    # Parser for the required arguments
+    parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawTextHelpFormatter)
+    parser.add_argument("job_dir", type=str, help="Path of the kronos output folder 'job_dir' (contains the job-<ID> sub-folders)")
+
+    # TODO: read validation not yet implemented
+    testable_metrics = signal_types.keys()
+    testable_metrics.pop(testable_metrics.index("kb_read"))
+    testable_metrics.pop(testable_metrics.index("n_read"))
+    parser.add_argument("--metrics", choices=testable_metrics+["all"], default=["all"], nargs='+')
+
+    # print the help if no arguments are passed
+    if len(sys.argv) == 1:
+        parser.print_help()
+        sys.exit(1)
+
+    # parse the arguments..
+    args = parser.parse_args()
+
+    # check that the run path exists
+    if not os.path.exists(args.job_dir):
+        print "Specified run path does not exist: {}".format(args.job_dir)
+        sys.exit(1)
+
+    # check that the run path contains the job sub-folders
+    job_dirs = [x for x in os.listdir(args.job_dir) if os.path.isdir(os.path.join(args.job_dir, x)) and "job-" in x]
+    if not job_dirs:
+        print "Specified path does not contain any job folder (<job-ID>..)!"
+        sys.exit(1)
+
+    # check that the run path contains the kschedule file
+    kschedule_file = [x for x in os.listdir(args.job_dir) if os.path.isfile(os.path.join(args.job_dir, x)) and x.endswith('.kschedule')]
+    if not kschedule_file:
+        print "Specified path does not contain the KSchedule file!"
+        sys.exit(1)
+
+    if len(kschedule_file) > 1:
+        print "Specified path contains more than one KSchedule file!"
+        sys.exit(1)
+
+    results_data = KResultsData.read_from_sim_paths(args.job_dir, "generic")
+    results_metrics_sums = results_data.calc_metrics_sums()
+
+    kschedule_data = KScheduleData.from_filename(os.path.join(args.job_dir, kschedule_file[0]))
+
+    # get the full list of metrics to test (considering the all case)
+    metrics_to_test = [user_metric for user_metric in args.metrics if user_metric.lower() != "all"]
+    if "all" in args.metrics:
+        metrics_to_test += testable_metrics
+
+    # calculate the necessary series..
+    tot_kschedule_metrics = {k: sum(KScheduleData.per_job_series(kschedule_data.jobs, k)) for k in metrics_to_test}
+
+    # check all the metrics selected
+    failed_checks = []
+    for metric_name in metrics_to_test:
+        metric_sum_kresults = results_metrics_sums[metric_name]
+        metric_sum_kschedule = tot_kschedule_metrics[metric_name]
+
+        # if there is no such operation in the ksf, a sum=0 is expected
+        if not abs(metric_sum_kschedule):
+            if metric_sum_kresults:
+                _err = "ERROR: {}: measured {} not equal to total value in KSchedule {}".format(metric_name,
+                                                                                                metric_sum_kresults,
+                                                                                                metric_sum_kschedule)
+                failed_checks.append(_err)
+
+        else:  # else, check the relative error..
+            if abs(metric_sum_kresults-metric_sum_kschedule)/abs(metric_sum_kschedule) > 0.01:
+                _err = "ERROR: {}: measured {} and total value in KSchedule {} differ for more than 1%".format(metric_name,
+                                                                                                               metric_sum_kresults,
+                                                                                                               metric_sum_kschedule)
+                failed_checks.append(_err)
+
+    # if some checks have failed, list them and exit else report success
+    if failed_checks:
+        for err in failed_checks:
+            print err
+        sys.exit(1)
+    else:
+        sys.exit(0)

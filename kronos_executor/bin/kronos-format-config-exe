@@ -1,0 +1,55 @@
+#!/usr/bin/env python
+# (C) Copyright 1996-2018 ECMWF.
+#
+# This software is licensed under the terms of the Apache Licence Version 2.0
+# which can be obtained at http://www.apache.org/licenses/LICENSE-2.0.
+# In applying this licence, ECMWF does not waive the privileges and immunities
+# granted to it by virtue of its status as an intergovernmental organisation nor
+# does it submit to any jurisdiction.
+
+"""
+
+Tool that shows the schema of a kronos kronos_executor configuration file.
+If an kronos_executor configuration file name is passed, it gets validated against
+the schema.
+
+"""
+
+import argparse
+import os
+import sys
+
+sys.path.append(os.path.dirname(os.path.dirname(__file__)))
+
+from kronos_executor.config_format.exe_config_format import ExeConfigFormat
+
+
+if __name__ == '__main__':
+
+    # read other arguments if present..
+    parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawTextHelpFormatter)
+    parser_group = parser.add_mutually_exclusive_group(required=True)
+    parser_group.add_argument('-v', '--validate',
+                              type=str,
+                              help="Validates an kronos_executor configuration file",
+                              metavar='FILENAME')
+    parser_group.add_argument('-s', "--show",
+                              help="Show the schema of the kronos kronos_executor configuration file",
+                              action="store_true")
+
+    # print the help if no arguments are passed
+    if len(sys.argv) == 1:
+        parser.print_help()
+        sys.exit(1)
+
+    # parse the arguments..
+    args = parser.parse_args()
+
+    if args.show:
+        print ExeConfigFormat.describe()
+    elif args.validate:
+        try:
+            ExeConfigFormat.from_filename(args.validate)
+        except Exception as e:
+            print e
+            sys.exit(1)

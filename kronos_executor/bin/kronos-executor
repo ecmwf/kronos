@@ -1,0 +1,95 @@
+#!/usr/bin/env python
+
+# (C) Copyright 1996-2018 ECMWF.
+#
+# This software is licensed under the terms of the Apache Licence Version 2.0
+# which can be obtained at http://www.apache.org/licenses/LICENSE-2.0.
+# In applying this licence, ECMWF does not waive the privileges and immunities
+# granted to it by virtue of its status as an intergovernmental organisation nor
+# does it submit to any jurisdiction.
+
+"""
+
+Kronos Executor is the main command that executes the Kronos schedule on an HPC system.
+
+The kronos_executor is invoked as follows:
+
+> kronos-kronos_executor -c <config>.json <schedule>.kschedule
+
+For details on how to configure the configurations file <config>.json, run:
+
+> kronos-format-config-exe -s
+
+The schedule must be in KSchedule file format. The following command provides details of the
+kschedule schema:
+
+> kronos-format-kschedule -s
+
+"""
+
+import argparse
+import json
+import os
+import sys
+
+# from kronos.kronos_executor import executor_types
+
+sys.path.append(os.path.dirname(os.path.dirname(__file__)))
+
+from kronos_executor.io_formats.schedule_format import ScheduleFormat
+from kronos_executor.executor_schedule import ExecutorDepsScheduler
+from kronos_executor.executor_events_par import ExecutorEventsPar
+
+
+# type of executors from config..
+executor_types = {
+    "scheduler": ExecutorDepsScheduler,
+    "events": ExecutorEventsPar
+}
+
+
+if __name__ == "__main__":
+
+    # read other arguments if present..
+    parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawTextHelpFormatter)
+    parser.add_argument('kschedule_file_name', type=str, help="Name of KSchedule file containing the schedule")
+    parser.add_argument('-c', "--config", help="Executor config file (read README.rst for info)")
+
+    # print the help if no arguments are passed
+    if len(sys.argv) == 1:
+        parser.print_help()
+        sys.exit(1)
+
+    # parse the arguments..
+    args = parser.parse_args()
+
+    if not os.path.exists(args.kschedule_file_name):
+        raise ValueError("file {} does not exist!".format(args.kschedule_file_name))
+
+    if not args.config:
+        raise ValueError("Configuration file not set! choose --config=<path-to-config-file>".format(args.config))
+
+    if args.config:
+        if not os.path.exists(args.config):
+            raise ValueError("config file {} does not exist!".format(args.config))
+
+    print "Configuration JSON: {}".format(args.kschedule_file_name)
+    print "Schedule (KSchedule): {}".format(args.config)
+
+    with open(args.config, 'r') as f:
+        config = json.load(f)
+
+    with open(args.kschedule_file_name, 'r') as f:
+        schedule = ScheduleFormat.from_file(f)
+
+    # Select the proper execution type according to options
+    executor_class = executor_types[config.get("execution_mode", "events")]
+
+    # instantiate the appropriate kronos_executor..
+    selected_executor = executor_class(config, schedule, kschedule_file=args.kschedule_file_name)
+
+    # run
+    selected_executor.run()
+
+    # and finally do any un-setup tasks (if any at all)
+    selected_executor.unsetup()
