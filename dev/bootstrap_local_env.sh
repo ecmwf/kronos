@@ -34,33 +34,34 @@ export PS1=""
 # Install the testing environment!
 conda install -y pyyaml
 
-# environment for the modeller
+
+# ========= environment for the modeller =========
+cd $HOME/kronos_modeller
 if [[ -f conda_environment.txt ]]; then
     conda env create -n test_env -f conda_environment.txt
 fi
 
-# Make python packages cloned into the depends directory available to pip
 source activate test_env
+
+# manually add pytest package
+conda install -y pytest
+
+# Make python packages cloned into the depends directory available to pip
 find ./depends -maxdepth 1 -mindepth 1 -type d -exec pip install -e {} \;
 source deactivate
 
 
-
-
-
-# Work around conda test against nonexistent variable tripping set -e
-export CONDA_PATH_BACKUP=""
-export PS1=""
-
-# environment for the executor
-if [[ -f conda_environment.txt ]]; then
+# ========= environment for the executor =========
+cd $HOME/kronos_executor
+if [[ -f conda_environment_exe.txt ]]; then
     conda env create -n test_env_exe -f conda_environment_exe.txt
 fi
 
-# Make python packages cloned into the depends directory available to pip
 source activate test_env_exe
 
 # manually add pytest package
 conda install -y pytest
+
+# Make python packages cloned into the depends directory available to pip
 find ./depends -maxdepth 1 -mindepth 1 -type d -exec pip install -e {} \;
 source deactivate
