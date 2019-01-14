@@ -5,6 +5,8 @@ HISTORY
 0.6.0 (xx-xx-xxxx)
 ------------------
 
+ - modeller/executor: 2 separate python pckg's
+
 
 0.5.0 (12-11-2018)
 ------------------
