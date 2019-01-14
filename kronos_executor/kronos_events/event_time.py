@@ -5,7 +5,7 @@
 # In applying this licence, ECMWF does not waive the privileges and immunities
 # granted to it by virtue of its status as an intergovernmental organisation nor
 # does it submit to any jurisdiction.
-from kronos_executor.kronos_events import EventBase
+from kronos_executor.kronos_events.event_base import EventBase
 
 
 class EventTime(EventBase):

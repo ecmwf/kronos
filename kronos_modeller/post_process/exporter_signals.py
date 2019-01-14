@@ -9,14 +9,16 @@
 import os
 
 import numpy as np
-from kronos.kronos_modeller.post_process.definitions import job_class_color
-from kronos.kronos_modeller.post_process.definitions import labels_map
-from kronos.kronos_modeller.post_process.definitions import linspace
-from kronos.kronos_modeller.post_process.exportable_types import ExportableSignalFrame, \
-    ExportableSignalGroup
-from kronos.kronos_modeller.post_process.result_signals import ResultInstantRatesSignal, \
-    ResultRunningSignal, ResultProfiledSignal
 
+from kronos_modeller.post_process.definitions import job_class_color
+from kronos_modeller.post_process.definitions import labels_map
+from kronos_modeller.post_process.definitions import linspace
+from kronos_modeller.post_process.exportable_types import ExportableSignalFrame
+from kronos_modeller.post_process.exportable_types import ExportableSignalGroup
+
+from kronos_modeller.post_process.result_signals import ResultInstantRatesSignal
+from kronos_modeller.post_process.result_signals import ResultRunningSignal
+from kronos_modeller.post_process.result_signals import ResultProfiledSignal
 from kronos_modeller.post_process.exporter_base import ExporterBase
 
 

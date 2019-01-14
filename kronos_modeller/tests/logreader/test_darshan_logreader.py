@@ -12,12 +12,15 @@ import types
 import unittest
 
 import mock
-from kronos.kronos_modeller.jobs import IngestedJob
+from kronos_modeller.jobs import IngestedJob
 
-from kronos_modeller.logreader import (DarshanIngestedJobFile, DarshanIngestedJob,
-                                       DarshanLogReaderError, DarshanLogReader,
-                                       DarshanDataSet, DarshanLogReader3)
-from kronos_modeller.logreader import LogReader
+from kronos_modeller.logreader.base import LogReader
+from kronos_modeller.logreader.darshan import DarshanIngestedJobFile
+from kronos_modeller.logreader.darshan import DarshanIngestedJob
+from kronos_modeller.logreader.darshan import DarshanLogReaderError
+from kronos_modeller.logreader.darshan import DarshanLogReader
+from kronos_modeller.logreader.darshan import DarshanLogReader3
+from kronos_modeller.logreader.darshan import DarshanDataSet
 
 
 class DarshanIngestedJobFileTest(unittest.TestCase):

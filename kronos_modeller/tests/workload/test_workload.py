@@ -12,11 +12,12 @@ import unittest
 from StringIO import StringIO
 
 import numpy as np
-from kronos.kronos_executor.io import ProfileFormat
-from kronos.kronos_modeller.time_signal.definitions import time_signal_names, signal_types
-from kronos.kronos_modeller.time_signal.time_signal import TimeSignal
-from kronos.kronos_modeller.workload_data import WorkloadData
 
+from kronos_executor.io_formats.profile_format import ProfileFormat
+
+from kronos_modeller.time_signal.definitions import time_signal_names, signal_types
+from kronos_modeller.time_signal.time_signal import TimeSignal
+from kronos_modeller.workload_data import WorkloadData
 from kronos_modeller.jobs import ModelJob
 
 

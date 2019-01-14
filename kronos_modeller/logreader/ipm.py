@@ -8,12 +8,12 @@
 
 import xml.etree.ElementTree as ET
 
-from kronos.kronos_modeller.exceptions_iows import IngestionError
-from kronos.kronos_modeller.jobs import IngestedJob, ModelJob
-from kronos.kronos_modeller.time_signal.time_signal import TimeSignal
+from kronos_modeller.exceptions_iows import IngestionError
+from kronos_modeller.jobs import IngestedJob, ModelJob
+from kronos_modeller.time_signal.time_signal import TimeSignal
 
-from kronos_modeller.logreader import IngestedDataSet
-from kronos_modeller.logreader import LogReader
+from kronos_modeller.logreader.dataset import IngestedDataSet
+from kronos_modeller.logreader.base import LogReader
 
 ipm_signal_priorities = {
     'n_collective': 7,

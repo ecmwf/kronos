@@ -8,9 +8,9 @@
 import unittest
 from datetime import datetime
 
-from kronos.kronos_executor.io import KResultsDecorator
-from kronos.kronos_executor.io import KResultsJob
-from kronos.kronos_modeller.format_data_handlers.tests import create_kresults
+from kronos_modeller.format_data_handlers.kresults_decorator import KResultsDecorator
+from kronos_modeller.format_data_handlers.kresults_job import KResultsJob
+from kronos_modeller.format_data_handlers.tests.local_test_utils import create_kresults
 
 from kronos_modeller.tools.shared_utils import datetime2epochs
 

@@ -11,7 +11,7 @@ from datetime import datetime
 
 import strict_rfc3339
 
-from kronos_executor import JSONIoFormat
+from kronos_executor.io_formats.json_io_format import JSONIoFormat
 
 
 class ScheduleFormat(JSONIoFormat):

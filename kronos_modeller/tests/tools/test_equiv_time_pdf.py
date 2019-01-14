@@ -11,7 +11,7 @@ import unittest
 
 import numpy as np
 
-from kronos_modeller.job_generation import job_schedule_factory
+from kronos_modeller.job_generation.schedule import job_schedule_factory
 
 
 class EquivTimePDFTest(unittest.TestCase):

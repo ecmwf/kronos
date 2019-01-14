@@ -5,7 +5,8 @@
 # In applying this licence, ECMWF does not waive the privileges and immunities 
 # granted to it by virtue of its status as an intergovernmental organisation nor
 # does it submit to any jurisdiction.
-from kronos_modeller import available_kernels
+
+from kronos_modeller.app_kernels import available_kernels
 
 
 def distribute_int_kernel_ops(n_procs, nelems, mpi_rank, work_accumulator):

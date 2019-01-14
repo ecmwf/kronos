@@ -11,9 +11,9 @@ import os
 from datetime import datetime
 
 import strict_rfc3339
-from kronos.kronos_executor.io import JSONIoFormat
+from kronos_executor.io_formats.json_io_format import JSONIoFormat
 
-from kronos_modeller import definitions
+from kronos_modeller.time_signal import definitions
 
 
 class ProfileFormat(JSONIoFormat):

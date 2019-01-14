@@ -9,10 +9,10 @@
 from difflib import SequenceMatcher
 
 import numpy as np
-from kronos.kronos_modeller.framework.pickable import PickableObject
-from kronos.kronos_modeller.kronos_tools.utils import running_sum
-from kronos.kronos_modeller.time_signal.definitions import time_signal_names, signal_types
-from kronos.kronos_modeller.time_signal.time_signal import TimeSignal
+from kronos_modeller.framework.pickable import PickableObject
+from kronos_modeller.kronos_tools.utils import running_sum
+from kronos_modeller.time_signal.definitions import time_signal_names, signal_types
+from kronos_modeller.time_signal.time_signal import TimeSignal
 
 import fill_in_functions as fillf
 from data_analysis import recommender

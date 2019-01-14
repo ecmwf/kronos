@@ -11,9 +11,9 @@ import os
 import subprocess
 import time
 
-from kronos.kronos_modeller import run_control
-from kronos.kronos_modeller.exceptions_iows import ConfigurationError
-from kronos.kronos_modeller.runner.base_runner import BaseRunner
+from kronos_modeller import run_control
+from kronos_modeller.exceptions_iows import ConfigurationError
+from kronos_modeller.runner.base_runner import BaseRunner
 
 from kronos_modeller.tools import print_colour
 

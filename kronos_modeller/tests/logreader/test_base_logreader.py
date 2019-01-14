@@ -13,10 +13,10 @@ import tempfile
 import types
 import unittest
 
-from kronos.kronos_modeller.exceptions_iows import ConfigurationError
-from kronos.kronos_modeller.jobs import IngestedJob
+from kronos_modeller.exceptions_iows import ConfigurationError
+from kronos_modeller.jobs import IngestedJob
 
-from kronos_modeller.logreader import LogReader
+from kronos_modeller.logreader.base import LogReader
 
 
 class BaseLogReaderTest(unittest.TestCase):

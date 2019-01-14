@@ -9,7 +9,7 @@
 import math
 
 import numpy as np
-from kronos.kronos_modeller.time_signal.definitions import signal_types
+from kronos_modeller.time_signal.definitions import signal_types
 
 from kronos_modeller.kronos_tools import utils
 

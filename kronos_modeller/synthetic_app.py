@@ -11,8 +11,8 @@ import os
 import pickle
 from collections import Counter
 
-from kronos.kronos_modeller.time_signal.definitions import time_signal_names
-from kronos.kronos_modeller.tools.print_colour import print_colour
+from kronos_modeller.time_signal.definitions import time_signal_names
+from kronos_modeller.tools.print_colour import print_colour
 
 import app_kernels
 from exceptions_iows import ConfigurationError

@@ -9,11 +9,10 @@
 
 import unittest
 
-from kronos.kronos_executor.io import KResultsData
-from kronos.kronos_executor.io import KResultsDecorator
-from kronos.kronos_executor.io import KResultsJob
-
-from kronos_modeller.format_data_handlers.tests import create_kresults
+from kronos_modeller.format_data_handlers.kresults_data import KResultsData
+from kronos_modeller.format_data_handlers.kresults_decorator import KResultsDecorator
+from kronos_modeller.format_data_handlers.kresults_job import KResultsJob
+from kronos_modeller.format_data_handlers.tests.local_test_utils import create_kresults
 
 
 class SimDataTest(unittest.TestCase):

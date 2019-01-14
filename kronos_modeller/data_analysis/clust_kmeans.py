@@ -7,8 +7,8 @@
 # does it submit to any jurisdiction.
 
 import numpy as np
-from kronos.kronos_modeller.data_analysis.silhouette import find_n_clusters_silhouette
-from kronos.kronos_modeller.plot_handler import PlotHandler
+from kronos_modeller.data_analysis.silhouette import find_n_clusters_silhouette
+from kronos_modeller.plot_handler import PlotHandler
 from scipy.spatial.distance import cdist
 from sklearn.cluster import KMeans
 from sklearn.metrics import silhouette_score

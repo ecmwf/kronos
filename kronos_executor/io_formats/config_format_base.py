@@ -7,7 +7,7 @@
 # does it submit to any jurisdiction.
 import json
 
-from kronos_executor import JSONIoFormat
+from kronos_executor.io_formats.json_io_format import JSONIoFormat
 
 
 class ConfigFormatBase(JSONIoFormat):

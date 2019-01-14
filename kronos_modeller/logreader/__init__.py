@@ -8,7 +8,7 @@
 
 from darshan import DarshanDataSet, Darshan3DataSet
 from ipm import IPMDataSet
-from kronos_modeller.logreader import StdoutECMWFDataSet
+from kronos_modeller.logreader.stdout_ecmwf import StdoutECMWFDataSet
 from profiler_reader import ingest_allinea_profiles
 from scheduler_reader import ingest_accounting_logs, ingest_pbs_logs, ingest_epcc_csv_logs
 

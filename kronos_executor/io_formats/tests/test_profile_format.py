@@ -8,11 +8,7 @@ from datetime import datetime
 
 import jsonschema
 
-from kronos_executor import ProfileFormat
-
-
-# from jobs import ModelJob
-# import time_signal
+from kronos_executor.io_formats.profile_format import ProfileFormat
 
 
 class ProfileFormatTest(unittest.TestCase):

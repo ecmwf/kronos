@@ -7,10 +7,10 @@
 # does it submit to any jurisdiction.
 
 import numpy as np
-from kronos.kronos_modeller.time_signal.definitions import time_signal_names
-from kronos.kronos_modeller.time_signal.time_signal import TimeSignal
-from kronos.kronos_modeller.tools.merge import max_not_none, min_not_none
-from kronos.kronos_modeller.tools.time_format import format_seconds
+from kronos_modeller.time_signal.definitions import time_signal_names
+from kronos_modeller.time_signal.time_signal import TimeSignal
+from kronos_modeller.tools.merge import max_not_none, min_not_none
+from kronos_modeller.tools.time_format import format_seconds
 
 from exceptions_iows import ModellingError, ConfigurationError
 from kronos_modeller.tools.print_colour import print_colour

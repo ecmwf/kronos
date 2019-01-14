@@ -11,8 +11,7 @@ sys.path.append(os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.
 sys.path.append(os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))), 'bin'))
 
 from kronos_executor import executor
-from kronos_executor import global_config
-# from kronos.kronos_executor.job_classes import base_job
+from kronos_executor.global_config import global_config
 
 from kronos_executor.io_formats.schedule_format import ScheduleFormat
 

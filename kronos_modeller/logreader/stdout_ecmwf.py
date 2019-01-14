@@ -10,9 +10,9 @@ import calendar
 import datetime
 import re
 
-from kronos.kronos_modeller.jobs import IngestedJob, ModelJob
-from kronos.kronos_modeller.logreader.base import LogReader
-from kronos.kronos_modeller.logreader.dataset import IngestedDataSet
+from kronos_modeller.jobs import IngestedJob, ModelJob
+from kronos_modeller.logreader.base import LogReader
+from kronos_modeller.logreader.dataset import IngestedDataSet
 
 from kronos_modeller.tools.print_colour import print_colour
 

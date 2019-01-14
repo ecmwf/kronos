@@ -9,9 +9,9 @@
 import os
 
 import numpy as np
-from kronos.kronos_modeller.job_generation import generator
-from kronos.kronos_modeller.kronos_tools.gyration_radius import r_gyration
-from kronos.kronos_modeller.report import Report, ModelMeasure
+from kronos_modeller.job_generation import generator
+from kronos_modeller.kronos_tools.gyration_radius import r_gyration
+from kronos_modeller.report import Report, ModelMeasure
 
 import data_analysis
 import workload_data

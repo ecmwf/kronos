@@ -13,20 +13,20 @@ import pprint
 import subprocess
 import time
 
-from kronos.kronos_modeller import run_control
-from kronos.kronos_modeller import time_signal
-from kronos.kronos_modeller.exceptions_iows import ConfigurationError
-from kronos.kronos_modeller.time_signal.definitions import signal_types
-from kronos.kronos_modeller.workload_data import WorkloadData
+from kronos_modeller import run_control
+from kronos_modeller import time_signal
+from kronos_modeller.exceptions_iows import ConfigurationError
+from kronos_modeller.time_signal.definitions import signal_types
+from kronos_modeller.workload_data import WorkloadData
 
 from kronos_executor.io_formats.schedule_format import ScheduleFormat
 
 os.sys.path.append(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
 
 from base_runner import BaseRunner
-from kronos.kronos_modeller.kronos_tools import utils
-from kronos.kronos_modeller.logreader import profiler_reader
-from kronos.kronos_modeller.tools import print_colour
+from kronos_modeller.kronos_tools import utils
+from kronos_modeller.logreader import profiler_reader
+from kronos_modeller.tools import print_colour
 
 
 class FeedbackLoopRunner(BaseRunner):

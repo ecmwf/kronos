@@ -10,10 +10,10 @@ import csv
 import os
 from datetime import datetime
 
-from kronos.kronos_modeller.exceptions_iows import ConfigurationError
-from kronos.kronos_modeller.jobs import IngestedJob, ModelJob
+from kronos_modeller.exceptions_iows import ConfigurationError
+from kronos_modeller.jobs import IngestedJob, ModelJob
 
-from kronos_modeller.logreader import IngestedDataSet
+from kronos_modeller.logreader.dataset import IngestedDataSet
 
 
 def read_pbs_log(filename_in):

@@ -9,9 +9,9 @@
 import copy
 
 import numpy as np
-from kronos.kronos_modeller.job_generation.strategy_base import StrategyBase
-from kronos.kronos_modeller.jobs import ModelJob
 
+from kronos_modeller.job_generation.strategy_base import StrategyBase
+from kronos_modeller.jobs import ModelJob
 from kronos_modeller.tools.print_colour import print_colour
 
 

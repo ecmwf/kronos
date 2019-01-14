@@ -6,8 +6,8 @@
 # granted to it by virtue of its status as an intergovernmental organisation nor
 # does it submit to any jurisdiction.
 
-from kronos.kronos_modeller.time_signal.definitions import signal_types
-from kronos.kronos_modeller.tools.shared_utils import mean_of_list, std_of_list
+from kronos_modeller.time_signal.definitions import signal_types
+from kronos_modeller.tools.shared_utils import mean_of_list, std_of_list
 
 from kronos_modeller.format_data_handlers.kschedule_data import KScheduleData
 

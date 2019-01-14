@@ -6,9 +6,7 @@
 # granted to it by virtue of its status as an intergovernmental organisation nor
 # does it submit to any jurisdiction.
 
-from kronos.kronos_modeller.runner import simple
-
-from kronos_modeller.runner import feedback
+from kronos_modeller.runner import simple, feedback
 
 runner_list = {
     "simple": simple.SimpleRunner,

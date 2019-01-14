@@ -13,11 +13,11 @@ import sys
 from datetime import datetime
 
 import numpy as np
-from kronos.kronos_modeller.exceptions_iows import ConfigurationError
-from kronos.kronos_modeller.jobs import IngestedJob, ModelJob
-from kronos.kronos_modeller.logreader.dataset import IngestedDataSet
-from kronos.kronos_modeller.time_signal.definitions import signal_types
-from kronos.kronos_modeller.time_signal.time_signal import TimeSignal
+from kronos_modeller.exceptions_iows import ConfigurationError
+from kronos_modeller.jobs import IngestedJob, ModelJob
+from kronos_modeller.logreader.dataset import IngestedDataSet
+from kronos_modeller.time_signal.definitions import signal_types
+from kronos_modeller.time_signal.time_signal import TimeSignal
 
 from kronos_modeller.tools.print_colour import print_colour
 

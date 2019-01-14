@@ -24,7 +24,7 @@ import datetime
 import errno
 import os
 
-from kronos.kronos_modeller.exceptions_iows import ConfigurationError
+from kronos_modeller.exceptions_iows import ConfigurationError
 
 from kronos_modeller.tools.print_colour import print_colour
 

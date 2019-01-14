@@ -3,9 +3,8 @@ import logging
 import os
 from shutil import copy2
 
-from kronos.kronos_executor.executor import Executor
-from kronos.kronos_executor.job_submitter import JobSubmitter
-
+from kronos_executor.executor import Executor
+from kronos_executor.job_submitter import JobSubmitter
 from kronos_executor.kronos_events import EventComplete
 from kronos_executor.kronos_events import Manager
 

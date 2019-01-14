@@ -11,7 +11,7 @@ import multiprocessing
 import socket
 from datetime import datetime
 
-from kronos.kronos_modeller.tools.shared_utils import datetime2epochs
+from kronos_modeller.tools.shared_utils import datetime2epochs
 
 from kronos_executor.kronos_events import EventFactory
 

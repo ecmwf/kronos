@@ -18,7 +18,7 @@ generic applications)
 import argparse
 import sys
 
-from kronos.kronos_executor.io import ProfileFormat
+from kronos_executor.io_formats import ProfileFormat
 
 from kronos_modeller.format_data_handlers.converter_kprofile_kresults import \
     ConverterKprofileKresults

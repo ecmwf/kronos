@@ -12,20 +12,20 @@ from shutil import copy2
 
 sys.path.append(os.path.dirname(os.path.dirname(__file__)))
 
-from kronos_executor import global_config
+from kronos_executor.global_config import global_config
 from kronos_executor import generate_read_files
 from kronos_executor.subprocess_callback import SubprocessManager
 
 
 # -------- setup a logger for the kronos_executor --------
-logger = logging.getLogger("kronos.kronos_executor")
+logger = logging.getLogger("kronos_executor")
 logger.setLevel(logging.INFO)
 
 msg_format = '%(asctime)s; %(name)s; %(levelname)s; %(message)s'
 # msg_format = '%(created)f %(message)s'
 
 # to file
-fh = logging.FileHandler('kronos-kronos_executor.log', mode='w')
+fh = logging.FileHandler('kronos-executor.log', mode='w')
 fh.setLevel(logging.DEBUG)
 fh.setFormatter(logging.Formatter(msg_format))
 logger.addHandler(fh)

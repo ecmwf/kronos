@@ -12,8 +12,8 @@ import re
 import subprocess
 import time
 
-from kronos.kronos_modeller.config.config import Config
-from kronos.kronos_modeller.exceptions_iows import ConfigurationError
+from kronos_modeller.config.config import Config
+from kronos_modeller.exceptions_iows import ConfigurationError
 
 from kronos_modeller.tools import print_colour
 

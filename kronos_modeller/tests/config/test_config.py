@@ -14,8 +14,8 @@ import unittest
 from StringIO import StringIO
 
 import jsonschema
-from kronos.kronos_modeller.config.config import Config
-from kronos.kronos_modeller.config.config_format import ConfigFormat
+from kronos_modeller.config.config import Config
+from kronos_modeller.config.config_format import ConfigFormat
 
 from kronos_modeller.exceptions_iows import ConfigurationError
 

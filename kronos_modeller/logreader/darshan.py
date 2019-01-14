@@ -9,11 +9,11 @@
 import subprocess
 from collections import OrderedDict
 
-from kronos.kronos_modeller.jobs import IngestedJob, ModelJob
-from kronos.kronos_modeller.logreader.base import LogReader
-from kronos.kronos_modeller.logreader.dataset import IngestedDataSet
-from kronos.kronos_modeller.time_signal.time_signal import TimeSignal
-from kronos.kronos_modeller.tools.merge import min_not_none, max_not_none
+from kronos_modeller.jobs import IngestedJob, ModelJob
+from kronos_modeller.logreader.base import LogReader
+from kronos_modeller.logreader.dataset import IngestedDataSet
+from kronos_modeller.time_signal.time_signal import TimeSignal
+from kronos_modeller.tools.merge import min_not_none, max_not_none
 
 from kronos_modeller.tools.print_colour import print_colour
 

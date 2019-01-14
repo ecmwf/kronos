@@ -1,10 +1,10 @@
 import json
 import logging
 
-from kronos_executor.kronos_events import EventComplete
-from kronos_executor.kronos_events import EventMetadataChange
-from kronos_executor.kronos_events import EventNotifyMetadata
-from kronos_executor.kronos_events import EventTime
+from kronos_executor.kronos_events.event_complete import EventComplete
+from kronos_executor.kronos_events.event_metadatachange import EventMetadataChange
+from kronos_executor.kronos_events.event_notifymetadata import EventNotifyMetadata
+from kronos_executor.kronos_events.event_time import EventTime
 
 event_types = {
     "MetadataChange": EventMetadataChange,

@@ -11,11 +11,12 @@ import types
 import unittest
 
 import mock
-from kronos.kronos_modeller.exceptions_iows import IngestionError
-from kronos.kronos_modeller.jobs import IngestedJob
+from kronos_modeller.exceptions_iows import IngestionError
+from kronos_modeller.jobs import IngestedJob
 
-from kronos_modeller.logreader import IPMTaskInfo, IPMLogReader, IPMIngestedJob, IPMDataSet
-from kronos_modeller.logreader import LogReader
+# from kronos_modeller.logreader import IPMTaskInfo, IPMLogReader, IPMIngestedJob, IPMDataSet
+from kronos_modeller.logreader.base import LogReader
+from kronos_modeller.logreader.ipm import IPMTaskInfo, IPMIngestedJob, IPMLogReader, IPMDataSet
 
 
 class IPMTaskInfoTest(unittest.TestCase):

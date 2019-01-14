@@ -9,7 +9,7 @@
 
 import unittest
 
-from kronos_modeller.tools import min_not_none, max_not_none
+from kronos_modeller.tools.merge import min_not_none, max_not_none
 
 
 class ModelJobTest(unittest.TestCase):

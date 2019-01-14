@@ -7,11 +7,12 @@
 # does it submit to any jurisdiction.
 import os
 
-from kronos.kronos_executor.io.definitions import sorted_kresults_stats_names, kresults_stats_info
-from kronos.kronos_modeller.post_process.exportable_types import ExportableSignalGroup, \
-    ExportableSignalFrame
-from kronos.kronos_modeller.post_process.result_signals import ResultSignal
+from kronos_executor.io_formats.definitions import sorted_kresults_stats_names
+from kronos_executor.io_formats.definitions import kresults_stats_info
 
+from kronos_modeller.post_process.exportable_types import ExportableSignalGroup
+from kronos_modeller.post_process.exportable_types import ExportableSignalFrame
+from kronos_modeller.post_process.result_signals import ResultSignal
 from kronos_modeller.post_process.exporter_base import ExporterBase
 
 
