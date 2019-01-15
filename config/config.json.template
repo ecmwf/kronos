@@ -1,0 +1,9 @@
+{
+    "coordinator_binary": "{install_root}/build/bin/kronos-synapp",
+    "job_class": "pbs",
+    "job_dir": "/tmp/output",
+    "job_dir_shared": "/tmp/shared",
+    "procs_per_node": 36,
+    "read_cache": "/tmp/read_cache"
+}
+

@@ -4,7 +4,7 @@ cmake_minimum_required( VERSION 2.8.11 FATAL_ERROR )
 
 project( kronos C CXX )
 
-set( CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake" ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/../ecbuild/cmake")
+set( CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake" ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/ecbuild/cmake")
 
 include( ecbuild_system NO_POLICY_SCOPE )
 
@@ -37,13 +37,13 @@ endif()
 # Configuration of the kronos project
 # This is uniquely contained as a python module (so that the python doesn't need to be configured to be used/tested).
 
-execute_process(COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/bin/kronos-enquire-global-config read_file_multiplicity
+execute_process(COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/kronos_executor/bin/kronos-enquire-global-config read_file_multiplicity
                 OUTPUT_VARIABLE KRONOS_READ_FILE_MULTIPLICITY )
-execute_process(COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/bin/kronos-enquire-global-config read_file_size_min
+execute_process(COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/kronos_executor/bin/kronos-enquire-global-config read_file_size_min
                 OUTPUT_VARIABLE KRONOS_READ_SIZE_MIN )
-execute_process(COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/bin/kronos-enquire-global-config read_file_size_max
+execute_process(COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/kronos_executor/bin/kronos-enquire-global-config read_file_size_max
                 OUTPUT_VARIABLE KRONOS_READ_SIZE_MAX )
-execute_process(COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/bin/kronos-enquire-global-config write_file_max_chunk
+execute_process(COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/kronos_executor/bin/kronos-enquire-global-config write_file_max_chunk
                 OUTPUT_VARIABLE KRONOS_WRITE_FILE_MAX_CHUNK )
 
 # And build the C components
@@ -52,7 +52,7 @@ ecbuild_declare_project()
 
 ### export package to other ecbuild packages
 
-set( KRONOS_INCLUDE_DIRS   ${CMAKE_CURRENT_SOURCE_DIR}/kronos-synapps ${CMAKE_CURRENT_BINARY_DIR}/kronos-synapps )
+set( KRONOS_INCLUDE_DIRS   ${CMAKE_CURRENT_SOURCE_DIR}/kronos_synapps ${CMAKE_CURRENT_BINARY_DIR}/kronos_synapps )
 set( KRONOS_LIBRARIES      "" )
 
 get_directory_property( KRONOS_DEFINITIONS COMPILE_DEFINITIONS )
@@ -61,7 +61,7 @@ get_directory_property( KRONOS_DEFINITIONS COMPILE_DEFINITIONS )
 
 include_directories( ${KRONOS_INCLUDE_DIRS} )
 
-add_subdirectory( kronos-synapps )
+add_subdirectory( kronos_synapps )
 
 ### finalize project
 
@@ -69,7 +69,7 @@ ecbuild_add_resources( TARGET top_files SOURCES_DONT_PACK AUTHORS )
 ecbuild_add_resources( TARGET top_files_1 SOURCES_DONT_PACK dev )
 #ecbuild_add_resources( TARGET top_files SOURCES TODO AUTHORS README.md NOTICE LICENSE INSTALL ChangeLog COPYING )
 
-ecbuild_pkgconfig(NAME kronos-synapps
+ecbuild_pkgconfig(NAME kronos_synapps
                   DESCRIPTION "Execute synthetic workloads on HPC systems using synthetic applications" )
 
 ecbuild_install_project( NAME ${PROJECT_NAME} )

@@ -7,7 +7,8 @@ _DIRECTORY=$(dirname $(readlink -f $BASH_SOURCE))
 
 _HELP="USAGE:\n
 --modeller: install the modeller python package (with all required dependencies)\n
---executor: install the executor python package (with all required dependencies)
+--executor: install the executor python package (with all required dependencies)\n
+--syn-apps: install kronos synthetic-apps
 "
   
 
@@ -33,8 +34,11 @@ else
     echo "installing executor python package.."
     pip install -e ${_DIRECTORY}/kronos_executor
    
-    # clone ecbuild from github (master branch)
+  elif [[ $1 == "--syn-apps" ]]; then
+
     echo "installing Kronos synthetic application"
+
+    # clone ecbuild from github (master branch)
     git clone https://github.com/ecmwf/ecbuild.git
     cd ${_DIRECTORY}/ecbuild && git checkout master
     if [[ ! -d ${_DIRECTORY}/build ]]; then
@@ -42,7 +46,7 @@ else
     fi
 
     # build the synthetic apps
-    cd ${_DIRECTORY}/build && cmake ${_DIRECTORY}/kronos_executor && make
+    cd ${_DIRECTORY}/build && cmake ${_DIRECTORY} && make
 
   else
     echo -e "Wrong parameters passed!"
@@ -51,6 +55,4 @@ else
   fi 
 
 fi
-
-
 
