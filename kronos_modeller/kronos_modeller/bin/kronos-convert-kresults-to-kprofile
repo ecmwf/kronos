@@ -19,16 +19,15 @@ Limitation: this tool only collects statistics for the jobs that produce a kresu
 
 """
 
-import argparse
-import json
 import os
 import sys
-
+import json
+import argparse
 import numpy as np
-from kronos.io.profile_format import ProfileFormat
-from kronos.io.results_format import ResultsFormat
 
 from kronos_executor.io_formats.definitions import kresults_ts_names_map
+from kronos_executor.io_formats.profile_format import ProfileFormat
+from kronos_executor.io_formats.results_format import ResultsFormat
 
 
 def kresults_to_profiled_job_json(kresults_json, input_json):

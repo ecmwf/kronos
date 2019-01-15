@@ -15,13 +15,13 @@ generic applications)
 
 """
 
-import argparse
 import sys
+import argparse
 
-from kronos_executor.io_formats import ProfileFormat
-
+from kronos_executor.io_formats.profile_format import ProfileFormat
 from kronos_modeller.format_data_handlers.converter_kprofile_kresults import \
     ConverterKprofileKresults
+
 
 if __name__ == "__main__":
 

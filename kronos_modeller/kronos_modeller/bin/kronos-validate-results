@@ -20,20 +20,22 @@ in the .KResults files and compares the sum with the sum retrieved from the KSch
 
 """
 
-import argparse
 import os
 import sys
+import argparse
 
-from kronos.kronos_executor.io import KScheduleData
-from kronos.kronos_modeller.time_signal.definitions import signal_types
-
+from kronos_modeller.format_data_handlers.kschedule_data import KScheduleData
+from kronos_modeller.time_signal.definitions import signal_types
 from kronos_modeller.format_data_handlers.kresults_data import KResultsData
+
 
 if __name__ == "__main__":
 
     # Parser for the required arguments
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawTextHelpFormatter)
-    parser.add_argument("job_dir", type=str, help="Path of the kronos output folder 'job_dir' (contains the job-<ID> sub-folders)")
+    parser.add_argument("job_dir", type=str,
+                        help="Path of the kronos output folder "
+                             "'job_dir' (contains the job-<ID> sub-folders)")
 
     # TODO: read validation not yet implemented
     testable_metrics = signal_types.keys()

@@ -17,18 +17,15 @@ Kronos Schedule.
 
 import os
 import sys
-
-sys.path.append(os.path.dirname(os.path.dirname(__file__)))
-
 import argparse
 
+from kronos_executor.io_formats.profile_format import ProfileFormat
+
+from kronos_modeller.config.config import Config
 from kronos_modeller.exceptions_iows import ConfigurationError
-from kronos_modeller import WorkloadData
-from kronos_modeller import Config
 from kronos_modeller.model import KronosModel
 from kronos_modeller.report import Report
-
-from kronos_executor import ProfileFormat
+from kronos_modeller.workload_data import WorkloadData
 
 
 class Kronos(object):

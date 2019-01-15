@@ -17,19 +17,26 @@ Show summary of information contained into a Kronos dataset
 
 """
 
-import argparse
 import os
 import sys
+import argparse
 
-from kronos_modeller.logreader import IngestedDataSet
+from kronos_modeller.logreader.dataset import IngestedDataSet
+
 
 if __name__ == "__main__":
 
     # Parser for the required arguments
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawTextHelpFormatter)
-    parser.add_argument("path", type=str, help="Path of pickeld ingested datasets (file or directory)")
-    parser.add_argument("--mode", type=str, help="Export mode", choices=["per_job_summary", "time_series"], default="per_job_summary")
-    parser.add_argument("--param", type=str, help="Name of the parameter to export (only used if mode=time_series")
+
+    parser.add_argument("path", type=str,
+                        help="Path of pickeld ingested datasets (file or directory)")
+
+    parser.add_argument("--mode", type=str, help="Export mode",
+                        choices=["per_job_summary", "time_series"], default="per_job_summary")
+
+    parser.add_argument("--param", type=str,
+                        help="Name of the parameter to export (only used if mode=time_series")
 
     # print the help if no arguments are passed
     if len(sys.argv) == 1:

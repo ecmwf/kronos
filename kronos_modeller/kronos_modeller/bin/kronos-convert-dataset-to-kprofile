@@ -12,14 +12,12 @@
 Exports a KProfile file from a dataset
 
 """
-import os
-import sys
-sys.path.append(os.path.dirname(os.path.dirname(__file__)))
 
+import sys
 import argparse
 
-from kronos_executor import ProfileFormat
-from kronos_modeller.logreader import IngestedDataSet
+from kronos_executor.io_formats.profile_format import ProfileFormat
+from kronos_modeller.logreader.dataset import IngestedDataSet
 
 
 if __name__ == "__main__":
