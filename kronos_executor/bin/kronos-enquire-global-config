@@ -24,7 +24,7 @@ import sys
 
 sys.path.append(os.path.dirname(os.path.dirname(__file__)))
 
-from kronos_executor import global_config
+from kronos_executor.global_config import global_config
 
 # Parser for the required arguments
 parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawTextHelpFormatter)
