@@ -37,13 +37,13 @@ endif()
 # Configuration of the kronos project
 # This is uniquely contained as a python module (so that the python doesn't need to be configured to be used/tested).
 
-execute_process(COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/kronos_executor/bin/kronos-enquire-global-config read_file_multiplicity
+execute_process(COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/kronos_executor/kronos_executor/bin/kronos-enquire-global-config read_file_multiplicity
                 OUTPUT_VARIABLE KRONOS_READ_FILE_MULTIPLICITY )
-execute_process(COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/kronos_executor/bin/kronos-enquire-global-config read_file_size_min
+execute_process(COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/kronos_executor/kronos_executor/bin/kronos-enquire-global-config read_file_size_min
                 OUTPUT_VARIABLE KRONOS_READ_SIZE_MIN )
-execute_process(COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/kronos_executor/bin/kronos-enquire-global-config read_file_size_max
+execute_process(COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/kronos_executor/kronos_executor/bin/kronos-enquire-global-config read_file_size_max
                 OUTPUT_VARIABLE KRONOS_READ_SIZE_MAX )
-execute_process(COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/kronos_executor/bin/kronos-enquire-global-config write_file_max_chunk
+execute_process(COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/kronos_executor/kronos_executor/bin/kronos-enquire-global-config write_file_max_chunk
                 OUTPUT_VARIABLE KRONOS_WRITE_FILE_MAX_CHUNK )
 
 # And build the C components
