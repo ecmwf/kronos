@@ -1,11 +1,11 @@
-kronos\_modeller\.run\_control package
-======================================
+kronos_modeller.run_control package
+===================================
 
 Submodules
 ----------
 
-kronos\_modeller\.run\_control\.controls module
------------------------------------------------
+kronos_modeller.run_control.controls module
+-------------------------------------------
 
 .. automodule:: kronos_modeller.run_control.controls
     :members:

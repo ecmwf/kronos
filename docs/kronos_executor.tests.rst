@@ -1,35 +1,35 @@
-kronos\_executor\.tests package
-===============================
+kronos_executor.tests package
+=============================
 
 Submodules
 ----------
 
-kronos\_executor\.tests\.test\_executor module
-----------------------------------------------
+kronos_executor.tests.test_executor module
+------------------------------------------
 
 .. automodule:: kronos_executor.tests.test_executor
     :members:
     :undoc-members:
     :show-inheritance:
 
-kronos\_executor\.tests\.test\_generate\_read\_files module
------------------------------------------------------------
+kronos_executor.tests.test_generate_read_files module
+-----------------------------------------------------
 
 .. automodule:: kronos_executor.tests.test_generate_read_files
     :members:
     :undoc-members:
     :show-inheritance:
 
-kronos\_executor\.tests\.test\_jobs module
-------------------------------------------
+kronos_executor.tests.test_jobs module
+--------------------------------------
 
 .. automodule:: kronos_executor.tests.test_jobs
     :members:
     :undoc-members:
     :show-inheritance:
 
-kronos\_executor\.tests\.testutils module
------------------------------------------
+kronos_executor.tests.testutils module
+--------------------------------------
 
 .. automodule:: kronos_executor.tests.testutils
     :members:

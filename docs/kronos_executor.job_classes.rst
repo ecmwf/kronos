@@ -1,51 +1,51 @@
-kronos\_executor\.job\_classes package
-======================================
+kronos_executor.job_classes package
+===================================
 
 Submodules
 ----------
 
-kronos\_executor\.job\_classes\.external\_app module
-----------------------------------------------------
+kronos_executor.job_classes.external_app module
+-----------------------------------------------
 
 .. automodule:: kronos_executor.job_classes.external_app
     :members:
     :undoc-members:
     :show-inheritance:
 
-kronos\_executor\.job\_classes\.lsf module
-------------------------------------------
+kronos_executor.job_classes.lsf module
+--------------------------------------
 
 .. automodule:: kronos_executor.job_classes.lsf
     :members:
     :undoc-members:
     :show-inheritance:
 
-kronos\_executor\.job\_classes\.pbs module
-------------------------------------------
+kronos_executor.job_classes.pbs module
+--------------------------------------
 
 .. automodule:: kronos_executor.job_classes.pbs
     :members:
     :undoc-members:
     :show-inheritance:
 
-kronos\_executor\.job\_classes\.sbatch\_filter module
------------------------------------------------------
+kronos_executor.job_classes.sbatch_filter module
+------------------------------------------------
 
 .. automodule:: kronos_executor.job_classes.sbatch_filter
     :members:
     :undoc-members:
     :show-inheritance:
 
-kronos\_executor\.job\_classes\.slurm module
---------------------------------------------
+kronos_executor.job_classes.slurm module
+----------------------------------------
 
 .. automodule:: kronos_executor.job_classes.slurm
     :members:
     :undoc-members:
     :show-inheritance:
 
-kronos\_executor\.job\_classes\.trivial\_job module
----------------------------------------------------
+kronos_executor.job_classes.trivial_job module
+----------------------------------------------
 
 .. automodule:: kronos_executor.job_classes.trivial_job
     :members:

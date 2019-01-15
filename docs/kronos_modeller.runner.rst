@@ -1,27 +1,27 @@
-kronos\_modeller\.runner package
-================================
+kronos_modeller.runner package
+==============================
 
 Submodules
 ----------
 
-kronos\_modeller\.runner\.base\_runner module
----------------------------------------------
+kronos_modeller.runner.base_runner module
+-----------------------------------------
 
 .. automodule:: kronos_modeller.runner.base_runner
     :members:
     :undoc-members:
     :show-inheritance:
 
-kronos\_modeller\.runner\.feedback module
------------------------------------------
+kronos_modeller.runner.feedback module
+--------------------------------------
 
 .. automodule:: kronos_modeller.runner.feedback
     :members:
     :undoc-members:
     :show-inheritance:
 
-kronos\_modeller\.runner\.simple module
----------------------------------------
+kronos_modeller.runner.simple module
+------------------------------------
 
 .. automodule:: kronos_modeller.runner.simple
     :members:

@@ -1,43 +1,43 @@
-kronos\_modeller\.data\_analysis package
-========================================
+kronos_modeller.data_analysis package
+=====================================
 
 Submodules
 ----------
 
-kronos\_modeller\.data\_analysis\.clust\_DBSCAN module
-------------------------------------------------------
+kronos_modeller.data_analysis.clust_DBSCAN module
+-------------------------------------------------
 
 .. automodule:: kronos_modeller.data_analysis.clust_DBSCAN
     :members:
     :undoc-members:
     :show-inheritance:
 
-kronos\_modeller\.data\_analysis\.clust\_base module
-----------------------------------------------------
+kronos_modeller.data_analysis.clust_base module
+-----------------------------------------------
 
 .. automodule:: kronos_modeller.data_analysis.clust_base
     :members:
     :undoc-members:
     :show-inheritance:
 
-kronos\_modeller\.data\_analysis\.clust\_kmeans module
-------------------------------------------------------
+kronos_modeller.data_analysis.clust_kmeans module
+-------------------------------------------------
 
 .. automodule:: kronos_modeller.data_analysis.clust_kmeans
     :members:
     :undoc-members:
     :show-inheritance:
 
-kronos\_modeller\.data\_analysis\.recommender module
-----------------------------------------------------
+kronos_modeller.data_analysis.recommender module
+------------------------------------------------
 
 .. automodule:: kronos_modeller.data_analysis.recommender
     :members:
     :undoc-members:
     :show-inheritance:
 
-kronos\_modeller\.data\_analysis\.silhouette module
----------------------------------------------------
+kronos_modeller.data_analysis.silhouette module
+-----------------------------------------------
 
 .. automodule:: kronos_modeller.data_analysis.silhouette
     :members:

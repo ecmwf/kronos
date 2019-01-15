@@ -1,5 +1,5 @@
-kronos\_modeller package
-========================
+kronos_modeller package
+=======================
 
 Subpackages
 -----------
@@ -23,88 +23,88 @@ Subpackages
 Submodules
 ----------
 
-kronos\_modeller\.app\_kernels module
--------------------------------------
+kronos_modeller.app_kernels module
+----------------------------------
 
 .. automodule:: kronos_modeller.app_kernels
     :members:
     :undoc-members:
     :show-inheritance:
 
-kronos\_modeller\.exceptions\_iows module
------------------------------------------
+kronos_modeller.exceptions_iows module
+--------------------------------------
 
 .. automodule:: kronos_modeller.exceptions_iows
     :members:
     :undoc-members:
     :show-inheritance:
 
-kronos\_modeller\.fill\_in\_functions module
---------------------------------------------
+kronos_modeller.fill_in_functions module
+----------------------------------------
 
 .. automodule:: kronos_modeller.fill_in_functions
     :members:
     :undoc-members:
     :show-inheritance:
 
-kronos\_modeller\.jobs module
------------------------------
+kronos_modeller.jobs module
+---------------------------
 
 .. automodule:: kronos_modeller.jobs
     :members:
     :undoc-members:
     :show-inheritance:
 
-kronos\_modeller\.model module
-------------------------------
+kronos_modeller.model module
+----------------------------
 
 .. automodule:: kronos_modeller.model
     :members:
     :undoc-members:
     :show-inheritance:
 
-kronos\_modeller\.plot\_handler module
---------------------------------------
+kronos_modeller.plot_handler module
+-----------------------------------
 
 .. automodule:: kronos_modeller.plot_handler
     :members:
     :undoc-members:
     :show-inheritance:
 
-kronos\_modeller\.report module
--------------------------------
+kronos_modeller.report module
+-----------------------------
 
 .. automodule:: kronos_modeller.report
     :members:
     :undoc-members:
     :show-inheritance:
 
-kronos\_modeller\.setup module
-------------------------------
+kronos_modeller.setup module
+----------------------------
 
 .. automodule:: kronos_modeller.setup
     :members:
     :undoc-members:
     :show-inheritance:
 
-kronos\_modeller\.synthetic\_app module
----------------------------------------
+kronos_modeller.synthetic_app module
+------------------------------------
 
 .. automodule:: kronos_modeller.synthetic_app
     :members:
     :undoc-members:
     :show-inheritance:
 
-kronos\_modeller\.workload\_data module
----------------------------------------
+kronos_modeller.workload_data module
+------------------------------------
 
 .. automodule:: kronos_modeller.workload_data
     :members:
     :undoc-members:
     :show-inheritance:
 
-kronos\_modeller\.workload\_fill\_in module
--------------------------------------------
+kronos_modeller.workload_fill_in module
+---------------------------------------
 
 .. automodule:: kronos_modeller.workload_fill_in
     :members:

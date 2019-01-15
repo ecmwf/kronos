@@ -1,5 +1,5 @@
-kronos\_modeller\.job\_generation package
-=========================================
+kronos_modeller.job_generation package
+======================================
 
 Subpackages
 -----------
@@ -11,32 +11,32 @@ Subpackages
 Submodules
 ----------
 
-kronos\_modeller\.job\_generation\.generator module
----------------------------------------------------
+kronos_modeller.job_generation.generator module
+-----------------------------------------------
 
 .. automodule:: kronos_modeller.job_generation.generator
     :members:
     :undoc-members:
     :show-inheritance:
 
-kronos\_modeller\.job\_generation\.strategy\_base module
---------------------------------------------------------
+kronos_modeller.job_generation.strategy_base module
+---------------------------------------------------
 
 .. automodule:: kronos_modeller.job_generation.strategy_base
     :members:
     :undoc-members:
     :show-inheritance:
 
-kronos\_modeller\.job\_generation\.strategy\_spawn module
----------------------------------------------------------
+kronos_modeller.job_generation.strategy_spawn module
+----------------------------------------------------
 
 .. automodule:: kronos_modeller.job_generation.strategy_spawn
     :members:
     :undoc-members:
     :show-inheritance:
 
-kronos\_modeller\.job\_generation\.strategy\_spawn\_rand module
----------------------------------------------------------------
+kronos_modeller.job_generation.strategy_spawn_rand module
+---------------------------------------------------------
 
 .. automodule:: kronos_modeller.job_generation.strategy_spawn_rand
     :members:

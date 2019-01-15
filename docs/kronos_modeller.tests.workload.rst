@@ -1,19 +1,19 @@
-kronos\_modeller\.tests\.workload package
-=========================================
+kronos_modeller.tests.workload package
+======================================
 
 Submodules
 ----------
 
-kronos\_modeller\.tests\.workload\.test\_generator module
----------------------------------------------------------
+kronos_modeller.tests.workload.test_generator module
+----------------------------------------------------
 
 .. automodule:: kronos_modeller.tests.workload.test_generator
     :members:
     :undoc-members:
     :show-inheritance:
 
-kronos\_modeller\.tests\.workload\.test\_workload module
---------------------------------------------------------
+kronos_modeller.tests.workload.test_workload module
+---------------------------------------------------
 
 .. automodule:: kronos_modeller.tests.workload.test_workload
     :members:

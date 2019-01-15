@@ -1,5 +1,5 @@
-kronos\_modeller\.format\_data\_handlers package
-================================================
+kronos_modeller.format_data_handlers package
+============================================
 
 Subpackages
 -----------
@@ -11,56 +11,56 @@ Subpackages
 Submodules
 ----------
 
-kronos\_modeller\.format\_data\_handlers\.converter\_kprofile\_kresults module
-------------------------------------------------------------------------------
+kronos_modeller.format_data_handlers.converter_kprofile_kresults module
+-----------------------------------------------------------------------
 
 .. automodule:: kronos_modeller.format_data_handlers.converter_kprofile_kresults
     :members:
     :undoc-members:
     :show-inheritance:
 
-kronos\_modeller\.format\_data\_handlers\.kresults\_data module
----------------------------------------------------------------
+kronos_modeller.format_data_handlers.kresults_data module
+---------------------------------------------------------
 
 .. automodule:: kronos_modeller.format_data_handlers.kresults_data
     :members:
     :undoc-members:
     :show-inheritance:
 
-kronos\_modeller\.format\_data\_handlers\.kresults\_decorator module
---------------------------------------------------------------------
+kronos_modeller.format_data_handlers.kresults_decorator module
+--------------------------------------------------------------
 
 .. automodule:: kronos_modeller.format_data_handlers.kresults_decorator
     :members:
     :undoc-members:
     :show-inheritance:
 
-kronos\_modeller\.format\_data\_handlers\.kresults\_job module
---------------------------------------------------------------
+kronos_modeller.format_data_handlers.kresults_job module
+--------------------------------------------------------
 
 .. automodule:: kronos_modeller.format_data_handlers.kresults_job
     :members:
     :undoc-members:
     :show-inheritance:
 
-kronos\_modeller\.format\_data\_handlers\.kschedule\_data module
-----------------------------------------------------------------
+kronos_modeller.format_data_handlers.kschedule_data module
+----------------------------------------------------------
 
 .. automodule:: kronos_modeller.format_data_handlers.kschedule_data
     :members:
     :undoc-members:
     :show-inheritance:
 
-kronos\_modeller\.format\_data\_handlers\.kschedule\_kernel\_work module
-------------------------------------------------------------------------
+kronos_modeller.format_data_handlers.kschedule_kernel_work module
+-----------------------------------------------------------------
 
 .. automodule:: kronos_modeller.format_data_handlers.kschedule_kernel_work
     :members:
     :undoc-members:
     :show-inheritance:
 
-kronos\_modeller\.format\_data\_handlers\.kschedule\_summary module
--------------------------------------------------------------------
+kronos_modeller.format_data_handlers.kschedule_summary module
+-------------------------------------------------------------
 
 .. automodule:: kronos_modeller.format_data_handlers.kschedule_summary
     :members:

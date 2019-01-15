@@ -1,35 +1,35 @@
-kronos\_modeller\.format\_data\_handlers\.tests package
-=======================================================
+kronos_modeller.format_data_handlers.tests package
+==================================================
 
 Submodules
 ----------
 
-kronos\_modeller\.format\_data\_handlers\.tests\.local\_test\_utils module
---------------------------------------------------------------------------
+kronos_modeller.format_data_handlers.tests.local_test_utils module
+------------------------------------------------------------------
 
 .. automodule:: kronos_modeller.format_data_handlers.tests.local_test_utils
     :members:
     :undoc-members:
     :show-inheritance:
 
-kronos\_modeller\.format\_data\_handlers\.tests\.test\_kresults\_data module
-----------------------------------------------------------------------------
+kronos_modeller.format_data_handlers.tests.test_kresults_data module
+--------------------------------------------------------------------
 
 .. automodule:: kronos_modeller.format_data_handlers.tests.test_kresults_data
     :members:
     :undoc-members:
     :show-inheritance:
 
-kronos\_modeller\.format\_data\_handlers\.tests\.test\_kresults\_jobs module
-----------------------------------------------------------------------------
+kronos_modeller.format_data_handlers.tests.test_kresults_jobs module
+--------------------------------------------------------------------
 
 .. automodule:: kronos_modeller.format_data_handlers.tests.test_kresults_jobs
     :members:
     :undoc-members:
     :show-inheritance:
 
-kronos\_modeller\.format\_data\_handlers\.tests\.test\_kschedule\_data module
------------------------------------------------------------------------------
+kronos_modeller.format_data_handlers.tests.test_kschedule_data module
+---------------------------------------------------------------------
 
 .. automodule:: kronos_modeller.format_data_handlers.tests.test_kschedule_data
     :members:

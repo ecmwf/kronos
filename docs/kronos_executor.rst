@@ -1,5 +1,5 @@
-kronos\_executor package
-========================
+kronos_executor package
+=======================
 
 Subpackages
 -----------
@@ -16,96 +16,96 @@ Subpackages
 Submodules
 ----------
 
-kronos\_executor\.base\_job module
-----------------------------------
+kronos_executor.base_job module
+-------------------------------
 
 .. automodule:: kronos_executor.base_job
     :members:
     :undoc-members:
     :show-inheritance:
 
-kronos\_executor\.executor module
----------------------------------
+kronos_executor.executor module
+-------------------------------
 
 .. automodule:: kronos_executor.executor
     :members:
     :undoc-members:
     :show-inheritance:
 
-kronos\_executor\.executor\_events\_par module
-----------------------------------------------
+kronos_executor.executor_events_par module
+------------------------------------------
 
 .. automodule:: kronos_executor.executor_events_par
     :members:
     :undoc-members:
     :show-inheritance:
 
-kronos\_executor\.executor\_schedule module
--------------------------------------------
+kronos_executor.executor_schedule module
+----------------------------------------
 
 .. automodule:: kronos_executor.executor_schedule
     :members:
     :undoc-members:
     :show-inheritance:
 
-kronos\_executor\.external\_job module
---------------------------------------
+kronos_executor.external_job module
+-----------------------------------
 
 .. automodule:: kronos_executor.external_job
     :members:
     :undoc-members:
     :show-inheritance:
 
-kronos\_executor\.generate\_read\_files module
-----------------------------------------------
+kronos_executor.generate_read_files module
+------------------------------------------
 
 .. automodule:: kronos_executor.generate_read_files
     :members:
     :undoc-members:
     :show-inheritance:
 
-kronos\_executor\.global\_config module
----------------------------------------
+kronos_executor.global_config module
+------------------------------------
 
 .. automodule:: kronos_executor.global_config
     :members:
     :undoc-members:
     :show-inheritance:
 
-kronos\_executor\.hpc module
-----------------------------
+kronos_executor.hpc module
+--------------------------
 
 .. automodule:: kronos_executor.hpc
     :members:
     :undoc-members:
     :show-inheritance:
 
-kronos\_executor\.job\_submitter module
----------------------------------------
+kronos_executor.job_submitter module
+------------------------------------
 
 .. automodule:: kronos_executor.job_submitter
     :members:
     :undoc-members:
     :show-inheritance:
 
-kronos\_executor\.setup module
-------------------------------
+kronos_executor.setup module
+----------------------------
 
 .. automodule:: kronos_executor.setup
     :members:
     :undoc-members:
     :show-inheritance:
 
-kronos\_executor\.subprocess\_callback module
----------------------------------------------
+kronos_executor.subprocess_callback module
+------------------------------------------
 
 .. automodule:: kronos_executor.subprocess_callback
     :members:
     :undoc-members:
     :show-inheritance:
 
-kronos\_executor\.tools module
-------------------------------
+kronos_executor.tools module
+----------------------------
 
 .. automodule:: kronos_executor.tools
     :members:

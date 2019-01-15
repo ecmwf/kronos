@@ -1,5 +1,5 @@
-kronos\_modeller\.tools package
-===============================
+kronos_modeller.tools package
+=============================
 
 Subpackages
 -----------
@@ -11,48 +11,48 @@ Subpackages
 Submodules
 ----------
 
-kronos\_modeller\.tools\.merge module
--------------------------------------
+kronos_modeller.tools.merge module
+----------------------------------
 
 .. automodule:: kronos_modeller.tools.merge
     :members:
     :undoc-members:
     :show-inheritance:
 
-kronos\_modeller\.tools\.print\_colour module
----------------------------------------------
+kronos_modeller.tools.print_colour module
+-----------------------------------------
 
 .. automodule:: kronos_modeller.tools.print_colour
     :members:
     :undoc-members:
     :show-inheritance:
 
-kronos\_modeller\.tools\.process\_pool module
----------------------------------------------
+kronos_modeller.tools.process_pool module
+-----------------------------------------
 
 .. automodule:: kronos_modeller.tools.process_pool
     :members:
     :undoc-members:
     :show-inheritance:
 
-kronos\_modeller\.tools\.shared\_utils module
----------------------------------------------
+kronos_modeller.tools.shared_utils module
+-----------------------------------------
 
 .. automodule:: kronos_modeller.tools.shared_utils
     :members:
     :undoc-members:
     :show-inheritance:
 
-kronos\_modeller\.tools\.time\_format module
---------------------------------------------
+kronos_modeller.tools.time_format module
+----------------------------------------
 
 .. automodule:: kronos_modeller.tools.time_format
     :members:
     :undoc-members:
     :show-inheritance:
 
-kronos\_modeller\.tools\.user\_generated\_jobs module
------------------------------------------------------
+kronos_modeller.tools.user_generated_jobs module
+------------------------------------------------
 
 .. automodule:: kronos_modeller.tools.user_generated_jobs
     :members:

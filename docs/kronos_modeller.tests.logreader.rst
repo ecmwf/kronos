@@ -1,27 +1,27 @@
-kronos\_modeller\.tests\.logreader package
-==========================================
+kronos_modeller.tests.logreader package
+=======================================
 
 Submodules
 ----------
 
-kronos\_modeller\.tests\.logreader\.test\_base\_logreader module
-----------------------------------------------------------------
+kronos_modeller.tests.logreader.test_base_logreader module
+----------------------------------------------------------
 
 .. automodule:: kronos_modeller.tests.logreader.test_base_logreader
     :members:
     :undoc-members:
     :show-inheritance:
 
-kronos\_modeller\.tests\.logreader\.test\_darshan\_logreader module
--------------------------------------------------------------------
+kronos_modeller.tests.logreader.test_darshan_logreader module
+-------------------------------------------------------------
 
 .. automodule:: kronos_modeller.tests.logreader.test_darshan_logreader
     :members:
     :undoc-members:
     :show-inheritance:
 
-kronos\_modeller\.tests\.logreader\.test\_ipm\_logreader module
----------------------------------------------------------------
+kronos_modeller.tests.logreader.test_ipm_logreader module
+---------------------------------------------------------
 
 .. automodule:: kronos_modeller.tests.logreader.test_ipm_logreader
     :members:

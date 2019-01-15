@@ -1,27 +1,27 @@
-kronos\_modeller\.tests\.tools package
-======================================
+kronos_modeller.tests.tools package
+===================================
 
 Submodules
 ----------
 
-kronos\_modeller\.tests\.tools\.test\_equiv\_time\_pdf module
--------------------------------------------------------------
+kronos_modeller.tests.tools.test_equiv_time_pdf module
+------------------------------------------------------
 
 .. automodule:: kronos_modeller.tests.tools.test_equiv_time_pdf
     :members:
     :undoc-members:
     :show-inheritance:
 
-kronos\_modeller\.tests\.tools\.test\_merge\_tools module
----------------------------------------------------------
+kronos_modeller.tests.tools.test_merge_tools module
+---------------------------------------------------
 
 .. automodule:: kronos_modeller.tests.tools.test_merge_tools
     :members:
     :undoc-members:
     :show-inheritance:
 
-kronos\_modeller\.tests\.tools\.test\_rad\_gyration module
-----------------------------------------------------------
+kronos_modeller.tests.tools.test_rad_gyration module
+----------------------------------------------------
 
 .. automodule:: kronos_modeller.tests.tools.test_rad_gyration
     :members:

@@ -1,19 +1,19 @@
-kronos\_modeller\.config package
-================================
+kronos_modeller.config package
+==============================
 
 Submodules
 ----------
 
-kronos\_modeller\.config\.config module
----------------------------------------
+kronos_modeller.config.config module
+------------------------------------
 
 .. automodule:: kronos_modeller.config.config
     :members:
     :undoc-members:
     :show-inheritance:
 
-kronos\_modeller\.config\.config\_format module
------------------------------------------------
+kronos_modeller.config.config_format module
+-------------------------------------------
 
 .. automodule:: kronos_modeller.config.config_format
     :members:

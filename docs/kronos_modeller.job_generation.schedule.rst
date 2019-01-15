@@ -1,27 +1,27 @@
-kronos\_modeller\.job\_generation\.schedule package
-===================================================
+kronos_modeller.job_generation.schedule package
+===============================================
 
 Submodules
 ----------
 
-kronos\_modeller\.job\_generation\.schedule\.base module
---------------------------------------------------------
+kronos_modeller.job_generation.schedule.base module
+---------------------------------------------------
 
 .. automodule:: kronos_modeller.job_generation.schedule.base
     :members:
     :undoc-members:
     :show-inheritance:
 
-kronos\_modeller\.job\_generation\.schedule\.equiv\_time\_pdf module
---------------------------------------------------------------------
+kronos_modeller.job_generation.schedule.equiv_time_pdf module
+-------------------------------------------------------------
 
 .. automodule:: kronos_modeller.job_generation.schedule.equiv_time_pdf
     :members:
     :undoc-members:
     :show-inheritance:
 
-kronos\_modeller\.job\_generation\.schedule\.equiv\_time\_pdf\_exact module
----------------------------------------------------------------------------
+kronos_modeller.job_generation.schedule.equiv_time_pdf_exact module
+-------------------------------------------------------------------
 
 .. automodule:: kronos_modeller.job_generation.schedule.equiv_time_pdf_exact
     :members:

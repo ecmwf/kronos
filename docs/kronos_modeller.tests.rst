@@ -1,5 +1,5 @@
-kronos\_modeller\.tests package
-===============================
+kronos_modeller.tests package
+=============================
 
 Subpackages
 -----------
@@ -14,8 +14,8 @@ Subpackages
 Submodules
 ----------
 
-kronos\_modeller\.tests\.test\_jobs module
-------------------------------------------
+kronos_modeller.tests.test_jobs module
+--------------------------------------
 
 .. automodule:: kronos_modeller.tests.test_jobs
     :members:

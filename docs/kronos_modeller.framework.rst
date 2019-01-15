@@ -1,11 +1,11 @@
-kronos\_modeller\.framework package
-===================================
+kronos_modeller.framework package
+=================================
 
 Submodules
 ----------
 
-kronos\_modeller\.framework\.pickable module
---------------------------------------------
+kronos_modeller.framework.pickable module
+-----------------------------------------
 
 .. automodule:: kronos_modeller.framework.pickable
     :members:

@@ -1,19 +1,19 @@
-kronos\_modeller\.kronos\_tools package
-=======================================
+kronos_modeller.kronos_tools package
+====================================
 
 Submodules
 ----------
 
-kronos\_modeller\.kronos\_tools\.gyration\_radius module
---------------------------------------------------------
+kronos_modeller.kronos_tools.gyration_radius module
+---------------------------------------------------
 
 .. automodule:: kronos_modeller.kronos_tools.gyration_radius
     :members:
     :undoc-members:
     :show-inheritance:
 
-kronos\_modeller\.kronos\_tools\.utils module
----------------------------------------------
+kronos_modeller.kronos_tools.utils module
+-----------------------------------------
 
 .. automodule:: kronos_modeller.kronos_tools.utils
     :members:

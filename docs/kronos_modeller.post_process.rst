@@ -1,5 +1,5 @@
-kronos\_modeller\.post\_process package
-=======================================
+kronos_modeller.post_process package
+====================================
 
 Subpackages
 -----------
@@ -11,56 +11,56 @@ Subpackages
 Submodules
 ----------
 
-kronos\_modeller\.post\_process\.definitions module
----------------------------------------------------
+kronos_modeller.post_process.definitions module
+-----------------------------------------------
 
 .. automodule:: kronos_modeller.post_process.definitions
     :members:
     :undoc-members:
     :show-inheritance:
 
-kronos\_modeller\.post\_process\.exportable\_types module
----------------------------------------------------------
+kronos_modeller.post_process.exportable_types module
+----------------------------------------------------
 
 .. automodule:: kronos_modeller.post_process.exportable_types
     :members:
     :undoc-members:
     :show-inheritance:
 
-kronos\_modeller\.post\_process\.exporter\_base module
-------------------------------------------------------
+kronos_modeller.post_process.exporter_base module
+-------------------------------------------------
 
 .. automodule:: kronos_modeller.post_process.exporter_base
     :members:
     :undoc-members:
     :show-inheritance:
 
-kronos\_modeller\.post\_process\.exporter\_signals module
----------------------------------------------------------
+kronos_modeller.post_process.exporter_signals module
+----------------------------------------------------
 
 .. automodule:: kronos_modeller.post_process.exporter_signals
     :members:
     :undoc-members:
     :show-inheritance:
 
-kronos\_modeller\.post\_process\.exporter\_summary module
----------------------------------------------------------
+kronos_modeller.post_process.exporter_summary module
+----------------------------------------------------
 
 .. automodule:: kronos_modeller.post_process.exporter_summary
     :members:
     :undoc-members:
     :show-inheritance:
 
-kronos\_modeller\.post\_process\.exporters module
--------------------------------------------------
+kronos_modeller.post_process.exporters module
+---------------------------------------------
 
 .. automodule:: kronos_modeller.post_process.exporters
     :members:
     :undoc-members:
     :show-inheritance:
 
-kronos\_modeller\.post\_process\.result\_signals module
--------------------------------------------------------
+kronos_modeller.post_process.result_signals module
+--------------------------------------------------
 
 .. automodule:: kronos_modeller.post_process.result_signals
     :members:

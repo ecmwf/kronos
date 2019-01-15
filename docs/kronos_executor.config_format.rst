@@ -1,11 +1,11 @@
-kronos\_executor\.config\_format package
-========================================
+kronos_executor.config_format package
+=====================================
 
 Submodules
 ----------
 
-kronos\_executor\.config\_format\.exe\_config\_format module
-------------------------------------------------------------
+kronos_executor.config_format.exe_config_format module
+------------------------------------------------------
 
 .. automodule:: kronos_executor.config_format.exe_config_format
     :members:

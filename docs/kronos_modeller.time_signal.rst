@@ -1,19 +1,19 @@
-kronos\_modeller\.time\_signal package
-======================================
+kronos_modeller.time_signal package
+===================================
 
 Submodules
 ----------
 
-kronos\_modeller\.time\_signal\.definitions module
---------------------------------------------------
+kronos_modeller.time_signal.definitions module
+----------------------------------------------
 
 .. automodule:: kronos_modeller.time_signal.definitions
     :members:
     :undoc-members:
     :show-inheritance:
 
-kronos\_modeller\.time\_signal\.time\_signal module
----------------------------------------------------
+kronos_modeller.time_signal.time_signal module
+----------------------------------------------
 
 .. automodule:: kronos_modeller.time_signal.time_signal
     :members:

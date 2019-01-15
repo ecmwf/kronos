@@ -1,11 +1,11 @@
-kronos\_executor\.kronos\_events\.tests package
-===============================================
+kronos_executor.kronos_events.tests package
+===========================================
 
 Submodules
 ----------
 
-kronos\_executor\.kronos\_events\.tests\.test\_event module
------------------------------------------------------------
+kronos_executor.kronos_events.tests.test_event module
+-----------------------------------------------------
 
 .. automodule:: kronos_executor.kronos_events.tests.test_event
     :members:

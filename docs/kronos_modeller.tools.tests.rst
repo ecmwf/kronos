@@ -1,19 +1,19 @@
-kronos\_modeller\.tools\.tests package
-======================================
+kronos_modeller.tools.tests package
+===================================
 
 Submodules
 ----------
 
-kronos\_modeller\.tools\.tests\.test\_user\_jobs module
--------------------------------------------------------
+kronos_modeller.tools.tests.test_user_jobs module
+-------------------------------------------------
 
 .. automodule:: kronos_modeller.tools.tests.test_user_jobs
     :members:
     :undoc-members:
     :show-inheritance:
 
-kronos\_modeller\.tools\.tests\.test\_utils module
---------------------------------------------------
+kronos_modeller.tools.tests.test_utils module
+---------------------------------------------
 
 .. automodule:: kronos_modeller.tools.tests.test_utils
     :members:
