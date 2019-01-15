@@ -30,21 +30,15 @@ setup(
     },
     scripts=[
 
-        'bin/kronos-analyse-results',
-
-        'bin/kronos-convert-dataset-to-kprofile',
-        'bin/kronos-convert-kresults-to-kprofile',
-        'bin/kronos-convert-kprofile-to-kresults',
-
-        'bin/kronos-ingest-logs',
-        'bin/kronos-inspect-dataset',
-
-        'bin/kronos-model',
-        'bin/kronos-plot-kprofile',
-
-        'bin/kronos-validate-results',
-
-        # 'bin/kronos-generate-test-workload',
+        'kronos_modeller/bin/kronos-analyse-results',
+        'kronos_modeller/bin/kronos-convert-dataset-to-kprofile',
+        'kronos_modeller/bin/kronos-convert-kresults-to-kprofile',
+        'kronos_modeller/bin/kronos-convert-kprofile-to-kresults',
+        'kronos_modeller/bin/kronos-ingest-logs',
+        'kronos_modeller/bin/kronos-inspect-dataset',
+        'kronos_modeller/bin/kronos-model',
+        'kronos_modeller/bin/kronos-plot-kprofile',
+        'kronos_modeller/bin/kronos-validate-results',
 
     ],
     include_package_data=True,

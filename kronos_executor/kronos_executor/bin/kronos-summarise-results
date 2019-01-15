@@ -18,13 +18,13 @@ Example usage
 
 """
 
-import argparse
 import os
 import sys
+import argparse
 
-from kronos.kronos_modeller.tools.shared_utils import print_formatted_class_stats
-
+from kronos_modeller.tools.shared_utils import print_formatted_class_stats
 from kronos_modeller.format_data_handlers.kresults_data import KResultsData
+
 
 if __name__ == "__main__":
 

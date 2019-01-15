@@ -39,7 +39,8 @@ else
     echo "installing Kronos synthetic application"
 
     # clone ecbuild from github (master branch)
-    git clone https://github.com/ecmwf/ecbuild.git
+    git clone https://github.com/ecmwf/ecbuild.git || echo "git clone failed!"; exit 1
+
     cd ${_DIRECTORY}/ecbuild && git checkout master
     if [[ ! -d ${_DIRECTORY}/build ]]; then
       mkdir ${_DIRECTORY}/build 

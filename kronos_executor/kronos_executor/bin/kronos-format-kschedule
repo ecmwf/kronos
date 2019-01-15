@@ -7,21 +7,19 @@
 # granted to it by virtue of its status as an intergovernmental organisation nor
 # does it submit to any jurisdiction.
 
+
 """
 
-Tool that shows the schema of a Kronos Results Format file.
-If a Kronos Results Format file name is passed, it gets validated against
+Tool that shows the schema of a Kronos Schedule Format file.
+If a Kronos Schedule Format file name is passed, it gets validated against
 the schema.
 
 """
 
-import argparse
-import os
 import sys
+import argparse
 
-sys.path.append(os.path.dirname(os.path.dirname(__file__)))
-
-from kronos_executor import ResultsFormat
+from kronos_executor.io_formats.schedule_format import ScheduleFormat
 
 
 if __name__ == '__main__':
@@ -29,12 +27,14 @@ if __name__ == '__main__':
     # read other arguments if present..
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawTextHelpFormatter)
     parser_group = parser.add_mutually_exclusive_group(required=True)
+
     parser_group.add_argument('-v', '--validate',
                               type=str,
-                              help="Validates a Kronos Results file",
+                              help="Validates a Kronos Schedule file",
                               metavar='FILENAME')
+
     parser_group.add_argument('-s', "--show",
-                              help="Show the schema of the Kronos Results file",
+                              help="Show the schema of the Kronos Schedule file",
                               action="store_true")
 
     # print the help if no arguments are passed
@@ -46,10 +46,10 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     if args.show:
-        print ResultsFormat.describe()
+        print ScheduleFormat.describe()
     elif args.validate:
         try:
-            ResultsFormat.from_filename(args.validate)
+            ScheduleFormat.from_filename(args.validate)
         except Exception as e:
             print e
             sys.exit(1)

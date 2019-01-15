@@ -14,13 +14,11 @@ File that generates read cache files in the current directory
 
 """
 
-import argparse
 import os
 import sys
+import argparse
 
-sys.path.append(os.path.dirname(os.path.dirname(__file__)))
-
-from kronos_executor import generate_read_cache
+from kronos_executor.generate_read_files import generate_read_cache
 
 
 if __name__ == "__main__":

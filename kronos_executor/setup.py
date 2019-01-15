@@ -30,23 +30,23 @@ setup(
     },
     scripts=[
 
-        'bin/kronos-collect-results',
-        'bin/kronos-enquire-global-config',
-        'bin/kronos-executor',
+        'kronos_executor/bin/kronos-collect-results',
+        'kronos_executor/bin/kronos-enquire-global-config',
+        'kronos_executor/bin/kronos-executor',
 
-        'bin/kronos-format-config-model',
-        'bin/kronos-format-config-exe',
-        'bin/kronos-format-kprofile',
-        'bin/kronos-format-kresults',
-        'bin/kronos-format-kschedule',
-        'bin/kronos-format-config-export',
+        'kronos_executor/bin/kronos-format-config-model',
+        'kronos_executor/bin/kronos-format-config-exe',
+        'kronos_executor/bin/kronos-format-kprofile',
+        'kronos_executor/bin/kronos-format-kresults',
+        'kronos_executor/bin/kronos-format-kschedule',
+        'kronos_executor/bin/kronos-format-config-export',
 
-        'bin/kronos-generate-read-files',
+        'kronos_executor/bin/kronos-generate-read-files',
 
-        'bin/kronos-summarise-kschedule',
-        'bin/kronos-summarise-results',
+        'kronos_executor/bin/kronos-summarise-kschedule',
+        'kronos_executor/bin/kronos-summarise-results',
 
-        'bin/kronos-view-json'
+        'kronos_executor/bin/kronos-view-json'
 
     ],
     include_package_data=True,

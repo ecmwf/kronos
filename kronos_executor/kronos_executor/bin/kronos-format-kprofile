@@ -9,19 +9,16 @@
 
 """
 
-Tool that shows the schema of a kronos model configuration file.
-If a model configuration file name is passed, it gets validated against
+Tool that shows the schema of a Kronos Profile Format file.
+If a Kronos Profile Format file name is passed, it gets validated against
 the schema.
 
 """
 
-import argparse
-import os
 import sys
+import argparse
 
-sys.path.append(os.path.dirname(os.path.dirname(__file__)))
-
-from kronos_modeller import ConfigFormat
+from kronos_executor.io_formats.profile_format import ProfileFormat
 
 
 if __name__ == '__main__':
@@ -29,12 +26,14 @@ if __name__ == '__main__':
     # read other arguments if present..
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawTextHelpFormatter)
     parser_group = parser.add_mutually_exclusive_group(required=True)
+
     parser_group.add_argument('-v', '--validate',
                               type=str,
-                              help="Validates a Kronos model configuration file",
+                              help="Validates a Kronos Profile file",
                               metavar='FILENAME')
+
     parser_group.add_argument('-s', "--show",
-                              help="Show the schema of the Kronos model configuration file",
+                              help="Show the schema of the Kronos Profile file",
                               action="store_true")
 
     # print the help if no arguments are passed
@@ -46,10 +45,10 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     if args.show:
-        print ConfigFormat.describe()
+        print ProfileFormat.describe()
     elif args.validate:
         try:
-            ConfigFormat.from_filename(args.validate)
+            ProfileFormat.from_filename(args.validate)
         except Exception as e:
             print e
             sys.exit(1)
