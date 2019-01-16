@@ -20,7 +20,7 @@ export PATH=${bamboo_working_directory}/miniconda/bin:${PATH}
 
 # tests of the executor
 
-cd ${bamboo_working_directory}/kronos_executor
+cd ${bamboo_working_directory}/kronos_executor/kronos_executor
 source activate test_env_exe
 
 dir_idx=0

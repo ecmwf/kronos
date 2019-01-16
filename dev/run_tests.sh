@@ -20,7 +20,7 @@ export PATH=${bamboo_working_directory}/miniconda/bin:${PATH}
 
 # tests of the modeller
 
-cd ${bamboo_working_directory}/kronos_modeller
+cd ${bamboo_working_directory}/kronos_modeller/kronos_modeller
 source activate test_env
 
 dir_idx=0
