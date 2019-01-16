@@ -5,4 +5,8 @@
 # In applying this licence, ECMWF does not waive the privileges and immunities 
 # granted to it by virtue of its status as an intergovernmental organisation nor
 # does it submit to any jurisdiction.
+import datetime
 
+
+def datetime2epochs(t_in):
+    return (t_in - datetime.datetime(1970, 1, 1)).total_seconds()

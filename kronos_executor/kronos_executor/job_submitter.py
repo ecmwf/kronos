@@ -10,7 +10,7 @@ import multiprocessing
 import subprocess
 from datetime import datetime
 
-from kronos_modeller.tools.shared_utils import datetime2epochs
+from kronos_executor.tools import datetime2epochs
 
 logger = logging.getLogger(__name__)
 

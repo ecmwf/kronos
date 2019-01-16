@@ -12,7 +12,7 @@ from kronos_modeller.format_data_handlers.kresults_decorator import KResultsDeco
 from kronos_modeller.format_data_handlers.kresults_job import KResultsJob
 from kronos_modeller.format_data_handlers.tests.local_test_utils import create_kresults
 
-from kronos_modeller.tools.shared_utils import datetime2epochs
+from kronos_executor.tools import datetime2epochs
 
 
 class KResultsJobsTest(unittest.TestCase):

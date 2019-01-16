@@ -12,7 +12,7 @@ from kronos_executor.io_formats.results_format import ResultsFormat
 from kronos_executor.io_formats.definitions import kresults_ts_names_map
 
 from kronos_modeller.tools.shared_utils import cumsum
-from kronos_modeller.tools.shared_utils import datetime2epochs
+from kronos_executor.tools import datetime2epochs
 
 
 class KResultsJob(object):
