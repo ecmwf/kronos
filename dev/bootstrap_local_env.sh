@@ -46,9 +46,10 @@ source activate test_env
 # manually add pytest package
 conda install -y pytest
 
-# # Make python packages cloned into the depends directory available to pip
-# find ./depends -maxdepth 1 -mindepth 1 -type d -exec pip install -e {} \;
-# source deactivate
+# install the executor+modeller
+cd $HOME
+pip install -e kronos_executor
+pip install -e kronos_modeller
 
 
 # ========= environment for the executor =========
@@ -62,6 +63,7 @@ source activate test_env_exe
 # manually add pytest package
 conda install -y pytest
 
-# # Make python packages cloned into the depends directory available to pip
-# find ./depends -maxdepth 1 -mindepth 1 -type d -exec pip install -e {} \;
-# source deactivate
+# install the executor
+cd $HOME
+pip install -e kronos_executor
+

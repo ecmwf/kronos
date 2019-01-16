@@ -30,7 +30,7 @@ dependencies:
 - pcre=8.39=1
 - pip=9.0.1=py27_1
 - pixman=0.34.0=0
-- py=1.4.33=py27_0
+- py=1.7.0=py27_0
 - pycairo=1.10.0=py27_0
 - pyflakes=1.5.0=py27_0
 - pyparsing=2.1.4=py27_0
