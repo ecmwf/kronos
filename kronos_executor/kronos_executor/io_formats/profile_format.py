@@ -13,8 +13,6 @@ from datetime import datetime
 import strict_rfc3339
 from kronos_executor.io_formats.json_io_format import JSONIoFormat
 
-from kronos_modeller.time_signal import definitions
-
 
 class ProfileFormat(JSONIoFormat):
     """
@@ -80,13 +78,6 @@ class ProfileFormat(JSONIoFormat):
         # Append any time series data that is present
         time_series = {}
         for name, values in model_job.timesignals.iteritems():
-
-
-            try:
-                assert name in definitions.signal_types
-            except AssertionError:
-                print "time-series name {} not recognised!".format(name)
-                raise AssertionError
 
             if values is not None:
                 time_series[name] = {
