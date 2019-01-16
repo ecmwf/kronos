@@ -1,17 +1,12 @@
 #!/usr/bin/env python
 
 import copy
-import os
-import sys
 import unittest
 
 # Ensure imports work both in installation, and git, environments
 from jsonschema import ValidationError
 
 from kronos_executor.kronos_events import EventComplete, EventTime, EventMetadataChange
-
-sys.path.append(os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), 'kronos_py'))
-sys.path.append(os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))), 'bin'))
 
 
 class EventTests(unittest.TestCase):

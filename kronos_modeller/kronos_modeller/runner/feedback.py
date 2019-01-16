@@ -6,22 +6,19 @@
 # granted to it by virtue of its status as an intergovernmental organisation nor
 # does it submit to any jurisdiction.
 
-import datetime
-import json
 import os
-import pprint
-import subprocess
 import time
+import json
+import pprint
+import datetime
+import subprocess
 
 from kronos_modeller import run_control
 from kronos_modeller import time_signal
 from kronos_modeller.exceptions_iows import ConfigurationError
 from kronos_modeller.time_signal.definitions import signal_types
 from kronos_modeller.workload_data import WorkloadData
-
 from kronos_executor.io_formats.schedule_format import ScheduleFormat
-
-os.sys.path.append(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
 
 from base_runner import BaseRunner
 from kronos_modeller.kronos_tools import utils

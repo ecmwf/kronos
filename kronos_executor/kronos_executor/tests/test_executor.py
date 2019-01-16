@@ -2,17 +2,11 @@
 import datetime
 import os
 import shutil
-import sys
 import types
 import unittest
 
-# Ensure imports work both in installation, and git, environments
-sys.path.append(os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), 'kronos_py'))
-sys.path.append(os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))), 'bin'))
-
 from kronos_executor import executor
 from kronos_executor.global_config import global_config
-
 from kronos_executor.io_formats.schedule_format import ScheduleFormat
 
 from testutils import scratch_tmpdir

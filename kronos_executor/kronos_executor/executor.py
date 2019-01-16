@@ -5,12 +5,9 @@ import imp
 import logging
 import os
 import socket
-import sys
 import time
 import uuid
 from shutil import copy2
-
-sys.path.append(os.path.dirname(os.path.dirname(__file__)))
 
 from kronos_executor.global_config import global_config
 from kronos_executor import generate_read_files

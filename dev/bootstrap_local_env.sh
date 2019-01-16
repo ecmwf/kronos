@@ -41,13 +41,9 @@ if [[ -f conda_environment.txt ]]; then
     conda env create -n test_env -f conda_environment.txt
 fi
 
-source activate test_env
-
-# manually add pytest package
-conda install -y pytest
-
 # install the executor+modeller
 cd $HOME
+source activate test_env
 pip install -e kronos_executor
 pip install -e kronos_modeller
 
@@ -58,12 +54,8 @@ if [[ -f conda_environment_exe.txt ]]; then
     conda env create -n test_env_exe -f conda_environment_exe.txt
 fi
 
-source activate test_env_exe
-
-# manually add pytest package
-conda install -y pytest
-
 # install the executor
 cd $HOME
+source activate test_env_exe
 pip install -e kronos_executor
 

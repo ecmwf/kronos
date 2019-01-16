@@ -2,12 +2,7 @@
 import json
 import os
 import shutil
-import sys
 import unittest
-
-# Ensure imports work both in installation, and git, environments
-sys.path.append(os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), 'kronos_py'))
-sys.path.append(os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))), 'bin'))
 
 from kronos_executor.base_job import BaseJob
 from testutils import scratch_tmpdir
