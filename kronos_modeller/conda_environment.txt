@@ -1,5 +1,6 @@
 name: kronos
 dependencies:
+- blas=1.0=mkl
 - cairo=1.14.8=0
 - cycler=0.10.0=py27_0
 - dbus=1.10.10=0
