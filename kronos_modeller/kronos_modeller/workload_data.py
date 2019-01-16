@@ -8,17 +8,16 @@
 
 from difflib import SequenceMatcher
 
-import numpy as np
-from kronos_modeller.framework.pickable import PickableObject
-from kronos_modeller.kronos_tools.utils import running_sum
-from kronos_modeller.time_signal.definitions import time_signal_names, signal_types
-from kronos_modeller.time_signal.time_signal import TimeSignal
-
 import fill_in_functions as fillf
+import numpy as np
 from data_analysis import recommender
 from exceptions_iows import ConfigurationError
 from jobs import ModelJob
-from kronos_modeller.tools.print_colour import print_colour
+from kronos_executor.tools import print_colour
+from kronos_executor.definitions import signal_types, time_signal_names
+from kronos_modeller.framework.pickable import PickableObject
+from kronos_modeller.kronos_tools.utils import running_sum
+from kronos_modeller.time_signal.time_signal import TimeSignal
 
 
 class WorkloadData(object):

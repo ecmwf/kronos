@@ -52,12 +52,28 @@ Examples of usage:
 
 """
 
-import sys
 import argparse
+import sys
 
-from kronos_modeller.format_data_handlers.kschedule_summary import kschedule_summary_handlers
-from kronos_modeller.time_signal.definitions import signal_types
-from kronos_modeller.format_data_handlers.kschedule_data import KScheduleData
+from kronos_executor.io_formats.format_data_handlers.kschedule_data import KScheduleData
+from kronos_executor.io_formats.format_data_handlers.kschedule_summary import \
+    kschedule_summary_handlers
+
+
+# TODO: these definitions need to be moved somewhere else..
+metric_keys = [
+    "kb_read",
+    "kb_write",
+    "n_read",
+    "n_write",
+    "n_pairwise",
+    "kb_pairwise",
+    "n_collective",
+    "kb_collective",
+    "flops",
+    "kb_mem"
+]
+
 
 if __name__ == "__main__":
 
@@ -83,7 +99,7 @@ if __name__ == "__main__":
 
     parser.add_argument("-m", "--metrics",
                         help="name of metrics to summarise (default = 'all')",
-                        choices=signal_types.keys()+["all"],
+                        choices=metric_keys+["all"],
                         nargs='*')
 
     parser.add_argument("-b", "--nbins",
@@ -121,7 +137,7 @@ if __name__ == "__main__":
         # get the full list of metrics to test (considering the all case)
         metrics_to_test = [user_metric for user_metric in args.metrics if user_metric.lower() != "all"]
         if "all" in args.metrics:
-            metrics_to_test += signal_types.keys()
+            metrics_to_test += metric_keys
 
         filtered_jobs = kschedule_data.filter_jobs(args.filter)
         print "\n{} jobs match the filter: {}\n".format(len(filtered_jobs), args.filter if args.filter else "ALL")

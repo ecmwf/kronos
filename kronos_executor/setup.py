@@ -34,12 +34,10 @@ setup(
         'kronos_executor/bin/kronos-enquire-global-config',
         'kronos_executor/bin/kronos-executor',
 
-        'kronos_executor/bin/kronos-format-config-model',
         'kronos_executor/bin/kronos-format-config-exe',
         'kronos_executor/bin/kronos-format-kprofile',
         'kronos_executor/bin/kronos-format-kresults',
         'kronos_executor/bin/kronos-format-kschedule',
-        'kronos_executor/bin/kronos-format-config-export',
 
         'kronos_executor/bin/kronos-generate-read-files',
 

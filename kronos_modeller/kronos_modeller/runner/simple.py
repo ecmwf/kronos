@@ -14,8 +14,7 @@ import time
 from kronos_modeller import run_control
 from kronos_modeller.exceptions_iows import ConfigurationError
 from kronos_modeller.runner.base_runner import BaseRunner
-
-from kronos_modeller.tools import print_colour
+from kronos_executor.tools import print_colour
 
 
 class SimpleRunner(BaseRunner):
@@ -127,8 +126,8 @@ class SimpleRunner(BaseRunner):
 
         else:
 
-            print_colour.print_colour("orange", "runner NOT enabled. Model did not run!")
+            print_colour("orange", "runner NOT enabled. Model did not run!")
 
     def plot_results(self):
 
-        print_colour.print_colour("orange", "plotting not yet implemented..")
+        print_colour("orange", "plotting not yet implemented..")

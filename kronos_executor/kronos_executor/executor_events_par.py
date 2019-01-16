@@ -6,7 +6,7 @@ from shutil import copy2
 from kronos_executor.executor import Executor
 from kronos_executor.job_submitter import JobSubmitter
 from kronos_executor.kronos_events import EventComplete
-from kronos_executor.kronos_events import Manager
+from kronos_executor.kronos_events.manager import Manager
 
 logger = logging.getLogger(__name__)
 

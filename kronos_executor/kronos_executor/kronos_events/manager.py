@@ -8,7 +8,7 @@
 import logging
 import multiprocessing
 
-from kronos_executor.kronos_events import EventDispatcher
+from kronos_executor.kronos_events.dispatcher import EventDispatcher
 from kronos_executor.kronos_events import EventFactory
 
 logger = logging.getLogger(__name__)

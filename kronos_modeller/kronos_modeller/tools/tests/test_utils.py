@@ -10,7 +10,7 @@
 
 import unittest
 
-from kronos_modeller.tools.shared_utils import add_value_to_sublist, calc_histogram
+from kronos_executor.tools import add_value_to_sublist, calc_histogram
 
 
 class ProfileFormatTest(unittest.TestCase):

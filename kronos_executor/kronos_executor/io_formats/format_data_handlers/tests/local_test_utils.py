@@ -6,7 +6,7 @@
 # granted to it by virtue of its status as an intergovernmental organisation nor
 # does it submit to any jurisdiction.
 
-from kronos_modeller.tools.shared_utils import mean_of_list
+from kronos_executor.tools import mean_of_list
 
 
 def create_kresults_ranks(metrics_calc_all_ranks):

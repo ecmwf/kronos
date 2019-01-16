@@ -12,7 +12,7 @@ import numpy as np
 
 from kronos_modeller.post_process.definitions import job_class_color
 from kronos_modeller.post_process.definitions import labels_map
-from kronos_modeller.post_process.definitions import linspace
+from kronos_executor.tools import linspace
 from kronos_modeller.post_process.exportable_types import ExportableSignalFrame
 from kronos_modeller.post_process.exportable_types import ExportableSignalGroup
 

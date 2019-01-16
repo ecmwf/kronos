@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-from kronos_executor import Executor
+from kronos_executor.executor import Executor
 
 
 class ExecutorDepsScheduler(Executor):

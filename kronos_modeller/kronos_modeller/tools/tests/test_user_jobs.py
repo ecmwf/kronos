@@ -9,7 +9,7 @@
 import copy
 import unittest
 
-from kronos_modeller.time_signal.definitions import time_signal_names
+from kronos_executor.definitions import time_signal_names
 from kronos_modeller.time_signal.time_signal import TimeSignal
 from kronos_modeller.tools.user_generated_jobs import UserGeneratedJob
 

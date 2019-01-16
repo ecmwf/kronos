@@ -1,4 +1,4 @@
-from kronos_executor import HPCJob
+from kronos_executor.hpc import HPCJob
 
 #####################################################################################################
 # This file is an example of a job submit template needed to run the kronos_executor on a HPC system. This template is

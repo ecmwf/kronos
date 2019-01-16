@@ -31,9 +31,14 @@ setup(
     scripts=[
 
         'kronos_modeller/bin/kronos-analyse-results',
+
         'kronos_modeller/bin/kronos-convert-dataset-to-kprofile',
-        'kronos_modeller/bin/kronos-convert-kresults-to-kprofile',
         'kronos_modeller/bin/kronos-convert-kprofile-to-kresults',
+        'kronos_modeller/bin/kronos-convert-kresults-to-kprofile',
+
+        'kronos_modeller/bin/kronos-format-config-export',
+        'kronos_modeller/bin/kronos-format-config-model',
+
         'kronos_modeller/bin/kronos-ingest-logs',
         'kronos_modeller/bin/kronos-inspect-dataset',
         'kronos_modeller/bin/kronos-model',

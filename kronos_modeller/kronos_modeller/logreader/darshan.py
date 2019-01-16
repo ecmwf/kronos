@@ -15,7 +15,7 @@ from kronos_modeller.logreader.dataset import IngestedDataSet
 from kronos_modeller.time_signal.time_signal import TimeSignal
 from kronos_modeller.tools.merge import min_not_none, max_not_none
 
-from kronos_modeller.tools.print_colour import print_colour
+from kronos_executor.tools import print_colour
 
 darshan_signal_priorities = {
     'kb_read': 8,

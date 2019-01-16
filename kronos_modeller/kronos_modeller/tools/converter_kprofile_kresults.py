@@ -8,9 +8,7 @@
 import strict_rfc3339
 
 from kronos_executor.io_formats.results_format import ResultsFormat
-from kronos_modeller.tools.shared_utils import mean_of_list
-from kronos_modeller.tools.shared_utils import std_of_list
-from kronos_modeller.tools.shared_utils import sum_of_squared
+from kronos_executor.tools import mean_of_list, std_of_list, sum_of_squared
 from kronos_modeller.tools.shared_utils import digitize_xyvalues
 
 from kronos_executor.io_formats.definitions import kresults_ts_names_map

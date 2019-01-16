@@ -27,14 +27,13 @@ Usage examples:
 
 """
 
-import sys
 import argparse
+import sys
 
+from kronos_executor.io_formats.format_data_handlers.kresults_data import KResultsData
+from kronos_executor.io_formats.format_data_handlers.kresults_data import KResultsDataSet
 from kronos_modeller.post_process.export_config.export_config import ExportConfig
 from kronos_modeller.post_process.exporters import writer_map
-from kronos_modeller.format_data_handlers.kresults_data import KResultsData
-from kronos_modeller.format_data_handlers.kresults_data import KResultsDataSet
-
 
 if __name__ == "__main__":
 

@@ -12,12 +12,11 @@ import os
 import sys
 from collections import OrderedDict
 
-from kronos_modeller.format_data_handlers.kresults_decorator import KResultsDecorator
-from kronos_modeller.format_data_handlers.kresults_job import KResultsJob
-from kronos_modeller.time_signal.definitions import signal_types
-from kronos_modeller.tools.shared_utils import add_value_to_sublist
-
 from kronos_executor.io_formats.definitions import kresults_stats_info, kresults_ts_names_map
+from kronos_executor.io_formats.format_data_handlers.kresults_decorator import KResultsDecorator
+from kronos_executor.tools import add_value_to_sublist
+from kronos_executor.definitions import signal_types
+from kronos_executor.io_formats.format_data_handlers.kresults_job import KResultsJob
 
 
 class KResultsData(object):

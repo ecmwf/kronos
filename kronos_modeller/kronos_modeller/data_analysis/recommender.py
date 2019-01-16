@@ -10,7 +10,7 @@ import numpy as np
 from kronos_modeller.exceptions_iows import ConfigurationError
 from scipy.spatial.distance import pdist
 
-from kronos_modeller.tools.print_colour import print_colour
+from kronos_executor.tools import print_colour
 
 
 class Recommender(object):

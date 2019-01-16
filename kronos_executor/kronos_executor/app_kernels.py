@@ -9,7 +9,7 @@
 """
 We need a way to convert a time series into the input for the synthetic app kernels
 """
-from kronos_modeller.tools.print_colour import print_colour
+from kronos_executor.tools import print_colour
 
 
 class KernelBase(object):

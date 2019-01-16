@@ -7,7 +7,7 @@
 # does it submit to any jurisdiction.
 
 from exceptions_iows import ConfigurationError
-from kronos_modeller.tools.print_colour import print_colour
+from kronos_executor.tools import print_colour
 
 
 class WorkloadFiller(object):

@@ -8,11 +8,10 @@
 import unittest
 from datetime import datetime
 
-from kronos_modeller.format_data_handlers.kresults_decorator import KResultsDecorator
-from kronos_modeller.format_data_handlers.kresults_job import KResultsJob
-from kronos_modeller.format_data_handlers.tests.local_test_utils import create_kresults
-
+from kronos_executor.io_formats.format_data_handlers.tests.local_test_utils import create_kresults
 from kronos_executor.tools import datetime2epochs
+from kronos_executor.io_formats.format_data_handlers.kresults_decorator import KResultsDecorator
+from kronos_executor.io_formats.format_data_handlers.kresults_job import KResultsJob
 
 
 class KResultsJobsTest(unittest.TestCase):

@@ -17,17 +17,15 @@ Kronos tool to plot the data time-series contained in a KProfile file
 
 """
 
-import sys
 import argparse
+import sys
+
 import numpy as np
-
 from kronos_executor.io_formats.profile_format import ProfileFormat
-
-from kronos_modeller.plot_handler import PlotHandler
-from kronos_modeller.time_signal.definitions import time_signal_names
-from kronos_modeller.workload_data import WorkloadDataGroup
+from kronos_executor.definitions import time_signal_names
 from kronos_modeller.jobs import ModelJob
-
+from kronos_modeller.plot_handler import PlotHandler
+from kronos_modeller.workload_data import WorkloadDataGroup
 
 if __name__ == "__main__":
 

@@ -7,12 +7,11 @@
 # does it submit to any jurisdiction.
 
 import numpy as np
+from kronos_executor.tools import print_colour
+from kronos_executor.definitions import time_signal_names
 from kronos_modeller.job_generation.strategy_base import StrategyBase
 from kronos_modeller.jobs import ModelJob
-from kronos_modeller.time_signal.definitions import time_signal_names
 from kronos_modeller.time_signal.time_signal import TimeSignal
-
-from kronos_modeller.tools.print_colour import print_colour
 
 
 class StrategySpawn(StrategyBase):

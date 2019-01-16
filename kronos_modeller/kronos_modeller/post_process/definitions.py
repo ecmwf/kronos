@@ -8,7 +8,7 @@
 
 
 # ///////////////////////////////// DEFINITIONS /////////////////////////////////////////
-from kronos_modeller.tools.shared_utils import linspace
+from kronos_executor.tools import linspace
 
 labels_map = {
     'n_write': "[-]",

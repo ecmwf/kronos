@@ -7,12 +7,11 @@
 # does it submit to any jurisdiction.
 import re
 
-from kronos_modeller.app_kernels import available_kernels
-from kronos_modeller.format_data_handlers.kschedule_kernel_work import KernelWorkDistribution
-from kronos_modeller.time_signal.definitions import signal_types, time_signal_names
-from kronos_modeller.tools.shared_utils import calc_histogram
-
+from kronos_executor.app_kernels import available_kernels
+from kronos_executor.io_formats.format_data_handlers.kschedule_kernel_work import KernelWorkDistribution
 from kronos_executor.io_formats.schedule_format import ScheduleFormat
+from kronos_executor.tools import calc_histogram
+from kronos_executor.definitions import signal_types, time_signal_names
 
 
 class KScheduleData(ScheduleFormat):

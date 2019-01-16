@@ -8,10 +8,9 @@
 import copy
 
 import numpy as np
-from kronos_modeller.time_signal.definitions import time_signal_names
-from kronos_modeller.time_signal.time_signal import TimeSignal
-
+from kronos_executor.definitions import time_signal_names
 from kronos_modeller.jobs import ModelJob
+from kronos_modeller.time_signal.time_signal import TimeSignal
 
 
 class UserGeneratedJob(object):

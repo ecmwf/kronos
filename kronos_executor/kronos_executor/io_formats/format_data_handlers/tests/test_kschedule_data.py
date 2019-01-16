@@ -10,8 +10,7 @@ import unittest
 from StringIO import StringIO
 
 import jsonschema
-
-from kronos_modeller.format_data_handlers.kschedule_data import KScheduleData
+from kronos_executor.io_formats.format_data_handlers.kschedule_data import KScheduleData
 
 
 class KScheduleDataTest(unittest.TestCase):

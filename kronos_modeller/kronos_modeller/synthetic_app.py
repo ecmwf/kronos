@@ -11,13 +11,12 @@ import os
 import pickle
 from collections import Counter
 
-from kronos_modeller.time_signal.definitions import time_signal_names
-from kronos_modeller.tools.print_colour import print_colour
-
-import app_kernels
 from exceptions_iows import ConfigurationError
 from jobs import ModelJob
+from kronos_executor import app_kernels
 from kronos_executor.io_formats.schedule_format import ScheduleFormat
+from kronos_executor.tools import print_colour
+from kronos_executor.definitions import time_signal_names
 
 
 class SyntheticWorkload(object):

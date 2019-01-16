@@ -12,13 +12,11 @@ import unittest
 from StringIO import StringIO
 
 import numpy as np
-
 from kronos_executor.io_formats.profile_format import ProfileFormat
-
-from kronos_modeller.time_signal.definitions import time_signal_names, signal_types
+from kronos_executor.definitions import signal_types, time_signal_names
+from kronos_modeller.jobs import ModelJob
 from kronos_modeller.time_signal.time_signal import TimeSignal
 from kronos_modeller.workload_data import WorkloadData
-from kronos_modeller.jobs import ModelJob
 
 
 class WorkloadTests(unittest.TestCase):

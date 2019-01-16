@@ -1,6 +1,14 @@
+# (C) Copyright 1996-2017 ECMWF.
+# 
+# This software is licensed under the terms of the Apache Licence Version 2.0
+# which can be obtained at http://www.apache.org/licenses/LICENSE-2.0. 
+# In applying this licence, ECMWF does not waive the privileges and immunities 
+# granted to it by virtue of its status as an intergovernmental organisation nor
+# does it submit to any jurisdiction.
 from collections import OrderedDict
 
-# The availably types of time-series (or summed/averaged totals) data that we can use
+
+# TODO: signal types should go into the modeller definitions file
 signal_types = OrderedDict([
 
     # (file) I/O
@@ -22,21 +30,20 @@ signal_types = OrderedDict([
     ('kb_mem', {'type': int, 'category': 'memory', 'behaviour': 'sum'})
 ])
 
-
-# add print info
 float_format_print = '%16.3f'
+
 int_format_print = '%16.0f'
 
-signal_types['flops']["print_info"] = {"unit": "Gflops", "format": int_format_print, "conv": 1.0/(1024.0**3)}
-signal_types['kb_read']["print_info"] = {"unit": "Gbytes", "format": float_format_print, "conv": 1.0/(1024.0**2)}
-signal_types['kb_write']["print_info"] = {"unit": "Gbytes", "format": float_format_print, "conv": 1.0/(1024.0**2)}
+signal_types['flops']["print_info"] = {"unit": "Gflops", "format": int_format_print, "conv": 1.0 / (1024.0 ** 3)}
+signal_types['kb_read']["print_info"] = {"unit": "Gbytes", "format": float_format_print, "conv": 1.0 / (1024.0 ** 2)}
+signal_types['kb_write']["print_info"] = {"unit": "Gbytes", "format": float_format_print, "conv": 1.0 / (1024.0 ** 2)}
 signal_types['n_read']["print_info"] = {"unit": "times ", "format": int_format_print, "conv": 1.0}
 signal_types['n_write']["print_info"] = {"unit": "times ", "format": int_format_print, "conv": 1.0}
 signal_types['n_pairwise']["print_info"] = {"unit": "times ", "format": int_format_print, "conv": 1.0}
-signal_types['kb_pairwise']["print_info"] = {"unit": "Gbytes", "format": float_format_print, "conv": 1.0/(1024.0**2)}
+signal_types['kb_pairwise']["print_info"] = {"unit": "Gbytes", "format": float_format_print, "conv": 1.0 / (1024.0 ** 2)}
 signal_types['n_collective']["print_info"] = {"unit": "times ", "format": int_format_print, "conv": 1.0}
-signal_types['kb_collective']["print_info"] = {"unit": "Gbytes", "format": float_format_print, "conv": 1.0/(1024.0**2)}
-signal_types['kb_mem']["print_info"] = {"unit": "Gbytes", "format": int_format_print, "conv": 1.0/(1024.0**2)}
+signal_types['kb_collective']["print_info"] = {"unit": "Gbytes", "format": float_format_print, "conv": 1.0 / (1024.0 ** 2)}
+signal_types['kb_mem']["print_info"] = {"unit": "Gbytes", "format": int_format_print, "conv": 1.0 / (1024.0 ** 2)}
 
 signal_types['flops']["print_info"]["raw_units"] = "FLOPS"
 signal_types['kb_read']["print_info"]["raw_units"] = "KiB"

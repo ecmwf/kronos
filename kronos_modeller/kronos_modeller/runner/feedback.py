@@ -6,24 +6,23 @@
 # granted to it by virtue of its status as an intergovernmental organisation nor
 # does it submit to any jurisdiction.
 
-import os
-import time
-import json
-import pprint
 import datetime
+import json
+import os
+import pprint
 import subprocess
-
-from kronos_modeller import run_control
-from kronos_modeller import time_signal
-from kronos_modeller.exceptions_iows import ConfigurationError
-from kronos_modeller.time_signal.definitions import signal_types
-from kronos_modeller.workload_data import WorkloadData
-from kronos_executor.io_formats.schedule_format import ScheduleFormat
+import time
 
 from base_runner import BaseRunner
+from kronos_executor.io_formats.schedule_format import ScheduleFormat
+from kronos_executor.tools import print_colour
+from kronos_modeller import run_control
+from kronos_modeller import time_signal
+from kronos_executor.definitions import signal_types
+from kronos_modeller.exceptions_iows import ConfigurationError
 from kronos_modeller.kronos_tools import utils
 from kronos_modeller.logreader import profiler_reader
-from kronos_modeller.tools import print_colour
+from kronos_modeller.workload_data import WorkloadData
 
 
 class FeedbackLoopRunner(BaseRunner):
@@ -274,7 +273,7 @@ class FeedbackLoopRunner(BaseRunner):
 
         else:
 
-            print_colour.print_colour("orange", "runner NOT enabled. Model did not run!")
+            print_colour("orange", "runner NOT enabled. Model did not run!")
 
     def plot_results(self):
         raise NotImplementedError("feedback loop plotter not yet implemented..")

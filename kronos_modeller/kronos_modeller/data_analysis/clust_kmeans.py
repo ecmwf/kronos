@@ -14,7 +14,7 @@ from sklearn.cluster import KMeans
 from sklearn.metrics import silhouette_score
 
 from clust_base import ClusteringBase
-from kronos_modeller.tools.print_colour import print_colour
+from kronos_executor.tools import print_colour
 
 
 class ClusteringKmeans(ClusteringBase):

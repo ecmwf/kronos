@@ -17,7 +17,7 @@ import data_analysis
 import workload_data
 from config.config import Config
 from exceptions_iows import ConfigurationError
-from kronos_modeller.tools.print_colour import print_colour
+from kronos_executor.tools import print_colour
 from synthetic_app import SyntheticWorkload, SyntheticApp
 from workload_fill_in import WorkloadFiller
 

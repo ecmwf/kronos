@@ -8,12 +8,15 @@
 # does it submit to any jurisdiction.
 
 import json
+import sys
 import unittest
 from StringIO import StringIO
 
+print "sys.path ", sys.path
+
 from kronos_executor.io_formats.profile_format import ProfileFormat
 from kronos_modeller.jobs import ModelJob, IngestedJob
-from kronos_modeller.time_signal.definitions import signal_types, time_signal_names
+from kronos_executor.definitions import signal_types, time_signal_names
 from kronos_modeller.time_signal.time_signal import TimeSignal
 
 from kronos_modeller.exceptions_iows import ModellingError
