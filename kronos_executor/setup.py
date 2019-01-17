@@ -3,12 +3,6 @@
 
 from setuptools import setup, find_packages
 
-with open('../README.rst') as readme_file:
-    readme = readme_file.read()
-
-with open('../HISTORY.rst') as history_file:
-    history = history_file.read()
-
 requirements = [
     # TODO: put package requirements here
 ]
@@ -21,7 +15,7 @@ setup(
     name='kronos-executor',
     version='0.6.0',
     description="Execution of a HPC workload on a target system",
-    long_description=readme + '\n\n' + history,
+    long_description="Execution of a HPC workload on a target system",
     author="Tiago Quintino, Antonino Bonanni, Simon Smart",
     author_email='',
     packages=find_packages(),
