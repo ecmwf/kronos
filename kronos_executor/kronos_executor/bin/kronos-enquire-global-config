@@ -18,8 +18,12 @@ This tool enquires the global configuration of the kronos_executor (used by CMak
 
 """
 
+import os
 import sys
 import argparse
+
+# Used to make use of this tool even out of the executor env
+sys.path.append(os.path.dirname(os.path.dirname(__file__)))
 
 from kronos_executor.global_config import global_config
 
