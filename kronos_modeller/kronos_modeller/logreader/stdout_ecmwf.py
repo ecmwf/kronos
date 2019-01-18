@@ -6,15 +6,16 @@
 # granted to it by virtue of its status as an intergovernmental organisation nor
 # does it submit to any jurisdiction.
 
+import re
 import calendar
 import datetime
-import re
+import logging
 
 from kronos_modeller.jobs import IngestedJob, ModelJob
 from kronos_modeller.logreader.base import LogReader
 from kronos_modeller.logreader.dataset import IngestedDataSet
 
-from kronos_executor.tools import print_colour
+logger = logging.getLogger(__name__)
 
 
 class StdoutECMWFIngestedJob(IngestedJob):
@@ -134,7 +135,7 @@ class StdoutECMWFLogReader(LogReader):
                                 # start a newline so it doesn't interfere with the printing of the progress.
                                 if not have_error:
                                     print ""
-                                print_colour("orange", "Fieldname {} already has value {}, not {} for file {}".format(
+                                logger.info( "Fieldname {} already has value {}, not {} for file {}".format(
                                     fieldname, attrs[fieldname], fieldval, filename))
                                 have_error = True
 
@@ -157,7 +158,7 @@ class StdoutECMWFLogReader(LogReader):
                 valid = False
                 if not have_error:
                     print ""
-                print_colour("red", "Required field {} not found in log file {}".format(field, filename))
+                logger.info( "Required field {} not found in log file {}".format(field, filename))
                 have_error = True
 
         if valid:

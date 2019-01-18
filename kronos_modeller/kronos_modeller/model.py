@@ -5,7 +5,7 @@
 # In applying this licence, ECMWF does not waive the privileges and immunities 
 # granted to it by virtue of its status as an intergovernmental organisation nor
 # does it submit to any jurisdiction.
-
+import logging
 import os
 
 import numpy as np
@@ -17,9 +17,10 @@ import data_analysis
 import workload_data
 from config.config import Config
 from exceptions_iows import ConfigurationError
-from kronos_executor.tools import print_colour
 from synthetic_app import SyntheticWorkload, SyntheticApp
 from workload_fill_in import WorkloadFiller
+
+logger = logging.getLogger(__name__)
 
 
 class KronosModel(object):
@@ -176,7 +177,7 @@ class KronosModel(object):
         Check that all jobs have the minimum required fields..
         :return:
         """
-        print_colour("green", "Checking all jobs..")
+        logger.info("Checking all jobs..")
 
         # check only the workloads specified (if passed to the function) otherwise check all the jobs
         workloads_to_check = workloads_to_check if workloads_to_check else [wl.tag for wl in self.workloads]
@@ -219,10 +220,10 @@ class KronosModel(object):
                         if req_item not in op_config.keys():
                             raise ConfigurationError("'step_function' requires to specify {}".format(req_item))
 
-                    print_colour("green", "Splitting workload {}".format(op_config['apply_to']))
+                    logger.info("Splitting workload {}".format(op_config['apply_to']))
                     wl = next(wl for wl in self.workloads if wl.tag == op_config['apply_to'])
                     sub_workloads = wl.split_by_keywords(op_config)
-                    print_colour("cyan", "splitting has created workload {} with {} jobs".format(sub_workloads.tag, len(sub_workloads.jobs)))
+                    logger.info("splitting has created workload {} with {} jobs".format(sub_workloads.tag, len(sub_workloads.jobs)))
 
                     # accumulate cutout worklaods
                     cutout_workloads.append(sub_workloads)
@@ -248,7 +249,7 @@ class KronosModel(object):
         for wl_entry in clustering_config['apply_to']:
             wl = next(wl for wl in self.workloads if wl.tag == wl_entry)
 
-            print_colour("green", "-------> applying classification to workload {}".format(wl_entry))
+            logger.info("-------> applying classification to workload {}".format(wl_entry))
 
             # Apply clustering
             cluster_handler = data_analysis.factory(clustering_config['type'], clustering_config)
@@ -332,7 +333,7 @@ class KronosModel(object):
         :return:
         """
 
-        print_colour("green", "generating the KSchedule from the KProfile in a one-to-one relationship")
+        logger.info("generating the KSchedule from the KProfile in a one-to-one relationship")
 
         # check that all the model jobs contain all the metrics
         self._check_jobs()

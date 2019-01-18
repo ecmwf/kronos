@@ -12,14 +12,6 @@ import os
 from config_format import ConfigFormat
 from kronos_modeller.exceptions_iows import ConfigurationError
 
-log_keys_map = {
-    "debug": logging.DEBUG,
-    "info": logging.INFO,
-    "warning": logging.WARNING,
-    "error": logging.ERROR,
-    "critical": logging.CRITICAL
-}
-
 
 class Config(object):
     """
@@ -29,7 +21,7 @@ class Config(object):
     # Debugging info
     verbose = False
 
-    kronos_log_file = "kronos-log.log"
+    kronos_log_file = "kronos-modeller.log"
 
     version = None
     uid = None

@@ -5,7 +5,7 @@
 # In applying this licence, ECMWF does not waive the privileges and immunities 
 # granted to it by virtue of its status as an intergovernmental organisation nor
 # does it submit to any jurisdiction.
-
+import logging
 from difflib import SequenceMatcher
 
 import fill_in_functions as fillf
@@ -13,11 +13,13 @@ import numpy as np
 from data_analysis import recommender
 from exceptions_iows import ConfigurationError
 from jobs import ModelJob
-from kronos_executor.tools import print_colour
+
 from kronos_executor.definitions import signal_types, time_signal_names
 from kronos_modeller.framework.pickable import PickableObject
 from kronos_modeller.kronos_tools.utils import running_sum
 from kronos_modeller.time_signal.time_signal import TimeSignal
+
+logger = logging.getLogger(__name__)
 
 
 class WorkloadData(object):
@@ -62,7 +64,7 @@ class WorkloadData(object):
         :return:
         """
         if not model_jobs:
-            print_colour('orange', 'provided an empty set oj model jobs!')
+            logger.info('provided an empty set oj model jobs!')
         else:
             self.jobs.append(model_jobs)
 
@@ -101,7 +103,7 @@ class WorkloadData(object):
                 total_metrics[signal_name] = ts
 
             except ValueError:
-                # print_colour("orange", "======= No jobs found with time series for {}".format(signal_name))
+                # logger.info( "======= No jobs found with time series for {}".format(signal_name))
                 pass
 
         return total_metrics
@@ -140,7 +142,7 @@ class WorkloadData(object):
         :param functions_config:
         :return:
         """
-        print_colour('green', 'Applying default values on workload: {}'.format(self.tag))
+        logger.info('Applying default values on workload: {}'.format(self.tag))
 
         metrics_dict = defaults_dict['metrics']
         np.random.seed(0)
@@ -208,7 +210,7 @@ class WorkloadData(object):
         :param match_keywords:
         :return:
         """
-        print_colour('green', 'Applying look up from workload: {} onto workload: {}'.format(look_up_wl.tag, self.tag))
+        logger.info('Applying look up from workload: {} onto workload: {}'.format(look_up_wl.tag, self.tag))
 
         assert isinstance(look_up_wl, WorkloadData)
         assert isinstance(threshold, float)

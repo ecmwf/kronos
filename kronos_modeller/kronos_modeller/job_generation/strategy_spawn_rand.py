@@ -7,12 +7,13 @@
 # does it submit to any jurisdiction.
 
 import copy
-
+import logging
 import numpy as np
 
 from kronos_modeller.job_generation.strategy_base import StrategyBase
 from kronos_modeller.jobs import ModelJob
-from kronos_executor.tools import print_colour
+
+logger = logging.getLogger(__name__)
 
 
 class StrategySpawnRand(StrategyBase):
@@ -25,7 +26,7 @@ class StrategySpawnRand(StrategyBase):
 
     def generate_jobs(self):
 
-        print_colour("white", "====> Generating jobs from sub-workload: {}, that has {} jobs".format(self.wl_clusters['source-workload'],
+        logger.info( "====> Generating jobs from sub-workload: {}, that has {} jobs".format(self.wl_clusters['source-workload'],
                                                                                                len(self.wl_clusters['jobs_for_clustering'])))
 
         start_times_vec_sa, _, _ = self.schedule_strategy.create_schedule()
@@ -74,7 +75,7 @@ class StrategySpawnRand(StrategyBase):
             mean_nnodes = np.mean(nnodes_vec)
             mean_ncpu_nnodes_in_cluster.append({"ncpus": mean_ncpus, "nnodes": mean_nnodes})
 
-            print_colour("white", "cluster {} - mean_ncpus={}, mean_nnodes={}".format(ic, mean_ncpus, mean_nnodes))
+            logger.info( "cluster {} - mean_ncpus={}, mean_nnodes={}".format(ic, mean_ncpus, mean_nnodes))
 
             vec_clust_indexes = np.append(vec_clust_indexes, np.ones(n_jobs_to_generate_from_cluster, dtype=int)*ic)
 
@@ -110,5 +111,5 @@ class StrategySpawnRand(StrategyBase):
             generated_model_jobs.append(job)
 
         n_job_ratio = len(generated_model_jobs) / float(len(self.wl_clusters['jobs_for_clustering'])) * 100.
-        print_colour("white", "<==== Generated {} jobs (#job ratio = {:.2f}%)".format(len(generated_model_jobs), n_job_ratio))
+        logger.info( "<==== Generated {} jobs (#job ratio = {:.2f}%)".format(len(generated_model_jobs), n_job_ratio))
         return generated_model_jobs, vec_clust_indexes.tolist()

@@ -9,11 +9,13 @@
 import os
 import re
 import time
+import logging
 import subprocess
 
-from kronos_executor.tools import print_colour
 from kronos_modeller.config.config import Config
 from kronos_modeller.exceptions_iows import ConfigurationError
+
+logger = logging.getLogger(__name__)
 
 
 class BASEControls(object):
@@ -116,7 +118,7 @@ class PBSControls(BASEControls):
 
             if not jobs_in_queue:
                 jobs_completed = True
-                print_colour("green", "jobs completed!")
+                logger.info( "jobs completed!")
 
             time.sleep(2.0)
 
@@ -189,7 +191,7 @@ class SLURMControls(BASEControls):
             # TODO: write this check properly..
             if len(jobs_in_queue) == 1:
                 jobs_completed = True
-                print_colour("green", "jobs completed!")
+                logger.info( "jobs completed!")
 
             time.sleep(2.0)
 
@@ -259,6 +261,6 @@ class LocalControls(BASEControls):
 
             if re.search(self.hpc_dir_exec+'coordinator', jobs_in_queue) is None:
                 jobs_completed = True
-                print_colour("green", "jobs completed!")
+                logger.info( "jobs completed!")
 
             time.sleep(2.0)

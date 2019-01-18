@@ -12,8 +12,9 @@ A dataset describes a series of profiling data elements from a data source
 In particular, it has a list of IngestedJobs, and some metadata that permits
 those to be processed.
 """
-# Try to use cPickle rather than pickle, by default, as it is MUCH faster. Fallback to pickle if it is
-# not available on a given platform, or other issues.
+
+import logging
+
 try:
     import cPickle as pickle
 except:
@@ -26,7 +27,7 @@ import os
 
 from kronos_modeller.exceptions_iows import ConfigurationError
 
-from kronos_executor.tools import print_colour
+logger = logging.getLogger(__name__)
 
 
 class IngestedDataSet(object):
@@ -141,10 +142,10 @@ class IngestedDataSet(object):
             if dataset:
 
                 if dataset.ingest_config != ingest_config:
-                    print_colour("red", "Log reader configuration doesn't match cache file")
-                    print_colour("orange", "Reader: {}".format(ingest_config))
-                    print_colour("orange", "Cached: {}".format())
-                    print_colour("green", "Please modify configuration, or delete cache file and try again")
+                    logger.info( "Log reader configuration doesn't match cache file")
+                    logger.info( "Reader: {}".format(ingest_config))
+                    logger.info( "Cached: {}".format())
+                    logger.info( "Please modify configuration, or delete cache file and try again")
                     raise ConfigurationError("Log reader configuration doesn't match cache file")
 
                 if os.path.abspath(os.path.realpath(dataset.ingest_path)) != abs_ingest_path:

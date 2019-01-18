@@ -9,7 +9,10 @@
 """
 We need a way to convert a time series into the input for the synthetic app kernels
 """
-from kronos_executor.tools import print_colour
+
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 class KernelBase(object):
@@ -50,7 +53,7 @@ class KernelBase(object):
                 if self.metrics_hard_limits.get(ts_name):
 
                     if sum(time_signals[tt]) > self.metrics_hard_limits[ts_name]:
-                        print_colour("orange", "applied hard limit to metric {} in kernel {}".format(ts_name, self.name),
+                        logger.info(
                                      log_level="debug")
                         sc_ = self.metrics_hard_limits[ts_name] / float(sum(time_signals[tt]))
                         time_signals[tt] = [t * sc_ for t in time_signals[tt]]

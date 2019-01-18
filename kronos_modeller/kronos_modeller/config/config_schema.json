@@ -163,7 +163,7 @@
                         "description": "Values of job-metrics",
                         "additionalProperties": false,
                         "patternProperties": {
-                          "(n_write|n_read|kb_write|kb_read|n_pairwise|kb_pairwise|n_collective|kb_collective|flops)": {
+                          "(n_write|n_read|kb_write|kb_read|n_pairwise|kb_pairwise|n_collective|kb_collective|flops|kb_mem)": {
                             "description": "",
                             "oneOf": [
                               {
@@ -444,7 +444,7 @@
               "type": "object",
               "description": "User-defined scaling factors of the job metrics",
               "patternProperties": {
-                "(n_write|n_read|kb_write|kb_read|n_pairwise|kb_pairwise|n_collective|kb_collective|flops)": {
+                "(n_write|n_read|kb_write|kb_read|n_pairwise|kb_pairwise|n_collective|kb_collective|flops|kb_mem)": {
                   "type": "number"
                 }
               }
@@ -453,7 +453,7 @@
               "type": "object",
               "description": "User-defined hard limits of the job metrics (a warning is triggered if these limits are hit)",
               "patternProperties": {
-                "(n_write|n_read|kb_write|kb_read|n_pairwise|kb_pairwise|n_collective|kb_collective|flops)": {
+                "(n_write|n_read|kb_write|kb_read|n_pairwise|kb_pairwise|n_collective|kb_collective|flops|kb_mem)": {
                   "type": "number"
                 }
               }

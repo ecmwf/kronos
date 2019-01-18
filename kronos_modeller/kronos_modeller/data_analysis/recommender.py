@@ -6,11 +6,12 @@
 # granted to it by virtue of its status as an intergovernmental organisation nor
 # does it submit to any jurisdiction.
 
+import logging
 import numpy as np
 from kronos_modeller.exceptions_iows import ConfigurationError
 from scipy.spatial.distance import pdist
 
-from kronos_executor.tools import print_colour
+logger = logging.getLogger(__name__)
 
 
 class Recommender(object):
@@ -40,7 +41,7 @@ class Recommender(object):
         :return:
         """
 
-        print_colour("green", "Training recommender system..")
+        logger.info( "Training recommender system..")
         np.set_printoptions(edgeitems=1,
                             infstr='inf',
                             linewidth=275,

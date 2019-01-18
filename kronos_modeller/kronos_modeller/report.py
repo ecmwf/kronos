@@ -5,7 +5,9 @@
 # In applying this licence, ECMWF does not waive the privileges and immunities 
 # granted to it by virtue of its status as an intergovernmental organisation nor
 # does it submit to any jurisdiction.
-from kronos_executor.tools import print_colour
+
+import logging
+logger = logging.getLogger(__name__)
 
 
 class ModelMeasure(object):
@@ -32,21 +34,21 @@ class Report(object):
     def print_report(cls):
 
         # calculate longest measure name
-        print_colour("white", "\n____________ MODEL METRICS ______________")
+        logger.info("\n____________ MODEL METRICS ______________")
 
         for m in cls.list_measures:
 
             # simple line if the metrics is a scalar
             if isinstance(m.value, int) or isinstance(m.value, float):
-                print_colour("white", "\n{}: {} (calculated in {})\n".format(m.name, m.value, m.source_function), log_level="info")
+                logger.info("\n{}: {} (calculated in {})\n".format(m.name, m.value, m.source_function))
 
             # print in multi-line is the metric is a dictionary:
             if isinstance(m.value, dict):
 
-                print_colour("white", "\n{}: (calculated in {})".format(m.name, m.source_function))
+                logger.info("\n{}: (calculated in {})".format(m.name, m.source_function))
 
                 for k, v in m.value.iteritems():
-                    print_colour("white", "{}: {}".format(k, v))
+                    logger.info( "{}: {}".format(k, v))
 
 
 

@@ -7,11 +7,13 @@
 # does it submit to any jurisdiction.
 
 import numpy as np
-from kronos_executor.tools import print_colour
+import logging
 from kronos_executor.definitions import time_signal_names
 from kronos_modeller.job_generation.strategy_base import StrategyBase
 from kronos_modeller.jobs import ModelJob
 from kronos_modeller.time_signal.time_signal import TimeSignal
+
+logger = logging.getLogger(__name__)
 
 
 class StrategySpawn(StrategyBase):
@@ -24,7 +26,7 @@ class StrategySpawn(StrategyBase):
 
     def generate_jobs(self):
 
-        print_colour("white", "Generating jobs from cluster: {}, that has {} jobs".format(self.wl_clusters['source-workload'],
+        logger.info( "Generating jobs from cluster: {}, that has {} jobs".format(self.wl_clusters['source-workload'],
                                                                           len(self.wl_clusters['jobs_for_clustering'])))
 
         start_times_vec_sa, _, _ = self.schedule_strategy.create_schedule()
@@ -58,6 +60,6 @@ class StrategySpawn(StrategyBase):
 
         n_sa = len(generated_model_jobs)
         n_job_ratio = n_sa / float(len(self.wl_clusters['jobs_for_clustering'])) * 100.
-        print_colour("white", "====> Generated {} jobs from cluster (#job ratio = {:.2f}%)".format(n_sa, n_job_ratio))
+        logger.info( "====> Generated {} jobs from cluster (#job ratio = {:.2f}%)".format(n_sa, n_job_ratio))
 
         return generated_model_jobs, vec_clust_indexes

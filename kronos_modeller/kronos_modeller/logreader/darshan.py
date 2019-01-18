@@ -6,6 +6,7 @@
 # granted to it by virtue of its status as an intergovernmental organisation nor
 # does it submit to any jurisdiction.
 
+import logging
 import subprocess
 from collections import OrderedDict
 
@@ -15,7 +16,8 @@ from kronos_modeller.logreader.dataset import IngestedDataSet
 from kronos_modeller.time_signal.time_signal import TimeSignal
 from kronos_modeller.tools.merge import min_not_none, max_not_none
 
-from kronos_executor.tools import print_colour
+logger = logging.getLogger(__name__)
+
 
 darshan_signal_priorities = {
     'kb_read': 8,
@@ -412,12 +414,12 @@ class DarshanLogReader(LogReader):
         output, error = pipes.communicate()
 
         if len(error) != 0:
-            print_colour("orange", "\n{}".format(error.strip()), flush=True)
+            logger.info( "\n{}".format(error.strip()), flush=True)
 
         if pipes.returncode != 0:
             if len(error) == 0:
                 print ""
-            print_colour("red", "Got an error: {} - {}".format(pipes.returncode, filename), flush=True)
+            logger.info( "Got an error: {} - {}".format(pipes.returncode, filename), flush=True)
 
             # Just skip this (with warnings), as the Darshan data is only being used in conjunction with something
             # else, so there won't be a blank.
@@ -602,12 +604,12 @@ class DarshanLogReader3(LogReader):
         output, error = pipes.communicate()
 
         if len(error) != 0:
-            print_colour("orange", "\n{}".format(error.strip()), flush=True)
+            logger.info( "\n{}".format(error.strip()), flush=True)
 
         if pipes.returncode != 0:
             if len(error) == 0:
                 print ""
-            print_colour("red", "Got an error: {} - {}".format(pipes.returncode, filename), flush=True)
+            logger.info( "Got an error: {} - {}".format(pipes.returncode, filename), flush=True)
 
             # Just skip this (with warnings), as the Darshan data is only being used in conjunction with something
             # else, so there won't be a blank.

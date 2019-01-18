@@ -6,17 +6,19 @@
 # granted to it by virtue of its status as an intergovernmental organisation nor
 # does it submit to any jurisdiction.
 
-import json
 import os
+import json
 import pickle
+import logging
 from collections import Counter
 
 from exceptions_iows import ConfigurationError
 from jobs import ModelJob
 from kronos_executor import app_kernels
 from kronos_executor.io_formats.schedule_format import ScheduleFormat
-from kronos_executor.tools import print_colour
 from kronos_executor.definitions import time_signal_names
+
+logger = logging.getLogger(__name__)
 
 
 class SyntheticWorkload(object):
@@ -117,7 +119,7 @@ class SyntheticWorkload(object):
         """
         with open(os.path.join(self.config.dir_output, 'sa_workload_pickle'), 'w') as f:
             pickle.dump(self, f)
-            print_colour("green", "synthetic workload pickle file saved to {}".format(self.config.dir_output))
+            logger.info( "synthetic workload pickle file saved to {}".format(self.config.dir_output))
 
     def max_sa_time_interval(self):
         """
@@ -135,7 +137,7 @@ class SyntheticWorkload(object):
         """
         n_bins = self.config.model["generator"]["synth_apps_n_bins"]
 
-        print_colour("green", "Exporting {} synth-apps to KSchedule schedule: {}".format(len(self.app_list), filename))
+        logger.info( "Exporting {} synth-apps to KSchedule schedule: {}".format(len(self.app_list), filename))
 
         # # pre-calculate sums for efficiency..
         # tot_metrics_apps = self.total_metrics_apps(n_bins=n_bins)

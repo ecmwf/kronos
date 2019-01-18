@@ -6,19 +6,22 @@
 # granted to it by virtue of its status as an intergovernmental organisation nor
 # does it submit to any jurisdiction.
 
-import glob
-import json
 import os
 import sys
+import glob
+import json
+import logging
 from datetime import datetime
 
 import numpy as np
-from kronos_executor.tools import print_colour
 from kronos_executor.definitions import signal_types
 from kronos_modeller.exceptions_iows import ConfigurationError
 from kronos_modeller.jobs import IngestedJob, ModelJob
 from kronos_modeller.logreader.dataset import IngestedDataSet
 from kronos_modeller.time_signal.time_signal import TimeSignal
+
+logger = logging.getLogger(__name__)
+
 
 allinea_signal_priorities = {
     'flops': 10,
@@ -44,19 +47,19 @@ def read_allinea_log(filename, jobs_n_bins=None, cfg=None):
     # 'per_task': Is the value presented per-task, or global. If per-task it needs to be multiplied up.
     #             (default False)
 
-    print_colour("white",
+    logger.info(
                  "NOTE: FLOPS not available for allinea Dataset: it will be estimated from %CPU and clock rate")
 
     # check of the clock_rate is passed in the config
     if not cfg:
-        print_colour("orange",
+        logger.info(
                      "WARNING: clock rate not provided! arbitrarily set to 2.5GHz")
         clock_rate = 2.5e9
     else:
         if cfg.get("clock_rate", None):
             clock_rate = cfg["clock_rate"]
         else:
-            print_colour("orange",
+            logger.info(
                          "WARNING: clock rate not provided! arbitrarily set to 2.5GHz")
             clock_rate = 2.5e9
 

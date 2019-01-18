@@ -6,15 +6,17 @@
 # granted to it by virtue of its status as an intergovernmental organisation nor
 # does it submit to any jurisdiction.
 
-import datetime
 import os
-import subprocess
 import time
+import datetime
+import logging
+import subprocess
 
 from kronos_modeller import run_control
 from kronos_modeller.exceptions_iows import ConfigurationError
 from kronos_modeller.runner.base_runner import BaseRunner
-from kronos_executor.tools import print_colour
+
+logger = logging.getLogger(__name__)
 
 
 class SimpleRunner(BaseRunner):
@@ -126,8 +128,8 @@ class SimpleRunner(BaseRunner):
 
         else:
 
-            print_colour("orange", "runner NOT enabled. Model did not run!")
+            logger.info( "runner NOT enabled. Model did not run!")
 
     def plot_results(self):
 
-        print_colour("orange", "plotting not yet implemented..")
+        logger.info( "plotting not yet implemented..")

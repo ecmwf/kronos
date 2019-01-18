@@ -6,8 +6,10 @@
 # granted to it by virtue of its status as an intergovernmental organisation nor
 # does it submit to any jurisdiction.
 
+import logging
 from exceptions_iows import ConfigurationError
-from kronos_executor.tools import print_colour
+
+logger = logging.getLogger(__name__)
 
 
 class WorkloadFiller(object):
@@ -110,7 +112,7 @@ class WorkloadFiller(object):
                                                                 match_config['keywords'],
                                                                 )
 
-        print_colour("white", "jobs matched/destination jobs = [{}/{}]".format(n_job_matched, n_destination_jobs))
+        logger.info( "jobs matched/destination jobs = [{}/{}]".format(n_job_matched, n_destination_jobs))
 
     def recommender_system(self):
         """
@@ -136,7 +138,7 @@ class WorkloadFiller(object):
                     raise ConfigurationError("'recommender_system' requires to specify {}".format(req_item))
 
             for wl_name in rs_config['apply_to']:
-                print_colour("green", "Applying recommender system on workload: {}".format(wl_name))
+                logger.info( "Applying recommender system on workload: {}".format(wl_name))
                 wl_dest = next(wl for wl in self.workloads if wl.tag == wl_name)
                 wl_dest.apply_recommender_system(rs_config)
 

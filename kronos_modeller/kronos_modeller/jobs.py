@@ -7,12 +7,15 @@
 # does it submit to any jurisdiction.
 
 import numpy as np
+import logging
+
 from exceptions_iows import ModellingError, ConfigurationError
-from kronos_executor.tools import print_colour
 from kronos_executor.definitions import time_signal_names
 from kronos_modeller.time_signal.time_signal import TimeSignal
 from kronos_modeller.tools.merge import max_not_none, min_not_none
 from kronos_modeller.tools.time_format import format_seconds
+
+logger = logging.getLogger(__name__)
 
 
 class ModelJob(object):
@@ -189,9 +192,9 @@ class ModelJob(object):
 
                 if self_valid:
                     if self.timesignals[ts_name].priority >= other.timesignals[ts_name].priority:
-                        print_colour("orange", "Conflict for time-series: {}, original retained".format(ts_name))
+                        logger.info("Conflict for time-series: {}, original retained".format(ts_name))
                     else:
-                        print_colour("orange", "Conflict for time-series: {}, other job retained".format(ts_name))
+                        logger.info("Conflict for time-series: {}, other job retained".format(ts_name))
                         self.timesignals[ts_name] = other.timesignals[ts_name]
 
                 else:
@@ -218,7 +221,7 @@ class ModelJob(object):
         Some quick sanity checks
         """
         if not self.is_valid():
-            raise KeyError("Job {} (label:{}) not valid!".format(self.job_name, self.label))
+            logger.warning("Job {} (label:{}) not valid!".format(self.job_name, self.label))
 
     def is_valid(self):
         """
@@ -227,13 +230,13 @@ class ModelJob(object):
         """
         for field in self.required_fields:
             if getattr(self, field, None) is None:
-                print_colour("red", "Job is incomplete. Missing field: {}".format(field))
+                logger.info("Job is incomplete. Missing field: {}".format(field))
                 return False
 
         # check that all the timesignals are not null
         if not all(self.timesignals.values()):
             null_ts = [k for k,v in self.timesignals.items() if not v]
-            print_colour("red", " job [{}] with label [{}] has null timesignals: {}".format(self.job_name,
+            logger.info("job [{}] with label [{}] has null timesignals: {}".format(self.job_name,
                                                                                             self.label,
                                                                                             null_ts))
             return False
@@ -241,13 +244,14 @@ class ModelJob(object):
         for ts_name, ts in self.timesignals.iteritems():
 
             if max(ts.xvalues) > self.duration:
-                print_colour("red", " job [{}] with label [{}] has timesignal: {} longer than its own duration".format(self.job_name,
-                                                                                                self.label,
-                                                                                                ts_name))
-                print_colour("red", "duration:{}, start+duration:{} [sec], start+timesignal: {} [sec]".format(
-                    self.duration,
-                    self.time_start + self.duration,
-                    self.time_start + max(ts.xvalues)) )
+                logger.info("job [{}] with label [{}] "
+                            "has timesignal: {} longer than its own duration".format(self.job_name,
+                                                                                     self.label,
+                                                                                     ts_name))
+                logger.info("duration:{}, start+duration:{} [sec], "
+                            "start+timesignal: {} [sec]".format(self.duration,
+                                                                self.time_start + self.duration,
+                                                                self.time_start + max(ts.xvalues)))
 
                 return False
 
