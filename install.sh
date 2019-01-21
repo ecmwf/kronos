@@ -252,9 +252,20 @@ install_synapps() {
     echo "installing Kronos synthetic application"
 
     # clone ecbuild from github (master branch) - if necessary
-    if [[ ! -d ${WORK_DIR}/ecbuild ]]; then
-      git clone https://github.com/ecmwf/ecbuild.git || { echo "git clone failed!\n"; exit 1; }
-      cd ${WORK_DIR}/ecbuild && git checkout master
+    if [[ ! -d ${WORK_DIR}/../ecbuild ]]; then
+      ECBUILD_DIR=$(readlink -f "${WORK_DIR}/../ecbuild")
+
+      echo -e "ecbuild not found, downloading in ${ECBUILD_DIR}. Proceed? [y/n]"
+      read user_ans
+      echo -e "\n"
+
+      if [[ $user_ans =~ ^[Yy]$ ]]; then
+        git clone https://github.com/ecmwf/ecbuild.git ${ECBUILD_DIR} || { echo "git clone failed!\n"; exit 1; }
+        cd ${ECBUILD_DIR} && git checkout master
+      else
+        echo "not downloading, stopping here!"
+        exit 1
+      fi
     fi
 
     if [[ ! -d ${WORK_DIR}/build ]]; then
