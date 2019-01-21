@@ -19,7 +19,15 @@ print_help() {
 
 # === download and install the conda installer ====
 install_conda() {
-    echo "not yet implemented.."
+
+    # download miniconda from website (exit if errors)
+    set -e
+    wget -c http://repo.continuum.io/miniconda/Miniconda-latest-Linux-x86_64.sh -P ${_DIRECTORY}
+    sh ${_DIRECTORY}/Miniconda-latest-Linux-x86_64.sh -b -p ${_DIRECTORY}/miniconda
+    set +e
+
+    # update PATH
+    export PATH=${_DIRECTORY}/miniconda/bin/:${PATH}
 }
 
 # === install the modeller ===
