@@ -2,10 +2,15 @@
 
 set -o nounset
 
-KRONOS_VERSION=0.6.0
+# working dir
+WORK_DIR=$(dirname $(readlink -f $BASH_SOURCE))
+
+# kronos version/package
+KRONOS_VERSION=$(cat ${WORK_DIR}/VERSION.cmake | awk '{print $3}' | sed "s/\"//g")
 KRONOS_PACKAGE=kronos-${KRONOS_VERSION}-Source
 
-WORK_DIR=$(dirname $(readlink -f $BASH_SOURCE))
+
+# installation-related directories
 DEPENDS_DIR=${WORK_DIR}/depends
 CONDA_DIR=${WORK_DIR}/miniconda
 CONDA_BIN_DIR=${CONDA_DIR}/bin
@@ -261,6 +266,11 @@ install_synapps() {
 }
 
 
+# /////////////////////////////////// MAIN ///////////////////////////////////
+
+echo -e "\n **** install script of Kronos project ****\n"
+echo -e "KRONOS_VERSION: ${KRONOS_VERSION}"
+echo -e "KRONOS_PACKAGE: ${KRONOS_PACKAGE}"
 
 # set an flags initial values
 conda_flag=0
