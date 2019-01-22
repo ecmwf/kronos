@@ -168,7 +168,7 @@ install_modeller() {
             conda create -y -n kronos_modeller_env --offline
             source activate kronos_modeller_env
 
-#            # Install the kronos-modeller dependencies
+            # Install the kronos-modeller dependencies
             conda install ${DEPENDS_DIR}/modeller/cairo-1.14.8-0.tar.bz2
             conda install ${DEPENDS_DIR}/modeller/cycler-0.10.0-py27_0.tar.bz2
             conda install ${DEPENDS_DIR}/modeller/dbus-1.10.10-0.tar.bz2
@@ -245,7 +245,6 @@ install_modeller() {
 }
 
 
-
 # === install the synapps ===
 install_synapps() {
 
@@ -318,12 +317,6 @@ while true ; do
     esac
 done
 
-echo "conda_flag: $conda_flag"
-echo "modeller_flag: $modeller_flag"
-echo "executor_flag: $executor_flag"
-echo "synapps_flag: $synapps_flag"
-echo "offline_flag: $offline_flag"
-echo "help_flag: $help_flag"
 
 # ==== check all the installation options =====
 # NOTE: the offline option is passed where needed..
