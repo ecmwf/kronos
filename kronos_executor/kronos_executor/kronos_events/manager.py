@@ -122,6 +122,7 @@ class Manager(object):
         :return:
         """
         self.__events.setdefault("Time", []).append(EventFactory.from_timestamp(timestamp))
+        self._total_n_processed_events += 1
 
     def stop_dispatcher(self):
         """
