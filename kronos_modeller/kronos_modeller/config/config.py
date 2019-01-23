@@ -10,6 +10,7 @@ import logging
 import os
 
 from config_format import ConfigFormat
+from kronos_modeller import log_msg_format
 from kronos_modeller.exceptions_iows import ConfigurationError
 
 
@@ -91,15 +92,10 @@ class Config(object):
             raise ConfigurationError("output folder {} - does not exist!".format(self.dir_output))
 
         # ----------------- logging setup --------------------
-        # set level of verbosity through flag self.verbose
-        if self.verbose:
-            logging.basicConfig(filename=self.kronos_log_file,
-                                filemode='w',
-                                level=logging.DEBUG)
-
-        else:
-            logging.basicConfig(filename=self.kronos_log_file,
-                                filemode='w',
-                                level=logging.INFO)
+        root_logger = logging.getLogger()
+        fh = logging.FileHandler(self.kronos_log_file, mode='w')
+        fh.setFormatter(logging.Formatter(log_msg_format))
+        fh.setLevel(logging.DEBUG if self.verbose else logging.INFO)
+        root_logger.addHandler(fh)
         # -----------------------------------------------------
 

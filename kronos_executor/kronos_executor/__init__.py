@@ -11,9 +11,10 @@ logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 # ======================================
 
-# root stdout handler
+# add stdout handler if not there already
 sh = logging.StreamHandler()
 sh.setLevel(logging.DEBUG)
 sh.setFormatter(logging.Formatter(log_msg_format))
-logger.addHandler(sh)
+if all(type(s) != logging.StreamHandler for s in logger.handlers):
+    logger.addHandler(sh)
 
