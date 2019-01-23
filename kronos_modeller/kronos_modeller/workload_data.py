@@ -60,7 +60,6 @@ class WorkloadData(object):
         """
         from a list of modelled jobs and a tag
         :param model_jobs:
-        :param set_tag:
         :return:
         """
         if not model_jobs:
@@ -77,7 +76,8 @@ class WorkloadData(object):
 
         metrics_sum_dict = {}
         for ts_name in time_signal_names:
-            metrics_sum_dict[ts_name] = sum(job.timesignals[ts_name].sum if job.timesignals[ts_name] else 0 for job in self.jobs)
+            metrics_sum_dict[ts_name] = sum(job.timesignals[ts_name].sum
+                                            if job.timesignals[ts_name] else 0 for job in self.jobs)
 
         return metrics_sum_dict
 
@@ -125,8 +125,6 @@ class WorkloadData(object):
 
         return time_stamps, nproc_running_vec
 
-
-
     @property
     def min_time_start(self):
         return min(j.time_start for j in self.jobs)
@@ -170,10 +168,10 @@ class WorkloadData(object):
                         y_max = metrics_dict[ts_name][1]
                         random_y_value = y_min + np.random.rand() * (y_max - y_min)
                         job.timesignals[ts_name] = TimeSignal.from_values(name=ts_name,
-                                                                                      xvals=0.,
-                                                                                      yvals=float(random_y_value),
-                                                                                      priority=defaults_dict['priority']
-                                                                                      )
+                                                                          xvals=0.,
+                                                                          yvals=float(random_y_value),
+                                                                          priority=defaults_dict['priority']
+                                                                          )
                     elif isinstance(metrics_dict[ts_name], dict):
                         # this entry is specified through a function (name and scaling)
 
@@ -199,7 +197,8 @@ class WorkloadData(object):
                                                                           priority=defaults_dict['priority']
                                                                           )
                     else:
-                        raise ConfigurationError('fill in "metrics" entry should be either a list or dictionary')
+                        raise ConfigurationError('fill in "metrics" entry '
+                                                 'should be either a list or dictionary')
 
     def apply_lookup_table(self, look_up_wl, threshold, priority, match_keywords):
         """
