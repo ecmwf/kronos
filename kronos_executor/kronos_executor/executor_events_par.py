@@ -1,12 +1,15 @@
 #!/usr/bin/env python
-import logging
+
 import os
+import logging
+from datetime import datetime
 from shutil import copy2
 
 from kronos_executor.executor import Executor
 from kronos_executor.job_submitter import JobSubmitter
 from kronos_executor.kronos_events import EventComplete
 from kronos_executor.kronos_events.manager import Manager
+from kronos_executor.kronos_events.time_ticker import TimeTicker
 
 logger = logging.getLogger(__name__)
 
@@ -58,14 +61,18 @@ class ExecutorEventsPar(Executor):
         completed_jobs_prev = []
         i_submission_cycle = 0
 
-        # time_0 = datetime.now()
         new_events = []
+        time_0 = datetime.now()
+        time_ticker = TimeTicker(time_0)
+
+        # ========= MAIN SIMULATION LOOP =========
         while not all(j.id in completed_jobs for j in self.jobs):
 
-            # NOTE: To be used with great care as number/size of time message could be huge..
-            # # Add a timer event every N cycles (just in case it's needed..)
-            # if not i_submission_cycle % self.time_event_cycles:
-            #     self.event_manager.add_time_event((datetime.now()-time_0).total_seconds())
+            # Add a time event for every second elapsed since last call
+            new_seconds = time_ticker.get_elapsed_seconds(datetime.now())
+            for i_sec in new_seconds:
+                self.event_manager.add_time_event(i_sec)
+                logger.info("added second {}".format(i_sec))
 
             # submit jobs
             self.job_submitter.submit_eligible_jobs(new_events=new_events)
@@ -80,7 +87,7 @@ class ExecutorEventsPar(Executor):
                 logger.info("completed_jobs: {}/{}".format(len(completed_jobs), len(self.jobs)))
                 completed_jobs_prev = completed_jobs
 
-            # update cycle counter
+            # update cycle counter and ref time
             i_submission_cycle += 1
 
         # Finally stop the event dispatcher
