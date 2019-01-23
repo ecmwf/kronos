@@ -72,7 +72,7 @@ class ExecutorEventsPar(Executor):
             new_seconds = time_ticker.get_elapsed_seconds(datetime.now())
             for i_sec in new_seconds:
                 self.event_manager.add_time_event(i_sec)
-                logger.info("added second {}".format(i_sec))
+                logger.debug("added second {}".format(i_sec))
 
             # submit jobs
             self.job_submitter.submit_eligible_jobs(new_events=new_events)
