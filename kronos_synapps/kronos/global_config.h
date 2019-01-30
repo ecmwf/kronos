@@ -63,6 +63,8 @@ typedef struct GlobalConfig {
     char notification_host[HOST_NAME_MAX];
     long notification_port;
 
+    char nvdimm_root_path[PATH_MAX];
+
 } GlobalConfig;
 
 

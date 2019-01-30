@@ -251,6 +251,20 @@ int init_global_config(const JSON* json, int argc, char** argv) {
         }
     }
 
+
+    /*
+     * NVDIMM partition (if present)
+     */
+
+    if ((tmp_json = json_object_get(json, "nvdimm_root_path")) != NULL) {
+        if (json_as_string(tmp_json, global_config.nvdimm_root_path, PATH_MAX) != 0) {
+            error = -1;
+            fprintf(stderr, "Error reading nvdimm_root_path as string from global configuration\nGot:");
+            print_json(stderr, tmp_json);
+            fprintf(stderr, "\n");
+        }
+    }
+
     /*
      * Processes and MPI
      */
@@ -321,6 +335,9 @@ int init_global_config(const JSON* json, int argc, char** argv) {
         if (global_config.enable_notifications) {
             printf("Notification hostname: %s\n", global_config.notification_host);
             printf("Notification port: %li\n", global_config.notification_port);
+        }
+        if (global_config.nvdimm_root_path) {
+            printf("nvdimm_root_path: %s\n", global_config.nvdimm_root_path);
         }
         printf("Job ID number: %li\n", global_config.job_num);
         printf("Initial timestamp: %f, %s\n",

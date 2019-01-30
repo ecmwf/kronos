@@ -46,20 +46,33 @@ execute_process(COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/kronos_executor/kronos_execu
 execute_process(COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/kronos_executor/kronos_executor/bin/kronos-enquire-global-config write_file_max_chunk
                 OUTPUT_VARIABLE KRONOS_WRITE_FILE_MAX_CHUNK )
 
+# look for pmemio library (only necessary if NVRAM kernel is sought to be used..)
+find_package(pmemio)
+
 # And build the C components
 
 ecbuild_declare_project()
 
 ### export package to other ecbuild packages
+set( KRONOS_INCLUDE_DIRS
+    ${CMAKE_CURRENT_SOURCE_DIR}/kronos_synapps
+    ${CMAKE_CURRENT_BINARY_DIR}/kronos_synapps
+)
 
-set( KRONOS_INCLUDE_DIRS   ${CMAKE_CURRENT_SOURCE_DIR}/kronos_synapps ${CMAKE_CURRENT_BINARY_DIR}/kronos_synapps )
 set( KRONOS_LIBRARIES      "" )
 
 get_directory_property( KRONOS_DEFINITIONS COMPILE_DEFINITIONS )
 
 ### include directories
 
-include_directories( ${KRONOS_INCLUDE_DIRS} )
+if (pmemio_FOUND)
+    include_directories(
+        ${KRONOS_INCLUDE_DIRS}
+        ${PMEMIO_INCLUDE_DIRS}
+        )
+else()
+    include_directories( ${KRONOS_INCLUDE_DIRS} )
+endif()
 
 add_subdirectory( kronos_synapps )
 

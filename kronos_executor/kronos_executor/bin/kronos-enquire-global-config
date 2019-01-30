@@ -25,7 +25,11 @@ import argparse
 # Used to make use of this tool even out of the executor env
 sys.path.append(os.path.dirname(os.path.dirname(__file__)))
 
-from kronos_executor.global_config import global_config
+try:
+    from kronos_executor.global_config import global_config
+except ImportError:
+    # this import will work also in the executor env is not loaded..
+    from global_config import global_config
 
 
 # Parser for the required arguments

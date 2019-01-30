@@ -51,7 +51,10 @@ class Executor(object):
         'notification_port',
         'time_event_cycles',
         'event_batch_size',
-        'n_submitters'
+        'n_submitters',
+
+        # if NVRAM is to be used
+        'nvdimm_root_path'
 
     ]
 
@@ -188,6 +191,9 @@ class Executor(object):
         else:
             self.time_event_cycles = config.get('n_submitters', 1)
 
+        # nvdimm path if present
+        self.nvdimm_root_path = self.config.get("nvdimm_root_path")
+
     def set_job_submitted(self, job_num, submitted_id):
         self._submitted_jobs[job_num] = submitted_id
 
@@ -277,6 +283,8 @@ class Executor(object):
 
             job_class = job_class_module.Job
 
+            # Enrich the job configuration with the necessary global configurations
+            # coming from the configuration file
             if self._file_read_multiplicity:
                 job_config['file_read_multiplicity'] = self._file_read_multiplicity
 
@@ -289,6 +297,9 @@ class Executor(object):
             if self.execution_mode == "events":
                 job_config['notification_host'] = self.notification_host
                 job_config['notification_port'] = self.notification_port
+
+            if self.config.get("nvdimm_root_path"):
+                job_config['nvdimm_root_path'] = self.nvdimm_root_path
 
             j = job_class(job_config, self, job_dir)
 

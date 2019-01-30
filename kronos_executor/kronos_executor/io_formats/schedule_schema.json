@@ -91,13 +91,34 @@
                                         "oneOf": [
                                             {
                                                 "type": "object",
-                                                "description": "kernel to execute memory operations",
+                                                "description": "kernel to execute memory set",
                                                 "properties": {
                                                     "name": {
                                                         "type": "string",
                                                         "description": "type of kernel",
                                                         "enum": [
                                                             "memory"
+                                                        ]
+                                                    },
+                                                    "kb_mem": {
+                                                        "type": "number",
+                                                        "description": "kb of memory allocated/touched per proc"
+                                                    }
+                                                },
+                                                "required": [
+                                                    "name",
+                                                    "kb_mem"
+                                                ]
+                                            },
+                                            {
+                                                "type": "object",
+                                                "description": "kernel to execute memory set (through pmemio)",
+                                                "properties": {
+                                                    "name": {
+                                                        "type": "string",
+                                                        "description": "type of kernel",
+                                                        "enum": [
+                                                            "memory_persist"
                                                         ]
                                                     },
                                                     "kb_mem": {

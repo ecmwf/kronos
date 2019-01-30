@@ -25,6 +25,7 @@
 #include "kronos/kernels.h"
 #include "kronos/mpi_kernel.h"
 #include "kronos/memory.h"
+#include "kronos/memory_persist.h"
 #include "kronos/trace.h"
 
 /* ------------------------------------------------------------------------------------------------------------------ */
@@ -86,6 +87,8 @@ KernelFunctor* kernel_factory(const JSON* config) {
         return init_cpu(config);
     } else if (name_length == 6 && strncmp(str_name, "memory", name_length) == 0) {
         return init_memory_kernel(config);
+    } else if (name_length == 14 && strncmp(str_name, "memory_persist", name_length) == 0) {
+        return init_mem_persist_kernel(config);
     } else if (name_length == 3 && strncmp(str_name, "mpi", name_length) == 0) {
 #ifdef HAVE_MPI
         return init_mpi(config);
