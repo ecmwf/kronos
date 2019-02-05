@@ -8,8 +8,8 @@ log_msg_format = '%(asctime)s; %(name)s; %(levelname)s; %(message)s'
 logger = logging.getLogger()
 
 # NOTE: set root to logging.DEBUG if needed
-# logger.setLevel(logging.INFO)
-logger.setLevel(logging.DEBUG)
+logger.setLevel(logging.INFO)
+# logger.setLevel(logging.DEBUG)
 # ======================================
 
 # add stdout handler if not there already

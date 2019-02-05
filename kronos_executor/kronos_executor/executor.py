@@ -325,6 +325,7 @@ class Executor(object):
         """
 
         prologue = self.schedule.prologue
+        logger.info("Executing prologue..")
         logger.debug("prologue: {}".format(prologue))
 
         if not prologue:
@@ -334,7 +335,7 @@ class Executor(object):
         for tt, task in enumerate(prologue.get("tasks")):
 
             script_abs_path = os.path.join(os.getcwd(), task["script"])
-            logger.debug("Executing script: {}".format(script_abs_path))
+            logger.info("Executing script: {}".format(script_abs_path))
 
             if not os.path.isfile(script_abs_path):
                 print ("Executing prologue task {}, but script {} not found!".format(tt, script_abs_path))
@@ -358,6 +359,7 @@ class Executor(object):
         """
 
         epilogue = self.schedule.epilogue
+        logger.info("Executing epilogue..")
         logger.debug("epilogue: {}".format(epilogue))
 
         if not epilogue:
@@ -367,7 +369,7 @@ class Executor(object):
         for tt, task in enumerate(epilogue.get("tasks")):
 
             script_abs_path = os.path.join(os.getcwd(), task["script"])
-            logger.debug("Executing script: {}".format(script_abs_path))
+            logger.info("Executing script: {}".format(script_abs_path))
 
             if not os.path.isfile(script_abs_path):
                 print ("Executing epilogue task {}, but script {} not found!".format(tt, script_abs_path))
