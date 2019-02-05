@@ -16,6 +16,7 @@
 
 #include <fcntl.h>
 #include "libpmem.h"
+#include "libpmemobj.h"
 
 #include "kronos/global_config.h"
 #include "kronos/memory_persist.h"

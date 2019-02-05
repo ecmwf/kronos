@@ -4,7 +4,11 @@ cmake_minimum_required( VERSION 2.8.11 FATAL_ERROR )
 
 project( kronos C CXX )
 
-set( CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake" ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/../ecbuild/cmake")
+set( CMAKE_MODULE_PATH
+    "${CMAKE_CURRENT_SOURCE_DIR}/cmake"
+    ${CMAKE_MODULE_PATH}
+    "${CMAKE_CURRENT_SOURCE_DIR}/../ecbuild/cmake"
+    )
 
 include( ecbuild_system NO_POLICY_SCOPE )
 
@@ -17,12 +21,21 @@ ecbuild_add_option(
     DESCRIPTION "Use system MPI libraries"
     REQUIRED_PACKAGES "MPI COMPONENTS CXX" )
 
+# look for pmemio
+find_package(pmemio)
+
+if(PMEMIO_FOUND)
+    set( USE_C_STD "-std=c99")
+else()
+    set( USE_C_STD "-std=c89")
+endif()
+
 # Add C flags to ensure standards compliance
 
 if( CMAKE_C_COMPILER_ID STREQUAL "GNU" OR CMAKE_C_COMPILER_ID STREQUAL "Clang" )
-    ecbuild_add_c_flags("-std=c89 -pedantic -D_XOPEN_SOURCE=600")
+    ecbuild_add_c_flags("${USE_C_STD} -pedantic -D_XOPEN_SOURCE=600")
 elseif( CMAKE_C_COMPILER_ID STREQUAL "Intel" )
-    ecbuild_add_c_flags("-std=c89 -strict-ansi -D_XOPEN_SOURCE=600 -no-gcc")
+    ecbuild_add_c_flags("${USE_C_STD} -strict-ansi -D_XOPEN_SOURCE=600 -no-gcc")
 elseif( CMAKE_C_COMPILER_ID STREQUAL "Cray" )
     ecbuild_add_c_flags("-h nognu -h notolerant -h conform -h stdc -h noc99 -D_XOPEN_SOURCE=600" )
 endif()
@@ -45,9 +58,6 @@ execute_process(COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/kronos_executor/kronos_execu
                 OUTPUT_VARIABLE KRONOS_READ_SIZE_MAX )
 execute_process(COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/kronos_executor/kronos_executor/bin/kronos-enquire-global-config write_file_max_chunk
                 OUTPUT_VARIABLE KRONOS_WRITE_FILE_MAX_CHUNK )
-
-# look for pmemio library (only necessary if NVRAM kernel is sought to be used..)
-find_package(pmemio)
 
 # And build the C components
 
