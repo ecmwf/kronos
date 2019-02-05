@@ -327,6 +327,9 @@ class Executor(object):
         prologue = self.schedule.prologue
         logger.debug("prologue: {}".format(prologue))
 
+        if not prologue:
+            return
+
         # Executes all the scripts in sequence
         for tt, task in enumerate(prologue.get("tasks")):
 
@@ -356,6 +359,9 @@ class Executor(object):
 
         epilogue = self.schedule.epilogue
         logger.debug("epilogue: {}".format(epilogue))
+
+        if not epilogue:
+            return
 
         # Executes all the scripts in sequence
         for tt, task in enumerate(epilogue.get("tasks")):
