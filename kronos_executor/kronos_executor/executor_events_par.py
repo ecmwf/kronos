@@ -40,7 +40,7 @@ class ExecutorEventsPar(Executor):
         logger.info("events batch size       : {}".format(self.event_batch_size))
         logger.info("job submitting processes: {}".format(self.n_submitters))
 
-    def run(self):
+    def do_run(self):
         """
         Specific run function for this type of execution
         :return:
@@ -93,6 +93,9 @@ class ExecutorEventsPar(Executor):
         # Finally stop the event dispatcher
         logger.info("Total #events received: {}".format(self.event_manager.get_total_n_events()))
 
+        # finally terminate the dispatcher process
+        self.event_manager.stop_dispatcher()
+
     def unsetup(self):
         """
         Various after-run tasks
@@ -129,6 +132,3 @@ class ExecutorEventsPar(Executor):
             logger.info("kronos simulation completed.".upper())
             logger.info("copying {} into {}".format(os.path.join(os.getcwd(), "kronos-kronos_executor.log"), self.job_dir))
             copy2(os.path.join(os.getcwd(), "kronos-kronos_executor.log"), self.job_dir)
-
-        # finally terminate the dispatcher process
-        self.event_manager.stop_dispatcher()

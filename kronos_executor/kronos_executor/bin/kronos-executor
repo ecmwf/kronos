@@ -86,6 +86,3 @@ if __name__ == "__main__":
 
     # run
     selected_executor.run()
-
-    # and finally do any un-setup tasks (if any at all)
-    selected_executor.unsetup()

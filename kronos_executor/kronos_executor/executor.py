@@ -8,6 +8,7 @@ import socket
 import time
 import uuid
 from shutil import copy2
+import subprocess
 
 from kronos_executor import log_msg_format
 from kronos_executor.global_config import global_config
@@ -308,18 +309,116 @@ class Executor(object):
 
         return jobs
 
-    def run(self):
+    def setup(self):
         """
-        Main function that manages the execution of the schedule
+        General placeholder for setting up the simulation
+        Each executor might have different things to setup.
+        :return:
+        """
+
+        pass
+
+    def prologue(self):
+        """
+        Runs the epilogue as defined in the kschedule
+        :return:
+        """
+
+        prologue = self.schedule.prologue
+        logger.debug("prologue: {}".format(prologue))
+
+        # Executes all the scripts in sequence
+        for tt, task in enumerate(prologue.get("tasks")):
+
+            script_abs_path = os.path.join(os.getcwd(), task["script"])
+            logger.debug("Executing script: {}".format(script_abs_path))
+
+            if not os.path.isfile(script_abs_path):
+                print ("Executing prologue task {}, but script {} not found!".format(tt, script_abs_path))
+                raise IOError
+
+            _proc = subprocess.Popen([script_abs_path],
+                                     shell=False, stdout=subprocess.PIPE,
+                                     stderr=subprocess.PIPE)
+            _proc.wait()
+
+            proc_stdout = _proc.stdout.readlines()
+            proc_stderr = _proc.stderr.readlines()
+
+            logger.debug("script stdout: {}".format(proc_stdout))
+            logger.debug("script stderr: {}".format(proc_stderr))
+
+    def epilogue(self):
+        """
+        Runs the epilogue as defined in the kschedule
+        :return:
+        """
+
+        epilogue = self.schedule.epilogue
+        logger.debug("epilogue: {}".format(epilogue))
+
+        # Executes all the scripts in sequence
+        for tt, task in enumerate(epilogue.get("tasks")):
+
+            script_abs_path = os.path.join(os.getcwd(), task["script"])
+            logger.debug("Executing script: {}".format(script_abs_path))
+
+            if not os.path.isfile(script_abs_path):
+                print ("Executing epilogue task {}, but script {} not found!".format(tt, script_abs_path))
+                raise IOError
+
+            _proc = subprocess.Popen([script_abs_path],
+                                     shell=False, stdout=subprocess.PIPE,
+                                     stderr=subprocess.PIPE)
+            _proc.wait()
+
+            proc_stdout = _proc.stdout.readlines()
+            proc_stderr = _proc.stderr.readlines()
+
+            logger.debug("script stdout: {}".format(proc_stdout))
+            logger.debug("script stderr: {}".format(proc_stderr))
+
+    def do_run(self):
+        """
+        Runs the jobs as defined in the kschedule
         :return:
         """
 
         raise NotImplementedError
 
-    def unsetup(self):
+    def run(self):
         """
-        Does any post-run tasks (e.g. clean-up files, etc..)
+        Main function that manages the execution of the schedule,
+        it includes the following phases:
+          - setup()
+          - prologue()
+          - do_run()
+          - epilogue()
+          - unsetup()
         :return:
         """
 
-        print "all done."
+        # setup the executor
+        self.setup()
+
+        # executes the prologue of the kschedule
+        self.prologue()
+
+        # do the actual run (submits the kschedule jobs)
+        self.do_run()
+
+        # executes the epilogue of the kschedule
+        self.epilogue()
+
+        # un-setup the executor
+        self.unsetup()
+
+    def unsetup(self):
+        """
+        General placeholder for un-setting up the simulation
+        Each executor might have different things to setup
+        (e.g. clean-up files, etc..).
+        :return:
+        """
+
+        pass

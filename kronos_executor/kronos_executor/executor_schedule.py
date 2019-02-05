@@ -16,7 +16,7 @@ class ExecutorDepsScheduler(Executor):
 
         super(ExecutorDepsScheduler, self).__init__(config, schedule, kschedule_file=kschedule_file)
 
-    def run(self):
+    def do_run(self):
         """
         Specific run function for this type of execution
         :return:

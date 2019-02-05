@@ -29,7 +29,10 @@ class ScheduleFormat(JSONIoFormat):
                  uid=None,
                  n_bins=None,
                  scaling_factors=None,
-                 unscaled_metrics_sums=None):
+                 unscaled_metrics_sums=None,
+                 prologue=None,
+                 epilogue=None,
+                 ):
 
         # We either initialise from synthetic apps objects, or from synthetic apps json data
         assert (sa_data is not None) != (sa_data_json is not None)
@@ -41,6 +44,10 @@ class ScheduleFormat(JSONIoFormat):
         self.synapp_data = sa_data_json
         self.scaling_factors = scaling_factors
         self.unscaled_metrics_sums = unscaled_metrics_sums
+
+        # prologue/epilogue info in the kschedule
+        self.prologue = prologue
+        self.epilogue = epilogue
 
         super(ScheduleFormat, self).__init__(created=created, uid=uid)
 
@@ -72,7 +79,9 @@ class ScheduleFormat(JSONIoFormat):
             created=datetime.fromtimestamp(strict_rfc3339.rfc3339_to_timestamp(data['created'])),
             uid=data.get('uid'),
             unscaled_metrics_sums=data.get('unscaled_metrics_sums'),
-            scaling_factors=data.get('scaling_factors')
+            scaling_factors=data.get('scaling_factors'),
+            prologue=data.get('prologue'),
+            epilogue=data.get('epilogue')
         )
 
     @classmethod
@@ -101,8 +110,16 @@ class ScheduleFormat(JSONIoFormat):
         output_dict.update({
             "jobs": self.synapp_data,
             "scaling_factors": self.scaling_factors,
-            "unscaled_metrics_sums": self.unscaled_metrics_sums
+            "unscaled_metrics_sums": self.unscaled_metrics_sums,
         })
+
+        # add prologue/epilogue if they exist
+        if self.prologue:
+            output_dict.update({"prologue": self.prologue})
+
+        if self.epilogue:
+            output_dict.update({"epilogue": self.epilogue})
+
         return output_dict
 
     @property

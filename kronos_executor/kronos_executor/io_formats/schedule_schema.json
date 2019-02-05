@@ -23,6 +23,30 @@
             "type": "integer",
             "description": "The UID of the user who created this file"
         },
+        "prologue": {
+            "type": "object",
+            "description": "The definition of the tasks (scripts) to execute before submitting the jobs",
+            "properties":{
+                "tasks": {
+                    "type": "array",
+                    "descriptions": "Relative paths of the scripts (from $PWD) that will be sequentially executed"
+                }
+            },
+            "required": ["tasks"],
+            "additionalProperties": false
+        },
+        "epilogue": {
+            "type": "object",
+            "description": "The definition of the tasks (scripts) to execute before submitting the jobs",
+            "properties":{
+                "tasks": {
+                    "type": "array",
+                    "descriptions": "Relative paths of the scripts (from $PWD) that will be sequentially executed"
+                }
+            },
+            "required": ["tasks"],
+            "additionalProperties": false
+        },
         "jobs": {
             "type": "array",
             "description": "Description of synthetic applications",
