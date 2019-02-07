@@ -9,12 +9,12 @@ class ExecutorDepsScheduler(Executor):
     Certain elements of the ExecutorDepsScheduler can be overridden by the user.
     """
 
-    def __init__(self, config, schedule, kschedule_file=None):
+    def __init__(self, config, schedule, arg_config=None):
         """
         Initialisation. Passed a dictionary of configurations
         """
 
-        super(ExecutorDepsScheduler, self).__init__(config, schedule, kschedule_file=kschedule_file)
+        super(ExecutorDepsScheduler, self).__init__(config, schedule, arg_config=arg_config)
 
     def do_run(self):
         """
@@ -22,18 +22,18 @@ class ExecutorDepsScheduler(Executor):
         :return:
         """
 
-        jobs = self.generate_job_internals()
+        # jobs = self.generate_job_internals()
 
         # Work through the list of jobs. Launch the first job that is not blocked by any other
         # job.
         # n.b. job.run does not just simply return the ID, as it may be asynchronous. The job
         # handler is responsible for calling back set_job_submitted
-        while len(jobs) != 0:
+        while len(self.jobs) != 0:
             nqueueing = self.thread_manager.num_running
 
             found_job = None
             depend_ids = None
-            for j in jobs:
+            for j in self.jobs:
 
                 try:
                     depends = j.depends
@@ -49,7 +49,7 @@ class ExecutorDepsScheduler(Executor):
 
             if found_job:
                 found_job.run(depend_ids)
-                jobs.remove(found_job)
+                self.jobs.remove(found_job)
 
             else:
                 # If there are no unblocked jobs, but there are still jobs in the submit queue,

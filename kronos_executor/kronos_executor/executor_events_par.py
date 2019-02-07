@@ -20,12 +20,12 @@ class ExecutorEventsPar(Executor):
 
     """
 
-    def __init__(self, config, schedule, kschedule_file=None):
+    def __init__(self, config, schedule, arg_config=None):
         """
         Initialisation. Passed a dictionary of configurations
         """
 
-        super(ExecutorEventsPar, self).__init__(config, schedule, kschedule_file=kschedule_file)
+        super(ExecutorEventsPar, self).__init__(config, schedule, arg_config=arg_config)
 
         self.event_batch_size = config.get("event_batch_size", 10)
         self.n_submitters = config.get("n_submitters", 4)
@@ -46,7 +46,7 @@ class ExecutorEventsPar(Executor):
         :return:
         """
 
-        self.jobs = self.generate_job_internals()
+        # self.jobs = self.generate_job_internals()
 
         # init the event manager
         self.event_manager = Manager(server_host=self.notification_host,

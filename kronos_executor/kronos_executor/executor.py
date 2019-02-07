@@ -59,7 +59,11 @@ class Executor(object):
 
     ]
 
-    def __init__(self, config, schedule, kschedule_file=None):
+    def __init__(self,
+                 config,
+                 schedule,
+                 arg_config=None
+                 ):
         """
         Initialisation. Passed a dictionary of configurations
         """
@@ -78,6 +82,9 @@ class Executor(object):
 
         self.config = global_config.copy()
         self.config.update(config)
+
+        # list of jobs will be created in the setup phase
+        self.jobs = None
 
         # A token that uniquely identifies the simulation
         self.simulation_token = uuid.uuid4()
@@ -106,6 +113,7 @@ class Executor(object):
 
         os.makedirs(self.job_dir)
 
+        kschedule_file = arg_config.get("kschedule_file")
         if kschedule_file:
             copy2(kschedule_file, self.job_dir)
 
@@ -315,6 +323,8 @@ class Executor(object):
         Each executor might have different things to setup.
         :return:
         """
+
+        self.jobs = self.generate_job_internals()
 
         pass
 

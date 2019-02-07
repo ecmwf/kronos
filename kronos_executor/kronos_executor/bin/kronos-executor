@@ -48,8 +48,8 @@ if __name__ == "__main__":
 
     # read other arguments if present..
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawTextHelpFormatter)
-    parser.add_argument('kschedule_file_name', type=str, help="Name of KSchedule file containing the schedule")
-    parser.add_argument('-c', "--config", help="Executor config file (read README.rst for info)")
+    parser.add_argument('kschedule_file', type=str, help="Name of KSchedule file")
+    parser.add_argument('-c', "--config", help="Executor config file")
 
     # print the help if no arguments are passed
     if len(sys.argv) == 1:
@@ -59,8 +59,11 @@ if __name__ == "__main__":
     # parse the arguments..
     args = parser.parse_args()
 
-    if not os.path.exists(args.kschedule_file_name):
-        raise ValueError("file {} does not exist!".format(args.kschedule_file_name))
+    # get a dictionary from command line
+    args_dict = vars(args)
+
+    if not os.path.exists(args.kschedule_file):
+        raise ValueError("file {} does not exist!".format(args.kschedule_file))
 
     if not args.config:
         raise ValueError("Configuration file not set! choose --config=<path-to-config-file>".format(args.config))
@@ -69,20 +72,20 @@ if __name__ == "__main__":
         if not os.path.exists(args.config):
             raise ValueError("config file {} does not exist!".format(args.config))
 
-    print "Configuration JSON: {}".format(args.kschedule_file_name)
+    print "Configuration JSON: {}".format(args.kschedule_file)
     print "Schedule (KSchedule): {}".format(args.config)
 
     with open(args.config, 'r') as f:
         config = json.load(f)
 
-    with open(args.kschedule_file_name, 'r') as f:
+    with open(args.kschedule_file, 'r') as f:
         schedule = ScheduleFormat.from_file(f)
 
     # Select the proper execution type according to options
     executor_class = executor_types[config.get("execution_mode", "events")]
 
     # instantiate the appropriate kronos_executor..
-    selected_executor = executor_class(config, schedule, kschedule_file=args.kschedule_file_name)
+    selected_executor = executor_class(config, schedule, arg_config=args_dict)
 
     # run
     selected_executor.run()
