@@ -70,8 +70,6 @@ if __name__ == "__main__":
     # get a dictionary from command line
     args_dict = vars(args)
 
-    print "======== args_dict ", args_dict
-
     if not os.path.exists(args.kschedule_file):
         raise ValueError("file {} does not exist!".format(args.kschedule_file))
 
