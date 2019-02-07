@@ -83,6 +83,9 @@ class Executor(object):
         self.config = global_config.copy()
         self.config.update(config)
 
+        # config options passed from command line
+        self.arg_config = arg_config
+
         # list of jobs will be created in the setup phase
         self.jobs = None
 
@@ -328,40 +331,6 @@ class Executor(object):
 
         pass
 
-    def prologue(self):
-        """
-        Runs the epilogue as defined in the kschedule
-        :return:
-        """
-
-        prologue = self.schedule.prologue
-        logger.info("Executing prologue..")
-        logger.debug("prologue: {}".format(prologue))
-
-        if not prologue:
-            return
-
-        # Executes all the scripts in sequence
-        for tt, task in enumerate(prologue.get("tasks")):
-
-            script_abs_path = os.path.join(os.getcwd(), task["script"])
-            logger.info("Executing script: {}".format(script_abs_path))
-
-            if not os.path.isfile(script_abs_path):
-                print ("Executing prologue task {}, but script {} not found!".format(tt, script_abs_path))
-                raise IOError
-
-            _proc = subprocess.Popen([script_abs_path],
-                                     shell=False, stdout=subprocess.PIPE,
-                                     stderr=subprocess.PIPE)
-            _proc.wait()
-
-            proc_stdout = _proc.stdout.readlines()
-            proc_stderr = _proc.stderr.readlines()
-
-            logger.debug("script stdout: {}".format(proc_stdout))
-            logger.debug("script stderr: {}".format(proc_stderr))
-
     def epilogue(self):
         """
         Runs the epilogue as defined in the kschedule
@@ -419,17 +388,54 @@ class Executor(object):
         # setup the executor
         self.setup()
 
-        # executes the prologue of the kschedule
-        self.prologue()
+        # only do the actual run when is not a dry run
+        if not self.arg_config.get("dry_run"):
 
-        # do the actual run (submits the kschedule jobs)
-        self.do_run()
+            # executes the prologue of the kschedule
+            self.prologue()
 
-        # executes the epilogue of the kschedule
-        self.epilogue()
+            # do the actual run (submits the kschedule jobs)
+            self.do_run()
+
+            # executes the epilogue of the kschedule
+            self.epilogue()
 
         # un-setup the executor
         self.unsetup()
+
+    def prologue(self):
+        """
+        Runs the epilogue as defined in the kschedule
+        :return:
+        """
+
+        prologue = self.schedule.prologue
+        logger.info("Executing prologue..")
+        logger.debug("prologue: {}".format(prologue))
+
+        if not prologue:
+            return
+
+        # Executes all the scripts in sequence
+        for tt, task in enumerate(prologue.get("tasks")):
+
+            script_abs_path = os.path.join(os.getcwd(), task["script"])
+            logger.info("Executing script: {}".format(script_abs_path))
+
+            if not os.path.isfile(script_abs_path):
+                print ("Executing prologue task {}, but script {} not found!".format(tt, script_abs_path))
+                raise IOError
+
+            _proc = subprocess.Popen([script_abs_path],
+                                     shell=False, stdout=subprocess.PIPE,
+                                     stderr=subprocess.PIPE)
+            _proc.wait()
+
+            proc_stdout = _proc.stdout.readlines()
+            proc_stderr = _proc.stderr.readlines()
+
+            logger.debug("script stdout: {}".format(proc_stdout))
+            logger.debug("script stderr: {}".format(proc_stderr))
 
     def unsetup(self):
         """

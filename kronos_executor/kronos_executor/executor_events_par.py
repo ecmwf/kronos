@@ -40,13 +40,14 @@ class ExecutorEventsPar(Executor):
         logger.info("events batch size       : {}".format(self.event_batch_size))
         logger.info("job submitting processes: {}".format(self.n_submitters))
 
-    def do_run(self):
+    def setup(self):
         """
-        Specific run function for this type of execution
+        Some preparation before the simulation
         :return:
         """
 
-        # self.jobs = self.generate_job_internals()
+        # still need to execute the parent setup
+        super(ExecutorEventsPar, self).setup()
 
         # init the event manager
         self.event_manager = Manager(server_host=self.notification_host,
@@ -54,7 +55,15 @@ class ExecutorEventsPar(Executor):
                                      sim_token=self.simulation_token)
 
         # init the job submitter
-        self.job_submitter = JobSubmitter(self.jobs, self.event_manager, n_submitters=self.n_submitters)
+        self.job_submitter = JobSubmitter(self.jobs,
+                                          self.event_manager,
+                                          n_submitters=self.n_submitters)
+
+    def do_run(self):
+        """
+        Specific run function for this type of execution
+        :return:
+        """
 
         # the submission loop info
         completed_jobs = []
@@ -93,14 +102,14 @@ class ExecutorEventsPar(Executor):
         # Finally stop the event dispatcher
         logger.info("Total #events received: {}".format(self.event_manager.get_total_n_events()))
 
-        # finally terminate the dispatcher process
-        self.event_manager.stop_dispatcher()
-
     def unsetup(self):
         """
         Various after-run tasks
         :return:
         """
+
+        # first terminates the dispatcher process
+        self.event_manager.stop_dispatcher()
 
         # print TOTAL TIMED simulation time (= T_end_last_timed_job - T_start_first_timed_job)
         if self.job_submitter.initial_submission_time:

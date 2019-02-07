@@ -48,8 +48,16 @@ if __name__ == "__main__":
 
     # read other arguments if present..
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawTextHelpFormatter)
-    parser.add_argument('kschedule_file', type=str, help="Name of KSchedule file")
-    parser.add_argument('-c', "--config", help="Executor config file")
+    parser.add_argument('kschedule_file',
+                        type=str,
+                        help="Name of KSchedule file")
+
+    parser.add_argument('-c', "--config",
+                        help="Executor config file")
+
+    parser.add_argument('-d', "--dry-run",
+                        help="Does not run the schedule, only submits scripts get generated.",
+                        action="store_true")
 
     # print the help if no arguments are passed
     if len(sys.argv) == 1:
@@ -61,6 +69,8 @@ if __name__ == "__main__":
 
     # get a dictionary from command line
     args_dict = vars(args)
+
+    print "======== args_dict ", args_dict
 
     if not os.path.exists(args.kschedule_file):
         raise ValueError("file {} does not exist!".format(args.kschedule_file))
