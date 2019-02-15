@@ -3,6 +3,10 @@ if( HAVE_MPI )
     set(MPI_DEFINITIONS "HAVE_MPI")
 endif()
 
+if( HAVE_PMEMIO )
+    set(PMEMIO_DEFINITIONS "HAVE_PMEMIO")
+endif()
+
 
 
 message("MPI_C_DEFINITIONS have been defined: ${MPI_C_DEFINITIONS}")
