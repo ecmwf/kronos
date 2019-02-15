@@ -84,7 +84,7 @@ class Executor(object):
         self.config.update(config)
 
         # config options passed from command line
-        self.arg_config = arg_config
+        self.arg_config = arg_config if arg_config else {}
 
         # list of jobs will be created in the setup phase
         self.jobs = None
@@ -116,7 +116,7 @@ class Executor(object):
 
         os.makedirs(self.job_dir)
 
-        kschedule_file = arg_config.get("kschedule_file")
+        kschedule_file = self.arg_config.get("kschedule_file")
         if kschedule_file:
             copy2(kschedule_file, self.job_dir)
 
