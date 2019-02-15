@@ -1,6 +1,8 @@
 #ifndef MEMORY_PERSIST_H
 #define MEMORY_PERSIST_H
 
+#ifdef HAVE_PMEMIO
+
 /* ------------------------------------------------------------------------------------------------------------------ */
 
 #include <unistd.h>
@@ -34,5 +36,6 @@ MEMPersistParamsInternal get_MEMPersist_params(const MEMPersistConfig* config);
 
 /* ------------------------------------------------------------------------------------------------------------------ */
 
+# endif /* HAVE_PMEMIO */
 
 #endif

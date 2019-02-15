@@ -8,6 +8,8 @@
  * does it submit to any jurisdiction.
  */
 
+#ifdef HAVE_PMEMIO
+
 #include <stdlib.h>
 #include <errno.h>
 
@@ -167,3 +169,5 @@ KernelFunctor* init_mem_persist_kernel(const JSON* config_json) {
 
     return functor;
 }
+
+# endif /* HAVE_PMEMIO */
