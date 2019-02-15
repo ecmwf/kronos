@@ -26,7 +26,10 @@ class KScheduleData(ScheduleFormat):
                  uid=None,
                  n_bins=None,
                  scaling_factors=None,
-                 unscaled_metrics_sums=None):
+                 unscaled_metrics_sums=None,
+                 prologue=None,
+                 epilogue=None
+                 ):
 
         super(KScheduleData, self).__init__(sa_data_json=sa_data_json,
                                             sa_data=sa_data,
@@ -34,7 +37,10 @@ class KScheduleData(ScheduleFormat):
                                             uid=uid,
                                             n_bins=n_bins,
                                             scaling_factors=scaling_factors,
-                                            unscaled_metrics_sums=unscaled_metrics_sums)
+                                            unscaled_metrics_sums=unscaled_metrics_sums,
+                                            prologue=prologue,
+                                            epilogue=epilogue
+                                            )
 
     @classmethod
     def per_kernel_series(cls, jobs, metric_name):
