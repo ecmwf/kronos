@@ -1,3 +1,4 @@
+import json
 import os
 import stat
 import subprocess
@@ -78,7 +79,20 @@ class UserAppJob(BaseJob):
             assert self.job_config["config_params"].get(param_name) is not None
 
         for param_name in self.job_config["config_params"].keys():
-            script_format.update({param_name: self.job_config["config_params"][param_name]})
+
+            if isinstance(self.job_config["config_params"][param_name], int) or \
+                isinstance(self.job_config["config_params"][param_name], bool) or \
+                  isinstance(self.job_config["config_params"][param_name], unicode) or \
+                    isinstance(self.job_config["config_params"][param_name], float):
+                        script_format.update({param_name: self.job_config["config_params"][param_name]})
+
+            else:  # any other composed structures are serialised as json like string
+
+                _str = json.dumps(self.job_config["config_params"][param_name])
+                _str.replace("'", '"').replace(" ", "")
+                _str = "'"+_str+"'"
+
+                script_format.update({param_name: _str})
 
         with open(self.submit_script, 'w') as f:
             f.write(self.submit_script_template.format(**script_format))
