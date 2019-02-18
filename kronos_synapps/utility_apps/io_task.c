@@ -79,7 +79,7 @@ long int get_iotask_offset(IOTask* iotask){
     }
 }
 
-void iotask_fromstring(IOTask* iotask, const char* _taskstr){
+void iotask_from_json_string(IOTask* iotask, const char* _taskstr){
 
     JSON* _json;
 
@@ -134,5 +134,18 @@ void iotask_fromstring(IOTask* iotask, const char* _taskstr){
     iotask->write_mode = _io_task_mode;
 
     DEBG2("==> Finished executing %s\n", __func__);
+
+}
+
+
+void iotask_to_json_string(IOTask* iotask, char** _taskstr){
+
+    _taskstr = json_as_string_ptr(iotask, *_taskstr);
+
+    if (!json_as_string_ptr(iotask, *_taskstr)) {
+        DEBG2("Correctly stringified IO-task: %s\n", *_taskstr);
+    } else {
+        FATL2("failed to make string from JSON: %s\n", *_taskstr);
+    };
 
 }

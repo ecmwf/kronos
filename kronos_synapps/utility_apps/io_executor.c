@@ -177,7 +177,7 @@ int execute_io_task(const char * io_json_str, const char * io_data){
 
     iotask = malloc(sizeof(IOTask));
 
-    iotask_fromstring(iotask, io_json_str);
+    iotask_from_string(iotask, io_json_str);
     INFO2("iotask type: %s", get_iotask_type(iotask));
     free(iotask);
 
