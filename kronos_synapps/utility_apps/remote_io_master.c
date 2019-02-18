@@ -47,9 +47,9 @@ int main(int argc, char **argv) {
     FILE* hostfile_ptr;
     const char* host_file;
     JSON* json_hosts;
-    int hosts_len;
-    int ihost;
     const JSON* _tmp_json;
+    int hosts_len;
+    int ihost;    
     long int _msg_host;
 
     const char** hosts;
@@ -160,6 +160,10 @@ int main(int argc, char **argv) {
         free((char*)hosts[ihost]);
     }
     free(hosts);
+
+    free_json(json_hosts);
+    json_hosts = NULL;
+    _tmp_json = NULL;
 
     return 0;
 }

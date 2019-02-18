@@ -98,31 +98,31 @@ void iotask_fromstring(IOTask* iotask, const char* _taskstr){
     _json = json_from_string(_taskstr);
 
     json_as_string_ptr(json_object_get(_json, "type"), &_io_task_type);
-    DEBG2("IO type: %s\n", _io_task_type);
+    DEBG2("IO type: %s", _io_task_type);
 
     json_object_get_integer(_json, "bytes", &_io_task_bytes);
-    DEBG2("IO bytes: %li\n", _io_task_bytes);
+    DEBG2("IO bytes: %li", _io_task_bytes);
 
     json_as_string_ptr(json_object_get(_json, "file"), &_io_task_file);
-    DEBG2("IO file: %s\n", _io_task_file);
+    DEBG2("IO file: %s", _io_task_file);
 
     json_object_get_integer(_json, "offset", &_io_task_offset);
-    DEBG2("IO offset: %li\n", _io_task_offset);
+    DEBG2("IO offset: %li", _io_task_offset);
 
     /* n_writes only present for writing tasks */
     if (json_object_has(_json, "write_mode")){
 
         json_object_get_integer(_json, "n_writes", &_io_task_nwrites);
-        DEBG2("IO n writes: %li\n", _io_task_nwrites);
+        DEBG2("IO n writes: %li", _io_task_nwrites);
 
         json_as_string_ptr(json_object_get(_json, "write_mode"), &_io_task_mode);
-        DEBG2("IO mode: %s\n", _io_task_mode);
+        DEBG2("IO mode: %s", _io_task_mode);
     }
 
     /* n_reads only present for reading tasks */
     if (!strcmp(_io_task_type, "reader")){
         json_object_get_integer(_json, "n_reads", &_io_task_nreads);
-        DEBG2("IO n reads: %li\n", _io_task_nreads);
+        DEBG2("IO n reads: %li", _io_task_nreads);
     }
 
     /* pack the IOTask */

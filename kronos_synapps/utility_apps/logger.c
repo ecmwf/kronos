@@ -10,6 +10,7 @@
 
 #include "logger.h"
 
+#define LOG_STR_LEN 1024
 
 FILE *fp ;
 static int _INIT;
@@ -26,6 +27,9 @@ void log_print(char* filename,
     struct timespec tms;
     double _millisec_since_epch;
     char _cwd[PATH_MAX];
+
+    char log_string[LOG_STR_LEN];
+    char _logstr_args[LOG_STR_LEN];
 
     /* output this message only if the
      * logging level is >= of the global logging lvl
