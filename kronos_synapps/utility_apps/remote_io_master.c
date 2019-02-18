@@ -17,14 +17,6 @@
 #define BUFSIZE JSON_BUF_LEN
 
 
-/* 
- * error - wrapper for perror
- */
-void error(char *msg) {
-    perror(msg);
-    exit(0);
-}
-
 /*
  * connect to a server and returns the socket descriptor
  */
@@ -156,11 +148,9 @@ int main(int argc, char **argv) {
 
         /* close the socket */
         close(sockfd);
-
     }
 
-
-    /* free all the remaining json ptrs */
+    /* free remaining json ptrs */
     free_json(json_hosts);
     json_hosts = NULL;
 
@@ -168,8 +158,7 @@ int main(int argc, char **argv) {
     json_input = NULL;
     _jsonmsg = NULL;
 
-
-    /* free the topmost host/port ptrs */
+    /* free host/port top ptrs */
     free(hosts);
     free(ports);
 
