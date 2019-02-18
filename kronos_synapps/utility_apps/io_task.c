@@ -69,6 +69,16 @@ long int get_iotask_nwrites(IOTask* iotask){
     }
 }
 
+long int get_iotask_nreads(IOTask* iotask){
+
+    if (iotask->n_reads < 0){
+        ERRO1("invalid #reads!");
+        exit(1);
+    } else {
+        return iotask->n_reads;
+    }
+}
+
 long int get_iotask_offset(IOTask* iotask){
 
     if (iotask->offset < 0){
@@ -79,9 +89,10 @@ long int get_iotask_offset(IOTask* iotask){
     }
 }
 
-void iotask_from_json_string(IOTask* iotask, const char* _taskstr){
 
-    JSON* _json;
+IOTask* iotask_from_json(const JSON* json_in){
+
+    IOTask* iotask = malloc(sizeof(IOTask));
 
     const char* _io_task_type = NULL;
     const char* _io_task_file = NULL;
@@ -92,60 +103,69 @@ void iotask_from_json_string(IOTask* iotask, const char* _taskstr){
     long int _io_task_nreads = -1;
     long int _io_task_offset = -1;
 
-
     DEBG2("=======> executing %s\n", __func__);
 
-    _json = json_from_string(_taskstr);
 
-    json_as_string_ptr(json_object_get(_json, "type"), &_io_task_type);
+    json_as_string_ptr(json_object_get(json_in, "type"), &_io_task_type);
+    iotask->type = malloc(strlen(_io_task_type)+1);
+    strncpy(iotask->type, _io_task_type, strlen(_io_task_type)+1);
     DEBG2("IO type: %s", _io_task_type);
 
-    json_object_get_integer(_json, "bytes", &_io_task_bytes);
+
+    json_object_get_integer(json_in, "bytes", &_io_task_bytes);
+    iotask->n_bytes = _io_task_bytes;
     DEBG2("IO bytes: %li", _io_task_bytes);
 
-    json_as_string_ptr(json_object_get(_json, "file"), &_io_task_file);
+
+    json_as_string_ptr(json_object_get(json_in, "file"), &_io_task_file);
+    iotask->file = malloc(strlen(_io_task_file)+1);
+    strncpy(iotask->file, _io_task_file, strlen(_io_task_file)+1);
     DEBG2("IO file: %s", _io_task_file);
 
-    json_object_get_integer(_json, "offset", &_io_task_offset);
+
+    json_object_get_integer(json_in, "offset", &_io_task_offset);
+    iotask->offset = _io_task_offset;
     DEBG2("IO offset: %li", _io_task_offset);
 
-    /* n_writes only present for writing tasks */
-    if (json_object_has(_json, "write_mode")){
 
-        json_object_get_integer(_json, "n_writes", &_io_task_nwrites);
+    /* n_writes only present for writing tasks */
+    if (json_object_has(json_in, "write_mode")){
+
+        json_object_get_integer(json_in, "n_writes", &_io_task_nwrites);
+        iotask->n_writes = _io_task_nwrites;
         DEBG2("IO n writes: %li", _io_task_nwrites);
 
-        json_as_string_ptr(json_object_get(_json, "write_mode"), &_io_task_mode);
+        json_as_string_ptr(json_object_get(json_in, "write_mode"), &_io_task_mode);
+        iotask->write_mode = malloc(strlen(_io_task_mode)+1);
+        strncpy(iotask->write_mode, _io_task_mode, strlen(_io_task_mode)+1);
         DEBG2("IO mode: %s", _io_task_mode);
     }
 
     /* n_reads only present for reading tasks */
     if (!strcmp(_io_task_type, "reader")){
-        json_object_get_integer(_json, "n_reads", &_io_task_nreads);
+
+        json_object_get_integer(json_in, "n_reads", &_io_task_nreads);
+        iotask->n_reads = _io_task_nreads;
         DEBG2("IO n reads: %li", _io_task_nreads);
     }
 
-    /* pack the IOTask */
-    iotask->type = _io_task_type;
-    iotask->file = _io_task_file;
-    iotask->n_bytes = _io_task_bytes;
-    iotask->offset = _io_task_offset;
-    iotask->n_writes = _io_task_nwrites;
-    iotask->write_mode = _io_task_mode;
-
     DEBG2("==> Finished executing %s\n", __func__);
 
+    return iotask;
+
+}
+
+
+
+IOTask* iotask_from_json_string(const char* _taskstr){
+
+    JSON* _json;
+    IOTask* _iotask;
+    _json = json_from_string(_taskstr);
+    _iotask = iotask_from_json(_json);
+    free(_json);
+
+    return _iotask;
 }
 
 
-void iotask_to_json_string(IOTask* iotask, char** _taskstr){
-
-    _taskstr = json_as_string_ptr(iotask, *_taskstr);
-
-    if (!json_as_string_ptr(iotask, *_taskstr)) {
-        DEBG2("Correctly stringified IO-task: %s\n", *_taskstr);
-    } else {
-        FATL2("failed to make string from JSON: %s\n", *_taskstr);
-    };
-
-}

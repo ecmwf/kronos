@@ -159,70 +159,49 @@ int _read_file(const char* file_name,
 
 
 /* Execute an I/O task */
-int execute_io_task(const char * io_json_str, const char * io_data){
+int execute_io_task(const char* io_json_str, const char* io_data){
 
-    JSON* _json;
-    JSON* _jtmp;
     IOTask* iotask;
 
     const char* _io_task_type;
+    const char* _io_task_file;
+    const char* _io_task_mode;
+
     long int _io_task_bytes;
     long int _io_task_nwrites;
     long int _io_task_nreads;
-    const char* _io_task_file;
     long int _io_task_offset;
-    const char* _io_task_mode;
 
-    INFO1("======= executing IO ========");
+    DEBG1("Executing IO task");
 
-    iotask = malloc(sizeof(IOTask));
+    iotask = iotask_from_json_string(io_json_str);
 
-    iotask_from_string(iotask, io_json_str);
-    INFO2("iotask type: %s", get_iotask_type(iotask));
-    free(iotask);
+    _io_task_type = iotask->type;
+    _io_task_file = iotask->file;
+    _io_task_mode = iotask->write_mode;
 
-    _json = json_from_string(io_json_str);
-
-    json_as_string_ptr(json_object_get(_json, "type"), &_io_task_type);
-    DEBG2("IO type: %s", _io_task_type);
-
-    json_object_get_integer(_json, "bytes", &_io_task_bytes);
-    DEBG2("IO bytes: %li", _io_task_bytes);
-
-    json_as_string_ptr(json_object_get(_json, "file"), &_io_task_file);
-    DEBG2("IO file: %s", _io_task_file);
-
-    json_object_get_integer(_json, "offset", &_io_task_offset);
-    DEBG2("IO offset: %li", _io_task_offset);
-
-    /* n_writes only present for writing tasks */
-    if (json_object_has(_json, "write_mode")){
-        json_object_get_integer(_json, "n_writes", &_io_task_nwrites);
-        DEBG2("IO n writes: %li", _io_task_nwrites);
-    }
-
-    /* write mode only present for writing tasks */
-    if (json_object_has(_json, "write_mode")){
-        json_as_string_ptr(json_object_get(_json, "write_mode"), &_io_task_mode);
-        DEBG2("IO mode: %s", _io_task_mode);
-    }
-
-    /* n_reads only present for reading tasks */
-    if (!strcmp(_io_task_type, "reader")){
-        json_object_get_integer(_json, "n_reads", &_io_task_nreads);
-        DEBG2("IO n reads: %li", _io_task_nreads);
-    }
-
+    _io_task_bytes = iotask->n_bytes;
+    _io_task_nwrites = iotask->n_writes;
+    _io_task_nreads = iotask->n_reads;
+    _io_task_offset = iotask->offset;
 
     if (!strcmp(_io_task_type, "writer")){
 
-        _write_file(_io_task_file, &_io_task_bytes, &_io_task_offset, &_io_task_nwrites, _io_task_mode);
+        _write_file(_io_task_file,
+                    &_io_task_bytes,
+                    &_io_task_offset,
+                    &_io_task_nwrites,
+                    _io_task_mode);
 
     } else if (!strcmp(_io_task_type, "reader")) {
 
-        _read_file(_io_task_file, &_io_task_bytes, &_io_task_nreads, &_io_task_offset);
+        _read_file(_io_task_file,
+                   &_io_task_bytes,
+                   &_io_task_nreads,
+                   &_io_task_offset);
     }
 
+    free(iotask);
 
     return 0;
 }
