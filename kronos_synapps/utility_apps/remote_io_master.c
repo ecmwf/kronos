@@ -47,7 +47,6 @@ int main(int argc, char **argv) {
     FILE* hostfile_ptr;
     const char* host_file;
     JSON* json_hosts;
-    const JSON* _tmp_json;
     int hosts_len;
     int ihost;    
     long int _msg_host;
@@ -61,8 +60,8 @@ int main(int argc, char **argv) {
 
     /* json parsing/msg */
     const char* input_json_str;
-    const JSON* _jsonmsg;
     const JSON* json_input;
+    const JSON* _jsonmsg;
 
     char jsonbuf[JSON_BUF_LEN];
     char reply_buf[BUFSIZE];
@@ -89,18 +88,22 @@ int main(int argc, char **argv) {
     hostfile_ptr = fopen(host_file, "r");
     if (hostfile_ptr != NULL) {
         json_hosts = parse_json(hostfile_ptr);
+        INFO2("file %s opened\n", host_file);
     }
     hosts_len = json_array_length(json_hosts);
-    ports=(long int *) malloc(sizeof(long int) * hosts_len);
-    hosts= malloc(hosts_len * sizeof(char *));
+    INFO2("hosts_len %i\n", hosts_len);
 
+    hosts= malloc(hosts_len * sizeof(char *));
+    ports= malloc(hosts_len * sizeof(long int));
     for (ihost=0; ihost<hosts_len; ihost++){
 
-        _tmp_json = json_array_element(json_hosts, ihost);
-        json_as_string_ptr(json_object_get(_tmp_json, "host"), &hosts[ihost]);
+        /* make populate host/port arrays (NB: memory responsiility is still with JSON obj) */
+        if (json_as_string_ptr(json_object_get(json_array_element(json_hosts, ihost), "host"), &hosts[ihost]) < 0){
+            ERRO1("host not read correctly!");
+        };
 
-        if (json_object_get_integer(_tmp_json, "port", &ports[ihost]) < 0){
-            ERRO1("port not read correctly");
+        if (json_object_get_integer(json_array_element(json_hosts, ihost), "port", &ports[ihost]) < 0){
+            ERRO1("port not read correctly!");
         };
 
     }
@@ -153,17 +156,23 @@ int main(int argc, char **argv) {
 
         /* close the socket */
         close(sockfd);
+
     }
 
-    free(ports);
-    for (ihost=0; ihost<hosts_len; ihost++){
-        free((char*)hosts[ihost]);
-    }
-    free(hosts);
 
+    /* free all the remaining json ptrs */
     free_json(json_hosts);
     json_hosts = NULL;
-    _tmp_json = NULL;
 
-    return 0;
+    free_json((JSON*)json_input);
+    json_input = NULL;
+    _jsonmsg = NULL;
+
+
+    /* free the topmost host/port ptrs */
+    free(hosts);
+    free(ports);
+
+    INFO1("Master finished successfully.");
+
 }

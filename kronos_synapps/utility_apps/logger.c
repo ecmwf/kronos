@@ -28,9 +28,6 @@ void log_print(char* filename,
     double _millisec_since_epch;
     char _cwd[PATH_MAX];
 
-    char log_string[LOG_STR_LEN];
-    char _logstr_args[LOG_STR_LEN];
-
     /* output this message only if the
      * logging level is >= of the global logging lvl
     */

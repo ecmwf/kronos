@@ -79,11 +79,10 @@ int main(int argc, char **argv) {
         ERRO1("ERROR writing to socket");
     }
 
-    INFO1("server termination request sent correctly.\n");
-
     /* close the socket */
     close(sockfd);
 
+    INFO1("server termination request sent correctly.\n");
     return 0;
 }
 

@@ -1,5 +1,8 @@
 
 
+#define MAX_WRITE_SIZE 1048576
+
+
 /* an IO task (defines a file read or write operation)*/
 typedef struct IOTask {
 

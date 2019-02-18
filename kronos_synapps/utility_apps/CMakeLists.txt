@@ -23,6 +23,8 @@ ecbuild_add_executable(
     TARGET remote_io_worker
 
     SOURCES
+        io_executor.h
+        io_executor.c
         logger.h
         logger.c
         io_task.h
