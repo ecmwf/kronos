@@ -10,10 +10,11 @@
 
 #include "logger.h"
 
-FILE *fp;
+
+/* flags the beginning of the logs */
+static unsigned short LOG_STARTED = 0;
 
 /* logging settings from env variables */
-static int _INIT = 0;
 static char* LOG_FILE = NULL;
 static unsigned int LOG_STREAM_STD = _LOG_STREAM_STD_DEFAULT;
 static unsigned int LOG_STREAM_ERR = _LOG_STREAM_ERR_DEFAULT;
@@ -58,6 +59,9 @@ static void get_logger_env(){
         LOG_OUTPUT_LVL = (unsigned int)atoi(getenv("LOG_OUTPUT_LVL"));
     }
 
+
+    printf("log file: %s\n", LOG_FILE);
+
 }
 
 /* print to stdout */
@@ -75,16 +79,13 @@ static void print_to_stderr(const char* log_msg){
 /* print to file (write|append) */
 static void print_to_file(const char* log_msg){
 
-    if(_INIT > 0){
-      fp = fopen (LOG_FILE,"a+");
-    } else {
-      fp = fopen(LOG_FILE,"w");
+    FILE *fp;
+
+    fp = fopen(LOG_FILE,"a");
+    if (fp != NULL) {
+        fprintf(fp,"%s", log_msg);
+        fclose(fp);
     }
-
-    /* print msg */
-    fprintf(fp,"%s", log_msg);
-
-    fclose(fp);
 
 }
 
@@ -106,8 +107,9 @@ void log_print(char* filename,
     char log_msg[LOG_STR_LEN];
 
     /* get env variables */
-    if (!_INIT){
+    if (!LOG_STARTED){
         get_logger_env();
+        LOG_STARTED = 1;
     }
 
     if (log_level >= LOG_OUTPUT_LVL){
@@ -134,10 +136,6 @@ void log_print(char* filename,
         /* put everything together */
         sprintf(log_msg, "%s: %s\n", msg_head, msg_body);
 
-        /* print just for testing.. */
-        printf(log_msg);
-
-
         /* stream the log to stdout */
         if (LOG_STREAM_STD) {
             print_to_stdout(log_msg);
@@ -158,8 +156,6 @@ void log_print(char* filename,
         if (log_level == LOG_LVL_FATL) {
             exit(1);
         }
-
-        _INIT++;
 
     } /* if(log_level>=LOG_OUTPUT_LVL) */
 }
