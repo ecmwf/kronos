@@ -2,6 +2,10 @@
 #define log_print_H
 
 
+/* log-message max length */
+#define LOG_STR_LEN 1024
+
+
 /* logging message level */
 #define LOG_LVL_DEBG 0
 #define LOG_LVL_INFO 1
@@ -9,12 +13,20 @@
 #define LOG_LVL_ERRO 3
 #define LOG_LVL_FATL 3
 
+
+/* Overall level to show messages:
+ * All the messages with level >= output_level will be logged
+*/
+#define LOG_OUTPUT_LVL_DEFAULT LOG_LVL_INFO
+
+
 /* logging message level */
 #define LOG_LVL_DEBG_STRING "DEBUG"
 #define LOG_LVL_INFO_STRING "INFO"
 #define LOG_LVL_WARN_STRING "WARNING"
 #define LOG_LVL_ERRO_STRING "ERROR"
 #define LOG_LVL_FATL_STRING "FATAL"
+
 
 /* mapping log-level to string */
 #define LOG_LVL_STRING(x)  (x == LOG_LVL_DEBG)? LOG_LVL_DEBG_STRING: \
@@ -24,23 +36,12 @@
                           ((x == LOG_LVL_FATL)? LOG_LVL_FATL_STRING: \
                           "UNKNOWN"))))
 
+#define _LOG_STREAM_STD_DEFAULT 1
+#define _LOG_STREAM_ERR_DEFAULT 0
+#define _LOG_STREAM_FIL_DEFAULT 0
 
 
-/* Overall level to show messages:
- * All the messages with level >= output_level will be logged
-*/
-
-#define LOG_OUTPUT_LVL LOG_LVL_DEBG
-/* #define LOG_OUTPUT_LVL LOG_LVL_INFO */
-/* #define LOG_OUTPUT_LVL LOG_LVL_WARN */
-/* #define LOG_OUTPUT_LVL LOG_LVL_ERRO */
-/* #define LOG_OUTPUT_LVL LOG_LVL_FATL */
-
-
-void log_print(char* filename,
-               int line,
-               int log_level,
-               char *fmt,...);
+void log_print(char* filename, int line, int log_level, char *fmt,...);
 
 
 /* debubg */

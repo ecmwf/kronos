@@ -10,11 +10,84 @@
 
 #include "logger.h"
 
-#define LOG_STR_LEN 1024
+FILE *fp;
 
-FILE *fp ;
+/* logging settings from env variables */
 static int _INIT;
 static char* LOG_FILE = NULL;
+static unsigned int LOG_STREAM_STD = _LOG_STREAM_STD_DEFAULT;
+static unsigned int LOG_STREAM_ERR = _LOG_STREAM_ERR_DEFAULT;
+static unsigned int LOG_STREAM_FIL = _LOG_STREAM_FIL_DEFAULT;
+static unsigned int LOG_OUTPUT_LVL = LOG_LVL_DEBG;
+
+
+/* get logger env variables (only at the beginning) */
+static void get_logger_env(){
+
+    char * _cwd;
+
+    if (getenv("LOG_FILE") != NULL){
+
+        /* log file defined by env variable */
+        LOG_FILE = getenv("LOG_FILE");
+
+    } else {  /* try to get a log file in the cwd */
+
+        if (getcwd(_cwd, sizeof(_cwd)) != NULL) {
+            LOG_FILE = strcat(_cwd, "/logfile.log");
+        } else {
+            perror("getcwd() error");
+            exit(1);
+        }
+
+    }
+
+    if (getenv("LOG_STREAM_STD") != NULL){
+        LOG_STREAM_STD = (unsigned int)atoi(getenv("LOG_STREAM_STD"));
+    }
+
+    if (getenv("LOG_STREAM_ERR") != NULL){
+        LOG_STREAM_ERR = (unsigned int)atoi(getenv("LOG_STREAM_ERR"));
+    }
+
+    if (getenv("LOG_STREAM_FIL") != NULL){
+        LOG_STREAM_FIL = (unsigned int)atoi(getenv("LOG_STREAM_FIL"));
+    }
+
+    if (getenv("LOG_OUTPUT_LVL") != NULL){
+        LOG_OUTPUT_LVL = (unsigned int)atoi(getenv("LOG_OUTPUT_LVL"));
+    }
+
+}
+
+/* print to stdout */
+static void print_to_stdout(const char* log_msg){
+    fprintf(stdout,"%s", log_msg);
+}
+
+
+/* print to stderr */
+static void print_to_stderr(const char* log_msg){
+    fprintf(stdout,"%s", log_msg);
+}
+
+
+/* print to file (write|append) */
+static void print_to_file(const char* log_msg){
+
+    if(_INIT > 0){
+      fp = fopen (LOG_FILE,"a+");
+    } else {
+      fp = fopen(LOG_FILE,"w");
+    }
+
+    /* print msg */
+    fprintf(fp,"%s", log_msg);
+
+    fclose(fp);
+
+}
+
 
 /* print the logs */
 void log_print(char* filename,
@@ -26,38 +99,18 @@ void log_print(char* filename,
     va_list args;
     struct timespec tms;
     double _millisec_since_epch;
-    char _cwd[PATH_MAX];
 
-    /* output this message only if the
-     * logging level is >= of the global logging lvl
-    */
+    /* header-body-time */
+    char msg_head[LOG_STR_LEN];
+    char msg_body[LOG_STR_LEN];
+    char log_msg[LOG_STR_LEN];
+
+    /* get env variables */
+    if (!_INIT){
+        get_logger_env();
+    }
+
     if (log_level >= LOG_OUTPUT_LVL){
-
-        if(_INIT > 0){
-          fp = fopen (LOG_FILE,"a+");
-        } else {
-
-          /* get the log file name */
-          LOG_FILE = getenv("LOG_FILE");
-          if (LOG_FILE == NULL){
-
-              /* there is no LOG_FILE, try cwd.. */
-              if (getcwd(_cwd, sizeof(_cwd)) == NULL) {
-
-                  perror("getcwd() error");
-                  exit(1);
-
-              } else {
-
-                  LOG_FILE = strcat(_cwd, "/logfile.log");
-
-              }
-          }
-
-          /* open the file for writing */
-          fp = fopen(LOG_FILE,"w");
-
-        }
 
         /* timestamp */
         if (clock_gettime(CLOCK_REALTIME, &tms)) {
@@ -66,34 +119,47 @@ void log_print(char* filename,
             _millisec_since_epch = tms.tv_sec + (double)tms.tv_nsec/1000000.0;
         }
 
-        /* ancillary info and main text */
-        fprintf(fp,"[%f][%s][%s][line:%d]: ",
+        /* header info */
+        sprintf(msg_head,"[%f][%s][%s][line:%d]: ",
                 _millisec_since_epch,
                 LOG_LVL_STRING(log_level),
                 filename,
                 line);
 
-        /* values */
+        /* main body of the log message */
         va_start(args, fmt);
-        vfprintf(fp, fmt, args);
+        vsprintf(msg_body, fmt, args);
         va_end(args);
 
-        /* if the message is ERROR or FATAL */
-        if (log_level >= LOG_LVL_ERRO) {
-            fprintf(fp, "\n%s\n", strerror(errno));
-            fclose(fp);
+        /* put everything together */
+        sprintf(log_msg, "%s: %s\n", msg_head, msg_body);
 
-            if (log_level == LOG_LVL_FATL) {
-                exit(1);
-            }
+        /* print just for testing.. */
+        printf(log_msg);
+
+
+        /* stream the log to stdout */
+        if (LOG_STREAM_STD) {
+            print_to_stdout(log_msg);
         }
 
-        /* add an endline just in case.. */
-        fprintf(fp,"\n");
+        /* stream the log to stderr */
+        if (LOG_STREAM_ERR) {
+            print_to_stderr(log_msg);
+        }
+
+        /* stream the log to logfile */
+        if (LOG_STREAM_FIL) {
+            print_to_file(log_msg);
+        }
+
+
+        /* make it fail if it's a fatal */
+        if (log_level == LOG_LVL_FATL) {
+            exit(1);
+        }
 
         _INIT++;
-
-        fclose(fp);
 
     } /* if(log_level>=LOG_OUTPUT_LVL) */
 }

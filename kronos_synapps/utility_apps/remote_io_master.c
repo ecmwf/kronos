@@ -80,10 +80,10 @@ int main(int argc, char **argv) {
     hostfile_ptr = fopen(host_file, "r");
     if (hostfile_ptr != NULL) {
         json_hosts = parse_json(hostfile_ptr);
-        INFO2("file %s opened\n", host_file);
+        INFO2("file %s opened", host_file);
     }
     hosts_len = json_array_length(json_hosts);
-    INFO2("hosts_len %i\n", hosts_len);
+    INFO2("hosts_len %i", hosts_len);
 
     hosts= malloc(hosts_len * sizeof(char *));
     ports= malloc(hosts_len * sizeof(long int));
