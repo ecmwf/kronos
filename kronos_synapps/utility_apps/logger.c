@@ -13,7 +13,7 @@
 FILE *fp;
 
 /* logging settings from env variables */
-static int _INIT;
+static int _INIT = 0;
 static char* LOG_FILE = NULL;
 static unsigned int LOG_STREAM_STD = _LOG_STREAM_STD_DEFAULT;
 static unsigned int LOG_STREAM_ERR = _LOG_STREAM_ERR_DEFAULT;
