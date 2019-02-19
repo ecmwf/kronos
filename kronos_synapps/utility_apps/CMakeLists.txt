@@ -1,12 +1,28 @@
 
+#-- logger library
+ecbuild_add_library(
+
+    TARGET msglogger
+
+    SOURCES
+        logger.h
+        logger.c
+
+    DEFINITIONS
+
+    INCLUDES
+
+    LIBS
+)
+
+
+
 # -- terminate worker
 ecbuild_add_executable(
 
     TARGET terminate_io_worker
 
     SOURCES
-        logger.h
-        logger.c
         terminate_io_worker.c
 
     DEFINITIONS
@@ -14,6 +30,7 @@ ecbuild_add_executable(
     INCLUDES
 
     LIBS
+        msglogger
 )
 
 
@@ -25,8 +42,6 @@ ecbuild_add_executable(
     SOURCES
         io_executor.h
         io_executor.c
-        logger.h
-        logger.c
         io_task.h
         io_task.c
         remote_io_worker.c
@@ -35,7 +50,9 @@ ecbuild_add_executable(
 
     INCLUDES
 
-    LIBS kronos
+    LIBS
+        kronos
+        msglogger
 )
 
 
@@ -45,15 +62,15 @@ ecbuild_add_executable(
     TARGET remote_io_master
 
     SOURCES
-        logger.h
-        logger.c
         remote_io_master.c
 
     DEFINITIONS
 
     INCLUDES
 
-    LIBS kronos
+    LIBS
+        kronos
+        msglogger
 )
 
 
@@ -68,5 +85,10 @@ add_custom_command(
         COMMAND ${CMAKE_COMMAND} -E copy
                 ${CMAKE_CURRENT_SOURCE_DIR}/spindown_servers.py
                 ${CMAKE_BINARY_DIR}/bin)
+
+
+# Add unit tests directory
+add_subdirectory( tests )
+
 
 
