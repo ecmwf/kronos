@@ -14,3 +14,6 @@ ecbuild_add_library(
 
     LIBS
 )
+
+
+add_subdirectory(tests)
