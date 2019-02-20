@@ -67,11 +67,6 @@ static void test_logger(){
     assert(get_fil_flag() == 0);
     assert(get_out_lvl() == 1);
 
-    /* printf("cwd %s\n", cwd);
-    printf("LOG_FILE %s\n", LOG_FILE);
-    printf("cwd_and_filepath %s\n", cwd_and_filepath); */
-
-
 }
 
 
