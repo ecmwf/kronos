@@ -159,3 +159,13 @@ void log_print(char* filename,
 
     } /* if(log_level>=LOG_OUTPUT_LVL) */
 }
+
+
+
+/* ---- just for testing.. ---- */
+unsigned short get_start_flag(){return LOG_STARTED;}
+
+unsigned int get_std_flag(){return LOG_STREAM_STD;}
+unsigned int get_err_flag(){return LOG_STREAM_ERR;}
+unsigned int get_fil_flag(){return LOG_STREAM_FIL;}
+unsigned int get_out_lvl(){return LOG_OUTPUT_LVL;}

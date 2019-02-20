@@ -80,5 +80,16 @@ void log_print(char* filename, int line, int log_level, char *fmt,...);
 #define FATL4(w, x, y, z) log_print(__FILE__, __LINE__, LOG_LVL_FATL, w, x, y, z)
 
 
+
+
+
+/* ---- just for testing.. ---- */
+unsigned short get_start_flag();
+unsigned int get_std_flag();
+unsigned int get_err_flag();
+unsigned int get_fil_flag();
+unsigned int get_out_lvl();
+
+
 #endif
 
