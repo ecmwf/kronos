@@ -65,8 +65,8 @@ ecbuild_declare_project()
 
 ### export package to other ecbuild packages
 set( KRONOS_INCLUDE_DIRS
-    ${CMAKE_CURRENT_SOURCE_DIR}/kronos_synapps
-    ${CMAKE_CURRENT_BINARY_DIR}/kronos_synapps
+    ${CMAKE_CURRENT_SOURCE_DIR}/kronos_apps
+    ${CMAKE_CURRENT_BINARY_DIR}/kronos_apps
 )
 
 set( KRONOS_LIBRARIES      "" )
@@ -84,7 +84,7 @@ else()
     include_directories( ${KRONOS_INCLUDE_DIRS} )
 endif()
 
-add_subdirectory( kronos_synapps )
+add_subdirectory( kronos_apps )
 
 ### finalize project
 
