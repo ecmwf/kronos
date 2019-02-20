@@ -55,6 +55,23 @@ ecbuild_add_executable(
         msglogger
 )
 
+ecbuild_add_library (
+
+    TARGET ioserver_network
+
+    SOURCES
+        network.h
+        network.c
+
+    DEFINITIONS
+
+    GENERATED
+
+    INCLUDES
+
+    LIBS
+)
+
 
 # Add unit tests directory
 add_subdirectory( tests )

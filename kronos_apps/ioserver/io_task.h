@@ -1,3 +1,6 @@
+#ifndef io_task_H
+#define io_task_H
+
 #include "common/json.h"
 
 #define MAX_WRITE_SIZE 1048576
@@ -38,3 +41,4 @@ IOTask* iotask_from_json_string(const char* _taskstr);
 
 
 
+#endif

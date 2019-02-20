@@ -1,4 +1,5 @@
-
+#ifndef io_executor_H
+#define io_executor_H
 
 /* do write on file */
 int _do_write_to_file(int fd,
@@ -24,3 +25,6 @@ int _read_file(const char* file_name,
 
 /* Execute an I/O task */
 int execute_io_task(const char * io_json_str, const char * io_data);
+
+
+#endif

@@ -1,5 +1,5 @@
-#ifndef log_print_H
-#define log_print_H
+#ifndef logger_H
+#define logger_H
 
 
 /* log-message max length */
