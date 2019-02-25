@@ -10,8 +10,9 @@ KRONOS_VERSION=$(cat ${WORK_DIR}/VERSION.cmake | awk '{print $3}' | sed "s/\"//g
 KRONOS_PACKAGE=kronos-${KRONOS_VERSION}-Source
 
 
-# installation-related directories
-DEPENDS_DIR=${WORK_DIR}/depends
+# installation-related directories (all one level above..)
+WORK_DIR_PARENT=$(dirname ${WORK_DIR})
+DEPENDS_DIR=${WORK_DIR_PARENT}/depends
 CONDA_DIR=${WORK_DIR}/miniconda
 CONDA_BIN_DIR=${CONDA_DIR}/bin
 CONDA_CMD=${CONDA_BIN_DIR}/conda
@@ -41,7 +42,7 @@ install_conda() {
     local isoffline=$1
 
     if [[ -d ${CONDA_DIR} ]]; then
-        echo "codna seens already installed in ${CONDA_DIR}, skipping installation.."
+        echo "conda seems already installed in ${CONDA_DIR}, skipping installation.."
         return 0
     fi
 
@@ -102,22 +103,22 @@ install_executor() {
             source activate kronos_executor_env
 
             # Install the kronos-executor dependencies
-            conda install ${WORK_DIR}/depends/executor/functools32-3.2.3.2-py27_0.tar.bz2
-            conda install ${WORK_DIR}/depends/executor/jsonschema-2.6.0-py27_0.tar.bz2
-            conda install ${WORK_DIR}/depends/executor/openssl-1.0.2k-1.tar.bz2
-            conda install ${WORK_DIR}/depends/executor/pip-9.0.1-py27_1.tar.bz2
-            conda install ${WORK_DIR}/depends/executor/python-2.7.13-0.tar.bz2
-            conda install ${WORK_DIR}/depends/executor/readline-6.2-2.tar.bz2
-            conda install ${WORK_DIR}/depends/executor/setuptools-27.2.0-py27_0.tar.bz2
-            conda install ${WORK_DIR}/depends/executor/sqlite-3.13.0-0.tar.bz2
-            conda install ${WORK_DIR}/depends/executor/tk-8.5.18-0.tar.bz2
-            conda install ${WORK_DIR}/depends/executor/wheel-0.29.0-py27_0.tar.bz2
-            conda install ${WORK_DIR}/depends/executor/zlib-1.2.8-3.tar.bz2
-            conda install ${WORK_DIR}/depends/modeller/mkl-2017.0.1-0.tar.bz2
-            conda install ${WORK_DIR}/depends/modeller/numpy-1.12.1-py27_0.tar.bz2
+            conda install ${DEPENDS_DIR}/executor/functools32-3.2.3.2-py27_0.tar.bz2
+            conda install ${DEPENDS_DIR}/executor/jsonschema-2.6.0-py27_0.tar.bz2
+            conda install ${DEPENDS_DIR}/executor/openssl-1.0.2k-1.tar.bz2
+            conda install ${DEPENDS_DIR}/executor/pip-9.0.1-py27_1.tar.bz2
+            conda install ${DEPENDS_DIR}/executor/python-2.7.13-0.tar.bz2
+            conda install ${DEPENDS_DIR}/executor/readline-6.2-2.tar.bz2
+            conda install ${DEPENDS_DIR}/executor/setuptools-27.2.0-py27_0.tar.bz2
+            conda install ${DEPENDS_DIR}/executor/sqlite-3.13.0-0.tar.bz2
+            conda install ${DEPENDS_DIR}/executor/tk-8.5.18-0.tar.bz2
+            conda install ${DEPENDS_DIR}/executor/wheel-0.29.0-py27_0.tar.bz2
+            conda install ${DEPENDS_DIR}/executor/zlib-1.2.8-3.tar.bz2
+            conda install ${DEPENDS_DIR}/modeller/mkl-2017.0.1-0.tar.bz2
+            conda install ${DEPENDS_DIR}/modeller/numpy-1.12.1-py27_0.tar.bz2
 
             # Special case for non-conda-package
-            cp ${WORK_DIR}/depends/strict_rfc3339.py ${CONDA_DIR}/envs/kronos_executor_env/lib/python2.7/site-packages/
+            cp ${DEPENDS_DIR}/strict_rfc3339.py ${CONDA_DIR}/envs/kronos_executor_env/lib/python2.7/site-packages/
 
         else # install online (will download dependencies)
 
@@ -223,7 +224,7 @@ install_modeller() {
 
 
             # Special case for non-conda-package
-            cp ${WORK_DIR}/depends/strict_rfc3339.py ${CONDA_DIR}/envs/kronos_modeller_env/lib/python2.7/site-packages/
+            cp ${DEPENDS_DIR}/strict_rfc3339.py ${CONDA_DIR}/envs/kronos_modeller_env/lib/python2.7/site-packages/
 
             # the executor is a dependency for the modeller
             pip install -e ${WORK_DIR}/kronos_executor
@@ -295,6 +296,12 @@ help_flag=0
 TEMP=`getopt -o cmesoah --long conda,modeller,executor,synapps,offline,all,help -- "$@"`
 eval set -- "$TEMP"
 
+if [[ $# < 2 ]]; then
+    print_help
+    exit 1
+fi
+
+
 # extract options and their arguments into variables.
 while true ; do
     case "$1" in
@@ -313,7 +320,10 @@ while true ; do
         -h|--help)
                 help_flag=1 ; shift 1 ;;
         --) shift ; break ;;
-        *)      echo "line arguments not understood!" ; exit 1 ;;
+        *)
+        echo "line arguments not valid." ;
+        print_help
+        exit 1 ;;
     esac
 done
 
