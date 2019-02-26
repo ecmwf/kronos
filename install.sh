@@ -1,24 +1,22 @@
 #!/bin/bash
 
+# (C) Copyright 1996-2018 ECMWF.
+#
+# This software is licensed under the terms of the Apache Licence Version 2.0
+# which can be obtained at http://www.apache.org/licenses/LICENSE-2.0.
+# In applying this licence, ECMWF does not waive the privileges and immunities
+# granted to it by virtue of its status as an intergovernmental organisation nor
+# does it submit to any jurisdiction.
+
 set -o nounset
 
-# working dir
-KRONOS_SOURCES_TOP_DIR=$(dirname $(readlink -f $BASH_SOURCE))
+# Get the environment (and copy it into a log)
+_THIS_DIR=$(dirname $(readlink -f $BASH_SOURCE))
+source ${_THIS_DIR}/.install_dirs.source
 
-# kronos version/package
-KRONOS_VERSION=$(cat ${KRONOS_SOURCES_TOP_DIR}/VERSION.cmake | awk '{print $3}' | sed "s/\"//g")
-KRONOS_PACKAGE=kronos-${KRONOS_VERSION}-Source
+# log kronos env to stdout
+env 2>&1 | grep -i KRONOS
 
-
-# installation-related directories (all one level above..)
-INSTALLER_DIR=$(dirname ${KRONOS_SOURCES_TOP_DIR})
-DEPENDS_DIR=${INSTALLER_DIR}/depends
-CONDA_DIR=${INSTALLER_DIR}/miniconda
-CONDA_BIN_DIR=${CONDA_DIR}/bin
-CONDA_CMD=${CONDA_BIN_DIR}/conda
-CONDA_INSTALLER_EXE=Miniconda2-latest-Linux-x86_64.sh
-
-KRONOS_BUILD_DIR=${INSTALLER_DIR}/build
 
 # ====== print help documentation ======
 print_help() {
@@ -43,30 +41,30 @@ install_conda() {
 
     local isoffline=$1
 
-    if [[ -d ${CONDA_DIR} ]]; then
-        echo "conda seems already installed in ${CONDA_DIR}, skipping installation.."
+    if [[ -d ${KRONOS_CONDA_DIR} ]]; then
+        echo "conda seems already installed in ${KRONOS_CONDA_DIR}, skipping installation.."
         return 0
     fi
 
     if [[ $isoffline == 1 ]]; then
 
         # install offline (it require the depends directory with all the dependencies in it)
-        local conda_inst_offline=${DEPENDS_DIR}/${CONDA_INSTALLER_EXE}
+        local conda_inst_offline=${KRONOS_DEPENDS_DIR}/${KRONOS_CONDA_INSTALLER_EXE}
         if [[ ! -f ${conda_inst_offline} ]]; then
             echo "Asked to install conda offline but ${conda_inst_offline} not found!"
             exit 1
         else
             set -e
             echo "Found conda in /depends: installing.."
-            sh ${conda_inst_offline} -b -p ${CONDA_DIR}
+            sh ${conda_inst_offline} -b -p ${KRONOS_CONDA_DIR}
             set +e
         fi
 
     else
         # download miniconda from website (exit if errors)
         set -e
-        wget -c http://repo.continuum.io/miniconda/${CONDA_INSTALLER_EXE} -P ${CONDA_DIR}
-        sh ${CONDA_DIR}/${CONDA_INSTALLER_EXE} -b -p ${CONDA_DIR}
+        wget -c http://repo.continuum.io/miniconda/${KRONOS_CONDA_INSTALLER_EXE} -P ${KRONOS_CONDA_DIR}
+        sh ${KRONOS_CONDA_DIR}/${KRONOS_CONDA_INSTALLER_EXE} -b -p ${KRONOS_CONDA_DIR}
         set +e
     fi
 
@@ -79,21 +77,21 @@ install_executor() {
     local isoffline=$1
 
     # check that conda is already installed
-    if [[ ! -d ${CONDA_DIR} ]]; then
+    if [[ ! -d ${KRONOS_CONDA_DIR} ]]; then
         echo "Miniconda missing, install conda first.."
         exit 1
     fi
 
     # if executor is already installed, return
-    if [[ -d ${CONDA_DIR}/envs/kronos_executor_env ]]; then
+    if [[ -d ${KRONOS_CONDA_DIR}/envs/kronos_executor_env ]]; then
         echo "kronos_executor_env already exists, installing executor.."
-        export PATH=${CONDA_BIN_DIR}/:${PATH}
+        export PATH=${KRONOS_CONDA_BIN_DIR}/:${PATH}
         source activate kronos_executor_env
         pip install -e ${KRONOS_SOURCES_TOP_DIR}/kronos_executor
     else
 
         # export conda command
-        export PATH=${CONDA_BIN_DIR}/:${PATH}
+        export PATH=${KRONOS_CONDA_BIN_DIR}/:${PATH}
 
         # install the conda dependencies first
         if [[ $isoffline == 1 ]]; then
@@ -105,22 +103,22 @@ install_executor() {
             source activate kronos_executor_env
 
             # Install the kronos-executor dependencies
-            conda install ${DEPENDS_DIR}/functools32-3.2.3.2-py27_0.tar.bz2
-            conda install ${DEPENDS_DIR}/jsonschema-2.6.0-py27_0.tar.bz2
-            conda install ${DEPENDS_DIR}/openssl-1.0.2k-1.tar.bz2
-            conda install ${DEPENDS_DIR}/pip-9.0.1-py27_1.tar.bz2
-            conda install ${DEPENDS_DIR}/python-2.7.13-0.tar.bz2
-            conda install ${DEPENDS_DIR}/readline-6.2-2.tar.bz2
-            conda install ${DEPENDS_DIR}/setuptools-27.2.0-py27_0.tar.bz2
-            conda install ${DEPENDS_DIR}/sqlite-3.13.0-0.tar.bz2
-            conda install ${DEPENDS_DIR}/tk-8.5.18-0.tar.bz2
-            conda install ${DEPENDS_DIR}/wheel-0.29.0-py27_0.tar.bz2
-            conda install ${DEPENDS_DIR}/zlib-1.2.8-3.tar.bz2
-            conda install ${DEPENDS_DIR}/mkl-2017.0.1-0.tar.bz2
-            conda install ${DEPENDS_DIR}/numpy-1.12.1-py27_0.tar.bz2
+            conda install ${KRONOS_DEPENDS_DIR}/functools32-3.2.3.2-py27_0.tar.bz2
+            conda install ${KRONOS_DEPENDS_DIR}/jsonschema-2.6.0-py27_0.tar.bz2
+            conda install ${KRONOS_DEPENDS_DIR}/openssl-1.0.2k-1.tar.bz2
+            conda install ${KRONOS_DEPENDS_DIR}/pip-9.0.1-py27_1.tar.bz2
+            conda install ${KRONOS_DEPENDS_DIR}/python-2.7.13-0.tar.bz2
+            conda install ${KRONOS_DEPENDS_DIR}/readline-6.2-2.tar.bz2
+            conda install ${KRONOS_DEPENDS_DIR}/setuptools-27.2.0-py27_0.tar.bz2
+            conda install ${KRONOS_DEPENDS_DIR}/sqlite-3.13.0-0.tar.bz2
+            conda install ${KRONOS_DEPENDS_DIR}/tk-8.5.18-0.tar.bz2
+            conda install ${KRONOS_DEPENDS_DIR}/wheel-0.29.0-py27_0.tar.bz2
+            conda install ${KRONOS_DEPENDS_DIR}/zlib-1.2.8-3.tar.bz2
+            conda install ${KRONOS_DEPENDS_DIR}/mkl-2017.0.1-0.tar.bz2
+            conda install ${KRONOS_DEPENDS_DIR}/numpy-1.12.1-py27_0.tar.bz2
 
             # Special case for non-conda-package
-            cp ${DEPENDS_DIR}/strict_rfc3339.py ${CONDA_DIR}/envs/kronos_executor_env/lib/python2.7/site-packages/
+            cp ${KRONOS_DEPENDS_DIR}/strict_rfc3339.py ${KRONOS_CONDA_DIR}/envs/kronos_executor_env/lib/python2.7/site-packages/
 
         else # install online (will download dependencies)
 
@@ -146,21 +144,21 @@ install_modeller() {
     local isoffline=$1
 
     # check that conda is already installed
-    if [[ ! -d ${CONDA_DIR} ]]; then
+    if [[ ! -d ${KRONOS_CONDA_DIR} ]]; then
         echo "Miniconda missing, install conda first.."
         exit 1
     fi
 
     # if modeller is already installed, return
-    if [[ -d ${CONDA_DIR}/envs/kronos_modeller_env ]]; then
+    if [[ -d ${KRONOS_CONDA_DIR}/envs/kronos_modeller_env ]]; then
         echo "kronos_modeller_env already exists, installing modeller.."
-        export PATH=${CONDA_BIN_DIR}/:${PATH}
+        export PATH=${KRONOS_CONDA_BIN_DIR}/:${PATH}
         source activate kronos_modeller_env
         pip install -e ${KRONOS_SOURCES_TOP_DIR}/kronos_modeller
     else
 
         # export conda command
-        export PATH=${CONDA_BIN_DIR}/:${PATH}
+        export PATH=${KRONOS_CONDA_BIN_DIR}/:${PATH}
 
         # install the conda dependencies first
         if [[ $isoffline == 1 ]]; then
@@ -172,61 +170,61 @@ install_modeller() {
             source activate kronos_modeller_env
 
             # Install the kronos-modeller dependencies
-            conda install ${DEPENDS_DIR}/cairo-1.14.8-0.tar.bz2
-            conda install ${DEPENDS_DIR}/cycler-0.10.0-py27_0.tar.bz2
-            conda install ${DEPENDS_DIR}/dbus-1.10.10-0.tar.bz2
-            conda install ${DEPENDS_DIR}/expat-2.1.0-0.tar.bz2
-            conda install ${DEPENDS_DIR}/fontconfig-2.12.1-3.tar.bz2
-            conda install ${DEPENDS_DIR}/freetype-2.5.5-2.tar.bz2
-            conda install ${DEPENDS_DIR}/funcsigs-1.0.2-py27_0.tar.bz2
-            conda install ${DEPENDS_DIR}/functools32-3.2.3.2-py27_0.tar.bz2
-            conda install ${DEPENDS_DIR}/glib-2.50.2-1.tar.bz2
-            conda install ${DEPENDS_DIR}/gst-plugins-base-1.8.0-0.tar.bz2
-            conda install ${DEPENDS_DIR}/gstreamer-1.8.0-0.tar.bz2
-            conda install ${DEPENDS_DIR}/icu-54.1-0.tar.bz2
-            conda install ${DEPENDS_DIR}/jpeg-9b-0.tar.bz2
-            conda install ${DEPENDS_DIR}/jsonschema-2.6.0-py27_0.tar.bz2
-            conda install ${DEPENDS_DIR}/libffi-3.2.1-1.tar.bz2
-            conda install ${DEPENDS_DIR}/libgcc-5.2.0-0.tar.bz2
-            conda install ${DEPENDS_DIR}/libgfortran-3.0.0-1.tar.bz2
-            conda install ${DEPENDS_DIR}/libiconv-1.14-0.tar.bz2
-            conda install ${DEPENDS_DIR}/libpng-1.6.27-0.tar.bz2
-            conda install ${DEPENDS_DIR}/libxcb-1.12-1.tar.bz2
-            conda install ${DEPENDS_DIR}/libxml2-2.9.4-0.tar.bz2
-            conda install ${DEPENDS_DIR}/matplotlib-2.0.1-np112py27_0.tar.bz2
-            conda install ${DEPENDS_DIR}/mkl-2017.0.1-0.tar.bz2
-            conda install ${DEPENDS_DIR}/mock-2.0.0-py27_0.tar.bz2
-            conda install ${DEPENDS_DIR}/numpy-1.12.1-py27_0.tar.bz2
-            conda install ${DEPENDS_DIR}/openssl-1.0.2k-1.tar.bz2
-            conda install ${DEPENDS_DIR}/pbr-1.10.0-py27_0.tar.bz2
-            conda install ${DEPENDS_DIR}/pcre-8.39-1.tar.bz2
-            conda install ${DEPENDS_DIR}/pip-9.0.1-py27_1.tar.bz2
-            conda install ${DEPENDS_DIR}/pixman-0.34.0-0.tar.bz2
-            conda install ${DEPENDS_DIR}/py-1.7.0-py27_0.tar.bz2
-            conda install ${DEPENDS_DIR}/pycairo-1.10.0-py27_0.tar.bz2
-            conda install ${DEPENDS_DIR}/pyflakes-1.5.0-py27_0.tar.bz2
-            conda install ${DEPENDS_DIR}/pyparsing-2.1.4-py27_0.tar.bz2
-            conda install ${DEPENDS_DIR}/pyqt-5.6.0-py27_2.tar.bz2
-            conda install ${DEPENDS_DIR}/pytest-3.0.7-py27_0.tar.bz2
-            conda install ${DEPENDS_DIR}/python-2.7.13-0.tar.bz2
-            conda install ${DEPENDS_DIR}/python-dateutil-2.6.0-py27_0.tar.bz2
-            conda install ${DEPENDS_DIR}/pytz-2017.2-py27_0.tar.bz2
-            conda install ${DEPENDS_DIR}/qt-5.6.2-3.tar.bz2
-            conda install ${DEPENDS_DIR}/readline-6.2-2.tar.bz2
-            conda install ${DEPENDS_DIR}/scikit-learn-0.18.1-np112py27_1.tar.bz2
-            conda install ${DEPENDS_DIR}/scipy-0.19.0-np112py27_0.tar.bz2
-            conda install ${DEPENDS_DIR}/setuptools-27.2.0-py27_0.tar.bz2
-            conda install ${DEPENDS_DIR}/sip-4.18-py27_0.tar.bz2
-            conda install ${DEPENDS_DIR}/six-1.10.0-py27_0.tar.bz2
-            conda install ${DEPENDS_DIR}/sqlite-3.13.0-0.tar.bz2
-            conda install ${DEPENDS_DIR}/subprocess32-3.2.7-py27_0.tar.bz2
-            conda install ${DEPENDS_DIR}/tk-8.5.18-0.tar.bz2
-            conda install ${DEPENDS_DIR}/wheel-0.29.0-py27_0.tar.bz2
-            conda install ${DEPENDS_DIR}/zlib-1.2.8-3.tar.bz2
+            conda install ${KRONOS_DEPENDS_DIR}/cairo-1.14.8-0.tar.bz2
+            conda install ${KRONOS_DEPENDS_DIR}/cycler-0.10.0-py27_0.tar.bz2
+            conda install ${KRONOS_DEPENDS_DIR}/dbus-1.10.10-0.tar.bz2
+            conda install ${KRONOS_DEPENDS_DIR}/expat-2.1.0-0.tar.bz2
+            conda install ${KRONOS_DEPENDS_DIR}/fontconfig-2.12.1-3.tar.bz2
+            conda install ${KRONOS_DEPENDS_DIR}/freetype-2.5.5-2.tar.bz2
+            conda install ${KRONOS_DEPENDS_DIR}/funcsigs-1.0.2-py27_0.tar.bz2
+            conda install ${KRONOS_DEPENDS_DIR}/functools32-3.2.3.2-py27_0.tar.bz2
+            conda install ${KRONOS_DEPENDS_DIR}/glib-2.50.2-1.tar.bz2
+            conda install ${KRONOS_DEPENDS_DIR}/gst-plugins-base-1.8.0-0.tar.bz2
+            conda install ${KRONOS_DEPENDS_DIR}/gstreamer-1.8.0-0.tar.bz2
+            conda install ${KRONOS_DEPENDS_DIR}/icu-54.1-0.tar.bz2
+            conda install ${KRONOS_DEPENDS_DIR}/jpeg-9b-0.tar.bz2
+            conda install ${KRONOS_DEPENDS_DIR}/jsonschema-2.6.0-py27_0.tar.bz2
+            conda install ${KRONOS_DEPENDS_DIR}/libffi-3.2.1-1.tar.bz2
+            conda install ${KRONOS_DEPENDS_DIR}/libgcc-5.2.0-0.tar.bz2
+            conda install ${KRONOS_DEPENDS_DIR}/libgfortran-3.0.0-1.tar.bz2
+            conda install ${KRONOS_DEPENDS_DIR}/libiconv-1.14-0.tar.bz2
+            conda install ${KRONOS_DEPENDS_DIR}/libpng-1.6.27-0.tar.bz2
+            conda install ${KRONOS_DEPENDS_DIR}/libxcb-1.12-1.tar.bz2
+            conda install ${KRONOS_DEPENDS_DIR}/libxml2-2.9.4-0.tar.bz2
+            conda install ${KRONOS_DEPENDS_DIR}/matplotlib-2.0.1-np112py27_0.tar.bz2
+            conda install ${KRONOS_DEPENDS_DIR}/mkl-2017.0.1-0.tar.bz2
+            conda install ${KRONOS_DEPENDS_DIR}/mock-2.0.0-py27_0.tar.bz2
+            conda install ${KRONOS_DEPENDS_DIR}/numpy-1.12.1-py27_0.tar.bz2
+            conda install ${KRONOS_DEPENDS_DIR}/openssl-1.0.2k-1.tar.bz2
+            conda install ${KRONOS_DEPENDS_DIR}/pbr-1.10.0-py27_0.tar.bz2
+            conda install ${KRONOS_DEPENDS_DIR}/pcre-8.39-1.tar.bz2
+            conda install ${KRONOS_DEPENDS_DIR}/pip-9.0.1-py27_1.tar.bz2
+            conda install ${KRONOS_DEPENDS_DIR}/pixman-0.34.0-0.tar.bz2
+            conda install ${KRONOS_DEPENDS_DIR}/py-1.7.0-py27_0.tar.bz2
+            conda install ${KRONOS_DEPENDS_DIR}/pycairo-1.10.0-py27_0.tar.bz2
+            conda install ${KRONOS_DEPENDS_DIR}/pyflakes-1.5.0-py27_0.tar.bz2
+            conda install ${KRONOS_DEPENDS_DIR}/pyparsing-2.1.4-py27_0.tar.bz2
+            conda install ${KRONOS_DEPENDS_DIR}/pyqt-5.6.0-py27_2.tar.bz2
+            conda install ${KRONOS_DEPENDS_DIR}/pytest-3.0.7-py27_0.tar.bz2
+            conda install ${KRONOS_DEPENDS_DIR}/python-2.7.13-0.tar.bz2
+            conda install ${KRONOS_DEPENDS_DIR}/python-dateutil-2.6.0-py27_0.tar.bz2
+            conda install ${KRONOS_DEPENDS_DIR}/pytz-2017.2-py27_0.tar.bz2
+            conda install ${KRONOS_DEPENDS_DIR}/qt-5.6.2-3.tar.bz2
+            conda install ${KRONOS_DEPENDS_DIR}/readline-6.2-2.tar.bz2
+            conda install ${KRONOS_DEPENDS_DIR}/scikit-learn-0.18.1-np112py27_1.tar.bz2
+            conda install ${KRONOS_DEPENDS_DIR}/scipy-0.19.0-np112py27_0.tar.bz2
+            conda install ${KRONOS_DEPENDS_DIR}/setuptools-27.2.0-py27_0.tar.bz2
+            conda install ${KRONOS_DEPENDS_DIR}/sip-4.18-py27_0.tar.bz2
+            conda install ${KRONOS_DEPENDS_DIR}/six-1.10.0-py27_0.tar.bz2
+            conda install ${KRONOS_DEPENDS_DIR}/sqlite-3.13.0-0.tar.bz2
+            conda install ${KRONOS_DEPENDS_DIR}/subprocess32-3.2.7-py27_0.tar.bz2
+            conda install ${KRONOS_DEPENDS_DIR}/tk-8.5.18-0.tar.bz2
+            conda install ${KRONOS_DEPENDS_DIR}/wheel-0.29.0-py27_0.tar.bz2
+            conda install ${KRONOS_DEPENDS_DIR}/zlib-1.2.8-3.tar.bz2
 
 
             # Special case for non-conda-package
-            cp ${DEPENDS_DIR}/strict_rfc3339.py ${CONDA_DIR}/envs/kronos_modeller_env/lib/python2.7/site-packages/
+            cp ${KRONOS_DEPENDS_DIR}/strict_rfc3339.py ${KRONOS_CONDA_DIR}/envs/kronos_modeller_env/lib/python2.7/site-packages/
 
             # the executor is a dependency for the modeller
             pip install -e ${KRONOS_SOURCES_TOP_DIR}/kronos_executor

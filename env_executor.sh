@@ -1,8 +1,18 @@
+#!/bin/bash
 
-# current working directory
-WORK_DIR=$(dirname $(readlink -f $BASH_SOURCE))
+# (C) Copyright 1996-2018 ECMWF.
+#
+# This software is licensed under the terms of the Apache Licence Version 2.0
+# which can be obtained at http://www.apache.org/licenses/LICENSE-2.0.
+# In applying this licence, ECMWF does not waive the privileges and immunities
+# granted to it by virtue of its status as an intergovernmental organisation nor
+# does it submit to any jurisdiction.
+
+# Get the environment
+_THIS_DIR=$(dirname $(readlink -f $BASH_SOURCE))
+source ${_THIS_DIR}/.install_dirs.source
 
 # export path and activate the kronos environment
-export PATH=${WORK_DIR}/miniconda/bin/:${PATH}
+export PATH=${KRONOS_CONDA_BIN_DIR}:${PATH}
 source activate kronos_executor_env
 

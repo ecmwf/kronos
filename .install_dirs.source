@@ -1,0 +1,29 @@
+#!/bin/bash
+
+# (C) Copyright 1996-2018 ECMWF.
+#
+# This software is licensed under the terms of the Apache Licence Version 2.0
+# which can be obtained at http://www.apache.org/licenses/LICENSE-2.0.
+# In applying this licence, ECMWF does not waive the privileges and immunities
+# granted to it by virtue of its status as an intergovernmental organisation nor
+# does it submit to any jurisdiction.
+
+# ======== DO *NOT* EDIT THIS FILE ============
+
+# working dir and kronos version
+export KRONOS_SOURCES_TOP_DIR=$(dirname $(readlink -f $BASH_SOURCE))
+export KRONOS_VERSION=$(cat ${KRONOS_SOURCES_TOP_DIR}/VERSION.cmake | awk '{print $3}' | sed "s/\"//g")
+export KRONOS_PACKAGE=kronos-${KRONOS_VERSION}-Source
+
+# installation-related directories (default: one level up)
+export KRONOS_INSTALLER_DIR=$(dirname ${KRONOS_SOURCES_TOP_DIR})
+export KRONOS_DEPENDS_DIR=${KRONOS_INSTALLER_DIR}/depends
+export KRONOS_BUILD_DIR=${KRONOS_INSTALLER_DIR}/build
+export KRONOS_BIN_DIR=${KRONOS_BUILD_DIR}/bin
+
+# conda installation
+export KRONOS_CONDA_DIR=${KRONOS_INSTALLER_DIR}/miniconda
+export KRONOS_CONDA_BIN_DIR=${KRONOS_CONDA_DIR}/bin
+export KRONOS_CONDA_CMD=${KRONOS_CONDA_BIN_DIR}/conda
+export KRONOS_CONDA_INSTALLER_EXE=Miniconda2-latest-Linux-x86_64.sh
+
