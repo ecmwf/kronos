@@ -7,7 +7,7 @@
 # does it submit to any jurisdiction.
 import numpy as np
 
-from kronos_modeller.post_process import ExportableSignal
+from kronos_modeller.post_process.exportable_types import ExportableSignal
 
 
 class ResultSignal(object):

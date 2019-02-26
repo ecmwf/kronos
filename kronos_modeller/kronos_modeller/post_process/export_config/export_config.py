@@ -12,7 +12,7 @@ from collections import OrderedDict
 
 from kronos_modeller.exceptions_iows import ConfigurationError
 
-from kronos_modeller.post_process.export_config import ExportConfigFormat
+from kronos_modeller.post_process.export_config.export_config_format import ExportConfigFormat
 
 
 class ExportConfig(object):
