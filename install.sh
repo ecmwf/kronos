@@ -103,19 +103,19 @@ install_executor() {
             source activate kronos_executor_env
 
             # Install the kronos-executor dependencies
-            conda install ${DEPENDS_DIR}/executor/functools32-3.2.3.2-py27_0.tar.bz2
-            conda install ${DEPENDS_DIR}/executor/jsonschema-2.6.0-py27_0.tar.bz2
-            conda install ${DEPENDS_DIR}/executor/openssl-1.0.2k-1.tar.bz2
-            conda install ${DEPENDS_DIR}/executor/pip-9.0.1-py27_1.tar.bz2
-            conda install ${DEPENDS_DIR}/executor/python-2.7.13-0.tar.bz2
-            conda install ${DEPENDS_DIR}/executor/readline-6.2-2.tar.bz2
-            conda install ${DEPENDS_DIR}/executor/setuptools-27.2.0-py27_0.tar.bz2
-            conda install ${DEPENDS_DIR}/executor/sqlite-3.13.0-0.tar.bz2
-            conda install ${DEPENDS_DIR}/executor/tk-8.5.18-0.tar.bz2
-            conda install ${DEPENDS_DIR}/executor/wheel-0.29.0-py27_0.tar.bz2
-            conda install ${DEPENDS_DIR}/executor/zlib-1.2.8-3.tar.bz2
-            conda install ${DEPENDS_DIR}/modeller/mkl-2017.0.1-0.tar.bz2
-            conda install ${DEPENDS_DIR}/modeller/numpy-1.12.1-py27_0.tar.bz2
+            conda install ${DEPENDS_DIR}/functools32-3.2.3.2-py27_0.tar.bz2
+            conda install ${DEPENDS_DIR}/jsonschema-2.6.0-py27_0.tar.bz2
+            conda install ${DEPENDS_DIR}/openssl-1.0.2k-1.tar.bz2
+            conda install ${DEPENDS_DIR}/pip-9.0.1-py27_1.tar.bz2
+            conda install ${DEPENDS_DIR}/python-2.7.13-0.tar.bz2
+            conda install ${DEPENDS_DIR}/readline-6.2-2.tar.bz2
+            conda install ${DEPENDS_DIR}/setuptools-27.2.0-py27_0.tar.bz2
+            conda install ${DEPENDS_DIR}/sqlite-3.13.0-0.tar.bz2
+            conda install ${DEPENDS_DIR}/tk-8.5.18-0.tar.bz2
+            conda install ${DEPENDS_DIR}/wheel-0.29.0-py27_0.tar.bz2
+            conda install ${DEPENDS_DIR}/zlib-1.2.8-3.tar.bz2
+            conda install ${DEPENDS_DIR}/mkl-2017.0.1-0.tar.bz2
+            conda install ${DEPENDS_DIR}/numpy-1.12.1-py27_0.tar.bz2
 
             # Special case for non-conda-package
             cp ${DEPENDS_DIR}/strict_rfc3339.py ${CONDA_DIR}/envs/kronos_executor_env/lib/python2.7/site-packages/
@@ -170,57 +170,57 @@ install_modeller() {
             source activate kronos_modeller_env
 
             # Install the kronos-modeller dependencies
-            conda install ${DEPENDS_DIR}/modeller/cairo-1.14.8-0.tar.bz2
-            conda install ${DEPENDS_DIR}/modeller/cycler-0.10.0-py27_0.tar.bz2
-            conda install ${DEPENDS_DIR}/modeller/dbus-1.10.10-0.tar.bz2
-            conda install ${DEPENDS_DIR}/modeller/expat-2.1.0-0.tar.bz2
-            conda install ${DEPENDS_DIR}/modeller/fontconfig-2.12.1-3.tar.bz2
-            conda install ${DEPENDS_DIR}/modeller/freetype-2.5.5-2.tar.bz2
-            conda install ${DEPENDS_DIR}/modeller/funcsigs-1.0.2-py27_0.tar.bz2
-            conda install ${DEPENDS_DIR}/modeller/functools32-3.2.3.2-py27_0.tar.bz2
-            conda install ${DEPENDS_DIR}/modeller/glib-2.50.2-1.tar.bz2
-            conda install ${DEPENDS_DIR}/modeller/gst-plugins-base-1.8.0-0.tar.bz2
-            conda install ${DEPENDS_DIR}/modeller/gstreamer-1.8.0-0.tar.bz2
-            conda install ${DEPENDS_DIR}/modeller/icu-54.1-0.tar.bz2
-            conda install ${DEPENDS_DIR}/modeller/jpeg-9b-0.tar.bz2
-            conda install ${DEPENDS_DIR}/modeller/jsonschema-2.6.0-py27_0.tar.bz2
-            conda install ${DEPENDS_DIR}/modeller/libffi-3.2.1-1.tar.bz2
-            conda install ${DEPENDS_DIR}/modeller/libgcc-5.2.0-0.tar.bz2
-            conda install ${DEPENDS_DIR}/modeller/libgfortran-3.0.0-1.tar.bz2
-            conda install ${DEPENDS_DIR}/modeller/libiconv-1.14-0.tar.bz2
-            conda install ${DEPENDS_DIR}/modeller/libpng-1.6.27-0.tar.bz2
-            conda install ${DEPENDS_DIR}/modeller/libxcb-1.12-1.tar.bz2
-            conda install ${DEPENDS_DIR}/modeller/libxml2-2.9.4-0.tar.bz2
-            conda install ${DEPENDS_DIR}/modeller/matplotlib-2.0.1-np112py27_0.tar.bz2
-            conda install ${DEPENDS_DIR}/modeller/mkl-2017.0.1-0.tar.bz2
-            conda install ${DEPENDS_DIR}/modeller/mock-2.0.0-py27_0.tar.bz2
-            conda install ${DEPENDS_DIR}/modeller/numpy-1.12.1-py27_0.tar.bz2
-            conda install ${DEPENDS_DIR}/modeller/openssl-1.0.2k-1.tar.bz2
-            conda install ${DEPENDS_DIR}/modeller/pbr-1.10.0-py27_0.tar.bz2
-            conda install ${DEPENDS_DIR}/modeller/pcre-8.39-1.tar.bz2
-            conda install ${DEPENDS_DIR}/modeller/pip-9.0.1-py27_1.tar.bz2
-            conda install ${DEPENDS_DIR}/modeller/pixman-0.34.0-0.tar.bz2
-            conda install ${DEPENDS_DIR}/modeller/py-1.7.0-py27_0.tar.bz2
-            conda install ${DEPENDS_DIR}/modeller/pycairo-1.10.0-py27_0.tar.bz2
-            conda install ${DEPENDS_DIR}/modeller/pyflakes-1.5.0-py27_0.tar.bz2
-            conda install ${DEPENDS_DIR}/modeller/pyparsing-2.1.4-py27_0.tar.bz2
-            conda install ${DEPENDS_DIR}/modeller/pyqt-5.6.0-py27_2.tar.bz2
-            conda install ${DEPENDS_DIR}/modeller/pytest-3.0.7-py27_0.tar.bz2
-            conda install ${DEPENDS_DIR}/modeller/python-2.7.13-0.tar.bz2
-            conda install ${DEPENDS_DIR}/modeller/python-dateutil-2.6.0-py27_0.tar.bz2
-            conda install ${DEPENDS_DIR}/modeller/pytz-2017.2-py27_0.tar.bz2
-            conda install ${DEPENDS_DIR}/modeller/qt-5.6.2-3.tar.bz2
-            conda install ${DEPENDS_DIR}/modeller/readline-6.2-2.tar.bz2
-            conda install ${DEPENDS_DIR}/modeller/scikit-learn-0.18.1-np112py27_1.tar.bz2
-            conda install ${DEPENDS_DIR}/modeller/scipy-0.19.0-np112py27_0.tar.bz2
-            conda install ${DEPENDS_DIR}/modeller/setuptools-27.2.0-py27_0.tar.bz2
-            conda install ${DEPENDS_DIR}/modeller/sip-4.18-py27_0.tar.bz2
-            conda install ${DEPENDS_DIR}/modeller/six-1.10.0-py27_0.tar.bz2
-            conda install ${DEPENDS_DIR}/modeller/sqlite-3.13.0-0.tar.bz2
-            conda install ${DEPENDS_DIR}/modeller/subprocess32-3.2.7-py27_0.tar.bz2
-            conda install ${DEPENDS_DIR}/modeller/tk-8.5.18-0.tar.bz2
-            conda install ${DEPENDS_DIR}/modeller/wheel-0.29.0-py27_0.tar.bz2
-            conda install ${DEPENDS_DIR}/modeller/zlib-1.2.8-3.tar.bz2
+            conda install ${DEPENDS_DIR}/cairo-1.14.8-0.tar.bz2
+            conda install ${DEPENDS_DIR}/cycler-0.10.0-py27_0.tar.bz2
+            conda install ${DEPENDS_DIR}/dbus-1.10.10-0.tar.bz2
+            conda install ${DEPENDS_DIR}/expat-2.1.0-0.tar.bz2
+            conda install ${DEPENDS_DIR}/fontconfig-2.12.1-3.tar.bz2
+            conda install ${DEPENDS_DIR}/freetype-2.5.5-2.tar.bz2
+            conda install ${DEPENDS_DIR}/funcsigs-1.0.2-py27_0.tar.bz2
+            conda install ${DEPENDS_DIR}/functools32-3.2.3.2-py27_0.tar.bz2
+            conda install ${DEPENDS_DIR}/glib-2.50.2-1.tar.bz2
+            conda install ${DEPENDS_DIR}/gst-plugins-base-1.8.0-0.tar.bz2
+            conda install ${DEPENDS_DIR}/gstreamer-1.8.0-0.tar.bz2
+            conda install ${DEPENDS_DIR}/icu-54.1-0.tar.bz2
+            conda install ${DEPENDS_DIR}/jpeg-9b-0.tar.bz2
+            conda install ${DEPENDS_DIR}/jsonschema-2.6.0-py27_0.tar.bz2
+            conda install ${DEPENDS_DIR}/libffi-3.2.1-1.tar.bz2
+            conda install ${DEPENDS_DIR}/libgcc-5.2.0-0.tar.bz2
+            conda install ${DEPENDS_DIR}/libgfortran-3.0.0-1.tar.bz2
+            conda install ${DEPENDS_DIR}/libiconv-1.14-0.tar.bz2
+            conda install ${DEPENDS_DIR}/libpng-1.6.27-0.tar.bz2
+            conda install ${DEPENDS_DIR}/libxcb-1.12-1.tar.bz2
+            conda install ${DEPENDS_DIR}/libxml2-2.9.4-0.tar.bz2
+            conda install ${DEPENDS_DIR}/matplotlib-2.0.1-np112py27_0.tar.bz2
+            conda install ${DEPENDS_DIR}/mkl-2017.0.1-0.tar.bz2
+            conda install ${DEPENDS_DIR}/mock-2.0.0-py27_0.tar.bz2
+            conda install ${DEPENDS_DIR}/numpy-1.12.1-py27_0.tar.bz2
+            conda install ${DEPENDS_DIR}/openssl-1.0.2k-1.tar.bz2
+            conda install ${DEPENDS_DIR}/pbr-1.10.0-py27_0.tar.bz2
+            conda install ${DEPENDS_DIR}/pcre-8.39-1.tar.bz2
+            conda install ${DEPENDS_DIR}/pip-9.0.1-py27_1.tar.bz2
+            conda install ${DEPENDS_DIR}/pixman-0.34.0-0.tar.bz2
+            conda install ${DEPENDS_DIR}/py-1.7.0-py27_0.tar.bz2
+            conda install ${DEPENDS_DIR}/pycairo-1.10.0-py27_0.tar.bz2
+            conda install ${DEPENDS_DIR}/pyflakes-1.5.0-py27_0.tar.bz2
+            conda install ${DEPENDS_DIR}/pyparsing-2.1.4-py27_0.tar.bz2
+            conda install ${DEPENDS_DIR}/pyqt-5.6.0-py27_2.tar.bz2
+            conda install ${DEPENDS_DIR}/pytest-3.0.7-py27_0.tar.bz2
+            conda install ${DEPENDS_DIR}/python-2.7.13-0.tar.bz2
+            conda install ${DEPENDS_DIR}/python-dateutil-2.6.0-py27_0.tar.bz2
+            conda install ${DEPENDS_DIR}/pytz-2017.2-py27_0.tar.bz2
+            conda install ${DEPENDS_DIR}/qt-5.6.2-3.tar.bz2
+            conda install ${DEPENDS_DIR}/readline-6.2-2.tar.bz2
+            conda install ${DEPENDS_DIR}/scikit-learn-0.18.1-np112py27_1.tar.bz2
+            conda install ${DEPENDS_DIR}/scipy-0.19.0-np112py27_0.tar.bz2
+            conda install ${DEPENDS_DIR}/setuptools-27.2.0-py27_0.tar.bz2
+            conda install ${DEPENDS_DIR}/sip-4.18-py27_0.tar.bz2
+            conda install ${DEPENDS_DIR}/six-1.10.0-py27_0.tar.bz2
+            conda install ${DEPENDS_DIR}/sqlite-3.13.0-0.tar.bz2
+            conda install ${DEPENDS_DIR}/subprocess32-3.2.7-py27_0.tar.bz2
+            conda install ${DEPENDS_DIR}/tk-8.5.18-0.tar.bz2
+            conda install ${DEPENDS_DIR}/wheel-0.29.0-py27_0.tar.bz2
+            conda install ${DEPENDS_DIR}/zlib-1.2.8-3.tar.bz2
 
 
             # Special case for non-conda-package
@@ -233,7 +233,7 @@ install_modeller() {
 
             echo "installing modeller dependencies (online).."
 
-            conda env create -n kronos_modeller_env -f ${WORK_DIR}/kronos_modeller/conda_environment_exe.txt
+            conda env create -n kronos_modeller_env -f ${WORK_DIR}/kronos_modeller/conda_environment.txt
 
         fi
 
