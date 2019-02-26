@@ -36,8 +36,7 @@ setup(
         'kronos_modeller/bin/kronos-ingest-logs',
         'kronos_modeller/bin/kronos-inspect-dataset',
         'kronos_modeller/bin/kronos-model',
-        'kronos_modeller/bin/kronos-plot-kprofile',
-        'kronos_modeller/bin/kronos-validate-results',
+        'kronos_modeller/bin/kronos-plot-kprofile'
 
     ],
     include_package_data=True,

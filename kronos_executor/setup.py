@@ -38,6 +38,7 @@ setup(
         'kronos_executor/bin/kronos-summarise-kschedule',
         'kronos_executor/bin/kronos-summarise-results',
 
+        'kronos_executor/bin/kronos-validate-results',
         'kronos_executor/bin/kronos-view-json'
 
     ],
