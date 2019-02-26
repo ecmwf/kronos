@@ -3,20 +3,22 @@
 set -o nounset
 
 # working dir
-WORK_DIR=$(dirname $(readlink -f $BASH_SOURCE))
+KRONOS_SOURCES_TOP_DIR=$(dirname $(readlink -f $BASH_SOURCE))
 
 # kronos version/package
-KRONOS_VERSION=$(cat ${WORK_DIR}/VERSION.cmake | awk '{print $3}' | sed "s/\"//g")
+KRONOS_VERSION=$(cat ${KRONOS_SOURCES_TOP_DIR}/VERSION.cmake | awk '{print $3}' | sed "s/\"//g")
 KRONOS_PACKAGE=kronos-${KRONOS_VERSION}-Source
 
 
 # installation-related directories (all one level above..)
-WORK_DIR_PARENT=$(dirname ${WORK_DIR})
-DEPENDS_DIR=${WORK_DIR_PARENT}/depends
-CONDA_DIR=${WORK_DIR}/miniconda
+INSTALLER_DIR=$(dirname ${KRONOS_SOURCES_TOP_DIR})
+DEPENDS_DIR=${INSTALLER_DIR}/depends
+CONDA_DIR=${INSTALLER_DIR}/miniconda
 CONDA_BIN_DIR=${CONDA_DIR}/bin
 CONDA_CMD=${CONDA_BIN_DIR}/conda
 CONDA_INSTALLER_EXE=Miniconda2-latest-Linux-x86_64.sh
+
+KRONOS_BUILD_DIR=${INSTALLER_DIR}/build
 
 # ====== print help documentation ======
 print_help() {
@@ -56,15 +58,15 @@ install_conda() {
         else
             set -e
             echo "Found conda in /depends: installing.."
-            sh ${conda_inst_offline} -b -p ${WORK_DIR}/miniconda
+            sh ${conda_inst_offline} -b -p ${CONDA_DIR}
             set +e
         fi
 
     else
         # download miniconda from website (exit if errors)
         set -e
-        wget -c http://repo.continuum.io/miniconda/${CONDA_INSTALLER_EXE} -P ${WORK_DIR}
-        sh ${WORK_DIR}/${CONDA_INSTALLER_EXE} -b -p ${CONDA_DIR}
+        wget -c http://repo.continuum.io/miniconda/${CONDA_INSTALLER_EXE} -P ${CONDA_DIR}
+        sh ${CONDA_DIR}/${CONDA_INSTALLER_EXE} -b -p ${CONDA_DIR}
         set +e
     fi
 
@@ -87,7 +89,7 @@ install_executor() {
         echo "kronos_executor_env already exists, installing executor.."
         export PATH=${CONDA_BIN_DIR}/:${PATH}
         source activate kronos_executor_env
-        pip install -e ${WORK_DIR}/kronos_executor
+        pip install -e ${KRONOS_SOURCES_TOP_DIR}/kronos_executor
     else
 
         # export conda command
@@ -124,13 +126,13 @@ install_executor() {
 
             echo "installing executor dependencies (online).."
 
-            conda env create -n kronos_executor_env -f ${WORK_DIR}/kronos_executor/conda_environment_exe.txt
+            conda env create -n kronos_executor_env -f ${KRONOS_SOURCES_TOP_DIR}/kronos_executor/conda_environment_exe.txt
 
         fi
 
         echo "installing executor.."
         source activate kronos_executor_env
-        pip install -e ${WORK_DIR}/kronos_executor
+        pip install -e ${KRONOS_SOURCES_TOP_DIR}/kronos_executor
 
     fi
 
@@ -154,7 +156,7 @@ install_modeller() {
         echo "kronos_modeller_env already exists, installing modeller.."
         export PATH=${CONDA_BIN_DIR}/:${PATH}
         source activate kronos_modeller_env
-        pip install -e ${WORK_DIR}/kronos_modeller
+        pip install -e ${KRONOS_SOURCES_TOP_DIR}/kronos_modeller
     else
 
         # export conda command
@@ -227,19 +229,19 @@ install_modeller() {
             cp ${DEPENDS_DIR}/strict_rfc3339.py ${CONDA_DIR}/envs/kronos_modeller_env/lib/python2.7/site-packages/
 
             # the executor is a dependency for the modeller
-            pip install -e ${WORK_DIR}/kronos_executor
+            pip install -e ${KRONOS_SOURCES_TOP_DIR}/kronos_executor
 
         else # install online (will download dependencies)
 
             echo "installing modeller dependencies (online).."
 
-            conda env create -n kronos_modeller_env -f ${WORK_DIR}/kronos_modeller/conda_environment.txt
+            conda env create -n kronos_modeller_env -f ${KRONOS_SOURCES_TOP_DIR}/kronos_modeller/conda_environment.txt
 
         fi
 
         echo "installing modeller.."
         source activate kronos_modeller_env
-        pip install -e ${WORK_DIR}/kronos_modeller
+        pip install -e ${KRONOS_SOURCES_TOP_DIR}/kronos_modeller
 
     fi
 
@@ -249,31 +251,44 @@ install_modeller() {
 # === install the synapps ===
 install_synapps() {
 
-    echo "installing Kronos synthetic application"
+    local isoffline=$1
 
-    # clone ecbuild from github (master branch) - if necessary
-    if [[ ! -d ${WORK_DIR}/../ecbuild ]]; then
-      ECBUILD_DIR=$(readlink -f "${WORK_DIR}/../ecbuild")
+    if [[ $isoffline == 1 ]]; then
 
-      echo -e "ecbuild not found, downloading in ${ECBUILD_DIR}. Proceed? [y/n]"
-      read user_ans
-      echo -e "\n"
+        echo "installing Kronos synthetic application (offline)"
+        echo "this needs that ecbuild files already exist in ${KRONOS_SOURCES_TOP_DIR}/cmake"
 
-      if [[ $user_ans =~ ^[Yy]$ ]]; then
-        git clone https://github.com/ecmwf/ecbuild.git ${ECBUILD_DIR} || { echo "git clone failed!\n"; exit 1; }
-        cd ${ECBUILD_DIR} && git checkout master
-      else
-        echo "not downloading, stopping here!"
-        exit 1
-      fi
+    else
+
+        echo "installing Kronos synthetic application (online)"
+        echo "this will download ecbuild.."
+
+        # clone ecbuild from github (master branch)
+        if [[ ! -d ${KRONOS_SOURCES_TOP_DIR}/../ecbuild ]]; then
+
+          ECBUILD_DIR=$(readlink -f "${KRONOS_SOURCES_TOP_DIR}/../ecbuild")
+
+          echo -e "ecbuild not found, downloading in ${ECBUILD_DIR}. Proceed? [y/n]"
+          read user_ans
+          echo -e "\n"
+
+          if [[ $user_ans =~ ^[Yy]$ ]]; then
+            git clone https://github.com/ecmwf/ecbuild.git ${ECBUILD_DIR} || { echo "git clone failed!\n"; exit 1; }
+            cd ${ECBUILD_DIR} && git checkout master
+          else
+            echo "not downloading, stopping here!"
+            exit 1
+          fi
+        fi
+
     fi
 
-    if [[ ! -d ${WORK_DIR}/build ]]; then
-      mkdir ${WORK_DIR}/build
+    if [[ ! -d ${KRONOS_BUILD_DIR} ]]; then
+      mkdir ${KRONOS_BUILD_DIR}
     fi
 
     # build the synthetic apps
-    cd ${WORK_DIR}/build && cmake ${WORK_DIR} && make
+    cd ${KRONOS_BUILD_DIR} && cmake ${KRONOS_SOURCES_TOP_DIR} && make
 }
 
 
