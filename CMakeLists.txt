@@ -40,11 +40,16 @@ elseif( CMAKE_C_COMPILER_ID STREQUAL "Cray" )
     ecbuild_add_c_flags("-h nognu -h notolerant -h conform -h stdc -h noc99 -D_XOPEN_SOURCE=600" )
 endif()
 
+
+
 if( ALLINEA_LIBS_DIR )
     message( STATUS "Linking with Allinea libraries for profiling" )
     # ecbuild_add_c_flags("-g")
     set( ECBUILD_C_LINK_FLAGS "-dynamic -L${ALLINEA_LIBS_DIR} -lmap-sampler-pmpi -lmap-sampler -Wl,--eh-frame-hd ${ECBUILD_C_LINK_FLAGS}" )
     set( CMAKE_C_LINK_FLAGS "-dynamic -L${ALLINEA_LIBS_DIR} -lmap-sampler-pmpi -lmap-sampler -Wl,--eh-frame-hd ${CMAKE_C_LINK_FLAGS}" )
+else()
+    set( ECBUILD_C_LINK_FLAGS "-lrt" )
+    set( CMAKE_C_LINK_FLAGS "-lrt" )
 endif()
 
 # Configuration of the kronos project
