@@ -10,12 +10,40 @@
 
 set -o nounset
 
-# Get the environment (and copy it into a log)
-_THIS_DIR=$(dirname $(readlink -f $BASH_SOURCE))
-source ${_THIS_DIR}/.install_dirs.source
+# ============== DEFAULT INSTALLATION LAYOUT [*DO NOT EDIT*] ==============
+export KRONOS_SOURCES_TOP_DIR=$(dirname $(readlink -f $BASH_SOURCE))
+export KRONOS_VERSION=$(cat ${KRONOS_SOURCES_TOP_DIR}/VERSION.cmake | awk '{print $3}' | sed "s/\"//g")
+export KRONOS_PACKAGE=kronos-${KRONOS_VERSION}-Source
+
+# installation-related directories (default: one level up)
+export KRONOS_INSTALLER_DIR_DEFAULT=${KRONOS_SOURCES_TOP_DIR}
+export KRONOS_DEPENDS_DIR_DEFAULT=${KRONOS_INSTALLER_DIR_DEFAULT}/depends
+export KRONOS_BUILD_DIR_DEFAULT=${KRONOS_INSTALLER_DIR_DEFAULT}/build
+export KRONOS_BIN_DIR_DEFAULT=${KRONOS_BUILD_DIR_DEFAULT}/bin
+
+# conda installation
+export KRONOS_CONDA_DIR_DEFAULT=${KRONOS_INSTALLER_DIR_DEFAULT}/miniconda
+export KRONOS_CONDA_CMD_DEFAULT=${KRONOS_CONDA_BIN_DIR_DEFAULT}/conda
+export KRONOS_CONDA_INSTALLER_EXE_DEFAULT=Miniconda2-latest-Linux-x86_64.sh
+# =========================================================================
+
+
+# ============== (USER-OVERWRITABLE) INSTALLATION VARIABLES ===============
+export KRONOS_INSTALLER_DIR=${KRONOS_INSTALLER_DIR:-KRONOS_INSTALLER_DIR_DEFAULT}
+export KRONOS_DEPENDS_DIR=${KRONOS_DEPENDS_DIR:-KRONOS_DEPENDS_DIR_DEFAUKT}
+export KRONOS_BUILD_DIR=${KRONOS_BUILD_DIR:-KRONOS_BUILD_DIR_DEFAULT}
+export KRONOS_BIN_DIR=${KRONOS_BIN_DIR:-KRONOS_BIN_DIR_DEFAULT}
+
+export KRONOS_CONDA_DIR=${KRONOS_CONDA_DIR:-KRONOS_CONDA_DIR_DEFAULT}
+export KRONOS_CONDA_BIN_DIR=${KRONOS_CONDA_BIN_DIR:-KRONOS_CONDA_BIN_DIR_DEFAULT}
+export KRONOS_CONDA_CMD=${KRONOS_CONDA_CMD:-KRONOS_CONDA_CMD_DEFAULT}
+export KRONOS_CONDA_INSTALLER_EXE=${KRONOS_CONDA_INSTALLER_EXE:-KRONOS_CONDA_INSTALLER_EXE_DEFAULT}
+# =========================================================================
+
 
 # log kronos env to stdout
 env 2>&1 | grep -i KRONOS
+
 
 
 # ====== print help documentation ======
