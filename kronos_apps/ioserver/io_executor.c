@@ -5,8 +5,10 @@
 #include "common/logger.h"
 #include "common/json.h"
 
-#include "libpmem.h"
-#include "libpmemobj.h"
+#ifdef HAVE_PMEMIO
+  #include "libpmem.h"
+  #include "libpmemobj.h"
+#endif
 
 #include <stdlib.h>
 #include <sys/types.h>
@@ -178,9 +180,7 @@ static int write_file_to_nvram(const char* file_name,
 
 #ifdef HAVE_PMEMIO
 
-    int page_size = sysconf(_SC_PAGESIZE);
     char *pmemaddr;
-
     char file_buffer[BUF_LEN];
     int cc;
     int is_pmem;
