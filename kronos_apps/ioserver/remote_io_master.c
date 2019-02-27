@@ -1,7 +1,11 @@
 
+#include "common/json.h"
+#include "common/logger.h"
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <strings.h>
 #include <assert.h>
 
 #include <unistd.h>
@@ -9,9 +13,6 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <netdb.h>
-
-#include "common/json.h"
-#include "common/logger.h"
 
 #define JSON_BUF_LEN 1024
 #define BUFSIZE JSON_BUF_LEN
@@ -77,10 +78,13 @@ int main(int argc, char **argv) {
     }
 
     /* read the host_file and populate the hosts and ports arrays */
+    INFO2("opening file %s..", host_file);
     hostfile_ptr = fopen(host_file, "r");
     if (hostfile_ptr != NULL) {
         json_hosts = parse_json(hostfile_ptr);
         INFO2("file %s opened", host_file);
+    } else {
+        ERRO2("opening file %s failed!", host_file);
     }
     hosts_len = json_array_length(json_hosts);
     INFO2("hosts_len %i", hosts_len);

@@ -23,6 +23,7 @@ ecbuild_add_option(
 
 # look for pmemio
 find_package(pmemio)
+message("HAVE_PMEMIO: ${HAVE_PMEMIO}")
 
 if(PMEMIO_FOUND)
     set( USE_C_STD "-std=c99")

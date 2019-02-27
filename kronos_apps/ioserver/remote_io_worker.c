@@ -156,7 +156,7 @@ int main(int argc, char **argv) {
     }
 
     /* perform the IO task as requested */
-    errno_io = execute_io_task(iotask_msg_buffer, io_data);
+    errno_io = execute_io_task_from_string(iotask_msg_buffer);
 
     /* send data back (only if it's a reading instruction)
     if (!errno_io){

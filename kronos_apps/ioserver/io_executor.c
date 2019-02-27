@@ -5,6 +5,9 @@
 #include "common/logger.h"
 #include "common/json.h"
 
+#include "libpmem.h"
+#include "libpmemobj.h"
+
 #include <stdlib.h>
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -12,11 +15,20 @@
 #include <errno.h>
 #include <assert.h>
 
+#include <stdio.h>
+#include <string.h>
+#include <unistd.h>
+
+#include "limits.h"
+
+
+#define BUF_LEN 1048576
+
 
 /* do write on file */
-int _do_write_to_file(int fd,
-                     const long int* size,
-                     long int* actual_number_writes) {
+static int do_write_to_file(int fd,
+                            const long int* size,
+                            long int* actual_number_writes) {
 
     long remaining;
     long chunk_size;
@@ -62,11 +74,11 @@ int _do_write_to_file(int fd,
 
 
 /* open-write-close file */
-int _write_file(const char* file_name,
-               const long int* n_bytes,
-               const long int* offset,
-               const long int* n_writes,
-               const char* write_mode){
+static int write_file(const char* file_name,
+                      const long int* n_bytes,
+                      const long int* offset,
+                      const long int* n_writes,
+                      const char* write_mode){
 
     int fd;
     int open_flags;
@@ -94,7 +106,7 @@ int _write_file(const char* file_name,
     for (iwrite=0; iwrite<*n_writes; iwrite++){
 
         DEBG2("writing chunk of %li bytes", per_write_size);
-        _do_write_to_file(fd, &per_write_size, &actual_writes);
+        do_write_to_file(fd, &per_write_size, &actual_writes);
     }
 
     /* close the file */
@@ -111,10 +123,10 @@ int _write_file(const char* file_name,
 
 
 /* open-read-close */
-int _read_file(const char* file_name,
-              const long int* n_bytes,
-              const long int* n_reads,
-              const long int* offset){
+static int read_file(const char* file_name,
+                     const long int* n_bytes,
+                     const long int* n_reads,
+                     const long int* offset){
 
     FILE* file;
     long result;
@@ -158,50 +170,135 @@ int _read_file(const char* file_name,
 }
 
 
+/* write this file to nvram (through memory map) */
+static int write_file_to_nvram(const char* file_name,
+                               const long int* n_bytes,
+                               const long int* n_reads,
+                               const long int* offset){
+
+#ifdef HAVE_PMEMIO
+
+    int page_size = sysconf(_SC_PAGESIZE);
+    char *pmemaddr;
+
+    char file_buffer[BUF_LEN];
+    int cc;
+    int is_pmem;
+
+    size_t mapped_len;
+
+    char mapped_file_name[PATH_MAX];
+
+    strncpy(mapped_file_name, file_name, strlen(file_name));
+    mapped_file_name[strlen(file_name)] = '\0';
+
+    /* copying some bytes on this buffer */
+    memset(file_buffer, 'v', *n_bytes);
+
+    /* ========= memory mapped file =========== */
+    DEBG2( "NVRAM mapped_file_name: %s\n", mapped_file_name);
+
+    /* create a pmem file and memory map it */
+    if ((pmemaddr = pmem_map_file(mapped_file_name,
+                                  *n_bytes,
+                                  PMEM_FILE_CREATE|PMEM_FILE_EXCL,
+                                  0666,
+                                  &mapped_len,
+                                  &is_pmem)) == NULL)
+    {
+        perror("pmem_map_file");
+        exit(1);
+    }
+
+    DEBG2( "asked: n_bytes: %i\n", *n_bytes);
+    DEBG2( "mapped: mapped_len: %i\n", mapped_len);
+
+    /* write it to the pmem */
+    if (is_pmem) {
+        DEBG1( "Real PMEM found, persisting..");
+        pmem_memcpy_persist(pmemaddr, file_buffer, cc);
+    } else {
+        DEBG1( "No real PMEM found, persisting..");
+        memcpy(pmemaddr, file_buffer, cc);
+        pmem_msync(pmemaddr, cc);
+    }
+
+    pmem_unmap(pmemaddr, mapped_len);
+
+#endif
+
+    return 0;
+
+}
+
+
+
 /* Execute an I/O task */
-int execute_io_task(const char* io_json_str, const char* io_data){
+int execute_io_task(IOTask* iotask){
 
-    IOTask* iotask;
 
-    const char* _io_task_type;
-    const char* _io_task_file;
-    const char* _io_task_mode;
+    const char* io_task_type;
+    const char* io_task_file;
+    const char* io_task_mode;
 
-    long int _io_task_bytes;
-    long int _io_task_nwrites;
-    long int _io_task_nreads;
-    long int _io_task_offset;
+    long int io_task_bytes;
+    long int io_task_nwrites;
+    long int io_task_nreads;
+    long int io_task_offset;
 
     DEBG1("Executing IO task");
 
-    iotask = iotask_from_json_string(io_json_str);
+    io_task_type = iotask->type;
+    io_task_file = iotask->file;
+    io_task_mode = iotask->write_mode;
 
-    _io_task_type = iotask->type;
-    _io_task_file = iotask->file;
-    _io_task_mode = iotask->write_mode;
+    io_task_bytes = iotask->n_bytes;
+    io_task_nwrites = iotask->n_writes;
+    io_task_nreads = iotask->n_reads;
+    io_task_offset = iotask->offset;
 
-    _io_task_bytes = iotask->n_bytes;
-    _io_task_nwrites = iotask->n_writes;
-    _io_task_nreads = iotask->n_reads;
-    _io_task_offset = iotask->offset;
+    if (!strcmp(io_task_type, "writer")){
 
-    if (!strcmp(_io_task_type, "writer")){
+        write_file(io_task_file,
+                    &io_task_bytes,
+                    &io_task_offset,
+                    &io_task_nwrites,
+                    io_task_mode);
 
-        _write_file(_io_task_file,
-                    &_io_task_bytes,
-                    &_io_task_offset,
-                    &_io_task_nwrites,
-                    _io_task_mode);
+    } else if (!strcmp(io_task_type, "reader")) {
 
-    } else if (!strcmp(_io_task_type, "reader")) {
+        read_file(io_task_file,
+                   &io_task_bytes,
+                   &io_task_nreads,
+                   &io_task_offset);
 
-        _read_file(_io_task_file,
-                   &_io_task_bytes,
-                   &_io_task_nreads,
-                   &_io_task_offset);
+    } else if (!strcmp(io_task_type, "nvram_writer")) {
+
+        write_file_to_nvram(io_task_file,
+                            &io_task_bytes,
+                            &io_task_nreads,
+                            &io_task_offset);
     }
 
+    return 0;
+}
+
+
+
+/* Execute an I/O task */
+int execute_io_task_from_string(const char* io_json_str){
+
+    IOTask* iotask;
+
+    DEBG1("Executing IO task from string..");
+
+    iotask = iotask_from_json_string(io_json_str);
+
+    /* do execute the task */
+    execute_io_task(iotask);
+
     free(iotask);
+    iotask = NULL;
 
     return 0;
 }

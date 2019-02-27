@@ -25,7 +25,7 @@ static unsigned int LOG_OUTPUT_LVL = LOG_LVL_DEBG;
 /* get logger env variables (only at the beginning) */
 static void get_logger_env(){
 
-    char * _cwd;
+    char cwd[PATH_MAX];
 
     if (getenv("LOG_FILE") != NULL){
 
@@ -34,8 +34,8 @@ static void get_logger_env(){
 
     } else {  /* try to get a log file in the cwd */
 
-        if (getcwd(_cwd, sizeof(_cwd)) != NULL) {
-            LOG_FILE = strcat(_cwd, "/logfile.log");
+        if (getcwd(cwd, sizeof(cwd)) != NULL) {
+            LOG_FILE = strcat(cwd, "/logfile.log");
         } else {
             perror("getcwd() error");
             exit(1);

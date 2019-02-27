@@ -1,4 +1,9 @@
 
+if( PMEMIO_FOUND )
+    set(PMEMIO_DEFINITIONS "HAVE_PMEMIO")
+endif()
+
+
 # -- terminate worker
 ecbuild_add_executable(
 
@@ -7,7 +12,7 @@ ecbuild_add_executable(
     SOURCES
         terminate_io_worker.c
 
-    DEFINITIONS
+    DEFINITIONS        
 
     INCLUDES
 
@@ -29,6 +34,7 @@ ecbuild_add_executable(
         remote_io_worker.c
 
     DEFINITIONS
+        "${PMEMIO_DEFINITIONS}"
 
     INCLUDES
 
