@@ -111,3 +111,10 @@ configure_file( configure_write_files.h.in ${CMAKE_BINARY_DIR}/${_tgt_path}/conf
 
 # include the tests
 add_subdirectory( tests )
+
+# move the appropriate script into the bin directory..
+add_custom_command(
+        TARGET kronos-synapp POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy
+                ${CMAKE_SOURCE_DIR}/kronos_apps/scripts/send_job_complete_msg.py
+                ${CMAKE_BINARY_DIR}/bin)
