@@ -66,7 +66,8 @@ class UserAppJob(BaseJob):
             'read_dir': self.executor.read_cache_path,
             'shared_dir': self.executor.job_dir_shared,
             'input_file': self.input_file,
-            'simulation_token': self.executor.simulation_token
+            'simulation_token': self.executor.simulation_token,
+            'kronos_bin_dir': os.path.dirname(self.executor.coordinator_binary)
         }
 
         # place-holder for user-defined generation of parts of the submit script..
