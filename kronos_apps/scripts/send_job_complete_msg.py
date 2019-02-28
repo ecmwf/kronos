@@ -39,14 +39,15 @@ should be shown on STDOUT and later in the kronos-executor.log.
 
 from __future__ import print_function
 import socket
-import sys
 import json
 import time
 import sys
 import os
 
+
 def eprint(*args, **kwargs):
     print(*args, file=sys.stderr, **kwargs)
+
 
 def send_event(server_host, server_port, message):
     try:
@@ -70,5 +71,13 @@ if __name__ == "__main__":
     server_port = int(sys.argv[2])
     job_id = sys.argv[3] 
 
-    final = {"info":{"timestamp": int(time.time()),"job": int(job_id),"app":"kronos-synapp"},"type":"Complete", "token": os.environ.get("KRONOS_TOKEN", "UNKNOWN")}
+    final = {"info": {
+                "timestamp": int(time.time()),
+                "job": int(job_id),
+                "app": "kronos-synapp"
+             },
+             "type": "Complete",
+             "token": os.environ.get("KRONOS_TOKEN", "UNKNOWN")
+             }
+
     send_event(server_host, server_port, json.dumps(final))
