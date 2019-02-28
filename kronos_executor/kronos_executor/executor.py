@@ -137,8 +137,6 @@ class Executor(object):
         except KeyError:
             raise KeyError("Coordinator binary not provided in kronos_executor configuration")
 
-        self.kronos_bin_directory = os.path.dirname(self.coordinator_binary)
-
         self.procs_per_node = config['procs_per_node']
 
         self.initial_time = None
@@ -349,7 +347,7 @@ class Executor(object):
         # Executes all the scripts in sequence
         for tt, task in enumerate(epilogue.get("tasks")):
 
-            script_abs_path = os.path.join(self.kronos_bin_directory, task["script"])
+            script_abs_path = os.path.join(os.getcwd(), task["script"])
             logger.info("Executing script: {}".format(script_abs_path))
 
             if not os.path.isfile(script_abs_path):
@@ -421,7 +419,7 @@ class Executor(object):
         # Executes all the scripts in sequence
         for tt, task in enumerate(prologue.get("tasks")):
 
-            script_abs_path = os.path.join(self.kronos_bin_directory, task["script"])
+            script_abs_path = os.path.join(os.getcwd(), task["script"])
             logger.info("Executing script: {}".format(script_abs_path))
 
             if not os.path.isfile(script_abs_path):
