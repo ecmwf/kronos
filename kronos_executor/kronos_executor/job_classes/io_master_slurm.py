@@ -21,7 +21,7 @@ export KRONOS_SHARED_DIR="{shared_dir}"
 export KRONOS_TOKEN="{simulation_token}"
 
 # Call the io master and configure it with the appropriate I/O tasks in the schedule
-{kronos_bin_dir}/remote_io_master {host_file} {tasks}
+{kronos_bin_dir}/remote_io_master <HOST_FILE> {tasks}
 
 {send_complete_msg}
 
@@ -45,7 +45,6 @@ class SLURMMixin(object):
     cancel_file_line = cancel_file_line
 
     needed_config_params = [
-        "host_file",
         "tasks"
      ]
 
