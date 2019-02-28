@@ -42,16 +42,26 @@ if __name__ == "__main__":
     with open(args.host_file, "r") as f:
         json_data = json.load(f)
 
-    print "spinning up servers.."
+    print "Spinning up servers..\n"
     for addr in json_data:
     
         ihost = addr["host"]
         iport = addr["port"]
 
-        _proc = subprocess.Popen(["ssh", ihost, "{} {}".format(args.remote_worker, iport)],
+        print "spinning up server {} on port {}".format(ihost, iport)
+
+        # if LOG_FILE is defined, pass it on to the server exe invocation
+        log_file_export = ""
+        if os.getenv("LOG_FILE"):
+            log_file_export = "export LOG_FILE={}; export LOG_STREAM_FIL=1;".format(os.getenv("LOG_FILE"))
+
+        _spinup_command = "{} {} {}".format(log_file_export, args.remote_worker, iport)
+
+        _proc = subprocess.Popen(["ssh", ihost, _spinup_command],
                                  shell=False, stdout=subprocess.PIPE,
                                  stderr=subprocess.PIPE)
 
-        print "spunup server {} on port {}".format(ihost, iport)
+        # print "STDOUT: {}".format(_proc.stdout.readlines())
+        # print "STDERR: {}".format(_proc.stdout.readlines())
 
 
