@@ -5,6 +5,9 @@
 #include "common/logger.h"
 #include "common/json.h"
 
+#include <stdio.h>
+#include <string.h>
+
 #ifdef HAVE_PMEMIO
   #include "libpmem.h"
   #include "libpmemobj.h"
@@ -17,9 +20,6 @@
 #include <fcntl.h>
 #include <errno.h>
 #include <assert.h>
-
-#include <stdio.h>
-#include <string.h>
 #include <unistd.h>
 
 #include "limits.h"
