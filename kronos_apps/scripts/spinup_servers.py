@@ -53,7 +53,9 @@ if __name__ == "__main__":
         # if LOG_FILE is defined, pass it on to the server exe invocation
         log_file_export = ""
         if os.getenv("LOG_FILE"):
-            log_file_export = "export LOG_FILE={}; export LOG_STREAM_FIL=1;".format(os.getenv("LOG_FILE"))
+            log_file_export  = "export LOG_FILE={}; ".format(os.getenv("LOG_FILE"))
+            log_file_export += "export LOG_STREAM_FIL=1; "
+            log_file_export += "export LOG_OUTPUT_LVL=1; "
 
         _spinup_command = "{} {} {}".format(log_file_export, args.remote_worker, iport)
 
