@@ -234,14 +234,21 @@ static int read_file(const char* file_name,
                 if (result != read_chunk) {
                     ERRO2("A read error occurred reading file: %s (%d) %s", file_name);
                 }
+
+                DEBG2("--> read %i bytes ", read_chunk);
             }
 
             fclose(file);
+
+            DEBG2("file %s closed.", file_name);
         }
 
     }
 
+    DEBG1("freeing reading buffer..");
     free(read_buffer);
+
+    DEBG1("..reading done!");
 
     return 0;
 
