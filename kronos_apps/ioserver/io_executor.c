@@ -254,6 +254,8 @@ static int read_file_from_nvram(const char* file_name,
                                 const long int* n_reads,
                                 const long int* offset){
 
+#ifdef HAVE_PMEMIO
+
     PMEMobjpool *pop;
     PMEMoid root;
     struct kronos_pobj_root *rootp;
@@ -280,6 +282,8 @@ static int read_file_from_nvram(const char* file_name,
     DEBG1( "NVRAM: closing pool..");
     pmemobj_close(pop);
     DEBG1( "NVRAM: pool closed!");
+
+#endif
 
     return 0;
 
