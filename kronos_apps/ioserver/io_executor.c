@@ -8,6 +8,7 @@
 #ifdef HAVE_PMEMIO
   #include "libpmem.h"
   #include "libpmemobj.h"
+  #include "nvram_layout.h"
 #endif
 
 #include <stdlib.h>
@@ -124,6 +125,81 @@ static int write_file(const char* file_name,
 }
 
 
+/* write this file to nvram (through memory map) */
+static int write_file_to_nvram(const char* file_name,
+                               const long int* n_bytes,
+                               const long int* n_reads,
+                               const long int* offset){
+
+#ifdef HAVE_PMEMIO
+
+    char file_buffer[MAX_PMEM_BUF_LEN];
+    char mapped_file_name[PATH_MAX];
+
+    PMEMobjpool *pop;
+    PMEMoid root;
+    struct kronos_pobj_root *rootp;
+
+
+    /* get file name */
+    strncpy(mapped_file_name, file_name, strlen(file_name));
+    mapped_file_name[strlen(file_name)] = '\0';
+    DEBG2( "NVRAM mapped_file_name: %s\n", mapped_file_name);
+
+    /* get file name fill up the buffer (TODO: just dummy content at the moment..) */
+    DEBG2("NVRAM btes to write: %i", *n_bytes);
+    memset(file_buffer, 'v', *n_bytes);
+    DEBG2("NVRAM file buffer: %s", file_buffer);
+
+
+
+    /* create the pool with the proper name/permissions */
+    pop = pmemobj_create(mapped_file_name,
+                         LAYOUT_NAME,
+                         PMEMOBJ_MIN_POOL,
+                         0666);
+
+    if (pop == NULL) {
+        ERRO1( "NVRAM: error generating pool!");
+        perror("pmemobj_create");
+        exit(1);
+    }
+
+    DEBG1( "NVRAM: pool created");
+
+    /* get the root pointer and cast it as appropriate */
+    root = pmemobj_root(pop, sizeof(struct kronos_pobj_root));
+    rootp = pmemobj_direct(root);
+
+    DEBG1( "NVRAM: root pointer acquired");
+
+    /*char buf[MAX_BUF_LEN] = {0};
+    if (scanf("%9s", buf) == EOF) {
+        fprintf(stderr, "EOF\n");
+        return 1;
+    }*/
+
+    /* transactional write to range */
+    DEBG2( "NVRAM: starting transaction: writing (%i) bytes..", strlen(file_buffer));
+    TX_BEGIN(pop) {
+        pmemobj_tx_add_range(root, 0, sizeof(struct kronos_pobj_root));
+        memcpy(rootp->buf, file_buffer, strlen(file_buffer));
+    } TX_END
+    DEBG1( "NVRAM: transaction completed");
+
+    /* finally close the pool */
+    pmemobj_close(pop);
+
+    DEBG1( "NVRAM: persistent object pool closed.");
+
+
+#endif
+
+    return 0;
+
+}
+
+
 /* open-read-close */
 static int read_file(const char* file_name,
                      const long int* n_bytes,
@@ -172,64 +248,43 @@ static int read_file(const char* file_name,
 }
 
 
-/* write this file to nvram (through memory map) */
-static int write_file_to_nvram(const char* file_name,
-                               const long int* n_bytes,
-                               const long int* n_reads,
-                               const long int* offset){
+/* open-read-close */
+static int read_file_from_nvram(const char* file_name,
+                                const long int* n_bytes,
+                                const long int* n_reads,
+                                const long int* offset){
 
-#ifdef HAVE_PMEMIO
+    PMEMobjpool *pop;
+    PMEMoid root;
+    struct kronos_pobj_root *rootp;
+    int i;
 
-    char *pmemaddr;
-    char file_buffer[BUF_LEN];
-    int cc;
-    int is_pmem;
 
-    size_t mapped_len;
-
-    char mapped_file_name[PATH_MAX];
-
-    strncpy(mapped_file_name, file_name, strlen(file_name));
-    mapped_file_name[strlen(file_name)] = '\0';
-
-    /* copying some bytes on this buffer */
-    memset(file_buffer, 'v', *n_bytes);
-
-    /* ========= memory mapped file =========== */
-    DEBG2( "NVRAM mapped_file_name: %s\n", mapped_file_name);
-
-    /* create a pmem file and memory map it */
-    if ((pmemaddr = pmem_map_file(mapped_file_name,
-                                  *n_bytes,
-                                  PMEM_FILE_CREATE|PMEM_FILE_EXCL,
-                                  0666,
-                                  &mapped_len,
-                                  &is_pmem)) == NULL)
-    {
-        perror("pmem_map_file");
-        exit(1);
+    DEBG2("NVRAM: opening pool %s", file_name);
+    pop = pmemobj_open(file_name, LAYOUT_NAME);
+    if (pop == NULL) {
+        perror("pmemobj_open");
+        ERRO1( "NVRAM: error opening pool!");
+        return 1;
     }
 
-    DEBG2( "asked: n_bytes: %i\n", *n_bytes);
-    DEBG2( "mapped: mapped_len: %i\n", mapped_len);
+    root = pmemobj_root(pop, sizeof(struct kronos_pobj_root));
+    rootp = pmemobj_direct(root);
+    DEBG1( "NVRAM: root pointer acquired");
 
-    /* write it to the pmem */
-    if (is_pmem) {
-        DEBG1( "Real PMEM found, persisting..");
-        pmem_memcpy_persist(pmemaddr, file_buffer, cc);
-    } else {
-        DEBG1( "No real PMEM found, persisting..");
-        memcpy(pmemaddr, file_buffer, cc);
-        pmem_msync(pmemaddr, cc);
+    DEBG2("NVRAM buffer read: %i", sizeof(rootp->buf));
+    for (i=0; i<sizeof(rootp->buf); i++){
+        DEBG2("NVRAM buffer read: %c", rootp->buf[i]);
     }
 
-    pmem_unmap(pmemaddr, mapped_len);
-
-#endif
+    DEBG1( "NVRAM: closing pool..");
+    pmemobj_close(pop);
+    DEBG1( "NVRAM: pool closed!");
 
     return 0;
 
 }
+
 
 
 
@@ -265,6 +320,13 @@ int execute_io_task(IOTask* iotask){
                     &io_task_nwrites,
                     io_task_mode);
 
+    } else if (!strcmp(io_task_type, "nvram_writer")) {
+
+        write_file_to_nvram(io_task_file,
+                            &io_task_bytes,
+                            &io_task_nreads,
+                            &io_task_offset);
+
     } else if (!strcmp(io_task_type, "reader")) {
 
         read_file(io_task_file,
@@ -272,12 +334,12 @@ int execute_io_task(IOTask* iotask){
                    &io_task_nreads,
                    &io_task_offset);
 
-    } else if (!strcmp(io_task_type, "nvram_writer")) {
+    } else if (!strcmp(io_task_type, "nvram_reader")) {
 
-        write_file_to_nvram(io_task_file,
-                            &io_task_bytes,
-                            &io_task_nreads,
-                            &io_task_offset);
+        read_file_from_nvram(io_task_file,
+                             &io_task_bytes,
+                             &io_task_nreads,
+                             &io_task_offset);
     }
 
     return 0;

@@ -31,6 +31,7 @@ ecbuild_add_executable(
         io_executor.c
         io_task.h
         io_task.c
+        nvram_layout.h
         remote_io_worker.c
 
     DEFINITIONS
