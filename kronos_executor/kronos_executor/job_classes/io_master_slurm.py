@@ -23,6 +23,8 @@ export KRONOS_TOKEN="{simulation_token}"
 # Call the io master and configure it with the appropriate I/O tasks in the schedule
 {kronos_bin_dir}/remote_io_master <HOST_FILE> {tasks}
 
+sleep 5
+
 {send_complete_msg}
 
 """
