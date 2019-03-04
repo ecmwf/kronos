@@ -61,6 +61,7 @@ static void get_logger_env(){
 
 
     printf("log file: %s\n", LOG_FILE);
+    printf("log output level: %i\n", LOG_OUTPUT_LVL);
 
 }
 
