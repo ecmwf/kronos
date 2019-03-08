@@ -10,6 +10,8 @@ ecbuild_add_executable(
     TARGET terminate_io_worker
 
     SOURCES
+        network.h
+        network.c
         terminate_io_worker.c
 
     DEFINITIONS        

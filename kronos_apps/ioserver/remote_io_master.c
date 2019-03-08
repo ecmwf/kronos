@@ -10,9 +10,6 @@
 #include <assert.h>
 #include <unistd.h>
 
-#define JSON_BUF_LEN 1024
-#define BUFSIZE JSON_BUF_LEN
-
 
 int main(int argc, char **argv) {
 
@@ -32,8 +29,8 @@ int main(int argc, char **argv) {
     const JSON* json_input;
     const JSON* _jsonmsg;
 
-    char jsonbuf[JSON_BUF_LEN];
-    char reply_buf[BUFSIZE];
+    char jsonbuf[JSON_MSG_BUFFER];
+    char reply_buf[JSON_MSG_BUFFER];
     int imsg, msg_size, io_msg_len;
 
     /* server connection */
@@ -92,19 +89,19 @@ int main(int argc, char **argv) {
         /* reading json io message one at a time.. */
         _jsonmsg = json_array_element(json_input, imsg);
         json_object_get_integer(_jsonmsg, "host", &_msg_host);
-        msg_size = write_json_string(jsonbuf, JSON_BUF_LEN, _jsonmsg);
+        msg_size = write_json_string(jsonbuf, JSON_MSG_BUFFER, _jsonmsg);
         DEBG3("json message size %i: %s", msg_size, jsonbuf);
 
         /* server host/port setup */
         srv_conn = connect_to_server(hosts[_msg_host], ports[_msg_host]);
 
         /* send the message line to the server and wait for the reply */
-        if (send_msg(srv_conn, jsonbuf, &msg_size)){
+        if (send_msg(srv_conn, jsonbuf, msg_size)){
             ERRO1("message send, failed!");
         };
 
         /* print the server's reply */
-        if (recv_msg(srv_conn, reply_buf, BUFSIZE)) {
+        if (recv_msg(srv_conn, reply_buf, JSON_MSG_BUFFER)) {
             ERRO1("message send, failed!");
         }
 

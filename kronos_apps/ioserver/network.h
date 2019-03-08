@@ -5,6 +5,13 @@
 #include "limits.h"
 
 
+/* max buffer allowed for msg's */
+#define MSG_BUFFER 1024
+
+/* max buffer allowed for json msg's */
+#define JSON_MSG_BUFFER 1024*1024
+
+
 /* some info of a connection */
 typedef struct ServerConnection {
 
@@ -23,13 +30,13 @@ ServerConnection* connect_to_server(const char *host, const long int port);
 /* send message (requires open connection) */
 int send_msg(const ServerConnection* conn,
              const char* buffer,
-             int* buffer_len);
+             const int buffer_len);
 
 
 /* recv message (requires open connection) */
 int recv_msg(const ServerConnection* conn,
              char* buffer,
-             int buffer_len);
+             const int buffer_len);
 
 
 /* close a connection */

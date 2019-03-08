@@ -1,4 +1,8 @@
 
+#include "common/json.h"
+#include "common/logger.h"
+#include "network.h"
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -8,33 +12,14 @@
 #include <netinet/in.h>
 #include <netdb.h>
 
-#include "common/json.h"
-#include "common/logger.h"
-
-
-/*
- * connect to a server and returns the socket descriptor
- */
-int get_socket(){
-
-    int sockfd;
-
-    /* socket: create the socket */
-    sockfd = socket(AF_INET, SOCK_STREAM, 0);
-    if (sockfd < 0)
-        FATL1("ERROR opening socket");
-
-    return sockfd;
-}
-
 
 int main(int argc, char **argv) {
 
-    int sockfd, n, errno;
-    struct sockaddr_in serveraddr;
-    struct hostent *server;
-    const char* server_host;
+    const char *server_host;
     int server_port;
+
+    /* server connection */
+    ServerConnection* srv_conn;
 
     const char *kill_msg = "terminate-server";
 
@@ -58,29 +43,16 @@ int main(int argc, char **argv) {
     /* server host/port setup  */
     INFO3("H: %s, P: %i\n", server_host, server_port);
 
-    /* gethostbyname: get the server's DNS entry */
-    server = gethostbyname(server_host);
-    if (server == NULL) exit(0);
+    /* server host/port setup */
+    srv_conn = connect_to_server(server_host, server_port);
 
-    bzero((char *) &serveraddr, sizeof(serveraddr));
-    serveraddr.sin_family = AF_INET;
-    bcopy((char *)server->h_addr_list[0], (char *)&serveraddr.sin_addr.s_addr, server->h_length);
-    serveraddr.sin_port = htons(server_port);
+    /* send the message line to the server and wait for the reply */
+    if (send_msg(srv_conn, kill_msg, strlen(kill_msg))){
+        ERRO1("Message send failed!");
+    };
 
-    /* get a socket and connect it to the server address */
-    sockfd = get_socket();
-    errno = connect(sockfd, (const struct sockaddr *)&serveraddr, sizeof(serveraddr));
-    if (errno < 0) {
-        printf("error getting connecting the socket: %i\n", errno);
-    }
-
-    n = write(sockfd, kill_msg, strlen(kill_msg));
-    if (n < 0) {
-        ERRO1("ERROR writing to socket");
-    }
-
-    /* close the socket */
-    close(sockfd);
+    /* close the connection */
+    close_connection(srv_conn);
 
     INFO1("server termination request sent correctly.\n");
     return 0;

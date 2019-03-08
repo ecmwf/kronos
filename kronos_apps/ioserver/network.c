@@ -78,9 +78,9 @@ ServerConnection* connect_to_server(const char *host, const long int port){
 
 
 /* send message (requires open connection) */
-int send_msg(const ServerConnection* conn, const char* buffer, int* buffer_len){
+int send_msg(const ServerConnection* conn, const char* buffer, const int buffer_len){
 
-    if (write(conn->socket_fd, buffer, *buffer_len) < 0) {
+    if (write(conn->socket_fd, buffer, buffer_len) < 0) {
         ERRO2("Writing to socket %i failed!", conn->socket_fd);
         return -1;
 
