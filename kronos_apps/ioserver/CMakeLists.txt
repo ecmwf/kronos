@@ -51,6 +51,8 @@ ecbuild_add_executable(
     TARGET remote_io_master
 
     SOURCES
+        network.h
+        network.c
         remote_io_master.c
 
     DEFINITIONS

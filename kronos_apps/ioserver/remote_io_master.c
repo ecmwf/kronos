@@ -1,37 +1,17 @@
 
 #include "common/json.h"
 #include "common/logger.h"
+#include "network.h"
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <strings.h>
 #include <assert.h>
-
 #include <unistd.h>
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <netdb.h>
 
 #define JSON_BUF_LEN 1024
 #define BUFSIZE JSON_BUF_LEN
-
-
-/*
- * connect to a server and returns the socket descriptor
- */
-int get_socket(){
-
-    int sockfd;
-
-    /* socket: create the socket */
-    sockfd = socket(AF_INET, SOCK_STREAM, 0);
-    if (sockfd < 0)
-        ERRO1("ERROR opening socket");
-
-    return sockfd;
-}
 
 
 int main(int argc, char **argv) {
@@ -47,10 +27,6 @@ int main(int argc, char **argv) {
     const char** hosts;
     long int* ports;
 
-    int sockfd, n;
-    struct sockaddr_in serveraddr;
-    struct hostent* server;
-
     /* json parsing/msg */
     const char* input_json_str;
     const JSON* json_input;
@@ -58,10 +34,10 @@ int main(int argc, char **argv) {
 
     char jsonbuf[JSON_BUF_LEN];
     char reply_buf[BUFSIZE];
-    int io_msg_len;
-    int msg_size;
-    int imsg;
+    int imsg, msg_size, io_msg_len;
 
+    /* server connection */
+    ServerConnection* srv_conn;
 
     /* check the command line arguments.. */
     if (argc < 3) {
@@ -119,39 +95,24 @@ int main(int argc, char **argv) {
         msg_size = write_json_string(jsonbuf, JSON_BUF_LEN, _jsonmsg);
         DEBG3("json message size %i: %s", msg_size, jsonbuf);
 
-        /* =========== server host/port setup ================== */
-        INFO3("H: %s, P: %i", hosts[_msg_host], ports[_msg_host]);
-
-        /* gethostbyname: get the server's DNS entry */
-        server = gethostbyname(hosts[_msg_host]);
-        if (server == NULL)
-          exit(0);
-
-        bzero((char *) &serveraddr, sizeof(serveraddr));
-        serveraddr.sin_family = AF_INET;
-        bcopy((char *)server->h_addr_list[0], (char *)&serveraddr.sin_addr.s_addr, server->h_length);
-        serveraddr.sin_port = htons(ports[_msg_host]);
-        /* =============================================================== */
-
-        sockfd = get_socket();
-        if (connect(sockfd, (const struct sockaddr *)&serveraddr, sizeof(serveraddr)) < 0)
-          ERRO1("ERROR connecting");
+        /* server host/port setup */
+        srv_conn = connect_to_server(hosts[_msg_host], ports[_msg_host]);
 
         /* send the message line to the server and wait for the reply */
-        n = write(sockfd, jsonbuf, msg_size);
-        if (n < 0)
-          ERRO1("ERROR writing to socket");
+        if (send_msg(srv_conn, jsonbuf, &msg_size)){
+            ERRO1("message send, failed!");
+        };
 
         /* print the server's reply */
-        n = read(sockfd, reply_buf, BUFSIZE);
-        if (n < 0)
-          ERRO1("ERROR reading from socket");
+        if (recv_msg(srv_conn, reply_buf, BUFSIZE)) {
+            ERRO1("message send, failed!");
+        }
 
         INFO2("Acknowledgement from server: %s", reply_buf);
         DEBG2("strlen(reply_buf): %i", strlen(reply_buf));
 
-        /* close the socket */
-        close(sockfd);
+        /* close the connection */
+        close_connection(srv_conn);
     }
 
     /* free remaining json ptrs */
