@@ -2,6 +2,7 @@
 #include "io_executor.h"
 #include "common/logger.h"
 #include "common/json.h"
+#include "common/network/network.h"
 
 #include <stdio.h>
 #include <unistd.h>
@@ -27,24 +28,16 @@
 
 int main(int argc, char **argv) {
 
-  int parentfd; /* parent socket */
   int childfd; /* child socket */
   int portno; /* port to listen on */
   socklen_t clientlen; /* byte size of client's address */
-  struct sockaddr_in serveraddr; /* server's addr */
   struct sockaddr_in clientaddr; /* client addr */
   struct hostent *hostp; /* client host info */
+  char *hostaddrp;
 
-  char iotask_msg_buffer[JSON_BUF_LEN]; /* message buffer */
-  char io_data[IO_DATA_BUF];
-  int errno_io;
-
-  char *hostaddrp; /* dotted decimal host addr string */
-  int optval; /* flag value for setsockopt */
-  int n; /* message byte size */
-  const char *ack_msg = "message-processed";
-  const char *kill_msg = "terminate-server";
-
+  NetMessage* msg;
+  NetConnection* conn;
+  Server* srv;
 
   /*
    * check command line arguments
@@ -54,52 +47,12 @@ int main(int argc, char **argv) {
   }
   portno = atoi(argv[1]);
 
-  /*
-   * socket: create the parent socket
-   */
-  parentfd = socket(AF_INET, SOCK_STREAM, 0);
-  if (parentfd < 0)
-    ERRO1("ERROR opening socket");
+  /* server setup */
+  srv = setup_server(&portno);
 
-  /* setsockopt: Handy debugging trick that lets
-   * us rerun the server immediately after we kill it;
-   * otherwise we have to wait about 20 secs.
-   * Eliminates "ERROR on binding: Address already in use" error.
-   */
-  optval = 1;
-  setsockopt(parentfd, SOL_SOCKET, SO_REUSEADDR,
-             (const void *)&optval , sizeof(int));
+  /* listen.. */
+  net_listen(srv);
 
-  /*
-   * build the server's Internet address
-   */
-  memset((char *) &serveraddr, 0, sizeof(serveraddr));
-
-  /* this is an Internet address */
-  serveraddr.sin_family = AF_INET;
-
-  /* let the system figure out our IP address */
-  serveraddr.sin_addr.s_addr = htonl(INADDR_ANY);
-  INFO3("Server running on host: %s, port:%i",
-         serveraddr.sin_addr.s_addr,
-         portno);
-
-
-  /* this is the port we will listen on */
-  serveraddr.sin_port = htons((unsigned short)portno);
-
-  /*
-   * bind: associate the parent socket with a port
-   */
-  if (bind(parentfd, (struct sockaddr *) &serveraddr, (socklen_t)sizeof(serveraddr)) < 0) {
-    ERRO1("ERROR on binding");
-  }
-
-  /*
-   * listen: make this socket ready to accept connection requests
-   */
-  if (listen(parentfd, MAXNREQ) < 0)
-    ERRO1("ERROR on listen");
 
   /*
    * main loop: wait for a connection request, echo input line,
@@ -112,7 +65,10 @@ int main(int argc, char **argv) {
     /*
      * accept: wait for a connection request
      */
-    childfd = accept(parentfd, (struct sockaddr *) &clientaddr, &clientlen);
+    childfd = accept(srv->socket_fd,
+                     (struct sockaddr *)
+                     &clientaddr, &clientlen);
+
     if (childfd < 0) {
       ERRO1("ERROR on accept");
     }
@@ -134,6 +90,15 @@ int main(int argc, char **argv) {
     INFO3("server established connection with %s (%s)", hostp->h_name, hostaddrp);
 
     /* receive one message only */
+    conn = malloc(sizeof(NetConnection));
+    strncpy(conn->host, "hello", 6);
+    conn->port = portno;
+    conn->socket_fd = childfd;
+    conn->isConnectionOpen = 1;
+    DEBG1("filled up conn struct");
+    msg = recv_net_msg(conn);
+
+#if 0
     memset(iotask_msg_buffer, 0, JSON_BUF_LEN);
     n = read(childfd, iotask_msg_buffer, JSON_BUF_LEN);
     if (n < 0)
@@ -154,9 +119,12 @@ int main(int argc, char **argv) {
     if (n < 0) {
       FATL1("ERROR writing to socket");
     }
-
+#endif
     /* perform the IO task as requested */
+
+    /*
     errno_io = execute_io_task_from_string(iotask_msg_buffer);
+    */
 
     /* send data back (only if it's a reading instruction)
     if (!errno_io){

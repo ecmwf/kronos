@@ -1,7 +1,7 @@
 
 #include "common/json.h"
 #include "common/logger.h"
-#include "network.h"
+#include "common/network/network.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -19,7 +19,7 @@ int main(int argc, char **argv) {
     int server_port;
 
     /* server connection */
-    ServerConnection* srv_conn;
+    NetConnection* srv_conn;
 
     const char *kill_msg = "terminate-server";
 

@@ -10,8 +10,8 @@ ecbuild_add_executable(
     TARGET terminate_io_worker
 
     SOURCES
-        network.h
-        network.c
+        ${CMAKE_SOURCE_DIR}/kronos_apps/common/network/network.h
+        ${CMAKE_SOURCE_DIR}/kronos_apps/common/network/message.h
         terminate_io_worker.c
 
     DEFINITIONS        
@@ -20,6 +20,7 @@ ecbuild_add_executable(
 
     LIBS
         msglogger
+        network
 )
 
 
@@ -44,6 +45,7 @@ ecbuild_add_executable(
     LIBS
         kronos
         msglogger
+        network
 )
 
 
@@ -53,8 +55,8 @@ ecbuild_add_executable(
     TARGET remote_io_master
 
     SOURCES
-        network.h
-        network.c
+        ${CMAKE_SOURCE_DIR}/kronos_apps/common/network/network.h
+        ${CMAKE_SOURCE_DIR}/kronos_apps/common/network/message.h
         remote_io_master.c
 
     DEFINITIONS
@@ -64,23 +66,7 @@ ecbuild_add_executable(
     LIBS
         kronos
         msglogger
-)
-
-ecbuild_add_library (
-
-    TARGET ioserver_network
-
-    SOURCES
-        network.h
-        network.c
-
-    DEFINITIONS
-
-    GENERATED
-
-    INCLUDES
-
-    LIBS
+        network
 )
 
 

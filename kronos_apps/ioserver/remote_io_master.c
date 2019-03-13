@@ -1,7 +1,7 @@
 
 #include "common/json.h"
 #include "common/logger.h"
-#include "network.h"
+#include "common/network/network.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -33,8 +33,15 @@ int main(int argc, char **argv) {
     char reply_buf[JSON_MSG_BUFFER];
     int imsg, msg_size, io_msg_len;
 
+    /* net message */
+    NetMessage* msg;
+    int head_l=10;
+    char* head="ciaociao9";
+    int pay_l=5;
+    char* pay="12345";
+
     /* server connection */
-    ServerConnection* srv_conn;
+    NetConnection* srv_conn;
 
     /* check the command line arguments.. */
     if (argc < 3) {
@@ -95,6 +102,14 @@ int main(int argc, char **argv) {
         /* server host/port setup */
         srv_conn = connect_to_server(hosts[_msg_host], ports[_msg_host]);
 
+
+
+        /* pack a msg */
+        msg = pack_net_message(&head_l, head, &pay_l, pay);
+        send_net_msg(srv_conn, msg);
+
+
+#if 0
         /* send the message line to the server and wait for the reply */
         if (send_msg(srv_conn, jsonbuf, msg_size)){
             ERRO1("message send, failed!");
@@ -107,6 +122,7 @@ int main(int argc, char **argv) {
 
         INFO2("Acknowledgement from server: %s", reply_buf);
         DEBG2("strlen(reply_buf): %i", strlen(reply_buf));
+#endif
 
         /* close the connection */
         close_connection(srv_conn);
