@@ -3,14 +3,15 @@
 #include "common/logger.h"
 
 #include <stdlib.h>
+#include <unistd.h>
 
 #include <sys/types.h>
-#include <unistd.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
+
 #include "string.h"
 #include "strings.h"
-
-
-
 
 
 
@@ -62,7 +63,7 @@ static int net_bind(Server* srv){
 }
 
 
-Server* setup_server(const int* portno){
+Server* create_server(const int* portno){
 
     Server* srv;
 
@@ -109,7 +110,6 @@ Server* setup_server(const int* portno){
 
     return srv;
 
-
 }
 
 
@@ -128,6 +128,48 @@ int net_listen(Server* srv){
 /* accept */
 int net_accept(Server* srv){
 
+    socklen_t clientlen; /* byte size of client's address */
+    struct sockaddr_in clientaddr; /* client addr */
+    int childfd; /* child socket */
+    struct hostent *hostp; /* client host info */
+    char *hostaddrp;
+
+    clientlen = sizeof(clientaddr);
+
+    /*
+     * accept: wait for a connection request
+     */
+    DEBG1("waiting for connections..");
+    childfd = accept(srv->socket_fd,
+                     (struct sockaddr *)&clientaddr,
+                     &clientlen);
+
+    if (childfd < 0) {
+      ERRO2("ERROR on getting client connection (fd = %i", childfd);
+      return -1;
+    }
+
+    DEBG2("connections %i accepted!", childfd);
+
+    /*
+     * gethostbyaddr: determine who sent the message
+     */
+    hostp = gethostbyaddr((const char *)&clientaddr.sin_addr.s_addr,
+                          sizeof(clientaddr.sin_addr.s_addr), AF_INET);
+    if (hostp == NULL) {
+      ERRO1("ERROR on gethostbyaddr");
+      return -1;
+    }
+
+    hostaddrp = inet_ntoa(clientaddr.sin_addr);
+    if (hostaddrp == NULL) {
+      ERRO1("ERROR on inet_ntoa(clientaddr.sin_addr)");
+      return -1;
+    }
+
+    INFO3("server established connection with %s (%s)", hostp->h_name, hostaddrp);
+    return childfd;
+
 }
 
 
@@ -139,11 +181,34 @@ int net_broadcast(Server* srv, NetMessage* msg){
 
 /* check if a msg is termination message */
 bool check_termination_msg(NetMessage* msg){
-    FATL1("not yet implemented!");
+
+    DEBG1("comparing msg VS termination-msg..");
+    if (!strcmp(msg->head, SERVER_TERMINATION_STR)){
+        return true;
+    } else {
+        return false;
+    }
 }
 
 
+/* acknowledge reception with a pre-defined message */
+int acknowledge_reception(NetConnection* conn){
 
+    NetMessage* msg;
+    int hd_len, no_len = 0;
+    const char* head;
+
+    head = SERVER_ACK_STR;
+    hd_len = strlen(head)+1;
+
+    DEBG2("hd_len: %i", hd_len);
+
+    msg = pack_net_message(&hd_len, SERVER_ACK_STR, &no_len, NULL);
+    send_net_msg(conn, msg);
+
+    free(msg);
+
+}
 
 
 
@@ -288,7 +353,7 @@ NetMessage* recv_net_msg(const NetConnection* conn){
     NetMessage* msg = malloc(sizeof(NetMessage));
 
 
-    /* check that the connection is open.. */
+    /* check that the connection is set as open.. */
     if (!conn->isConnectionOpen){
         ERRO2("Connection to host %s closed, read failed!", conn->host);
         return NULL;

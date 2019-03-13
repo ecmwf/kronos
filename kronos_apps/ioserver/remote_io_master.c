@@ -30,14 +30,14 @@ int main(int argc, char **argv) {
     const JSON* _jsonmsg;
 
     char jsonbuf[JSON_MSG_BUFFER];
-    char reply_buf[JSON_MSG_BUFFER];
     int imsg, msg_size, io_msg_len;
 
     /* net message */
     NetMessage* msg;
+    NetMessage* msg_ack;
     int head_l=10;
     char* head="ciaociao9";
-    int pay_l=5;
+    int pay_l=6;
     char* pay="12345";
 
     /* server connection */
@@ -102,27 +102,16 @@ int main(int argc, char **argv) {
         /* server host/port setup */
         srv_conn = connect_to_server(hosts[_msg_host], ports[_msg_host]);
 
-
-
         /* pack a msg */
+        DEBG1("sending message..");
         msg = pack_net_message(&head_l, head, &pay_l, pay);
         send_net_msg(srv_conn, msg);
+        free(msg);
+        DEBG1("message sent!");
 
-
-#if 0
-        /* send the message line to the server and wait for the reply */
-        if (send_msg(srv_conn, jsonbuf, msg_size)){
-            ERRO1("message send, failed!");
-        };
-
-        /* print the server's reply */
-        if (recv_msg(srv_conn, reply_buf, JSON_MSG_BUFFER)) {
-            ERRO1("message send, failed!");
-        }
-
-        INFO2("Acknowledgement from server: %s", reply_buf);
-        DEBG2("strlen(reply_buf): %i", strlen(reply_buf));
-#endif
+        /* wait for server acknowledgment */
+        msg_ack = recv_net_msg(srv_conn);
+        DEBG2("Acknowledgment from server: %s", msg_ack->head);
 
         /* close the connection */
         close_connection(srv_conn);

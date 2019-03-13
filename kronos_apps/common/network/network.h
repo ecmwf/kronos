@@ -19,6 +19,9 @@
 /* server termination string */
 #define SERVER_TERMINATION_STR "terminate-server"
 
+/* msg reception acknowledgment string */
+#define SERVER_ACK_STR "message-received"
+
 /* max number of queued requests for connections */
 #define MAXNREQ 1024
 
@@ -63,7 +66,7 @@ typedef struct Server {
 
 
 /* setup a server */
-Server* setup_server(const int* portno);
+Server* create_server(const int* portno);
 
 
 /* listen */
@@ -79,6 +82,10 @@ int net_broadcast(Server* srv, NetMessage* msg);
 
 /* check if a msg is termination message */
 bool check_termination_msg(NetMessage* msg);
+
+
+/* acknowledge_reception */
+int acknowledge_reception(NetConnection* conn);
 
 
 

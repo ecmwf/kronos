@@ -8,17 +8,8 @@
 #include <unistd.h>
 #include <stdlib.h>
 #include <string.h>
-#include <netdb.h>
-
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
 
 #include <errno.h>
-#include <sys/stat.h>
-#include <fcntl.h>
-#include <assert.h>
 
 
 /* max num of connection requests allowed */
@@ -28,16 +19,13 @@
 
 int main(int argc, char **argv) {
 
-  int childfd; /* child socket */
   int portno; /* port to listen on */
-  socklen_t clientlen; /* byte size of client's address */
-  struct sockaddr_in clientaddr; /* client addr */
-  struct hostent *hostp; /* client host info */
-  char *hostaddrp;
 
   NetMessage* msg;
-  NetConnection* conn;
+  NetConnection* conn_with_client;
   Server* srv;
+
+  int client_conn_fd;
 
   /*
    * check command line arguments
@@ -47,79 +35,45 @@ int main(int argc, char **argv) {
   }
   portno = atoi(argv[1]);
 
-  /* server setup */
-  srv = setup_server(&portno);
+  /* create the server */
+  srv = create_server(&portno);
 
-  /* listen.. */
+  /* listening.. */
   net_listen(srv);
 
+  /* preallocate client connection */
+  conn_with_client = malloc(sizeof(NetConnection));
 
-  /*
-   * main loop: wait for a connection request, echo input line,
-   * then close connection.
-   */
-  clientlen = sizeof(clientaddr);
+
+  /* main loop */
   INFO1("Server running..");
+
   while (1) {
 
-    /*
-     * accept: wait for a connection request
-     */
-    childfd = accept(srv->socket_fd,
-                     (struct sockaddr *)
-                     &clientaddr, &clientlen);
-
-    if (childfd < 0) {
-      ERRO1("ERROR on accept");
+    /* wait for incoming connections */
+    client_conn_fd = net_accept(srv);
+    if (client_conn_fd < 0){
+        FATL1("error in accepting connection to server");
     }
 
-    /*
-     * gethostbyaddr: determine who sent the message
-     */
-    hostp = gethostbyaddr((const char *)&clientaddr.sin_addr.s_addr,
-                          sizeof(clientaddr.sin_addr.s_addr), AF_INET);
-    if (hostp == NULL) {
-      ERRO1("ERROR on gethostbyaddr");
-    }
-
-    hostaddrp = inet_ntoa(clientaddr.sin_addr);
-    if (hostaddrp == NULL) {
-      ERRO1("ERROR on inet_ntoa");
-    }
-
-    INFO3("server established connection with %s (%s)", hostp->h_name, hostaddrp);
+    /* setup client connection */
+    conn_with_client->socket_fd = client_conn_fd;
+    conn_with_client->isConnectionOpen = 1;
+    DEBG1("filled up conn struct");
 
     /* receive one message only */
-    conn = malloc(sizeof(NetConnection));
-    strncpy(conn->host, "hello", 6);
-    conn->port = portno;
-    conn->socket_fd = childfd;
-    conn->isConnectionOpen = 1;
-    DEBG1("filled up conn struct");
-    msg = recv_net_msg(conn);
+    msg = recv_net_msg(conn_with_client);
 
-#if 0
-    memset(iotask_msg_buffer, 0, JSON_BUF_LEN);
-    n = read(childfd, iotask_msg_buffer, JSON_BUF_LEN);
-    if (n < 0)
-      perror("ERROR reading from socket");
+    /* acknowledge reception */
+    acknowledge_reception(conn_with_client);
 
-    INFO3("server received %d bytes, msg: %s", n, iotask_msg_buffer);
-
-    if (!strcmp(iotask_msg_buffer, kill_msg)){
-        INFO2("received kill signal %s => terminating.", iotask_msg_buffer);
-        INFO1("Worker finished successfully.");
+    /* decide to honour a termination request (when arrives) */
+    if (check_termination_msg(msg)){
+        INFO1("received kill signal => terminating.");
+        close(conn_with_client->socket_fd);
         return 0;
     }
 
-    /*
-     * acknowledge the client for reception
-     */
-    n = write(childfd, ack_msg, strlen(ack_msg));
-    if (n < 0) {
-      FATL1("ERROR writing to socket");
-    }
-#endif
     /* perform the IO task as requested */
 
     /*
@@ -135,9 +89,14 @@ int main(int argc, char **argv) {
 
 
     /* close connection */
-    close(childfd);
+    DEBG2("closing connection fd %i", client_conn_fd);
+    close(client_conn_fd);
 
   } /* server loop */
+
+  /* should's get here anyway.. */
+  free(srv);
+  free(conn_with_client);
 
 }
 
