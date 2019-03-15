@@ -38,10 +38,7 @@ int main(int argc, char **argv) {
     /* net message */
     NetMessage* msg;
     NetMessage* msg_ack;
-    int head_l;
-    char* head;
-    int pay_l;
-    char* pay;
+    int null_payl = 0;
 
     /* check the command line arguments.. */
     if (argc < 3) {
@@ -112,11 +109,7 @@ int main(int argc, char **argv) {
 
         /* pack-send-free a msg */
         DEBG1("sending message..");
-        head_l=msg_size;
-        head=jsonbuf;
-        pay_l=0;
-        pay=NULL;
-        msg = pack_net_message(&head_l, head, &pay_l, pay);
+        msg = pack_net_message(&msg_size, jsonbuf, &null_payl, NULL);
         send_net_msg(srv_conn, msg);
         free(msg);
         DEBG1("message sent!");
