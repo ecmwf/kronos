@@ -32,16 +32,16 @@ int main(int argc, char **argv) {
     char jsonbuf[JSON_MSG_BUFFER];
     int imsg, msg_size, io_msg_len;
 
+    /* server connection */
+    NetConnection* srv_conn;
+
     /* net message */
     NetMessage* msg;
     NetMessage* msg_ack;
-    int head_l=10;
-    char* head="ciaociao9";
-    int pay_l=6;
-    char* pay="12345";
-
-    /* server connection */
-    NetConnection* srv_conn;
+    int head_l;
+    char* head;
+    int pay_l;
+    char* pay;
 
     /* check the command line arguments.. */
     if (argc < 3) {
@@ -99,11 +99,23 @@ int main(int argc, char **argv) {
         msg_size = write_json_string(jsonbuf, JSON_MSG_BUFFER, _jsonmsg);
         DEBG3("json message size %i: %s", msg_size, jsonbuf);
 
+        /* check that the host ID is within the range of known hosts */
+        if (_msg_host >= hosts_len) {
+            FATL3("Message for host \"%i\" (0-based list) but there is/are only %i hosts defined!",
+                  _msg_host,
+                  hosts_len);
+        }
+
         /* server host/port setup */
+        DEBG3("asking connection to %s: %i", hosts[_msg_host], ports[_msg_host]);
         srv_conn = connect_to_server(hosts[_msg_host], ports[_msg_host]);
 
-        /* pack a msg */
+        /* pack-send-free a msg */
         DEBG1("sending message..");
+        head_l=msg_size;
+        head=jsonbuf;
+        pay_l=0;
+        pay=NULL;
         msg = pack_net_message(&head_l, head, &pay_l, pay);
         send_net_msg(srv_conn, msg);
         free(msg);
@@ -115,6 +127,10 @@ int main(int argc, char **argv) {
 
         /* close the connection */
         close_connection(srv_conn);
+        DEBG1("connection closed!");
+
+        /* free connection */
+        free(srv_conn);
     }
 
     /* free remaining json ptrs */
