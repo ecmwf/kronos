@@ -109,7 +109,7 @@ int main(int argc, char **argv) {
 
         /* pack-send-free a msg */
         DEBG1("sending message..");
-        msg = pack_net_message(&msg_size, jsonbuf, &null_payl, NULL);
+        msg = create_net_message(&msg_size, jsonbuf, &null_payl, NULL);
         send_net_msg(srv_conn, msg);
         free(msg);
         DEBG1("message sent!");

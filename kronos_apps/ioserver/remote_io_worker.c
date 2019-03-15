@@ -12,11 +12,6 @@
 #include <errno.h>
 
 
-/* max num of connection requests allowed */
-#define MAXNREQ 1024
-#define JSON_BUF_LEN 1024
-#define IO_DATA_BUF 1048576
-
 int main(int argc, char **argv) {
 
   int portno; /* port to listen on */
@@ -29,9 +24,7 @@ int main(int argc, char **argv) {
   /* if io_taks ends with an error */
   int err_iotask;
 
-  /*
-   * check command line arguments
-   */
+  /* check command line arguments */
   if (argc != 2) {
     ERRO2("usage: %s <port>", argv[0]);
   }
@@ -46,10 +39,8 @@ int main(int argc, char **argv) {
   /* preallocate client connection */
   conn_with_client = malloc(sizeof(NetConnection));
 
-
   /* main loop */
   INFO1("Server running..");
-
   while (1) {
 
     /* wait for incoming connections */
@@ -79,12 +70,11 @@ int main(int argc, char **argv) {
     /* perform the IO task as requested */
     err_iotask = execute_io_task_from_string(msg->head);
 
-    /* send data back (only if it's a reading instruction)
-    if (!errno_io){
-       n = write(childfd, ack_msg, strlen(ack_msg));
-       if (n < 0)
-         perror("ERROR writing to socket");
-    } */
+    /*
+    * =====================================
+    * TODO: actually move written/read data
+    * =====================================
+    */
 
     /* close connection */
     DEBG2("closing connection fd %i", client_conn_fd);

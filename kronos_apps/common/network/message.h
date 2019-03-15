@@ -14,7 +14,7 @@ typedef struct NetMessage {
 
 
 /* pack a message */
-NetMessage* pack_net_message(int* head_len,
+NetMessage* create_net_message(int* head_len,
                              char* head,
                              int* payload_len,
                              void* payload);

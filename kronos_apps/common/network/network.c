@@ -203,7 +203,7 @@ int acknowledge_reception(NetConnection* conn){
 
     DEBG2("hd_len: %i", hd_len);
 
-    msg = pack_net_message(&hd_len, SERVER_ACK_STR, &no_len, NULL);
+    msg = create_net_message(&hd_len, SERVER_ACK_STR, &no_len, NULL);
     send_net_msg(conn, msg);
 
     free(msg);
