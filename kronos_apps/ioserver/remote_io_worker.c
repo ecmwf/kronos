@@ -24,8 +24,10 @@ int main(int argc, char **argv) {
   NetMessage* msg;
   NetConnection* conn_with_client;
   Server* srv;
-
   int client_conn_fd;
+
+  /* if io_taks ends with an error */
+  int err_iotask;
 
   /*
    * check command line arguments
@@ -75,10 +77,7 @@ int main(int argc, char **argv) {
     }
 
     /* perform the IO task as requested */
-
-    /*
-    errno_io = execute_io_task_from_string(iotask_msg_buffer);
-    */
+    err_iotask = execute_io_task_from_string(msg->head);
 
     /* send data back (only if it's a reading instruction)
     if (!errno_io){
@@ -86,7 +85,6 @@ int main(int argc, char **argv) {
        if (n < 0)
          perror("ERROR writing to socket");
     } */
-
 
     /* close connection */
     DEBG2("closing connection fd %i", client_conn_fd);
