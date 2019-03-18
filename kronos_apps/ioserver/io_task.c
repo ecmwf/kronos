@@ -69,6 +69,19 @@ long int get_iotask_nwrites(IOTask* iotask){
     }
 }
 
+
+long int get_iotask_poolsize(IOTask* iotask){
+
+    if (iotask->pool_size < 0){
+        ERRO1("invalid #poolsize!");
+        exit(1);
+    } else {
+        return iotask->pool_size;
+    }
+
+}
+
+
 long int get_iotask_nreads(IOTask* iotask){
 
     if (iotask->n_reads < 0){
@@ -100,6 +113,7 @@ IOTask* iotask_from_json(const JSON* json_in){
 
     long int _io_task_bytes = -1;
     long int _io_task_nwrites = -1;
+    long int _io_task_poolsize = -1;
     long int _io_task_nreads = -1;
     long int _io_task_offset = -1;
 
@@ -139,6 +153,13 @@ IOTask* iotask_from_json(const JSON* json_in){
         iotask->write_mode = malloc(strlen(_io_task_mode)+1);
         strncpy(iotask->write_mode, _io_task_mode, strlen(_io_task_mode)+1);
         DEBG2("IO mode: %s", _io_task_mode);
+    }
+
+    /* only to be used if type is writer to NVRAM */
+    if (!strcmp(_io_task_type, "nvram_writer")){
+        json_object_get_integer(json_in, "pool_size_8mb", &_io_task_poolsize);
+        iotask->pool_size = _io_task_poolsize;
+        DEBG2("pool_size_8mb: %li", _io_task_poolsize);
     }
 
     /* n_reads only present for reading tasks */

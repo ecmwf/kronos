@@ -128,17 +128,23 @@ static int write_file(const char* file_name,
 /* write this file to nvram (through memory map) */
 static int write_file_to_nvram(const char* file_name,
                                const long int* n_bytes,
-                               const long int* n_reads,
-                               const long int* offset){
+                               const long int* pool_size){
 
 #ifdef HAVE_PMEMIO
 
-    char file_buffer[MAX_PMEM_BUF_LEN];
+    char* file_buffer;
     char mapped_file_name[PATH_MAX];
 
     PMEMobjpool *pop;
     PMEMoid root;
     struct kronos_pobj_root *rootp;
+    size_t poolsize_actual = (size_t)(*pool_size * PMEMOBJ_MIN_POOL);
+
+    DEBG2( "NVRAM poolsize requested: %i\n", poolsize_actual);
+    if ((poolsize_actual > PMEMOBJ_MIN_POOL*100) || (poolsize_actual < 0)){
+        poolsize_actual = PMEMOBJ_MIN_POOL*100;
+    }
+    DEBG2( "NVRAM actual poolsize: %i\n", poolsize_actual);
 
 
     /* get file name */
@@ -148,15 +154,17 @@ static int write_file_to_nvram(const char* file_name,
 
     /* get file name fill up the buffer (TODO: just dummy content at the moment..) */
     DEBG2("NVRAM btes to write: %i", *n_bytes);
+    file_buffer = (char*)malloc(*n_bytes+1);
     memset(file_buffer, 'v', *n_bytes);
+    file_buffer[*n_bytes] = '\0';
     DEBG2("NVRAM file buffer: %s", file_buffer);
 
-
+    DEBG2( "NVRAM mapped_file_name: %s\n", mapped_file_name);
 
     /* create the pool with the proper name/permissions */
     pop = pmemobj_create(mapped_file_name,
                          LAYOUT_NAME,
-                         PMEMOBJ_MIN_POOL,
+                         poolsize_actual,
                          0666);
 
     if (pop == NULL) {
@@ -172,12 +180,6 @@ static int write_file_to_nvram(const char* file_name,
     rootp = pmemobj_direct(root);
 
     DEBG1( "NVRAM: root pointer acquired");
-
-    /*char buf[MAX_BUF_LEN] = {0};
-    if (scanf("%9s", buf) == EOF) {
-        fprintf(stderr, "EOF\n");
-        return 1;
-    }*/
 
     /* transactional write to range */
     DEBG2( "NVRAM: starting transaction: writing (%i) bytes..", strlen(file_buffer));
@@ -268,7 +270,6 @@ static int read_file_from_nvram(const char* file_name,
     struct kronos_pobj_root *rootp;
     int i;
 
-
     DEBG2("NVRAM: opening pool %s", file_name);
     pop = pmemobj_open(file_name, LAYOUT_NAME);
     if (pop == NULL) {
@@ -297,8 +298,6 @@ static int read_file_from_nvram(const char* file_name,
 }
 
 
-
-
 /* Execute an I/O task */
 int execute_io_task(IOTask* iotask){
 
@@ -309,6 +308,7 @@ int execute_io_task(IOTask* iotask){
 
     long int io_task_bytes;
     long int io_task_nwrites;
+    long int io_task_poolsize;
     long int io_task_nreads;
     long int io_task_offset;
 
@@ -320,6 +320,7 @@ int execute_io_task(IOTask* iotask){
 
     io_task_bytes = iotask->n_bytes;
     io_task_nwrites = iotask->n_writes;
+    io_task_poolsize = iotask->pool_size;
     io_task_nreads = iotask->n_reads;
     io_task_offset = iotask->offset;
 
@@ -335,8 +336,7 @@ int execute_io_task(IOTask* iotask){
 
         write_file_to_nvram(io_task_file,
                             &io_task_bytes,
-                            &io_task_nreads,
-                            &io_task_offset);
+                            &io_task_poolsize);
 
     } else if (!strcmp(io_task_type, "reader")) {
 

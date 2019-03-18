@@ -16,6 +16,7 @@ typedef struct IOTask {
     long int n_bytes;
     long int offset;
     long int n_writes;
+    long int pool_size;
     long int n_reads;
 
 } IOTask;
@@ -28,6 +29,7 @@ const char* get_iotask_mode(IOTask* iotask);
 
 long int get_iotask_bytes(IOTask* iotask);
 long int get_iotask_nwrites(IOTask* iotask);
+long int get_iotask_poolsize(IOTask* iotask);
 long int get_iotask_nreads(IOTask* iotask);
 long int get_iotask_offset(IOTask* iotask);
 
