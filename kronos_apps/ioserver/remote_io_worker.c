@@ -69,6 +69,9 @@ int main(int argc, char **argv) {
 
     /* perform the IO task as requested */
     err_iotask = execute_io_task_from_string(msg->head);
+    if (err_iotask){
+        ERRO1("reported error in executing IO task!");
+    }
 
     /*
     * =====================================

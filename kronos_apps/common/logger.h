@@ -11,7 +11,7 @@
 #define LOG_LVL_INFO 1
 #define LOG_LVL_WARN 2
 #define LOG_LVL_ERRO 3
-#define LOG_LVL_FATL 3
+#define LOG_LVL_FATL 4
 
 
 /* Overall level to show messages:

@@ -152,7 +152,6 @@ void log_print(char* filename,
             print_to_file(log_msg);
         }
 
-
         /* make it fail if it's a fatal */
         if (log_level == LOG_LVL_FATL) {
             exit(1);

@@ -351,6 +351,9 @@ int execute_io_task(IOTask* iotask){
                              &io_task_bytes,
                              &io_task_nreads,
                              &io_task_offset);
+    } else {
+        INFO2("io task type %s not recognised [reader|writer|nvram_writer]", io_task_type);
+        return 1;
     }
 
     return 0;
@@ -362,16 +365,22 @@ int execute_io_task(IOTask* iotask){
 int execute_io_task_from_string(const char* io_json_str){
 
     IOTask* iotask;
+    int iotask_err;
 
     DEBG1("Executing IO task from string..");
 
     iotask = iotask_from_json_string(io_json_str);
 
     /* do execute the task */
-    execute_io_task(iotask);
+    iotask_err = execute_io_task(iotask);
+    if (iotask_err){
+        DEBG1("error in executing IO task!");
+        free(iotask);
+        iotask = NULL;
+        return 1;
+    }
 
     free(iotask);
     iotask = NULL;
-
     return 0;
 }
