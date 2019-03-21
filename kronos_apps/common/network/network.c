@@ -71,6 +71,9 @@ Server* create_server(const int* portno){
     int socket_fd;
 
 
+    DEBG2("asking for port %i", *portno);
+
+
     /* make space for srv */
     srv = malloc(sizeof(Server));
 
@@ -90,7 +93,7 @@ Server* create_server(const int* portno){
     serveraddr.sin_addr.s_addr = htonl(INADDR_ANY);
     INFO3("Server running on host: %s, port:%i",
            serveraddr.sin_addr.s_addr,
-           portno);
+           *portno);
 
 
     /* this is the port we will listen on */

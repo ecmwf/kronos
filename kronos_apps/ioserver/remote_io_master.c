@@ -3,6 +3,8 @@
 #include "common/logger.h"
 #include "common/network/network.h"
 
+#include "io_task.h"
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -117,6 +119,7 @@ int main(int argc, char **argv) {
         /* wait for server acknowledgment */
         msg_ack = recv_net_msg(srv_conn);
         DEBG2("Acknowledgment from server: %s", msg_ack->head);
+
 
         /* close the connection */
         close_connection(srv_conn);

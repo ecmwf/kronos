@@ -1,8 +1,8 @@
 
-#include "io_executor.h"
 #include "common/logger.h"
 #include "common/json.h"
 #include "common/network/network.h"
+#include "ioserver/io_task.h"
 
 #include <stdio.h>
 #include <unistd.h>
@@ -20,6 +20,9 @@ int main(int argc, char **argv) {
   NetConnection* conn_with_client;
   Server* srv;
   int client_conn_fd;
+
+  /* IO task functor */
+  IOTaskFunctor* iotaskfunct;
 
   /* if io_taks ends with an error */
   int err_iotask;
@@ -68,7 +71,8 @@ int main(int argc, char **argv) {
     }
 
     /* perform the IO task as requested */
-    err_iotask = execute_io_task_from_string(msg->head);
+    iotaskfunct = iotask_factory_from_string(msg->head);
+    err_iotask = iotaskfunct->execute(iotaskfunct->data);
     if (err_iotask){
         ERRO1("reported error in executing IO task!");
     }

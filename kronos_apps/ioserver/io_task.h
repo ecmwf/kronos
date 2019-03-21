@@ -6,41 +6,75 @@
 #define MAX_WRITE_SIZE 1048576
 
 
-/* an IO task (defines a file read or write operation)*/
-typedef struct IOTask {
 
-    char* type;
-    char* file;
-    char* write_mode;
+/* generic functor for an iotask */
+typedef struct IOTaskFunctor {
+    void* data;
+    int (*execute)(const void* data);
+} IOTaskFunctor;
+
+
+/* data for iotask write */
+typedef struct IOTaskWriteData {
+
+    const char* type;
+    const char* file;
+    const char* mode;
+
+    long int n_bytes;
+    long int offset;
+    long int n_writes;
+
+} IOTaskWriteData;
+
+
+/* data for iotask write on nvram*/
+typedef struct IOTaskWriteDataNVRAM {
+
+    const char* type;
+    const char* file;
+    const char* mode;
 
     long int n_bytes;
     long int offset;
     long int n_writes;
     long int pool_size;
+
+} IOTaskWriteDataNVRAM;
+
+
+/* data for iotask read */
+typedef struct IOTaskReadData {
+
+    const char* type;
+    const char* file;
+
+    long int n_bytes;
+    long int offset;
     long int n_reads;
 
-} IOTask;
+} IOTaskReadData;
 
 
-/* get IO task properties */
-const char* get_iotask_type(IOTask* iotask);
-const char* get_iotask_file(IOTask* iotask);
-const char* get_iotask_mode(IOTask* iotask);
+/* data for iotask read (from NVRAM) */
+typedef struct IOTaskReadDataNVRAM {
 
-long int get_iotask_bytes(IOTask* iotask);
-long int get_iotask_nwrites(IOTask* iotask);
-long int get_iotask_poolsize(IOTask* iotask);
-long int get_iotask_nreads(IOTask* iotask);
-long int get_iotask_offset(IOTask* iotask);
+    const char* type;
+    const char* file;
 
+    long int n_bytes;
+    long int offset;
+    long int n_reads;
 
-/* An I/O task from a (correctly formed) JSON */
-IOTask* iotask_from_json(const JSON* json_in);
+} IOTaskReadDataNVRAM;
 
 
-/* An I/O task from a (correctly formed) stringified JSON */
-IOTask* iotask_from_json_string(const char* _taskstr);
 
+/* iotask functor factory (from JSON) */
+IOTaskFunctor* iotask_factory_from_json(const JSON* config);
+
+/* iotask functor factory (from string) */
+IOTaskFunctor* iotask_factory_from_string(const char* config);
 
 
 #endif
