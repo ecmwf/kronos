@@ -18,6 +18,8 @@
 
 
 /*============== SERVER SIDE =============== */
+
+/* write all to socket */
 static ssize_t write_wait(int sockfd, const void *buf, size_t len){
 
     DEBG1("synchronous writing..");
@@ -31,6 +33,7 @@ static ssize_t write_wait(int sockfd, const void *buf, size_t len){
         actually_written = write(sockfd, buf, len);
         if (actually_written < 0){
             ERRO1("error occurred while writing to socket");
+            return -1;
         }
         remaining -= actually_written;
     }
@@ -38,7 +41,7 @@ static ssize_t write_wait(int sockfd, const void *buf, size_t len){
     return actually_written;
 }
 
-
+/* read all from socket */
 static ssize_t read_wait(int sockfd, void *buf, size_t len){
 
     DEBG1("synchronous reading..");
@@ -52,6 +55,7 @@ static ssize_t read_wait(int sockfd, void *buf, size_t len){
         actually_read = read(sockfd, buf, len);
         if (actually_read < 0){
             ERRO1("error occurred while reading from socket");
+            return -1;
         }
         remaining -= actually_read;
     }
@@ -60,11 +64,7 @@ static ssize_t read_wait(int sockfd, void *buf, size_t len){
 }
 
 
-
-
-/*
- * connect to a server and returns the socket descriptor
- */
+/* get a socket */
 static int get_socket(){
 
     int sockfd;
@@ -72,8 +72,10 @@ static int get_socket(){
 
     /* socket: create the socket */
     sockfd = socket(AF_INET, SOCK_STREAM, 0);
-    if (sockfd < 0)
+    if (sockfd < 0) {
         ERRO1("ERROR opening socket");
+        return -1;
+    }
 
 
     /* setsockopt: Handy debugging trick that lets
@@ -99,11 +101,13 @@ static int net_bind(Server* srv){
              (struct sockaddr *) &(srv->_serveraddr),
              (socklen_t)sizeof(srv->_serveraddr)) < 0) {
       ERRO1("ERROR on binding");
+      return -1;
     }
 
 }
 
 
+/* create a server */
 Server* create_server(const int* portno){
 
     Server* srv;
@@ -111,9 +115,7 @@ Server* create_server(const int* portno){
     struct sockaddr_in serveraddr;
     int socket_fd;
 
-
     DEBG2("asking for port %i", *portno);
-
 
     /* make space for srv */
     srv = malloc(sizeof(Server));
@@ -121,10 +123,7 @@ Server* create_server(const int* portno){
     /* get a socket fd*/
     socket_fd = get_socket();
 
-
-    /*
-     * build the server's Internet address
-     */
+    /* build the server's Internet address */
     memset((char *) &serveraddr, 0, sizeof(serveraddr));
 
     /* this is an Internet address */
@@ -136,10 +135,8 @@ Server* create_server(const int* portno){
            inet_ntoa(serveraddr.sin_addr),
            *portno);
 
-
     /* this is the port we will listen on */
     serveraddr.sin_port = htons((int)*portno);
-
 
     /* fill up server */
     strcpy(srv->host, "localhost");
@@ -160,9 +157,7 @@ Server* create_server(const int* portno){
 /* listen */
 int net_listen(Server* srv){
 
-    /*
-     * listen: make this socket ready to accept connection requests
-     */
+    /* make this socket ready to accept connection requests */
     if (listen(srv->socket_fd, MAXNREQ) < 0)
       ERRO1("ERROR on listen");
 
@@ -180,9 +175,6 @@ int net_accept(Server* srv){
 
     clientlen = sizeof(clientaddr);
 
-    /*
-     * accept: wait for a connection request
-     */
     DEBG1("waiting for connections..");
     childfd = accept(srv->socket_fd,
                      (struct sockaddr *)&clientaddr,
@@ -213,7 +205,6 @@ int net_accept(Server* srv){
 
     INFO3("server established connection with %s (%s)", hostp->h_name, hostaddrp);
     return childfd;
-
 }
 
 
@@ -256,9 +247,7 @@ int acknowledge_reception(NetConnection* conn){
 }
 
 
-/*
- * connect to a server by host/port
- */
+/* connect to a server by host/port */
 NetConnection* connect_to_server(const char *host, const long int port){
 
     struct sockaddr_in serveraddr;
