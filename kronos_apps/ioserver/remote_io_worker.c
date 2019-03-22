@@ -128,7 +128,6 @@ int main(int argc, char **argv) {
 
   } /* server loop */
 
-  /* should't get here anyway.. */
   free(srv);  
 
 }
