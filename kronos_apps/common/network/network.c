@@ -16,8 +16,6 @@
 
 
 
-
-
 /*============== SERVER SIDE =============== */
 
 /*
@@ -42,7 +40,6 @@ static int get_socket(){
     optval = 1;
     setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR,
                (const void *)&optval , sizeof(int));
-
 
     return sockfd;
 }
@@ -116,7 +113,6 @@ Server* create_server(const int* portno){
 }
 
 
-
 /* listen */
 int net_listen(Server* srv){
 
@@ -127,6 +123,7 @@ int net_listen(Server* srv){
       ERRO1("ERROR on listen");
 
 }
+
 
 /* accept */
 int net_accept(Server* srv){
@@ -201,20 +198,18 @@ int acknowledge_reception(NetConnection* conn){
     int hd_len, no_len = 0;
     const char* head;
 
+    DEBG1("acknowledging reception..");
+
     head = SERVER_ACK_STR;
     hd_len = strlen(head)+1;
-
-    DEBG2("hd_len: %i", hd_len);
 
     msg = create_net_message(&hd_len, SERVER_ACK_STR, &no_len, NULL);
     send_net_msg(conn, msg);
 
     free(msg);
 
+    return 0;
 }
-
-
-
 
 
 /*
@@ -265,23 +260,10 @@ NetConnection* connect_to_server(const char *host, const long int port){
 }
 
 
-/* send message (requires open connection) */
-int send_msg(const NetConnection* conn, const char* buffer, const int buffer_len){
-
-    if (write(conn->socket_fd, buffer, buffer_len) < 0) {
-        ERRO2("Writing to socket %i failed!", conn->socket_fd);
-        return -1;
-
-    } else {
-
-          return 0;
-    }
-}
-
-
 /* send a net message (hd_len + hd + payload_len + payload) */
 int send_net_msg(const NetConnection* conn, NetMessage* msg){
 
+    DEBG1("sending message");
 
     /* write length of header */
     if (write(conn->socket_fd, &(msg->head_len), sizeof(int)) < 0) {
@@ -327,34 +309,13 @@ int send_net_msg(const NetConnection* conn, NetMessage* msg){
 }
 
 
-/* recv message (requires open connection) */
-int recv_msg(const NetConnection* conn, char* buffer, int buffer_len){
-
-    /* check that the connection is open.. */
-    if (!conn->isConnectionOpen){
-        ERRO2("Connection to host %s closed, read failed!", conn->host);
-        return -1;
-    }
-
-    /* print the server's reply */
-    if (read(conn->socket_fd, buffer, buffer_len) < 0) {
-        ERRO2("Reading from socket %i failed!", conn->socket_fd);
-        return -1;
-
-    } else {
-
-          return 0;
-    }
-
-}
-
-
 /* recv a net message (hd_len + hd + payload_len + payload) */
 NetMessage* recv_net_msg(const NetConnection* conn){
 
     /* make minimal space for incoming message */
     NetMessage* msg = malloc(sizeof(NetMessage));
 
+    DEBG1("receiving message");
 
     /* check that the connection is set as open.. */
     if (!conn->isConnectionOpen){
@@ -410,7 +371,28 @@ NetMessage* recv_net_msg(const NetConnection* conn){
 
 /* close a connection */
 int close_connection(NetConnection* conn){
-
     close(conn->socket_fd);
+}
+
+
+/* terminate a server */
+int terminate_server(NetConnection* conn){
+
+    NetMessage* msg;
+    int hd_len, no_len = 0;
+    const char* head;
+
+    DEBG2("Terminating server %s", conn->host);
+
+    head = SERVER_TERMINATION_STR;
+    hd_len = strlen(head)+1;
+
+    msg = create_net_message(&hd_len, head, &no_len, NULL);
+    send_net_msg(conn, msg);
+    free(msg);
+
+    DEBG2("Termination message sent to server %s", conn->host);
+
+    return 0;
 
 }

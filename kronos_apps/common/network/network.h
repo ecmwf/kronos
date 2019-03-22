@@ -68,25 +68,20 @@ typedef struct Server {
 /* setup a server */
 Server* create_server(const int* portno);
 
-
 /* listen */
 int net_listen(Server* srv);
 
 /* accept */
 int net_accept(Server* srv);
 
-
 /* broadcast a message to all clients */
 int net_broadcast(Server* srv, NetMessage* msg);
-
 
 /* check if a msg is termination message */
 bool check_termination_msg(NetMessage* msg);
 
-
 /* acknowledge_reception */
 int acknowledge_reception(NetConnection* conn);
-
 
 
 
@@ -95,9 +90,8 @@ int acknowledge_reception(NetConnection* conn);
 /* connect to a server by host/port */
 NetConnection* connect_to_server(const char *host, const long int port);
 
-
 /* take a server down */
-int terminate_server(Server* srv);
+int terminate_server(NetConnection* conn);
 
 
 
@@ -106,46 +100,11 @@ int terminate_server(Server* srv);
 /* close a connection */
 int close_connection(NetConnection* conn);
 
-
 /* send net_message (requires open connection) */
 int send_net_msg(const NetConnection* conn, NetMessage* msg);
 
-
 /* recv net_message (requires open connection) */
 NetMessage* recv_net_msg(const NetConnection* conn);
-
-
-
-
-/*============== DEPRECATED =============== */
-
-/* send message (requires open connection) */
-int send_msg(const NetConnection* conn,
-             const char* buffer,
-             const int buffer_len);
-
-
-/* recv message (requires open connection) */
-int recv_msg(const NetConnection* conn,
-             char* buffer,
-             const int buffer_len);
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 

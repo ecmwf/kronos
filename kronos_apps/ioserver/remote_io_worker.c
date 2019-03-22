@@ -63,7 +63,7 @@ int main(int argc, char **argv) {
     /* acknowledge reception */
     acknowledge_reception(conn_with_client);
 
-    /* decide to honour a termination request (when arrives) */
+    /* honour a termination request (when arrives) */
     if (check_termination_msg(msg)){
         INFO1("received kill signal => terminating.");
         close(conn_with_client->socket_fd);
@@ -71,6 +71,7 @@ int main(int argc, char **argv) {
     }
 
     /* perform the IO task as requested */
+    DEBG2("asked to perform task: %s", msg->head);
     iotaskfunct = iotask_factory_from_string(msg->head);
     err_iotask = iotaskfunct->execute(iotaskfunct->data);
     if (err_iotask){

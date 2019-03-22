@@ -20,8 +20,7 @@ int main(int argc, char **argv) {
 
     /* server connection */
     NetConnection* srv_conn;
-
-    const char *kill_msg = "terminate-server";
+    NetMessage* msg_ack;
 
     /* check the command line arguments.. */
     if (argc < 3) {
@@ -47,9 +46,13 @@ int main(int argc, char **argv) {
     srv_conn = connect_to_server(server_host, server_port);
 
     /* send the message line to the server and wait for the reply */
-    if (send_msg(srv_conn, kill_msg, strlen(kill_msg))){
+    if (terminate_server(srv_conn)){
         ERRO1("Message send failed!");
     };
+
+    /* wait for server acknowledgment */
+    msg_ack = recv_net_msg(srv_conn);
+    DEBG2("Acknowledgment from server: %s", msg_ack->head);
 
     /* close the connection */
     close_connection(srv_conn);
