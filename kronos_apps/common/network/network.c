@@ -394,6 +394,30 @@ NetMessage* recv_net_msg(const NetConnection* conn){
 }
 
 
+/* create a connection */
+NetConnection* create_connection(int conn_fd){
+
+    NetConnection* conn_with_client;
+
+    DEBG1("creating connection..");
+
+    /* preallocate client connection */
+    conn_with_client = malloc(sizeof(NetConnection));
+    if (conn_with_client == NULL){
+        ERRO1("failed connection allocation!");
+        return NULL;
+    };
+
+
+    /* setup client connection */
+    conn_with_client->socket_fd = conn_fd;
+    conn_with_client->isConnectionOpen = 1;
+    DEBG1("filled up conn struct");
+
+    return conn_with_client;
+}
+
+
 /* close a connection */
 int close_connection(NetConnection* conn){
     close(conn->socket_fd);

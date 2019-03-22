@@ -97,6 +97,9 @@ int terminate_server(NetConnection* conn);
 
 /*============== SHARED =============== */
 
+/* create a connection */
+NetConnection* create_connection(int conn_fd);
+
 /* close a connection */
 int close_connection(NetConnection* conn);
 

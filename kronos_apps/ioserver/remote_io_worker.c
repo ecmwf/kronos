@@ -45,12 +45,7 @@ int handle_connection(int conn){
     NetConnection* conn_with_client;
 
     /* preallocate client connection */
-    conn_with_client = malloc(sizeof(NetConnection));
-
-    /* setup client connection */
-    conn_with_client->socket_fd = conn;
-    conn_with_client->isConnectionOpen = 1;
-    DEBG1("filled up conn struct");
+    conn_with_client = create_connection(conn);
 
     /* receive one message only */
     msg = recv_net_msg(conn_with_client);
