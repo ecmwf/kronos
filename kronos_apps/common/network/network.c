@@ -17,6 +17,49 @@
 
 
 /*============== SERVER SIDE =============== */
+static ssize_t write_wait(int sockfd, const void *buf, size_t len){
+
+    DEBG1("synchronous writing..");
+
+    ssize_t actually_written;
+    size_t remaining;
+
+    /* write synchronously full len */
+    remaining = len;
+    while (remaining){
+        actually_written = write(sockfd, buf, len);
+        if (actually_written < 0){
+            ERRO1("error occurred while writing to socket");
+        }
+        remaining -= actually_written;
+    }
+
+    return actually_written;
+}
+
+
+static ssize_t read_wait(int sockfd, void *buf, size_t len){
+
+    DEBG1("synchronous reading..");
+
+    ssize_t actually_read;
+    size_t remaining;
+
+    /* read synchronously full len */
+    remaining = len;
+    while (remaining){
+        actually_read = read(sockfd, buf, len);
+        if (actually_read < 0){
+            ERRO1("error occurred while reading from socket");
+        }
+        remaining -= actually_read;
+    }
+
+    return actually_read;
+}
+
+
+
 
 /*
  * connect to a server and returns the socket descriptor
@@ -266,17 +309,16 @@ int send_net_msg(const NetConnection* conn, NetMessage* msg){
     DEBG1("sending message");
 
     /* write length of header */
-    if (write(conn->socket_fd, &(msg->head_len), sizeof(int)) < 0) {
+    if (write_wait(conn->socket_fd, &(msg->head_len), sizeof(int)) < 0) {
         ERRO2("Writing head_len to socket %i failed!", conn->socket_fd);
         return -1;
     } else {
         DEBG2("msg->head_len: %i", msg->head_len);
     }
 
-
     /* if there is an header to write, proceed..) */
     if (msg->head_len > 0) {
-        if (write(conn->socket_fd, msg->head, msg->head_len) < 0) {
+        if (write_wait(conn->socket_fd, msg->head, msg->head_len) < 0) {
             ERRO2("Writing head_len to socket %i failed!", conn->socket_fd);
             return -1;
         } else {
@@ -284,26 +326,23 @@ int send_net_msg(const NetConnection* conn, NetMessage* msg){
         }
     }
 
-
     /* write payload length */
-    if (write(conn->socket_fd, &(msg->payload_len), sizeof(int)) < 0) {
+    if (write_wait(conn->socket_fd, &(msg->payload_len), sizeof(int)) < 0) {
         ERRO2("Writing payload_len to socket %i failed!", conn->socket_fd);
         return -1;
     } else {
         DEBG2("msg->payload_len: %i", msg->payload_len);
     }
 
-
     /* if there is a payload to write, proceed..) */
     if (msg->payload_len > 0) {
-        if (write(conn->socket_fd, msg->payload, msg->payload_len) < 0) {
+        if (write_wait(conn->socket_fd, msg->payload, msg->payload_len) < 0) {
             ERRO2("Writing payload to socket %i failed!", conn->socket_fd);
             return -1;
         } else {
             DEBG2("msg->payload: %s", msg->payload);
         }
     }
-
 
     return 0;
 }
@@ -323,9 +362,8 @@ NetMessage* recv_net_msg(const NetConnection* conn){
         return NULL;
     }
 
-
     /* read length of header */
-    if (read(conn->socket_fd, &(msg->head_len), sizeof(int)) < 0) {
+    if (read_wait(conn->socket_fd, &(msg->head_len), sizeof(int)) < 0) {
         ERRO2("Read head_len to socket %i failed!", conn->socket_fd);
         return NULL;
     } else {
@@ -333,10 +371,9 @@ NetMessage* recv_net_msg(const NetConnection* conn){
         msg->head = malloc(msg->head_len);
     }
 
-
     /* read header */
     if (msg->head_len > 0) {
-        if (read(conn->socket_fd, msg->head, msg->head_len) < 0) {
+        if (read_wait(conn->socket_fd, msg->head, msg->head_len) < 0) {
             ERRO2("Read head_len to socket %i failed!", conn->socket_fd);
             return NULL;
         } else {
@@ -344,9 +381,8 @@ NetMessage* recv_net_msg(const NetConnection* conn){
         }
     }
 
-
     /* read length of payload */
-    if (read(conn->socket_fd, &(msg->payload_len), sizeof(int)) < 0) {
+    if (read_wait(conn->socket_fd, &(msg->payload_len), sizeof(int)) < 0) {
         ERRO2("Read payload_len to socket %i failed!", conn->socket_fd);
         return NULL;
     } else {
@@ -354,10 +390,9 @@ NetMessage* recv_net_msg(const NetConnection* conn){
         msg->payload = malloc(msg->payload_len);
     }
 
-
     /* read payload */
     if (msg->payload_len > 0) {
-        if (read(conn->socket_fd, msg->payload, msg->payload_len) < 0) {
+        if (read_wait(conn->socket_fd, msg->payload, msg->payload_len) < 0) {
             ERRO2("Read payload_len to socket %i failed!", conn->socket_fd);
             return NULL;
         } else {
@@ -380,7 +415,7 @@ int terminate_server(NetConnection* conn){
 
     NetMessage* msg;
     int hd_len, no_len = 0;
-    const char* head;
+    char* head;
 
     DEBG2("Terminating server %s", conn->host);
 

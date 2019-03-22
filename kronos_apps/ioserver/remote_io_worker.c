@@ -71,11 +71,15 @@ int main(int argc, char **argv) {
     }
 
     /* perform the IO task as requested */
-    DEBG2("asked to perform task: %s", msg->head);
-    iotaskfunct = iotask_factory_from_string(msg->head);
-    err_iotask = iotaskfunct->execute(iotaskfunct->data);
-    if (err_iotask){
-        ERRO1("reported error in executing IO task!");
+    if (msg->head_len){
+        DEBG2("asked to perform task: %s", msg->head);
+        iotaskfunct = iotask_factory_from_string(msg->head);
+        err_iotask = iotaskfunct->execute(iotaskfunct->data);
+        if (err_iotask){
+            ERRO1("reported error in executing IO task!");
+        }
+    } else {
+        ERRO1("Empty message received!");
     }
 
     /*
