@@ -2,6 +2,7 @@
 #include "network.h"
 #include "common/logger.h"
 
+#include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
 
@@ -132,7 +133,7 @@ Server* create_server(const int* portno){
     /* let the system figure out our IP address */
     serveraddr.sin_addr.s_addr = htonl(INADDR_ANY);
     INFO3("Server running on host: %s, port:%i",
-           serveraddr.sin_addr.s_addr,
+           inet_ntoa(serveraddr.sin_addr),
            *portno);
 
 
@@ -291,7 +292,7 @@ NetConnection* connect_to_server(const char *host, const long int port){
 
     if (connect(srv_conn->socket_fd, (const struct sockaddr *)&serveraddr, sizeof(serveraddr)) < 0){
 
-      ERRO1("ERROR connecting");
+      ERRO2("Connection error to host %s: ", host);
       return NULL;
 
     } else {

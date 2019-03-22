@@ -108,6 +108,10 @@ int main(int argc, char **argv) {
         /* server host/port setup */
         DEBG3("asking connection to %s: %i", hosts[_msg_host], ports[_msg_host]);
         srv_conn = connect_to_server(hosts[_msg_host], ports[_msg_host]);
+        if(srv_conn == NULL){
+            FATL1("Connection error!");
+        }
+
 
         /* pack-send-free a msg */
         DEBG1("sending message..");

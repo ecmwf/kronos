@@ -44,6 +44,9 @@ int main(int argc, char **argv) {
 
     /* server host/port setup */
     srv_conn = connect_to_server(server_host, server_port);
+    if(srv_conn == NULL){
+        FATL1("Connection error!");
+    }
 
     /* send the message line to the server and wait for the reply */
     if (terminate_server(srv_conn)){
