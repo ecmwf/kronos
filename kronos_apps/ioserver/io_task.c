@@ -21,18 +21,27 @@
 #include "limits.h"
 
 
+
+
 /* ==================== IO_TASK_WRITE ==================== */
+
+static const char* get_name_taskw(const void* data){
+    const IOTaskWriteData* task_data = data;
+    assert(task_data != NULL);
+    return task_data->name;
+}
 
 /* do write on file */
 static int do_write_to_file(int fd,
                             const long int* size,
-                            long int* actual_number_writes) {
+                            long int* actual_number_writes,
+                            void* raw_data) {
 
     long remaining;
     long chunk_size;
     int result;
-    char* buffer = 0;
     long int bytes_to_write;
+    char* raw_data_char = (char*)raw_data;
 
     /* Loop over chunks of the maximum chunk size, until all written */
     remaining = *size;
@@ -42,16 +51,13 @@ static int do_write_to_file(int fd,
         assert(chunk_size > 0);
         DEBG2("Writing chunk of: %li bytes", chunk_size);
 
-        buffer = malloc(chunk_size);
-
         bytes_to_write = chunk_size;
         while (bytes_to_write > 0) {
 
             DEBG2("----> writing: %li bytes", bytes_to_write);
-            result = write(fd, buffer, bytes_to_write);
+            result = write(fd, raw_data_char, bytes_to_write);
             DEBG2("----> result: %i", result);
             (*actual_number_writes)++;
-
 
             if (result == -1) {
                 ERRO3("A write error occurred: %d (%s)", errno, strerror(errno));
@@ -62,8 +68,6 @@ static int do_write_to_file(int fd,
             bytes_to_write -= result;
         }
 
-        free(buffer);
-        buffer = 0;
         remaining -= chunk_size;
     }
 
@@ -72,17 +76,28 @@ static int do_write_to_file(int fd,
 
 
 /* execute a write */
-static int execute_iotask_write(const void* data){
+static int execute_iotask_write(void* data){
 
-    const IOTaskWriteData* task_data = data;
+    IOTaskWriteData* task_data = data;
 
     int fd;
     int open_flags;
-    int iwrite;
     long int actual_writes = 0;
-    long int per_write_size = task_data->n_bytes / task_data->n_writes;
+    long int per_write_size;
+    long int remaining_data;
+    long int offset;
+
+    char* raw_content=(char*)(task_data->data_to_write->content);
 
     DEBG1("--> executing writing.. ");
+
+    /* write op count is such that last write might be smaller */
+    if (task_data->n_bytes%task_data->n_writes){
+        per_write_size = task_data->n_bytes/(task_data->n_writes-1);
+    } else {
+        per_write_size = task_data->n_bytes/task_data->n_writes;
+    }
+    remaining_data = task_data->n_bytes;
 
     open_flags = O_WRONLY | O_CREAT;
     if (!strcmp(task_data->mode, "append")){
@@ -97,12 +112,18 @@ static int execute_iotask_write(const void* data){
         return -1;
     }
 
-    /* do the writing (NOTE: offset=0 at the moment).. */
     DEBG2("writing a total of %li bytes", task_data->n_bytes);
-    for (iwrite=0; iwrite<task_data->n_writes; iwrite++){
+    offset = 0;
+    while(remaining_data>0){
 
-        DEBG2("writing chunk of %li bytes", per_write_size);
-        do_write_to_file(fd, &per_write_size, &actual_writes);
+        DEBG3("writing chunk of %li bytes, offset=%i", per_write_size, offset);
+        DEBG2("remaining_data %li", remaining_data);
+
+        per_write_size = (remaining_data/per_write_size != 0)? per_write_size : remaining_data % per_write_size;
+        do_write_to_file(fd, &per_write_size, &actual_writes, raw_content+offset);
+
+        remaining_data -= per_write_size;
+        offset += per_write_size;
     }
 
     /* close the file */
@@ -117,8 +138,26 @@ static int execute_iotask_write(const void* data){
 
 }
 
+
+/* execute a write */
+static int free_data_iotask_write(void* data){
+
+    IOTaskWriteData* task_data = data;
+
+    free(task_data->name);
+    free(task_data->file);
+    free(task_data->mode);
+
+    free_sized_data(task_data->data_to_write);
+
+    /* finally free everything */
+    free(task_data);
+}
+
+
+
 /* init functor */
-static IOTaskFunctor* init_iotask_write(const JSON* config){
+static IOTaskFunctor* init_iotask_write(const JSON* config, void* msg_data){
 
     IOTaskFunctor* functor;
     IOTaskWriteData* data;
@@ -127,17 +166,33 @@ static IOTaskFunctor* init_iotask_write(const JSON* config){
     data = (IOTaskWriteData*)malloc(sizeof(IOTaskWriteData));
 
     /* fill up the write functor as appropriate */
-    json_as_string_ptr(json_object_get(config, "type"), &(data->type));
-    json_as_string_ptr(json_object_get(config, "file"), &(data->file));
-    json_as_string_ptr(json_object_get(config, "mode"), &(data->mode));
+    json_as_string_ptr(json_object_get(config, "name"), (const char**)(&(data->name)) );
+    json_as_string_ptr(json_object_get(config, "file"), (const char**)(&(data->file)) );
+    json_as_string_ptr(json_object_get(config, "mode"), (const char**)(&(data->mode)) );
 
     json_object_get_integer(config, "n_bytes", &(data->n_bytes));
     json_object_get_integer(config, "offset", &(data->offset));
     json_object_get_integer(config, "n_writes", &(data->n_writes));
 
+    /* add the actual raw data to write */
+    data->data_to_write = (SizedData*)malloc(sizeof(SizedData));
+    if (data->data_to_write == NULL) {
+        DEBG1("memory allocation error");
+    }
+
+    data->data_to_write->content = (void*)malloc( data->n_bytes * sizeof(char));
+    if (data->data_to_write->content == NULL) {
+        DEBG1("memory allocation error");
+    }
+
+    data->data_to_write->size = data->n_bytes;
+    data->data_to_write->content = msg_data;
+
     /* prepare the functor */
     functor->data = data;
     functor->execute = execute_iotask_write;
+    functor->free_data = free_data_iotask_write;
+    functor->get_name = get_name_taskw;
 
     return functor;
 
@@ -149,14 +204,20 @@ static IOTaskFunctor* init_iotask_write(const JSON* config){
 
 /* ==================== IO_TASK_WRITE_NVRAM ==================== */
 
+static const char* get_name_taskwnv(const void* data){
+    const IOTaskWriteDataNVRAM* task_data = data;
+    assert(task_data != NULL);
+    return task_data->name;
+}
+
 /* write this file to nvram (through memory map) */
-static int execute_iotask_write_nvram(const void* data){
+static int execute_iotask_write_nvram(void* data){
 
 #ifdef HAVE_PMEMIO
 
     char* file_buffer;
     char mapped_file_name[PATH_MAX];
-    const IOTaskWriteDataNVRAM* task_data = data;
+    IOTaskWriteDataNVRAM* task_data = data;
 
     PMEMobjpool *pop;
     PMEMoid root;
@@ -168,7 +229,6 @@ static int execute_iotask_write_nvram(const void* data){
         poolsize_actual = PMEMOBJ_MIN_POOL*100;
     }
     DEBG2( "NVRAM actual poolsize: %i\n", poolsize_actual);
-
 
     /* get file name */
     strncpy(mapped_file_name, task_data->file, strlen(task_data->file));
@@ -225,6 +285,21 @@ static int execute_iotask_write_nvram(const void* data){
 }
 
 
+/* execute a write */
+static int free_data_iotask_write_nv(void* data){
+
+    IOTaskWriteData* task_data = data;
+
+    free(task_data->name);
+    free(task_data->file);
+    free(task_data->mode);
+
+    free_sized_data(task_data->data_to_write);
+
+    /* finally free everything */
+    free(task_data);
+}
+
 
 /* init functor */
 static IOTaskFunctor* init_iotask_write_nvram(const JSON* config){
@@ -236,18 +311,34 @@ static IOTaskFunctor* init_iotask_write_nvram(const JSON* config){
     data = (IOTaskWriteDataNVRAM*)malloc(sizeof(IOTaskWriteDataNVRAM));
 
     /* fill up the write functor as appropriate */
-    json_as_string_ptr(json_object_get(config, "type"), &(data->type));
-    json_as_string_ptr(json_object_get(config, "file"), &(data->file));
-    json_as_string_ptr(json_object_get(config, "mode"), &(data->mode));
+    json_as_string_ptr(json_object_get(config, "name"), (const char**)(&(data->name)) );
+    json_as_string_ptr(json_object_get(config, "file"), (const char**)(&(data->file)) );
+    json_as_string_ptr(json_object_get(config, "mode"), (const char**)(&(data->mode)) );
 
     json_object_get_integer(config, "n_bytes", &(data->n_bytes));
     json_object_get_integer(config, "offset", &(data->offset));
     json_object_get_integer(config, "n_writes", &(data->n_writes));
     json_object_get_integer(config, "pool_size", &(data->n_writes));
 
+    /* add the actual raw data to write */
+    data->data_to_write = (SizedData*)malloc(sizeof(SizedData));
+    if (data->data_to_write == NULL) {
+        DEBG1("memory allocation error");
+    }
+
+    data->data_to_write->content = malloc( data->n_bytes * sizeof(char));
+    if (data->data_to_write->content == NULL) {
+        DEBG1("memory allocation error");
+    }
+
+    data->data_to_write->size = data->n_bytes;
+    /* data->data_to_write->content = msg_data; TODO: fix this..*/
+
     /* prepare the functor */
     functor->data = data;
     functor->execute = execute_iotask_write_nvram;
+    functor->free_data = free_data_iotask_write_nv;
+    functor->get_name = get_name_taskwnv;
 
     return functor;
 
@@ -255,23 +346,31 @@ static IOTaskFunctor* init_iotask_write_nvram(const JSON* config){
 /* ================== IO_TASK_WRITE_NVRAM (END) ================== */
 
 
-/* ==================== IO_TASK_READ ==================== */
+/* ======================== IO_TASK_READ ========================= */
+
+static const char* get_name_taskr(const void* data){
+    const IOTaskReadData* task_data = data;
+    assert(task_data != NULL);
+    return task_data->name;
+}
 
 /* open-read-close */
-static int execute_read_file(const void* data){
+static int execute_read_file(void* data){
 
-    const IOTaskReadData* task_data = data;
+    IOTaskReadData* task_data = data;
 
     FILE* file_d;
     long result;
     int ret;
     long int iread;
     long int read_chunk = task_data->n_bytes / task_data->n_reads;
-    char* read_buffer;
 
     DEBG1("--> executing reading.. ");
 
-    read_buffer = malloc(task_data->n_reads * read_chunk);
+    /* allocate space for the output */
+    DEBG2("allocating %i bytes", task_data->n_reads * read_chunk);
+    task_data->data_read = malloc(task_data->n_reads * read_chunk);
+    DEBG2("%i bytes allocated", task_data->n_reads * read_chunk);
 
     /* open-read-close */
     for (iread=0; iread<task_data->n_reads; iread++)
@@ -283,15 +382,22 @@ static int execute_read_file(const void* data){
 
             if (ret == -1) {
                 ERRO2("A error occurred seeking in file: %s (%d) %s", task_data->file);
+                return -1;
             } else {
 
-                result = fread(read_buffer, 1, read_chunk, file_d);
+                /* read from file */
+                result = fread( (char*)(task_data->data_read) + task_data->offset,
+                                1,
+                                read_chunk,
+                                file_d);
 
                 if (result != read_chunk) {
                     ERRO2("A read error occurred reading file: %s (%d) %s", task_data->file);
+                    return -1;
                 }
 
                 DEBG2("--> read %i bytes ", read_chunk);
+                DEBG2("=====> read %s ", (char*)(task_data->data_read));
             }
 
             fclose(file_d);
@@ -301,14 +407,28 @@ static int execute_read_file(const void* data){
 
     }
 
-    DEBG1("freeing reading buffer..");
-    free(read_buffer);
-
     DEBG1("..reading done!");
 
     return 0;
 
 }
+
+
+/* execute a write */
+static int free_data_iotask_read(void* data){
+
+    IOTaskReadData* task_data = data;
+
+    free(task_data->name);
+    free(task_data->file);
+
+    free_sized_data(task_data->data_read);
+
+    /* finally free everything */
+    free(task_data);
+}
+
+
 
 /* init functor */
 static IOTaskFunctor* init_iotask_read(const JSON* config){
@@ -322,16 +442,27 @@ static IOTaskFunctor* init_iotask_read(const JSON* config){
     data = (IOTaskReadData*)malloc(sizeof(IOTaskReadData));
 
     /* fill up the write functor as appropriate */
-    json_as_string_ptr(json_object_get(config, "type"), &(data->type));
-    json_as_string_ptr(json_object_get(config, "file"), &(data->file));
+    json_as_string_ptr(json_object_get(config, "name"), (const char**)(&(data->name)) );
+    json_as_string_ptr(json_object_get(config, "file"), (const char**)(&(data->file)) );
 
     json_object_get_integer(config, "n_bytes", &(data->n_bytes));
     json_object_get_integer(config, "offset", &(data->offset));
     json_object_get_integer(config, "n_reads", &(data->n_reads));
 
+    /* add the actual raw data to be read */
+    data->data_read = (SizedData*)malloc(sizeof(SizedData));
+    if (data->data_read == NULL) {
+        DEBG1("memory allocation error");
+    }
+
+    data->data_read->size = data->n_bytes;
+    data->data_read->content = NULL;
+
     /* prepare the functor */
     functor->data = data;
     functor->execute = execute_read_file;
+    functor->free_data = free_data_iotask_read;
+    functor->get_name = get_name_taskr;
 
     DEBG1("initialisation done!");
 
@@ -343,9 +474,14 @@ static IOTaskFunctor* init_iotask_read(const JSON* config){
 
 /* ==================== IO_TASK_READ_NVRAM ==================== */
 
+static const char* get_name_taskrnv(const void* data){
+    const IOTaskReadDataNVRAM* task_data = data;
+    assert(task_data != NULL);
+    return task_data->name;
+}
 
 /* open-read-close */
-static int execute_read_file_nvram(const void* data){
+static int execute_read_file_nvram(void* data){
 
 #ifdef HAVE_PMEMIO
 
@@ -354,7 +490,7 @@ static int execute_read_file_nvram(const void* data){
     struct kronos_pobj_root *rootp;
     int i;
 
-    const IOTaskReadDataNVRAM* task_data = data;
+    IOTaskReadDataNVRAM* task_data = data;
 
     DEBG2("NVRAM: opening pool %s", task_data->file);
     pop = pmemobj_open(task_data->file, LAYOUT_NAME);
@@ -384,6 +520,20 @@ static int execute_read_file_nvram(const void* data){
 }
 
 
+/* execute a write */
+static int free_data_iotask_read_nv(void* data){
+
+    IOTaskReadDataNVRAM* task_data = data;
+
+    free(task_data->name);
+    free(task_data->file);
+    free_sized_data(task_data->data_read);
+
+    /* finally free everything */
+    free(task_data);
+}
+
+
 /* init functor */
 static IOTaskFunctor* init_iotask_read_nvram(const JSON* config){
 
@@ -394,16 +544,27 @@ static IOTaskFunctor* init_iotask_read_nvram(const JSON* config){
     data = (IOTaskReadDataNVRAM*)malloc(sizeof(IOTaskReadDataNVRAM));
 
     /* fill up the write functor as appropriate */
-    json_as_string_ptr(json_object_get(config, "type"), &(data->type));
-    json_as_string_ptr(json_object_get(config, "file"), &(data->file));
+    json_as_string_ptr(json_object_get(config, "name"), (const char**)(&(data->name)) );
+    json_as_string_ptr(json_object_get(config, "file"), (const char**)(&(data->file)) );
 
     json_object_get_integer(config, "n_bytes", &(data->n_bytes));
     json_object_get_integer(config, "offset", &(data->offset));
     json_object_get_integer(config, "n_reads", &(data->n_reads));
 
+    /* add the actual raw data to be read */
+    data->data_read = (SizedData*)malloc(sizeof(SizedData));
+    if (data->data_read == NULL) {
+        DEBG1("memory allocation error");
+    }
+
+    data->data_read->size = data->n_bytes;
+    data->data_read->content = NULL;
+
     /* prepare the functor */
     functor->data = data;
     functor->execute = execute_read_file_nvram;
+    functor->free_data = free_data_iotask_read_nv;
+    functor->get_name = get_name_taskrnv;
 
     return functor;
 
@@ -422,15 +583,15 @@ static IOTaskFunctor* init_iotask_read_nvram(const JSON* config){
 /* ===================================================== */
 
 /* IO task factory from json */
-IOTaskFunctor* iotask_factory_from_json(const JSON* config){
+IOTaskFunctor* iotask_factory_from_json(const JSON* config, void* msg_data){
 
     const char* iotask_name;
-    json_as_string_ptr(json_object_get(config, "type"), &iotask_name);
+    json_as_string_ptr(json_object_get(config, "name"), &iotask_name);
 
-    DEBG2("got iotask of type: %s", iotask_name);
+    DEBG2("got iotask of name: %s", iotask_name);
 
     if (!strcmp(iotask_name, "writer")){
-        return init_iotask_write(config);
+        return init_iotask_write(config, msg_data);
 
     } else if (!strcmp(iotask_name, "nvram_writer")){
         return init_iotask_write_nvram(config);
@@ -448,13 +609,16 @@ IOTaskFunctor* iotask_factory_from_json(const JSON* config){
 }
 
 /* IO task factory from string */
-IOTaskFunctor* iotask_factory_from_string(const char* config){
+IOTaskFunctor* iotask_factory_from_msg(NetMessage* msg){
 
     JSON* config_json;
     IOTaskFunctor* funct;
+    void* msg_data;
 
-    config_json = json_from_string(config);
-    funct = iotask_factory_from_json(config_json);
+    config_json = json_from_string(msg->head);
+    msg_data = (void*)msg->payload;
+
+    funct = iotask_factory_from_json(config_json, msg_data);
 
     if (funct == NULL){
         ERRO1("IO task not recognised!");
@@ -464,4 +628,12 @@ IOTaskFunctor* iotask_factory_from_string(const char* config){
 
 }
 /* ================== IO_TASK FACTORY (END) ================== */
+
+
+/* free sized data */
+void free_sized_data(SizedData* data){
+    free(data->content);
+    free(data);
+}
+
 

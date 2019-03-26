@@ -230,7 +230,7 @@ bool check_termination_msg(NetMessage* msg){
 int acknowledge_reception(NetConnection* conn){
 
     NetMessage* msg;
-    int hd_len, no_len = 0;
+    long int hd_len, no_len = 0;
     const char* head;
 
     DEBG1("acknowledging reception..");
@@ -341,10 +341,18 @@ int send_net_msg(const NetConnection* conn, NetMessage* msg){
 /* recv a net message (hd_len + hd + payload_len + payload) */
 NetMessage* recv_net_msg(const NetConnection* conn){
 
-    /* make minimal space for incoming message */
-    NetMessage* msg = malloc(sizeof(NetMessage));
-
     DEBG1("receiving message");
+
+    /* make minimal space for incoming message */
+    NetMessage* msg;
+
+    msg = malloc(sizeof(NetMessage));
+    if (msg == NULL){
+        ERRO1("memory allocation of msg failed!");
+        return NULL;
+    }
+
+    DEBG1("message allocated!");
 
     /* check that the connection is set as open.. */
     if (!conn->isConnectionOpen){
@@ -428,7 +436,7 @@ int close_connection(NetConnection* conn){
 int terminate_server(NetConnection* conn){
 
     NetMessage* msg;
-    int hd_len, no_len = 0;
+    long int hd_len, no_len = 0;
     char* head;
 
     DEBG2("Terminating server %s", conn->host);

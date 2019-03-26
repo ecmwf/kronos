@@ -15,22 +15,43 @@
 #define SRV_OFF_CODE -888
 
 
-/* execute the IO task */
-int execute_io_task(NetMessage* msg){
+/*
+ * execute the IO task and give output back if present.
+ * E.g. if it's executing a "read" type of task
+*/
+int execute_io_task(NetMessage* msg, SizedData** output){
 
     /* IO task functor */
     IOTaskFunctor* iotaskfunct;
+    IOTaskReadData* reader_data;
+    /* IOTaskReadDataNVRAM* reader_data_nv; */
 
     /* if io_taks ends with an error */
     int err_iotask = 0;
 
     if (msg->head_len){
         DEBG2("asked to perform task: %s", msg->head);
-        iotaskfunct = iotask_factory_from_string(msg->head);
+        iotaskfunct = iotask_factory_from_msg(msg);
         err_iotask = iotaskfunct->execute(iotaskfunct->data);
+
         if (err_iotask){
             ERRO1("reported error in executing IO task!");
         }
+
+        /* print the data back if it's a read task */
+        if ( !strcmp(iotaskfunct->get_name(iotaskfunct->data), "reader")){
+            reader_data = (IOTaskReadData*)(iotaskfunct->data);
+            DEBG2("Read data: %s", (char*)(reader_data->data_read->content) );
+
+/*            memcpy(*output->size, reader_data->data_read->size, sizeof(long int));
+            *(output->size) = reader_data->data_read; */
+
+        } else {
+
+            *output = NULL;
+
+        }
+
     } else {
         ERRO1("Empty message received!");
     }
@@ -38,20 +59,28 @@ int execute_io_task(NetMessage* msg){
     return err_iotask;
 }
 
-
+/*
+ * handle an incoming connection and
+ * executes the io_task as requested.
+ */
 int handle_connection(int conn){
 
     NetMessage* msg;
     NetConnection* conn_with_client;
+    void* task_output;
+
+    int null_size=0;
+    char* null_head=NULL;
 
     /* preallocate client connection */
     conn_with_client = create_connection(conn);
 
-    /* receive one message only */
+    /* receive one message and acknowledge */
     msg = recv_net_msg(conn_with_client);
+    DEBG1("message received!");
 
-    /* acknowledge reception */
     acknowledge_reception(conn_with_client);
+    DEBG1("acknowledgment sent!");
 
     /* honour a termination request (when arrives) */
     if (check_termination_msg(msg)){
@@ -61,15 +90,25 @@ int handle_connection(int conn){
     }
 
     /* perform the IO task as requested */
-    if (execute_io_task(msg) < 0){
+    if (execute_io_task(msg, &task_output) < 0){
       ERRO1("error executing the task!");
     }
 
-    /*
-    * =====================================
-    * TODO: actually move written/read data
-    * =====================================
-    */
+    if (task_output != NULL){
+        DEBG2("output data of execute_io_task: %s", (char*)task_output);
+        /* pack the data and send it back.. */
+        /* msg = create_net_message(&null_size, null_head, &writer_nbytes, task_output); */
+        if (send_net_msg(conn, msg) < 0){
+            ERRO1("error sending data back");
+            return -1;
+        }
+        free(msg);
+
+    } else {
+        DEBG1("output data of execute_io_task is NULL");
+    }
+
+    free(task_output);
 
     /* close connection (only 1 msg from each conn) */
     DEBG2("closing connection fd %i", conn);

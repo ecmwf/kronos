@@ -1,5 +1,6 @@
 
 #include "message.h"
+#include "common/logger.h"
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -7,22 +8,46 @@
 
 
 /* pack a message */
-NetMessage* create_net_message(int* head_len,
-                             char* head,
-                             int* payload_len,
-                             void* payload){
+NetMessage* create_net_message(long int* head_len,
+                               char* head,
+                               long int* payload_len,
+                               void* payload){
 
     NetMessage* msg = malloc(sizeof(NetMessage));
 
+    DEBG1("creating message..");
+
     /* copy header */
     msg->head_len = *head_len;
-    msg->head = (char*)malloc((*head_len+1) * sizeof(char));
-    strcpy(msg->head, head);
+    DEBG2("msg->head_len %i ", msg->head_len);
+    if (msg->head_len){
+        msg->head = (char*)malloc(*head_len+1);
+        if (msg->head == NULL){
+            ERRO1("memory allocation error!");
+            return NULL;
+        }
+        strcpy(msg->head, head);
+    } else {
+        msg->head = NULL;
+    }
 
     /* copy payload */
     msg->payload_len = *payload_len;
-    msg->payload = (void*)malloc(*payload_len * sizeof(char));
-    memcpy(msg->payload, payload, *payload_len);
+    DEBG2("msg->payload_len %i ", msg->payload_len);
+    if (msg->payload_len){
+        msg->payload = (void*)malloc(*payload_len);
+        if (msg->payload == NULL){
+            ERRO1("memory allocation error!");
+            return NULL;
+        }
+        DEBG1("copying payload..");
+        memcpy(msg->payload, payload, *payload_len);
+        DEBG1("payload copied!");
+    } else {
+        msg->payload = NULL;
+    }
+
+    DEBG1("message created!");
 
     return msg;
 
@@ -30,9 +55,9 @@ NetMessage* create_net_message(int* head_len,
 
 /* unpack a message */
 int unpack_net_message(NetMessage*msg,
-                       int* head_len,
+                       long int* head_len,
                        char* head,
-                       int* payload_len,
+                       long int* payload_len,
                        void* payload){
 
     /* copy header */

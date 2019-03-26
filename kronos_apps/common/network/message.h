@@ -14,16 +14,16 @@ typedef struct NetMessage {
 
 
 /* pack a message */
-NetMessage* create_net_message(int* head_len,
-                             char* head,
-                             int* payload_len,
-                             void* payload);
+NetMessage* create_net_message(long int* head_len,
+                               char* head,
+                               long int* payload_len,
+                               void* payload);
 
 /* unpack a message */
 int unpack_net_message(NetMessage*msg,
-                       int* head_len,
+                       long int* head_len,
                        char* head,
-                       int* payload_len,
+                       long int* payload_len,
                        void* payload);
 
 
