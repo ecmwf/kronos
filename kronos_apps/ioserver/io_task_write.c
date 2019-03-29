@@ -4,13 +4,6 @@
 
 #include <stdio.h>
 #include <string.h>
-
-#ifdef HAVE_PMEMIO
-  #include "libpmem.h"
-  #include "libpmemobj.h"
-  #include "nvram_layout.h"
-#endif
-
 #include <stdlib.h>
 #include <unistd.h>
 #include <fcntl.h>
@@ -192,19 +185,10 @@ IOTaskFunctor* init_iotask_write(const JSON* config, void* msg_data){
     json_object_get_integer(config, "offset", &(data->offset));
     json_object_get_integer(config, "n_writes", &(data->n_writes));
 
-    /* add the actual raw data to write */
-    data->data_to_write = (IOData*)malloc(sizeof(IOData));
-    if (data->data_to_write == NULL) {
-        DEBG1("memory allocation error");
+    /* add the actual data to write into the task input */
+    if ((data->data_to_write = fill_iodata(data->n_bytes, msg_data))==NULL){
+        ERRO1("data filling up failed!");
     }
-
-    data->data_to_write->content = malloc( data->n_bytes * sizeof(char) );
-    if (data->data_to_write->content == NULL) {
-        DEBG1("memory allocation error");
-    }
-
-    data->data_to_write->size = data->n_bytes;
-    data->data_to_write->content = msg_data;
 
     /* prepare the functor */
     functor->data = data;

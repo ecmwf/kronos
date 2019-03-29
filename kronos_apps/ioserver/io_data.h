@@ -24,6 +24,14 @@ typedef struct IOData {
 IOData* create_iodata(long int size);
 
 
+/*
+ * fill IOdata from input buffer
+ * NB: the content is still expected
+ * to be coherent (0123456...)
+ */
+IOData* fill_iodata(long int content_size, void* content);
+
+
 /* check iodata for consistency */
 int check_iodata(IOData* iodata);
 

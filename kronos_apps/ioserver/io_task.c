@@ -36,7 +36,7 @@ IOTaskFunctor* iotask_factory_from_json(const JSON* config, void* msg_data){
         return init_iotask_write(config, msg_data);
 
     } else if (!strcmp(iotask_name, "nvram_writer")){
-        return init_iotask_write_nvram(config);
+        return init_iotask_write_nvram(config, msg_data);
 
     } else if (!strcmp(iotask_name, "reader")){
         return init_iotask_read(config);

@@ -133,7 +133,7 @@ static int free_data_iotask_write_nv(void* data){
 /*
  * init functor
  */
-IOTaskFunctor* init_iotask_write_nvram(const JSON* config){
+IOTaskFunctor* init_iotask_write_nvram(const JSON* config, void* msg_data){
 
     IOTaskFunctor* functor;
     IOTaskWriteNVRAMInputData* data;
@@ -151,19 +151,10 @@ IOTaskFunctor* init_iotask_write_nvram(const JSON* config){
     json_object_get_integer(config, "n_writes", &(data->n_writes));
     json_object_get_integer(config, "pool_size", &(data->n_writes));
 
-    /* add the actual raw data to write */
-    data->data_to_write = (IOData*)malloc(sizeof(IOData));
-    if (data->data_to_write == NULL) {
-        DEBG1("memory allocation error");
+    /* add the actual data to write into the task input */
+    if ((data->data_to_write = fill_iodata(data->n_bytes, msg_data))==NULL){
+        ERRO1("data filling up failed!");
     }
-
-    data->data_to_write->content = malloc( data->n_bytes * sizeof(char));
-    if (data->data_to_write->content == NULL) {
-        DEBG1("memory allocation error");
-    }
-
-    data->data_to_write->size = data->n_bytes;
-    /* data->data_to_write->content = msg_data; TODO: fix this..*/
 
     /* prepare the functor */
     functor->data = data;
