@@ -34,15 +34,17 @@ int execute_io_task(NetMessage* msg, IOData** output){
     if (msg->head_len){
         DEBG2("asked to perform task: %s", msg->head);
         iotaskfunct = iotask_factory_from_msg(msg);
-        err_iotask = iotaskfunct->execute(iotaskfunct->data, output);
 
+        err_iotask = iotaskfunct->execute(iotaskfunct->data, output);
         if (err_iotask){
             ERRO1("reported error in executing IO task!");
         }
 
+        DEBG1("io task executed correctly!");
+
         /* print the data back if it's a read task */
         if ( !strcmp(iotaskfunct->get_name(iotaskfunct->data), "reader")){
-            DEBG2("task executed, output->content: %s", (char*)(*output)->content);
+            DEBG2("task executed, output->content: %s", (char*)((*output)->content));
         } else {
             *output = NULL;
         }
@@ -84,20 +86,23 @@ int handle_connection(int conn){
         return SRV_OFF_CODE;
     }
 
-    /* perform the IO task as requested */
+    /* make space for output and perform the IO task as requested */
+    task_output = malloc(sizeof(IOData));
     if (execute_io_task(inbound_msg, &task_output) < 0){
       ERRO1("error executing the task!");
+      return -1;
     }
 
     /* now handle the output of executing this io task */
     if (task_output != NULL){
 
         DEBG2("output data of execute_io_task: %s", (char*)task_output->content);
+        DEBG2("size of output data: %i", task_output->size);
 
         /* pack the data and send it back.. */
         outbound_msg = create_net_message(&null_size,
                                           null_head,
-                                          task_output->size,
+                                          &task_output->size,
                                           task_output->content);
 
         if (send_net_msg(conn_with_client, outbound_msg) < 0){
@@ -106,6 +111,7 @@ int handle_connection(int conn){
         }
 
         free_net_message(outbound_msg);
+        free_iodata(task_output);
 
     } else {
         DEBG1("output data of execute_io_task is NULL");
