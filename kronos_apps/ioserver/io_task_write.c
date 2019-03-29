@@ -20,13 +20,21 @@
 #include "limits.h"
 
 
+
+/*
+ * get task name
+ */
 static const char* get_name_taskw(const void* data){
     const IOTaskWriteInputData* task_data = data;
     assert(task_data != NULL);
     return task_data->name;
 }
 
-/* do write on file */
+
+
+/*
+ * do write on file
+ */
 static int do_write_to_file(int fd,
                             const long int* size,
                             long int* actual_number_writes,
@@ -70,7 +78,10 @@ static int do_write_to_file(int fd,
 }
 
 
-/* execute a write */
+/*
+ * execute a write
+ * NB: caller has ownership of "out_data"
+ */
 static int execute_iotask_write(void* data, IOData** out_data){
 
     IOTaskWriteInputData* task_data = data;
@@ -141,7 +152,10 @@ static int execute_iotask_write(void* data, IOData** out_data){
 }
 
 
-/* free an IOtask_write  */
+
+/*
+ * free an IOtask_write
+ */
 static int free_data_iotask_write(void* data){
 
     IOTaskWriteInputData* task_data = data;
@@ -157,7 +171,10 @@ static int free_data_iotask_write(void* data){
 }
 
 
-/* init functor */
+
+/*
+ * init functor
+ */
 IOTaskFunctor* init_iotask_write(const JSON* config, void* msg_data){
 
     IOTaskFunctor* functor;

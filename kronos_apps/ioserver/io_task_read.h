@@ -4,7 +4,9 @@
 #include "ioserver/io_task.h"
 #include "ioserver/io_data.h"
 
-/* data for iotask read */
+/*
+ * data for iotask read
+ */
 typedef struct IOTaskReadInputData {
 
     char* name;
@@ -17,7 +19,9 @@ typedef struct IOTaskReadInputData {
 } IOTaskReadInputData;
 
 
-/* init functor */
+/*
+ * init functor
+ */
 IOTaskFunctor* init_iotask_read(const JSON* config);
 
 

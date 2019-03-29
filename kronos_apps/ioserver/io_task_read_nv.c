@@ -21,7 +21,9 @@
 #include "limits.h"
 
 
-
+/*
+ * get task name
+ */
 static const char* get_name_taskrnv(const void* data){
     const IOTaskReadNVRAMInputData* task_data = data;
     assert(task_data != NULL);
@@ -29,7 +31,9 @@ static const char* get_name_taskrnv(const void* data){
 }
 
 
-/* open-read-close */
+/*
+ * open-read-close
+ */
 static int execute_read_file_nvram(void* data, IOData** out_data){
 
 #ifdef HAVE_PMEMIO
@@ -76,7 +80,9 @@ static int execute_read_file_nvram(void* data, IOData** out_data){
 }
 
 
-/* execute a write */
+/*
+ * execute a write
+ */
 static int free_data_iotask_read_nv(void* data){
 
     IOTaskReadNVRAMInputData* task_data = data;
@@ -89,7 +95,9 @@ static int free_data_iotask_read_nv(void* data){
 }
 
 
-/* init functor */
+/*
+ * init functor
+ */
 IOTaskFunctor* init_iotask_read_nvram(const JSON* config){
 
     IOTaskFunctor* functor;

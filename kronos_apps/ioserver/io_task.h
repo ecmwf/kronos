@@ -8,7 +8,9 @@
 #define MAX_WRITE_SIZE 1048576
 
 
-/* generic functor for an iotask */
+/*
+ * generic functor for an iotask
+ */
 typedef struct IOTaskFunctor {
 
     /* input-data needed by this task */
@@ -27,10 +29,17 @@ typedef struct IOTaskFunctor {
 } IOTaskFunctor;
 
 
-/* iotask functor factory (from JSON) */
+
+/*
+ * iotask functor factory (from JSON)
+ */
 IOTaskFunctor* iotask_factory_from_json(const JSON* config, void* msg_data);
 
-/* iotask functor factory (from string) */
+
+
+/*
+ * iotask functor factory (from string)
+ */
 IOTaskFunctor* iotask_factory_from_msg(NetMessage* msg);
 
 

@@ -16,7 +16,9 @@
 
 
 
-
+/*
+ * get task name
+*/
 static const char* get_name_taskr(const void* data){
     const IOTaskReadInputData* task_data = data;
     assert(task_data != NULL);
@@ -25,7 +27,10 @@ static const char* get_name_taskr(const void* data){
 
 
 
-/* open-read-close */
+/*
+ * execute a read (open-seek-read-close)
+ * NB: caller has ownership of "out_data"
+ */
 static int execute_read_file(void* data, IOData** out_data){
 
     IOTaskReadInputData* task_data = data;
@@ -110,7 +115,9 @@ static int execute_read_file(void* data, IOData** out_data){
 }
 
 
-/* free a iotask_read */
+/*
+ * free a iotask_read
+*/
 static int free_data_iotask_read(void* data){
 
     IOTaskReadInputData* task_data = data;
@@ -123,7 +130,9 @@ static int free_data_iotask_read(void* data){
 }
 
 
-/* init functor */
+/*
+ * init functor
+*/
 IOTaskFunctor* init_iotask_read(const JSON* config){
 
     IOTaskFunctor* functor;

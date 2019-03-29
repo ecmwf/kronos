@@ -22,7 +22,9 @@
 
 
 
-/* IO task factory from json */
+/*
+ * IO task factory from json
+ */
 IOTaskFunctor* iotask_factory_from_json(const JSON* config, void* msg_data){
 
     const char* iotask_name;
@@ -48,7 +50,11 @@ IOTaskFunctor* iotask_factory_from_json(const JSON* config, void* msg_data){
     return NULL;
 }
 
-/* IO task factory from msg */
+
+
+/*
+ * IO task factory from msg
+ */
 IOTaskFunctor* iotask_factory_from_msg(NetMessage* msg){
 
     JSON* config_json;

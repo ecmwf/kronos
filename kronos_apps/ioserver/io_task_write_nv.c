@@ -20,7 +20,9 @@
 #include "limits.h"
 
 
-
+/*
+ * get task name
+ */
 static const char* get_name_taskwnv(const void* data){
     const IOTaskWriteNVRAMInputData* task_data = data;
     assert(task_data != NULL);
@@ -28,7 +30,9 @@ static const char* get_name_taskwnv(const void* data){
 }
 
 
-/* write this file to nvram (through memory map) */
+/*
+ * write this file to nvram (through memory map)
+ */
 static int execute_iotask_write_nvram(void* data, IOData** out_data){
 
 #ifdef HAVE_PMEMIO
@@ -107,7 +111,9 @@ static int execute_iotask_write_nvram(void* data, IOData** out_data){
 
 
 
-/* free an IOtask_write_nv  */
+/*
+ * free an IOtask_write_nv
+ */
 static int free_data_iotask_write_nv(void* data){
 
     IOTaskWriteNVRAMInputData* task_data = data;
@@ -124,7 +130,9 @@ static int free_data_iotask_write_nv(void* data){
 
 
 
-/* init functor */
+/*
+ * init functor
+ */
 IOTaskFunctor* init_iotask_write_nvram(const JSON* config){
 
     IOTaskFunctor* functor;

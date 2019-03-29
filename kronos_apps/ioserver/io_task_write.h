@@ -6,7 +6,9 @@
 #include "common/json.h"
 
 
-/* data for iotask write */
+/*
+ * data for iotask write
+ */
 typedef struct IOTaskWriteInputData {
 
     char* name;
@@ -23,7 +25,9 @@ typedef struct IOTaskWriteInputData {
 } IOTaskWriteInputData;
 
 
-/* init functor */
+/*
+ * init functor
+ */
 IOTaskFunctor* init_iotask_write(const JSON* config, void* msg_data);
 
 

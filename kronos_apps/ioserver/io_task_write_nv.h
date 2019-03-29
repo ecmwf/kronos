@@ -6,7 +6,9 @@
 #include "common/json.h"
 
 
-/* data for iotask write on nvram*/
+/*
+ * data for iotask write on nvram
+ */
 typedef struct IOTaskWriteNVRAMInputData {
 
     char* name;
@@ -24,7 +26,9 @@ typedef struct IOTaskWriteNVRAMInputData {
 } IOTaskWriteNVRAMInputData;
 
 
-/* init functor */
+/*
+ * init functor
+ */
 IOTaskFunctor* init_iotask_write_nvram(const JSON* config);
 
 #endif

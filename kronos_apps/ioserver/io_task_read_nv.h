@@ -6,7 +6,9 @@
 #include "common/json.h"
 
 
-/* data for iotask read (from NVRAM) */
+/*
+ * data for iotask read (from NVRAM)
+ */
 typedef struct IOTaskReadNVRAMInputData {
 
     char* name;
@@ -19,7 +21,9 @@ typedef struct IOTaskReadNVRAMInputData {
 } IOTaskReadNVRAMInputData;
 
 
-/* init functor */
+/*
+ * init functor
+ */
 IOTaskFunctor* init_iotask_read_nvram(const JSON* config);
 
 
