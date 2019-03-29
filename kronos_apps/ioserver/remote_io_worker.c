@@ -1,8 +1,12 @@
 
+#include "ioserver/io_task.h"
+#include "ioserver/io_data.h"
+#include "ioserver/io_task_read.h"
+
 #include "common/logger.h"
 #include "common/json.h"
 #include "common/network/network.h"
-#include "ioserver/io_task.h"
+
 
 #include <stdio.h>
 #include <unistd.h>
@@ -19,12 +23,10 @@
  * execute the IO task and give output back if present.
  * E.g. if it's executing a "read" type of task
 */
-int execute_io_task(NetMessage* msg, SizedData** output){
+int execute_io_task(NetMessage* msg, IOData** output){
 
     /* IO task functor */
     IOTaskFunctor* iotaskfunct;
-    IOTaskReadData* reader_data;
-    /* IOTaskReadDataNVRAM* reader_data_nv; */
 
     /* if io_taks ends with an error */
     int err_iotask = 0;
@@ -32,7 +34,7 @@ int execute_io_task(NetMessage* msg, SizedData** output){
     if (msg->head_len){
         DEBG2("asked to perform task: %s", msg->head);
         iotaskfunct = iotask_factory_from_msg(msg);
-        err_iotask = iotaskfunct->execute(iotaskfunct->data);
+        err_iotask = iotaskfunct->execute(iotaskfunct->data, output);
 
         if (err_iotask){
             ERRO1("reported error in executing IO task!");
@@ -40,16 +42,9 @@ int execute_io_task(NetMessage* msg, SizedData** output){
 
         /* print the data back if it's a read task */
         if ( !strcmp(iotaskfunct->get_name(iotaskfunct->data), "reader")){
-            reader_data = (IOTaskReadData*)(iotaskfunct->data);
-            DEBG2("Read data: %s", (char*)(reader_data->data_read->content) );
-
-/*            memcpy(*output->size, reader_data->data_read->size, sizeof(long int));
-            *(output->size) = reader_data->data_read; */
-
+            DEBG2("task executed, output->content: %s", (char*)(*output)->content);
         } else {
-
             *output = NULL;
-
         }
 
     } else {
@@ -65,50 +60,59 @@ int execute_io_task(NetMessage* msg, SizedData** output){
  */
 int handle_connection(int conn){
 
-    NetMessage* msg;
+    NetMessage* inbound_msg;
+    NetMessage* outbound_msg;
     NetConnection* conn_with_client;
-    void* task_output;
-
-    int null_size=0;
-    char* null_head=NULL;
+    IOData* task_output;
+    long int null_size=0;
+    void* null_head;
 
     /* preallocate client connection */
     conn_with_client = create_connection(conn);
 
     /* receive one message and acknowledge */
-    msg = recv_net_msg(conn_with_client);
+    inbound_msg = recv_net_msg(conn_with_client);
     DEBG1("message received!");
 
     acknowledge_reception(conn_with_client);
     DEBG1("acknowledgment sent!");
 
     /* honour a termination request (when arrives) */
-    if (check_termination_msg(msg)){
+    if (check_termination_msg(inbound_msg)){
         INFO1("received kill signal => terminating.");
         close(conn_with_client->socket_fd);
         return SRV_OFF_CODE;
     }
 
     /* perform the IO task as requested */
-    if (execute_io_task(msg, &task_output) < 0){
+    if (execute_io_task(inbound_msg, &task_output) < 0){
       ERRO1("error executing the task!");
     }
 
+    /* now handle the output of executing this io task */
     if (task_output != NULL){
-        DEBG2("output data of execute_io_task: %s", (char*)task_output);
+
+        DEBG2("output data of execute_io_task: %s", (char*)task_output->content);
+
         /* pack the data and send it back.. */
-        /* msg = create_net_message(&null_size, null_head, &writer_nbytes, task_output); */
-        if (send_net_msg(conn, msg) < 0){
+        outbound_msg = create_net_message(&null_size,
+                                          null_head,
+                                          task_output->size,
+                                          task_output->content);
+
+        if (send_net_msg(conn_with_client, outbound_msg) < 0){
             ERRO1("error sending data back");
             return -1;
         }
-        free(msg);
+
+        free_net_message(outbound_msg);
 
     } else {
         DEBG1("output data of execute_io_task is NULL");
     }
 
-    free(task_output);
+    /* free the inbound message */
+    free_net_message(inbound_msg);
 
     /* close connection (only 1 msg from each conn) */
     DEBG2("closing connection fd %i", conn);

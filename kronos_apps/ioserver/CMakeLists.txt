@@ -30,8 +30,18 @@ ecbuild_add_executable(
     TARGET remote_io_worker
 
     SOURCES
+        io_data.h
+        io_data.c
         io_task.h
+        io_task_read.h
+        io_task_read_nv.h
+        io_task_write.h
+        io_task_write_nv.h
         io_task.c
+        io_task_read.c
+        io_task_read_nv.c
+        io_task_write.c
+        io_task_write_nv.c
         nvram_layout.h
         remote_io_worker.c
 
@@ -56,8 +66,6 @@ ecbuild_add_executable(
         ${CMAKE_SOURCE_DIR}/kronos_apps/common/network/network.h
         ${CMAKE_SOURCE_DIR}/kronos_apps/common/network/message.h
         remote_io_master.c
-        io_task.h
-        io_task.c
 
     DEFINITIONS
 

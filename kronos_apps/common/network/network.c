@@ -241,7 +241,7 @@ int acknowledge_reception(NetConnection* conn){
     msg = create_net_message(&hd_len, SERVER_ACK_STR, &no_len, NULL);
     send_net_msg(conn, msg);
 
-    free(msg);
+    free_net_message(msg);
 
     return 0;
 }

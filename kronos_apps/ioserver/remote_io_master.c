@@ -33,7 +33,7 @@ static void* create_data_to_write(const int nbytes){
 
 
 /* assemble the msg as appropriate */
-static NetMessage* package_iotask_message(const JSON* json_msg){
+static NetMessage* package_iotask_message(const JSON* json_msg, short* wait_for_answer){
 
     const JSON* task_name_json;
     void* writer_payload = NULL;
@@ -77,12 +77,19 @@ static NetMessage* package_iotask_message(const JSON* json_msg){
         /* do the adding of the payload */
         writer_payload = create_data_to_write(writer_nbytes);
 
-        /* pack-send-free a msg */
+        /* create the msg */
         msg = create_net_message(&msg_size, jsonbuf, &writer_nbytes, writer_payload);
+
+        /* set that no reply is expected (it's a write task) */
+        *wait_for_answer = 0;
+
     } else {
 
         writer_nbytes = 0;
         msg = create_net_message(&msg_size, jsonbuf, &writer_nbytes, NULL);
+
+        /* set that a reply is expected (it's a read task) */
+        *wait_for_answer = 1;
     }
 
     return msg;
@@ -114,6 +121,10 @@ int main(int argc, char **argv) {
     NetConnection* srv_conn;
     NetMessage* msg;
     NetMessage* msg_ack;
+    NetMessage* msg_data_back;
+
+    /* check if an answer is expected (0=not expected, 1=expected) */
+    short wait_for_answer = -1;
 
 
     /* check command line arguments.. */
@@ -185,7 +196,7 @@ int main(int argc, char **argv) {
         }
 
         /* ========= package-send-destroy message ======== */
-        msg = package_iotask_message(_jsonmsg);
+        msg = package_iotask_message(_jsonmsg, &wait_for_answer);
         if(msg == NULL){
             FATL1("Error generating msg from json io-task!");
         }
@@ -196,11 +207,21 @@ int main(int argc, char **argv) {
         DEBG1("message sent!");
 
         free_net_message(msg);
+        msg=NULL;
         /* =============================================== */
 
         /* wait for server acknowledgment */
         msg_ack = recv_net_msg(srv_conn);
         DEBG2("Acknowledgment from server: %s", msg_ack->head);
+
+
+        /* now receive data back if it's a reading task */
+        if (wait_for_answer){
+            msg_data_back = recv_net_msg(srv_conn);
+            DEBG2("MASTER: received data back %s", (char*)msg_data_back->payload);
+            free_net_message(msg_data_back);
+            msg_data_back = NULL;
+        }
 
 
         /* close the connection */
