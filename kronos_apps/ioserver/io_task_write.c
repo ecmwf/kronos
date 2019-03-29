@@ -36,7 +36,6 @@ static int do_write_to_file(int fd,
     long chunk_size;
     int result;
     long int bytes_to_write;
-    char* raw_data_char = (char*)raw_data;
 
     /* Loop over chunks of the maximum chunk size, until all written */
     remaining = *size;
@@ -50,8 +49,9 @@ static int do_write_to_file(int fd,
         while (bytes_to_write > 0) {
 
             DEBG2("----> writing: %li bytes", bytes_to_write);
-            result = write(fd, raw_data_char, bytes_to_write);
+            result = write(fd, (char*)raw_data, bytes_to_write);
             DEBG2("----> result: %i", result);
+            DEBG3("----> written: %.*s", result, (char*)raw_data);
             (*actual_number_writes)++;
 
             if (result == -1) {
@@ -102,17 +102,21 @@ static int execute_iotask_write(void* data, IOData** out_data){
         open_flags = O_WRONLY | O_CREAT | O_APPEND;
     }
 
-    DEBG2("opening file %s", task_data->file);
-    fd = open(task_data->file, open_flags, S_IRUSR | S_IWUSR | S_IRGRP);
-
-    if (fd == -1) {
-        ERRO2("An error occurred opening the file %s for write: %d (%s)", task_data->file);
-        return -1;
-    }
-
     DEBG2("writing a total of %li bytes", task_data->n_bytes);
+
+    /* do the writing quite aggressively open-seek-write-close */
     offset = 0;
     while(remaining_data>0){
+
+        DEBG2("opening file %s", task_data->file);
+        fd = open(task_data->file, open_flags, S_IRUSR | S_IWUSR | S_IRGRP);
+        if (fd == -1) {
+            ERRO2("An error occurred opening the file %s for write: %d (%s)", task_data->file);
+            return -1;
+        }
+
+        DEBG2("seeking file offset %i", offset);
+        lseek(fd, offset, SEEK_SET);
 
         DEBG3("writing chunk of %li bytes, offset=%i", per_write_size, offset);
         DEBG2("remaining_data %li", remaining_data);
@@ -122,14 +126,14 @@ static int execute_iotask_write(void* data, IOData** out_data){
 
         remaining_data -= per_write_size;
         offset += per_write_size;
-    }
 
-    /* close the file */
-    if (close(fd) == -1){
-        ERRO2("An error occurred closing the file %s: %d (%s)", task_data->file);
-        return -1;
-    } else {
-        DEBG2("file %s closed.", task_data->file);
+        /* close the file */
+        if (close(fd) == -1){
+            ERRO2("An error occurred closing the file %s: %d (%s)", task_data->file);
+            return -1;
+        } else {
+            DEBG2("file %s closed.", task_data->file);
+        }
     }
 
     return 0;

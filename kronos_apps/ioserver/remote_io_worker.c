@@ -99,6 +99,9 @@ int handle_connection(int conn){
         DEBG2("output data of execute_io_task: %s", (char*)task_output->content);
         DEBG2("size of output data: %i", task_output->size);
 
+        /* check io data */
+        check_iodata(task_output);
+
         /* pack the data and send it back.. */
         outbound_msg = create_net_message(&null_size,
                                           null_head,

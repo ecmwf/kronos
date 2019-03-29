@@ -38,25 +38,30 @@ static int execute_read_file(void* data, IOData** out_data){
     long int read_chunk = task_data->n_bytes / task_data->n_reads;
     char* read_tmp;
     char* reading_ptr;
+    long int offset_total;
 
     DEBG1("--> executing reading.. ");
 
     /* allocate space for the output */
     DEBG2("allocating %i bytes", task_data->n_reads * read_chunk + 1);
+    (*out_data)->size = task_data->n_reads * read_chunk;
+    (*out_data)->size_as_string = task_data->n_reads * read_chunk + 1;
     (*out_data)->content = malloc(task_data->n_reads * read_chunk + 1);
-    (*out_data)->size = task_data->n_reads * read_chunk + 1;
     DEBG2("%i bytes allocated", task_data->n_reads * read_chunk + 1);
 
-    /* open-read-close */
-    file_d = fopen(task_data->file, "rb");
-    DEBG2("file %s open", task_data->file);
-
+    /* open-seek-read-close */
     iread_total = 0;
     for (iread=0; iread<task_data->n_reads; iread++)
-    {        
+    {
+
+        file_d = fopen(task_data->file, "rb");
+        DEBG2("file %s open", task_data->file);
+
         if (file_d != NULL) {
 
-            ret = fseek(file_d, task_data->offset, SEEK_SET);
+            /* at each read move to the correct offset */
+            offset_total = task_data->offset+iread*read_chunk;
+            ret = fseek(file_d, offset_total, SEEK_SET);
 
             DEBG2("--> trying to read %i bytes ", read_chunk);
             if (ret == -1) {
@@ -65,7 +70,7 @@ static int execute_read_file(void* data, IOData** out_data){
             } else {
 
                 /* read from file from the proper offset location */
-                reading_ptr = (char*)((*out_data)->content) + iread*read_chunk + task_data->offset;
+                reading_ptr = (char*)((*out_data)->content) + offset_total;
                 result = fread( reading_ptr, 1, read_chunk, file_d);
 
                 if (result != read_chunk) {
@@ -77,7 +82,7 @@ static int execute_read_file(void* data, IOData** out_data){
 
                 /* try to display what has been read */
                 read_tmp = malloc(result+1);
-                strncpy(read_tmp, (char*)((*out_data)->content), result);
+                strncpy(read_tmp, reading_ptr, result);
                 strncpy(read_tmp+result, "\0", 1);
                 DEBG2("=====> read %s ", read_tmp);
                 free(read_tmp);
@@ -85,15 +90,15 @@ static int execute_read_file(void* data, IOData** out_data){
                 /* --------------------------------- */
 
                 iread_total += result;
-            }                        
+            }
+
+            fclose(file_d);
+            DEBG2("file %s closed.", task_data->file);
         }
 
     }
 
     DEBG2("check on total bytes read: %i.", iread_total);
-
-    fclose(file_d);
-    DEBG2("file %s closed.", task_data->file);
 
     memset((char*)((*out_data)->content)+iread_total,'\0',1);
     DEBG2("output: %s", (char*)((*out_data)->content));
