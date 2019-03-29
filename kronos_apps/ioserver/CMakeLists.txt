@@ -66,6 +66,8 @@ ecbuild_add_executable(
         ${CMAKE_SOURCE_DIR}/kronos_apps/common/network/network.h
         ${CMAKE_SOURCE_DIR}/kronos_apps/common/network/message.h
         remote_io_master.c
+        io_data.h
+        io_data.c
 
     DEFINITIONS
 

@@ -13,32 +13,14 @@
 #include <unistd.h>
 
 
-/* allocates data to write io-tasks */
-static void* create_data_to_write(const int nbytes){
-
-    char* written_data;
-    written_data = malloc(nbytes);
-
-    if (written_data == NULL){
-        FATL2("Failed to allcate %i bytes of memory!", nbytes);
-        return NULL;
-    }
-
-    written_data = (char*)malloc(nbytes);
-    memset(written_data, 'w', nbytes-1);
-    written_data[nbytes] = '\0';
-
-    return (void*)written_data;
-}
-
 
 /* assemble the msg as appropriate */
 static NetMessage* package_iotask_message(const JSON* json_msg, short* wait_for_answer){
 
     const JSON* task_name_json;
-    void* writer_payload = NULL;
     const char* task_name; /* reader | writer */
     long int writer_nbytes;
+    IOData* iodata;
 
     /* string from json */
     char jsonbuf[JSON_MSG_BUFFER];
@@ -75,13 +57,16 @@ static NetMessage* package_iotask_message(const JSON* json_msg, short* wait_for_
         }
 
         /* do the adding of the payload */
-        writer_payload = create_data_to_write(writer_nbytes);
+        iodata = create_iodata(writer_nbytes);
+        DEBG2("created io data long: %i", iodata->size);
+        DEBG2("created io data: %s", iodata->content);
 
         /* create the msg */
-        msg = create_net_message(&msg_size, jsonbuf, &writer_nbytes, writer_payload);
+        msg = create_net_message(&msg_size, jsonbuf, &writer_nbytes, iodata->content);
 
         /* set that no reply is expected (it's a write task) */
         *wait_for_answer = 0;
+        free_iodata(iodata);
 
     } else {
 

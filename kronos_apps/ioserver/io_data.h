@@ -12,6 +12,14 @@ typedef struct IOData {
 
 
 
+/* create_io_data */
+IOData* create_iodata(long int size);
+
+
+/* check iodata for consistency */
+int check_iodata(IOData* iodata);
+
+
 /* free sized data */
 void free_iodata(IOData* data);
 
