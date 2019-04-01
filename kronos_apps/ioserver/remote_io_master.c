@@ -196,6 +196,7 @@ int main(int argc, char **argv) {
         msg_ack = recv_net_msg(srv_conn);
         DEBG2("Acknowledgment from server: %s", msg_ack->head);
         free_net_message(msg_ack);
+        msg_ack = NULL;
 
 
         /* now receive data back if it's a reading task */
