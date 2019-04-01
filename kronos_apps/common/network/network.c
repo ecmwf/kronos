@@ -364,17 +364,20 @@ NetMessage* recv_net_msg(const NetConnection* conn){
     if (read_wait(conn->socket_fd, &(msg->head_len), sizeof(int)) < 0) {
         ERRO2("Read head_len to socket %i failed!", conn->socket_fd);
         return NULL;
-    } else {
-        DEBG2("msg->head_len: %i", msg->head_len);
-        msg->head = malloc(msg->head_len);
     }
 
     /* read header */
     if (msg->head_len > 0) {
+
+        DEBG2("msg->head_len: %i", msg->head_len);
+        msg->head = malloc(msg->head_len+1);
+
         if (read_wait(conn->socket_fd, msg->head, msg->head_len) < 0) {
             ERRO2("Read head_len to socket %i failed!", conn->socket_fd);
             return NULL;
         } else {
+
+            *((char*)(msg->head)+msg->head_len) = '\0';
             DEBG2("msg->head: %s", (char*)msg->head);
         }
     }
@@ -383,18 +386,23 @@ NetMessage* recv_net_msg(const NetConnection* conn){
     if (read_wait(conn->socket_fd, &(msg->payload_len), sizeof(int)) < 0) {
         ERRO2("Read payload_len to socket %i failed!", conn->socket_fd);
         return NULL;
-    } else {
-        DEBG2("msg->payload_len: %i", msg->payload_len);
-        msg->payload = malloc(msg->payload_len);
     }
+
 
     /* read payload */
     if (msg->payload_len > 0) {
+
+        DEBG2("msg->payload_len: %i", msg->payload_len);
+        msg->payload = malloc(msg->payload_len+1);
+
         if (read_wait(conn->socket_fd, msg->payload, msg->payload_len) < 0) {
             ERRO2("Read payload_len to socket %i failed!", conn->socket_fd);
             return NULL;
         } else {
-            DEBG2("msg->payload: %s", msg->payload);
+
+            *((char*)(msg->payload)+msg->payload_len) = '\0';
+            DEBG2("msg->payload: %s", (char*)msg->payload);
+
         }
     }
 
