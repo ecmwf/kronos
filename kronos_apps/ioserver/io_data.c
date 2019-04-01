@@ -29,7 +29,7 @@ static void* create_content(long int nbytes){
     /*memset((void*)content, 'w', (int)nbytes-1);*/
     *((char*)content+nbytes) = '\0';
 
-    DEBG2("*********** allocated %s: ", (char*)content);
+    DEBG2("*********** allocated: %s", (char*)content);
 
     return (void*)content;
 }

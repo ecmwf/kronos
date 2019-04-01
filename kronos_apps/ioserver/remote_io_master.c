@@ -14,7 +14,7 @@
 
 
 
-/* assemble the msg as appropriate */
+/* assemble the iotask msg as appropriate */
 static NetMessage* package_iotask_message(const JSON* json_msg, short* wait_for_answer){
 
     const JSON* task_name_json;
