@@ -29,6 +29,7 @@ typedef struct IOTaskWriteNVRAMInputData {
 /*
  * init functor
  */
-IOTaskFunctor* init_iotask_write_nvram(const JSON* config);
+IOTaskFunctor* init_iotask_write_nvram(const JSON* config, void* msg_data);
+
 
 #endif

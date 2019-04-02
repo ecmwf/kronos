@@ -8,7 +8,9 @@
 
 
 
-/* allocates data to write io-tasks */
+/*
+ * allocates data to write io-tasks
+ */
 static void* create_content(long int nbytes){
 
     char* content;
@@ -36,10 +38,14 @@ static void* create_content(long int nbytes){
 
 
 
-/* create_io_data */
+/*
+ * create_io_data
+ */
 IOData* create_iodata(long int size){
 
     IOData* iodata;
+
+    DEBG1("creating iodata..");
 
     if ((iodata = malloc(sizeof(IOData))) == NULL){
         ERRO1("data allocation failed!");
@@ -60,7 +66,51 @@ IOData* create_iodata(long int size){
 }
 
 
-/* check iodata for consistency */
+/*
+ * fill IOdata from input buffer
+ * NB: the content is still expected
+ * to be coherent (0123456...)
+ */
+IOData* fill_iodata(long int content_size, void* content){
+
+    IOData* iodata;
+
+    DEBG1("filling up data..");
+
+    if ((iodata = malloc(sizeof(IOData))) == NULL){
+        ERRO1("data allocation failed!");
+        return NULL;
+    }
+
+    /* set the sizes of content */
+    DEBG1("setting up sizes..");
+
+    iodata->size = content_size;
+    DEBG2("iodata->size %i", iodata->size);
+
+    iodata->size_as_string = content_size+1;
+    DEBG2("iodata->size_as_string %i", iodata->size_as_string);
+
+    /* set content to poit to content */
+    DEBG1("setting up content..");
+    iodata->content = content;
+
+    /* check that io data is consistent */
+    if (check_iodata(iodata)){
+        ERRO1("data inconsistent!");
+        return NULL;
+    }
+
+
+    return iodata;
+
+}
+
+
+
+/*
+ * check iodata for consistency
+ */
 int check_iodata(IOData* iodata){
 
     char* expected;
@@ -92,7 +142,9 @@ int check_iodata(IOData* iodata){
 }
 
 
-/* free sized data */
+/*
+ * free sized data
+ */
 void free_iodata(IOData* data){
     free(data->content);
     free(data);
@@ -100,7 +152,9 @@ void free_iodata(IOData* data){
 
 
 
-/* print subcontent */
+/*
+ * print subcontent
+ */
 int print_iodata_content(IOData* data,
                          long int idx_from,
                          long int idx_to){

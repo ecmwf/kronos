@@ -33,9 +33,6 @@ static NetMessage* package_iotask_message(const JSON* json_msg, short* wait_for_
     msg_size = write_json_string(jsonbuf, JSON_MSG_BUFFER, json_msg);
     DEBG3("json message size %i: %s", msg_size, jsonbuf);
 
-    /* add a payload if it's a writer task */
-    DEBG2("Got task with name: %s", task_name);
-
     if ((task_name_json=json_object_get(json_msg, "name")) == NULL){
         ERRO1("error extracting the key 'name' from json task");
         return NULL;
@@ -198,6 +195,8 @@ int main(int argc, char **argv) {
         /* wait for server acknowledgment */
         msg_ack = recv_net_msg(srv_conn);
         DEBG2("Acknowledgment from server: %s", msg_ack->head);
+        free_net_message(msg_ack);
+        msg_ack = NULL;
 
 
         /* now receive data back if it's a reading task */
