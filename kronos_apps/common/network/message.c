@@ -79,7 +79,11 @@ int unpack_net_message(NetMessage*msg,
 
 void free_net_message(NetMessage* msg){
 
-    free(msg->head);
-    free(msg->payload);
+    if (msg->head_len)
+        free(msg->head);
+
+    if (msg->payload_len)
+        free(msg->payload);
+
     free(msg);
 }
