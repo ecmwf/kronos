@@ -93,9 +93,11 @@ int main(int argc, char **argv) {
     long int* ports;
 
     /* json parsing/msg */
-    const char* input_json_str;
-    const JSON* json_input;
-    const JSON* _jsonmsg;    
+    const char* input_json_file;
+    FILE* inputfile_ptr;
+    JSON* json_input;
+    const JSON* json_input_tasks;
+    const JSON* _jsonmsg;
 
     int imsg, io_msg_len;
 
@@ -120,7 +122,7 @@ int main(int argc, char **argv) {
     } else {
 
         host_file = argv[1];
-        input_json_str = argv[2];
+        input_json_file = argv[2];
     }
 
     /* read the host_file and populate the hosts and ports arrays */
@@ -151,8 +153,24 @@ int main(int argc, char **argv) {
     }
 
     /* generate the json from the input string */
-    json_input = json_from_string(input_json_str);
-    io_msg_len = json_array_length(json_input);
+    INFO2("Opening input file %s..", input_json_file);
+    inputfile_ptr = fopen(input_json_file, "r");
+    if (inputfile_ptr != NULL) {
+        DEBG2("file %s opened", input_json_file);
+        json_input = parse_json(inputfile_ptr);
+        DEBG2("file %s parsed", input_json_file);
+        fclose(inputfile_ptr);
+        DEBG2("file %s closed", input_json_file);
+    } else {
+        FATL2("opening input file %s failed!", input_json_file);
+    }
+
+    json_input_tasks = json_object_get(json_object_get(json_input, "config_params") , "tasks");
+    /* --------------------------------------- */
+
+
+
+    io_msg_len = json_array_length(json_input_tasks);
 
     DEBG2("number of IO messages: %i", io_msg_len);
 
@@ -160,7 +178,7 @@ int main(int argc, char **argv) {
     for(imsg=0; imsg<io_msg_len; imsg++){
 
         /* reading json io message one at a time.. */
-        _jsonmsg = json_array_element(json_input, imsg);
+        _jsonmsg = json_array_element(json_input_tasks, imsg);
         json_object_get_integer(_jsonmsg, "host", &_msg_host);
 
         /* check that the host ID is within the range of known hosts */
@@ -222,6 +240,10 @@ int main(int argc, char **argv) {
 
     free_json((JSON*)json_input);
     json_input = NULL;
+
+    free_json((JSON*)json_input_tasks);
+    json_input_tasks = NULL;
+
     _jsonmsg = NULL;
 
     /* free host/port top ptrs */
