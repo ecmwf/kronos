@@ -84,6 +84,7 @@ ecbuild_add_executable(
 add_subdirectory( tests )
 
 
+# Move the scripts associated with the executables above into the /bin folder
 add_custom_command(
         TARGET remote_io_worker POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy
@@ -96,3 +97,8 @@ add_custom_command(
                 ${CMAKE_SOURCE_DIR}/kronos_apps/scripts/spindown_servers.py
                 ${CMAKE_BINARY_DIR}/bin)
 
+add_custom_command(
+        TARGET remote_io_worker POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy
+                ${CMAKE_SOURCE_DIR}/kronos_apps/scripts/generate_ioserver_schedule.py
+                ${CMAKE_BINARY_DIR}/bin)
