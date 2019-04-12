@@ -41,14 +41,24 @@ param_names = [
 ]
 
 schedule_template = {
-  "unscaled_metrics_sums": {p: 1.0 for p in param_names},
-  "depends": [],
-  "config_params": {},
-  "uid": 4426,
-  "created": "",
-  "tag": "KRONOS-KSCHEDULE-MAGIC",
-  "version": 3,
-  "scaling_factors": {p: 1.0 for p in param_names}
+    "unscaled_metrics_sums": {p: 1.0 for p in param_names},
+    "uid": 4426,
+    "jobs": [],
+    "created": "",  # e.g "2018-07-09T21:30:53Z"
+    "tag": "KRONOS-KSCHEDULE-MAGIC",
+    "version": 3,
+    "scaling_factors": {p: 1.0 for p in param_names}
+}
+
+job_template = {
+    "depends": [],
+    "config_params": {},
+    "timed": True,
+    "metadata": {
+        "job_name": "",
+        "workload_name": ""
+    },
+    "job_class": "template_ioserver"
 }
 # /////////////////////////////////////////////////////////////////////
 
@@ -99,7 +109,7 @@ def generate_allwrite_workflow(args):
     """
 
     # -------- start creating the schedule ------------
-    creation_time = datetime.datetime.now().strftime("%Y-%m-%dT%H:%M:%S")
+    creation_time = datetime.datetime.now().strftime("%Y-%m-%dT%H:%M:%SZ")
     schedule_templ = copy.deepcopy(schedule_template)
     schedule_templ["created"] = creation_time
 
@@ -109,27 +119,45 @@ def generate_allwrite_workflow(args):
     nhosts = args.nhosts
 
     file_uid = 0
-    schedule_templ["config_params"] = {"tasks": []}
     for jobid in range(args.njobs):
 
-        # periodic host ID
-        hid = jobid % nhosts
+        # print "jobid ", jobid
 
-        # file name
-        file_out_name = "kron_file_" + "host"+str(hid) + "_job"+str(jobid) + "_id"+str(file_uid)
-        file_uid += 1
+        # prepare job template
+        job_templ = copy.deepcopy(job_template)
+        job_templ["config_params"] = {"tasks": []}
+        job_templ["metadata"]["job_name"] = "job-"+str(jobid)
+        job_templ["metadata"]["workload_name"] = "workload-dummy"
 
-        # fill-in the job template
-        job_templ = copy.deepcopy(iotask_write_template)
-        job_templ["file"] = os.path.join(io_dir_root, file_out_name)
-        job_templ["host"] = hid
-        job_templ["mode"] = "writer"
-        job_templ["n_bytes"] = io_block_size
-        job_templ["n_writes"] = n_io_blocks
-        job_templ["name"] = "writer"
-        job_templ["offset"] = 0
+        # loop over IO tasks
+        for taskid in range(args.tasks_per_job):
 
-        schedule_templ["config_params"]["tasks"].append(job_templ)
+            # print "taskid ", taskid
+
+            # periodic host ID
+            hid = taskid % nhosts
+
+            # file name
+            file_out_name = "kron_file_" + "host"+str(hid) + "_job"+str(jobid) + "_id"+str(file_uid)
+            file_uid += 1
+
+            # fill-in the job template
+            task_templ = copy.deepcopy(iotask_write_template)
+            task_templ["file"] = os.path.join(io_dir_root, file_out_name)
+            task_templ["host"] = hid
+            task_templ["mode"] = "writer"
+            task_templ["n_bytes"] = io_block_size
+            task_templ["n_writes"] = n_io_blocks
+            task_templ["name"] = "writer"
+            task_templ["offset"] = 0
+
+            # append this IO task into the job task list
+            job_templ["config_params"]["tasks"].append(task_templ)
+
+            # print "job_templ ", job_templ
+
+        # now append the job into the schedule template
+        schedule_templ.get("jobs",[]).append(job_templ)
 
     return schedule_templ
 
@@ -144,6 +172,7 @@ def generate_allread_workflow(args):
 
 # /////////////////////////////////////////////////////////////////////
 
+
 if __name__ == "__main__":
 
     # Parser for the required arguments
@@ -152,21 +181,26 @@ if __name__ == "__main__":
     parser.add_argument("njobs", type=int, help="N of jobs in the workflow")
     parser.add_argument("nhosts", type=int, help="N of io-server hosts")
 
-    parser.add_argument("--ntasks-per-job", "-t", type=int,
-                        help="N of io-tasks (per job)", default=10)
+    parser.add_argument("--tasks-per-job", "-t", type=int,
+                        help="N of io-tasks (per job)",
+                        default=3)
 
     parser.add_argument("--io-block-size", "-b", type=int,
-                        help="IO block size per IO-task", default=1024)
+                        help="IO block size per IO-task",
+                        default=1024)
 
     parser.add_argument("--n-io-blocks", "-n", type=int,
-                        help="#IO blocks per IO-task (reads or writes)", default=100)
+                        help="#IO blocks per IO-task (reads or writes)",
+                        default=100)
 
     parser.add_argument("--io-root-path", "-o", type=str,
-                        help="Root path of the IO tasks", default="/tmp")
+                        help="Root path of the IO tasks",
+                        default="/tmp")
 
     parser.add_argument("--workflow", "-w", type=str,
                         choices=["timestep", "allwrite", "allread"],
-                        help="Type of workflow to be generated")
+                        help="Type of workflow to be generated",
+                        default="allwrite")
 
     parser.add_argument("--file-to-server", "-d", type=str,
                         help="Distribution file to server ID")
@@ -203,8 +237,8 @@ if __name__ == "__main__":
     with open(schedule_name, "w") as f:
         json.dump(kschedule, f, indent=2)
 
-    print "\n * WORKLOAD SUMMARY * "
-    print "N jobs:      {:10}".format( len(kschedule.get("config_params", []).get("tasks", [])) )
+    print "\n * WORKFLOW SUMMARY * "
+    print "N jobs:      {:10}".format( len(kschedule.get("jobs", [])) )
     print "__________________________"
-    print "total N jobs:   {:10}".format( len(kschedule.get("config_params", []).get("tasks", [])) )
+    print "TOTAL N jobs:      {:10}".format(len(kschedule.get("jobs", [])))
     print "\nSchedule: {}".format(schedule_name)
