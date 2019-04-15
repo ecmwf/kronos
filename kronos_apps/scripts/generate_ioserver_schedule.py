@@ -15,7 +15,6 @@ Example of usage:
 --workflow="allwrite" \
 --file-to-server="rotating"
 
-
 """
 
 import sys
@@ -63,7 +62,18 @@ job_template = {
 # /////////////////////////////////////////////////////////////////////
 
 
-# /////////////////////////// IO-TASK templates ///////////////////////////
+# /////////////////////// dependency tempalte /////////////////////////
+job_dependency_template = {
+    "info": {
+        "app": "kronos-synapp",
+        "job": None
+    },
+    "type": "Complete"
+}
+# /////////////////////////////////////////////////////////////////////
+
+
+# ///////////////////////// IO-TASK templates ////////////////////////
 
 iotask_write_template = {
     "file": "",
@@ -88,6 +98,20 @@ iotask_read_template = {
 
 # /////////////////////////////////////////////////////////////////////
 
+def produced_files(nhosts, jobid, njobtasks):
+    """
+    Associates file (to be written) to each job ID
+    :param nhosts: total number of hosts
+    :param jobid: job ID
+    :param njobtasks: N of tasks per job
+    :return: hosts_files: list of files (and associated host) for this jobID
+    """
+
+    return [(
+             task % nhosts, 
+             "kron_file_host{}_job{}_id{}".format(task % nhosts, jobid, jobid*njobtasks + task)
+             ) for task in range(njobtasks)]
+
 
 # /////////////////////////////////////////////////////////////////////
 def generate_timestep_workflow(args):
@@ -98,7 +122,116 @@ def generate_timestep_workflow(args):
     :return: schedule
     """
 
-    return {}
+    # -------- start creating the schedule ------------
+    creation_time = datetime.datetime.now().strftime("%Y-%m-%dT%H:%M:%SZ")
+    schedule_templ = copy.deepcopy(schedule_template)
+    schedule_templ["created"] = creation_time
+
+    io_block_size = args.io_block_size
+    n_io_blocks = args.n_io_blocks
+    io_dir_root = args.io_root_path
+    nhosts = args.nhosts
+    
+    # TODO pass by args
+    args.n_producer_timesteps = 3
+    args.n_consumers = 10
+    
+    # ------------------------------------------------------------------------
+    # -- 1) add producer (one job per time step)
+    #         - associate produced files to this writer job
+    #         - each time-step job depends on completion of the previous time-step job
+    #         - time-step completion is signalled as job completion
+    #
+    # -- 2) add consumers
+    #       - each consumer read from a specific time-step job
+    # ------------------------------------------------------------------------
+
+
+    # 1) define the producers first
+    global_job_id = 0
+    for timestep_job in range(args.n_producer_timesteps):
+        
+        # files written by this job (one file per IO task)
+        job_files = produced_files(args.nhosts, timestep_job, args.tasks_per_job)
+
+        # prepare job template
+        job_templ = copy.deepcopy(job_template)
+        job_templ["config_params"] = {"tasks": []}
+        job_templ["metadata"]["job_name"] = "job-"+str(timestep_job)
+        job_templ["metadata"]["workload_name"] = "producer_timestep_{}".format(timestep_job)
+        
+        # job dependency (all but the first producer)
+        job_dep = copy.deepcopy(job_dependency_template)
+        job_dep["info"]["app"] = "kronos-synapp"
+        job_dep["info"]["job"] = timestep_job - 1
+        job_templ["depends"] = [job_dep] if timestep_job else []
+        #job_templ["depends"] = []
+
+        # loop over IO tasks
+        for hid, fname, in job_files:
+
+            # fill-in the job template
+            task_templ = copy.deepcopy(iotask_write_template)
+            task_templ["file"] = os.path.join(io_dir_root, fname)
+            task_templ["host"] = hid
+            task_templ["n_bytes"] = io_block_size
+            task_templ["n_writes"] = n_io_blocks
+            task_templ["name"] = "writer"
+            task_templ["mode"] = "append"
+            task_templ["offset"] = 0
+
+            # append this IO task into the job task list
+            job_templ["config_params"]["tasks"].append(task_templ)
+
+        # now append the job into the schedule template
+        schedule_templ.get("jobs",[]).append(job_templ)
+        global_job_id += 1
+        
+        
+    # for each time step (producer job) => N consumer jobs read the produced data
+    for timestep_job in range(args.n_producer_timesteps):
+        
+        # files written by this time-step job (one file per IO task)
+        producer_job_files = produced_files(args.nhosts, timestep_job, args.tasks_per_job)
+        
+        # loop over consumer jobs
+        for job_prod in range(args.n_consumers):
+            
+            # prepare job template
+            job_templ = copy.deepcopy(job_template)
+            job_templ["config_params"] = {"tasks": []}
+            job_templ["metadata"]["job_name"] = "job-"+str(global_job_id)
+            job_templ["metadata"]["workload_name"] = "consumer"
+            
+            # job dependency (depends on time-step job)
+            job_dep = copy.deepcopy(job_dependency_template)
+            job_dep["info"]["app"] = "kronos-synapp"
+            job_dep["info"]["job"] = timestep_job
+            job_templ["depends"] = [job_dep]
+            #job_templ["depends"] = []
+
+            # loop over IO tasks
+            for hid, fname, in producer_job_files:
+
+                # fill-in the job template
+                task_templ = copy.deepcopy(iotask_read_template)
+                task_templ["file"] = os.path.join(io_dir_root, fname)
+                task_templ["host"] = hid
+                task_templ["n_bytes"] = io_block_size
+                task_templ["n_reads"] = n_io_blocks
+                task_templ["name"] = "reader"
+                task_templ["offset"] = 0
+
+                # append this IO task into the job task list
+                job_templ["config_params"]["tasks"].append(task_templ)
+                global_job_id += 1
+                
+                
+            # now append the job into the schedule template
+            schedule_templ.get("jobs",[]).append(job_templ)
+            global_job_id += 1
+
+    return schedule_templ
 
 
 def generate_allwrite_workflow(args):
@@ -128,22 +261,16 @@ def generate_allwrite_workflow(args):
         job_templ["config_params"] = {"tasks": []}
         job_templ["metadata"]["job_name"] = "job-"+str(jobid)
         job_templ["metadata"]["workload_name"] = "workload-write"
+        
+        # files written by this job (one file per IO task)
+        job_files = produced_files(args.nhosts, jobid, args.tasks_per_job)
 
         # loop over IO tasks
-        for taskid in range(args.tasks_per_job):
-
-            # print "taskid ", taskid
-
-            # periodic host ID
-            hid = taskid % nhosts
-
-            # file name
-            file_out_name = "kron_file_" + "host"+str(hid) + "_job"+str(jobid) + "_id"+str(file_uid)
-            file_uid += 1
+        for hid, fname, in job_files:
 
             # fill-in the job template
             task_templ = copy.deepcopy(iotask_write_template)
-            task_templ["file"] = os.path.join(io_dir_root, file_out_name)
+            task_templ["file"] = os.path.join(io_dir_root, fname)
             task_templ["host"] = hid
             task_templ["mode"] = "append"
             task_templ["n_bytes"] = io_block_size
@@ -189,22 +316,16 @@ def generate_allread_workflow(args):
         job_templ["config_params"] = {"tasks": []}
         job_templ["metadata"]["job_name"] = "job-"+str(jobid)
         job_templ["metadata"]["workload_name"] = "workload-read"
+        
+        # files written by the corresponding job
+        job_files = produced_files(args.nhosts, jobid, args.tasks_per_job)
 
         # loop over IO tasks
-        for taskid in range(args.tasks_per_job):
-
-            # print "taskid ", taskid
-
-            # periodic host ID
-            hid = taskid % nhosts
-
-            # file name
-            file_out_name = "kron_file_" + "host"+str(hid) + "_job"+str(jobid) + "_id"+str(file_uid)
-            file_uid += 1
+        for hid, fname, in job_files:
 
             # fill-in the job template
             task_templ = copy.deepcopy(iotask_read_template)
-            task_templ["file"] = os.path.join(io_dir_root, file_out_name)
+            task_templ["file"] = os.path.join(io_dir_root, fname)
             task_templ["host"] = hid
             task_templ["n_bytes"] = io_block_size
             task_templ["n_reads"] = n_io_blocks
