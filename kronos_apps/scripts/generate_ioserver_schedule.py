@@ -127,7 +127,7 @@ def generate_allwrite_workflow(args):
         job_templ = copy.deepcopy(job_template)
         job_templ["config_params"] = {"tasks": []}
         job_templ["metadata"]["job_name"] = "job-"+str(jobid)
-        job_templ["metadata"]["workload_name"] = "workload-dummy"
+        job_templ["metadata"]["workload_name"] = "workload-write"
 
         # loop over IO tasks
         for taskid in range(args.tasks_per_job):
@@ -145,7 +145,7 @@ def generate_allwrite_workflow(args):
             task_templ = copy.deepcopy(iotask_write_template)
             task_templ["file"] = os.path.join(io_dir_root, file_out_name)
             task_templ["host"] = hid
-            task_templ["mode"] = "writer"
+            task_templ["mode"] = "append"
             task_templ["n_bytes"] = io_block_size
             task_templ["n_writes"] = n_io_blocks
             task_templ["name"] = "writer"
@@ -168,7 +168,58 @@ def generate_allread_workflow(args):
     :param args:
     :return:
     """
-    return {}
+
+    # -------- start creating the schedule ------------
+    creation_time = datetime.datetime.now().strftime("%Y-%m-%dT%H:%M:%SZ")
+    schedule_templ = copy.deepcopy(schedule_template)
+    schedule_templ["created"] = creation_time
+
+    io_block_size = args.io_block_size
+    n_io_blocks = args.n_io_blocks
+    io_dir_root = args.io_root_path
+    nhosts = args.nhosts
+
+    file_uid = 0
+    for jobid in range(args.njobs):
+
+        # print "jobid ", jobid
+
+        # prepare job template
+        job_templ = copy.deepcopy(job_template)
+        job_templ["config_params"] = {"tasks": []}
+        job_templ["metadata"]["job_name"] = "job-"+str(jobid)
+        job_templ["metadata"]["workload_name"] = "workload-read"
+
+        # loop over IO tasks
+        for taskid in range(args.tasks_per_job):
+
+            # print "taskid ", taskid
+
+            # periodic host ID
+            hid = taskid % nhosts
+
+            # file name
+            file_out_name = "kron_file_" + "host"+str(hid) + "_job"+str(jobid) + "_id"+str(file_uid)
+            file_uid += 1
+
+            # fill-in the job template
+            task_templ = copy.deepcopy(iotask_read_template)
+            task_templ["file"] = os.path.join(io_dir_root, file_out_name)
+            task_templ["host"] = hid
+            task_templ["n_bytes"] = io_block_size
+            task_templ["n_reads"] = n_io_blocks
+            task_templ["name"] = "reader"
+            task_templ["offset"] = 0
+
+            # append this IO task into the job task list
+            job_templ["config_params"]["tasks"].append(task_templ)
+
+            # print "job_templ ", job_templ
+
+        # now append the job into the schedule template
+        schedule_templ.get("jobs",[]).append(job_templ)
+
+    return schedule_templ    
 
 # /////////////////////////////////////////////////////////////////////
 
@@ -187,7 +238,7 @@ if __name__ == "__main__":
 
     parser.add_argument("--io-block-size", "-b", type=int,
                         help="IO block size per IO-task",
-                        default=1024)
+                        default=102)
 
     parser.add_argument("--n-io-blocks", "-n", type=int,
                         help="#IO blocks per IO-task (reads or writes)",
@@ -231,7 +282,7 @@ if __name__ == "__main__":
         print "workflow option not recognised"
         exit(1)
 
-    schedule_name = "ioserver_workflow" + ".kschedule"
+    schedule_name = "ioserver_workflow_{}.kschedule".format(args.workflow)
 
     # writing file out
     with open(schedule_name, "w") as f:
