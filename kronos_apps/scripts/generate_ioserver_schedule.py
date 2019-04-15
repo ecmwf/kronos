@@ -62,7 +62,7 @@ job_template = {
 # /////////////////////////////////////////////////////////////////////
 
 
-# /////////////////////// dependency tempalte /////////////////////////
+# /////////////////////// dependency template /////////////////////////
 job_dependency_template = {
     "info": {
         "app": "kronos-synapp",
@@ -132,10 +132,6 @@ def generate_timestep_workflow(args):
     io_dir_root = args.io_root_path
     nhosts = args.nhosts
     
-    # TODO pass by args
-    args.n_producer_timesteps = 3
-    args.n_consumers = 10
-    
     # ------------------------------------------------------------------------
     # -- 1) add producer (one job per time step)
     #         - associate produced files to this writer job
@@ -145,7 +141,6 @@ def generate_timestep_workflow(args):
     # -- 2) add consumers
     #       - each consumer read from a specific time-step job
     # ------------------------------------------------------------------------
-
 
     # 1) define the producers first
     global_job_id = 0
@@ -376,6 +371,14 @@ if __name__ == "__main__":
 
     parser.add_argument("--file-to-server", "-d", type=str,
                         help="Distribution file to server ID")
+    
+    parser.add_argument("--n-producer-timesteps", "-p", type=int,
+                        help="Number of timesteps of the 'producer' (only valid with the timestep workflow)",
+                        default=3)
+
+    parser.add_argument("--n-consumers", "-c", type=int,
+                        help="Number of 'consumers' (only valid with the timestep workflow)",
+                        default=10)
 
     # print the help if no arguments are passed
     if len(sys.argv) == 1:
@@ -385,10 +388,16 @@ if __name__ == "__main__":
     # parse the arguments..
     args = parser.parse_args()
 
+    # ///////// some args checks.. /////////
     # check the output directory
     if not os.path.isdir(args.io_root_path):
         print "Root path not valid!"
         exit(1)
+        
+    if args.workflow != "timestep" and (args.n_producer_timesteps or args.n_consumers):
+        print "\n\nWARNING: options --n-producer-timesteps and --n-consumers only valid" + \
+            " with workflow=timestep => options ignored\n"
+    #///////////////////////////////////////
 
     if args.workflow == "timestep":
         kschedule = generate_timestep_workflow(args)
