@@ -15,6 +15,8 @@ static void* create_content(long int nbytes){
 
     char* content;
     long int i;
+    char let_array[] = "abcdefghilmnopqrstuvz";
+    int let_array_len = 21;
 
 
     /* allocate nbytes in the content */
@@ -26,7 +28,7 @@ static void* create_content(long int nbytes){
 
     /* set a string nbytes long (incl last '\0') */
     for (i=0; i<nbytes; i++){
-        *((char*)content+i) = (char)(i%10);
+        *((char*)content+i) = let_array[i%let_array_len];
     }
 
     return (void*)content;

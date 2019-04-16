@@ -56,7 +56,6 @@ static NetMessage* package_iotask_message(const JSON* json_msg, short* wait_for_
         /* do the adding of the payload */
         iodata = create_iodata(writer_nbytes);
         DEBG2("created io data long: %i", iodata->size);
-        DEBG2("created io data: %s", iodata->content);
 
         /* create the msg */
         msg = create_net_message(&msg_size, jsonbuf, &(iodata->size), iodata->content);

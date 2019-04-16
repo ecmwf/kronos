@@ -330,7 +330,7 @@ int send_net_msg(const NetConnection* conn, NetMessage* msg){
             ERRO2("Writing payload to socket %i failed!", conn->socket_fd);
             return -1;
         } else {
-            DEBG2("msg->payload: %s", msg->payload);
+            DEBG1("msg->payload written");
         }
     }
 
@@ -399,10 +399,7 @@ NetMessage* recv_net_msg(const NetConnection* conn){
             ERRO2("Read payload_len to socket %i failed!", conn->socket_fd);
             return NULL;
         } else {
-
-            *((char*)(msg->payload)+msg->payload_len) = '\0';
-            DEBG2("msg->payload: %s", (char*)msg->payload);
-
+            DEBG1("message read");
         }
     }
 

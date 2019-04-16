@@ -185,6 +185,8 @@ IOTaskFunctor* init_iotask_write(const JSON* config, void* msg_data){
     json_object_get_integer(config, "n_writes", &(data->n_writes));
 
     /* add the actual data to write into the task input */
+    DEBG1("bytes to create");
+    DEBG2("bytes to create %i", data->n_bytes);
     if ((data->data_to_write = fill_iodata(data->n_bytes, msg_data))==NULL){
         ERRO1("data filling up failed!");
     }
