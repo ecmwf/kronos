@@ -59,7 +59,7 @@ static NetMessage* package_iotask_message(const JSON* json_msg, short* wait_for_
         DEBG2("created io data: %s", iodata->content);
 
         /* create the msg */
-        msg = create_net_message(&msg_size, jsonbuf, &(iodata->size_as_string), iodata->content);
+        msg = create_net_message(&msg_size, jsonbuf, &(iodata->size), iodata->content);
 
         /* set that no reply is expected (it's a write task) */
         *wait_for_answer = 0;

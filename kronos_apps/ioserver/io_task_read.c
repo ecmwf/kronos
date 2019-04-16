@@ -48,11 +48,10 @@ static int execute_read_file(void* data, IOData** out_data){
     DEBG1("--> executing reading.. ");
 
     /* allocate space for the output */
-    DEBG2("allocating %i bytes", task_data->n_reads * read_chunk + 1);
+    DEBG2("allocating %i bytes", task_data->n_reads * read_chunk);
     (*out_data)->size = task_data->n_reads * read_chunk;
-    (*out_data)->size_as_string = task_data->n_reads * read_chunk + 1;
-    (*out_data)->content = malloc(task_data->n_reads * read_chunk + 1);
-    DEBG2("%i bytes allocated", task_data->n_reads * read_chunk + 1);
+    (*out_data)->content = malloc(task_data->n_reads * read_chunk);
+    DEBG2("%i bytes allocated", task_data->n_reads * read_chunk);
 
     /* open-seek-read-close */
     iread_total = 0;
@@ -84,14 +83,6 @@ static int execute_read_file(void* data, IOData** out_data){
                 }
 
                 DEBG2("--> read %i bytes ", result);
-
-                /* try to display what has been read */
-                read_tmp = malloc(result+1);
-                strncpy(read_tmp, reading_ptr, result);
-                strncpy(read_tmp+result, "\0", 1);
-                DEBG2("=====> read %s ", read_tmp);
-                free(read_tmp);
-                read_tmp = NULL;
                 /* --------------------------------- */
 
                 iread_total += result;

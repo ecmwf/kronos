@@ -10,9 +10,6 @@ typedef struct IOData {
     /* size of content */
     long int size;
 
-    /* size of content as string (= size+1) */
-    long int size_as_string;
-
     /* content */
     void* content;
 

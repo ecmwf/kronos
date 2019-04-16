@@ -52,7 +52,6 @@ static int do_write_to_file(int fd,
             DEBG2("----> writing: %li bytes", bytes_to_write);
             result = write(fd, (char*)raw_data, bytes_to_write);
             DEBG2("----> result: %i", result);
-            DEBG3("----> written: %.*s", result, (char*)raw_data);
             (*actual_number_writes)++;
 
             if (result == -1) {

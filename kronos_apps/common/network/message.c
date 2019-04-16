@@ -35,14 +35,13 @@ NetMessage* create_net_message(long int* head_len,
     msg->payload_len = *payload_len;
     DEBG2("msg->payload_len %i ", msg->payload_len);
     if (msg->payload_len){
-        msg->payload = (void*)malloc(*payload_len+1);
+        msg->payload = (void*)malloc(*payload_len);
         if (msg->payload == NULL){
             ERRO1("memory allocation error!");
             return NULL;
         }
         DEBG1("copying payload..");
         memcpy(msg->payload, payload, *payload_len);
-        *((char*)(msg->payload)+msg->payload_len) = '\0';
         DEBG1("payload copied!");
     } else {
         msg->payload = NULL;

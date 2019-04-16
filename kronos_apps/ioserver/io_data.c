@@ -18,20 +18,16 @@ static void* create_content(long int nbytes){
 
 
     /* allocate nbytes in the content */
-    content = (char*)malloc(nbytes+1);
+    content = (char*)malloc(nbytes);
     if (content == NULL){
         FATL2("Failed to allcate %i bytes of memory!", nbytes);
         return NULL;
     }
 
-    /* set a string nbytes+1 long (incl last '\0') */
+    /* set a string nbytes long (incl last '\0') */
     for (i=0; i<nbytes; i++){
-        *((char*)content+i) = (char)(i%10)+'0';
+        *((char*)content+i) = (char)(i%10);
     }
-    /*memset((void*)content, 'w', (int)nbytes-1);*/
-    *((char*)content+nbytes) = '\0';
-
-    DEBG2("*********** allocated: %s", (char*)content);
 
     return (void*)content;
 }
@@ -54,7 +50,6 @@ IOData* create_iodata(long int size){
 
     /* set the sizes of content */
     iodata->size = size;
-    iodata->size_as_string = size+1;
 
     if ((iodata->content = create_content(size)) == NULL){
         ERRO1("data creation failed!");
@@ -88,9 +83,6 @@ IOData* fill_iodata(long int content_size, void* content){
     iodata->size = content_size;
     DEBG2("iodata->size %i", iodata->size);
 
-    iodata->size_as_string = content_size+1;
-    DEBG2("iodata->size_as_string %i", iodata->size_as_string);
-
     /* set content to poit to content */
     DEBG1("setting up content..");
     iodata->content = content;
@@ -100,7 +92,6 @@ IOData* fill_iodata(long int content_size, void* content){
         ERRO1("data inconsistent!");
         return NULL;
     }
-
 
     return iodata;
 
@@ -132,8 +123,6 @@ int check_iodata(IOData* iodata){
     } else {
 
         ERRO1("iodata NOT OK!");
-        DEBG2("expected: %s", (char*)expected);
-        DEBG2("iodata content: %s", (char*)iodata->content);
         free(expected);
         return 1;
 
