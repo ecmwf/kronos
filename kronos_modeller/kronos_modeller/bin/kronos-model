@@ -72,8 +72,8 @@ if __name__ == "__main__":
 
     # read other arguments if present..
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawTextHelpFormatter)
-    parser.add_argument('configuration_file', type=str)
-    parser.add_argument('-m', "--model", help="Generate workload model", action='store_true')
+    parser.add_argument('configuration_file', type=str,
+                        help="Kronos model configuration file")
 
     # print the help if no arguments are passed
     if len(sys.argv) == 1:
@@ -99,16 +99,11 @@ if __name__ == "__main__":
         # And get going!!!
         app = Kronos(config)
 
-        if args.model:
+        # do the modelling
+        app.model()
 
-            # do the modelling
-            app.model()
-
-            # print final report of measures
-            Report.print_report()
-        else:
-            logger.error("command line parsing error..")
-            sys.exit(1)
+        # print final report of measures
+        Report.print_report()
 
     except ConfigurationError as e:
         logger.error("Error in Kronos configuration: {}".format(e))
