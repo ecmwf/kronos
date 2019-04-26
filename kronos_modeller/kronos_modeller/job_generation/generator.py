@@ -8,7 +8,7 @@
 import copy
 
 import numpy as np
-from kronos_modeller.exceptions_iows import ConfigurationError
+from kronos_modeller.kronos_exceptions import ConfigurationError
 from kronos_modeller.job_generation import strategy_factory
 from kronos_modeller.job_generation.schedule import job_schedule_factory
 from kronos_modeller.synthetic_app import SyntheticApp

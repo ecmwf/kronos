@@ -8,7 +8,7 @@
 
 import logging
 import numpy as np
-from kronos_modeller.exceptions_iows import ConfigurationError
+from kronos_modeller.kronos_exceptions import ConfigurationError
 from scipy.spatial.distance import pdist
 
 logger = logging.getLogger(__name__)

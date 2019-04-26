@@ -19,7 +19,7 @@ from kronos_modeller.jobs import ModelJob, IngestedJob
 from kronos_executor.definitions import signal_types, time_signal_names
 from kronos_modeller.time_signal.time_signal import TimeSignal
 
-from kronos_modeller.exceptions_iows import ModellingError
+from kronos_modeller.kronos_exceptions import ModellingError
 
 
 class ModelJobTest(unittest.TestCase):

@@ -13,7 +13,7 @@ import logging
 import subprocess
 
 from kronos_modeller import run_control
-from kronos_modeller.exceptions_iows import ConfigurationError
+from kronos_modeller.kronos_exceptions import ConfigurationError
 from kronos_modeller.runner.base_runner import BaseRunner
 
 logger = logging.getLogger(__name__)

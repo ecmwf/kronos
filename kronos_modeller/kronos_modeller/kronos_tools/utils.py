@@ -11,7 +11,7 @@ import math
 
 import numpy as np
 
-from kronos_modeller.exceptions_iows import ConfigurationError
+from kronos_modeller.kronos_exceptions import ConfigurationError
 
 
 def mb(n_bytes):

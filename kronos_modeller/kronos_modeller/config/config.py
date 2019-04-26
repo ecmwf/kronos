@@ -11,7 +11,7 @@ import os
 
 from config_format import ConfigFormat
 from kronos_modeller import log_msg_format
-from kronos_modeller.exceptions_iows import ConfigurationError
+from kronos_modeller.kronos_exceptions import ConfigurationError
 
 
 class Config(object):

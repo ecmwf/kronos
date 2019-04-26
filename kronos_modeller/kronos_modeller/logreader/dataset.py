@@ -25,7 +25,7 @@ import datetime
 import errno
 import os
 
-from kronos_modeller.exceptions_iows import ConfigurationError
+from kronos_modeller.kronos_exceptions import ConfigurationError
 
 logger = logging.getLogger(__name__)
 

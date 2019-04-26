@@ -9,7 +9,7 @@
 import numpy as np
 import logging
 
-from exceptions_iows import ModellingError, ConfigurationError
+from kronos_exceptions import ModellingError, ConfigurationError
 from kronos_executor.definitions import time_signal_names
 from kronos_modeller.time_signal.time_signal import TimeSignal
 from kronos_modeller.tools.merge import max_not_none, min_not_none

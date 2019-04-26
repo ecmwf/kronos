@@ -11,7 +11,7 @@ import types
 import unittest
 
 import mock
-from kronos_modeller.exceptions_iows import IngestionError
+from kronos_modeller.kronos_exceptions import IngestionError
 from kronos_modeller.jobs import IngestedJob
 
 # from kronos_modeller.logreader import IPMTaskInfo, IPMLogReader, IPMIngestedJob, IPMDataSet

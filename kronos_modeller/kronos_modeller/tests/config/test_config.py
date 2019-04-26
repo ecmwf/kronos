@@ -17,7 +17,7 @@ import jsonschema
 from kronos_modeller.config.config import Config
 from kronos_modeller.config.config_format import ConfigFormat
 
-from kronos_modeller.exceptions_iows import ConfigurationError
+from kronos_modeller.kronos_exceptions import ConfigurationError
 
 
 class ConfigTests(unittest.TestCase):

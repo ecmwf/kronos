@@ -12,7 +12,7 @@ import pickle
 import logging
 from collections import Counter
 
-from exceptions_iows import ConfigurationError
+from kronos_exceptions import ConfigurationError
 from jobs import ModelJob
 from kronos_executor import app_kernels
 from kronos_executor.io_formats.schedule_format import ScheduleFormat

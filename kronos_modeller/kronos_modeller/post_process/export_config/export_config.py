@@ -10,7 +10,7 @@ import json
 import os
 from collections import OrderedDict
 
-from kronos_modeller.exceptions_iows import ConfigurationError
+from kronos_modeller.kronos_exceptions import ConfigurationError
 
 from kronos_modeller.post_process.export_config.export_config_format import ExportConfigFormat
 

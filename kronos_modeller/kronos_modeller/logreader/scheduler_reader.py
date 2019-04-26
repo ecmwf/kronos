@@ -10,7 +10,7 @@ import csv
 import os
 from datetime import datetime
 
-from kronos_modeller.exceptions_iows import ConfigurationError
+from kronos_modeller.kronos_exceptions import ConfigurationError
 from kronos_modeller.jobs import IngestedJob, ModelJob
 
 from kronos_modeller.logreader.dataset import IngestedDataSet

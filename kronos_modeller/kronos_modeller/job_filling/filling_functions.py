@@ -8,7 +8,7 @@
 
 import numpy as np
 
-from exceptions_iows import ConfigurationError
+from kronos_modeller.kronos_exceptions import ConfigurationError
 
 """
 This module contains the list of functions usable to fill in an incomplete workload

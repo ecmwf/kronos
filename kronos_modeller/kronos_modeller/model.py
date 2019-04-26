@@ -9,6 +9,7 @@ import logging
 import os
 
 import numpy as np
+from kronos_modeller.job_filling import job_filling_types
 from kronos_modeller.job_generation import generator
 from kronos_modeller.kronos_tools.gyration_radius import r_gyration
 from kronos_modeller.report import Report, ModelMeasure
@@ -16,9 +17,8 @@ from kronos_modeller.report import Report, ModelMeasure
 import data_analysis
 import workload_data
 from config.config import Config
-from exceptions_iows import ConfigurationError
+from kronos_exceptions import ConfigurationError
 from synthetic_app import SyntheticWorkload, SyntheticApp
-from workload_fill_in import WorkloadFiller
 
 logger = logging.getLogger(__name__)
 
@@ -125,11 +125,14 @@ class KronosModel(object):
         :return:
         """
 
-        filler = WorkloadFiller(self.config_fill_in, self.workloads)
-
         # call functions corresponding to fill_in types
-        for operation in self.config_fill_in['operations']:
-            getattr(filler, operation['type'])()
+        for filling_strategy_config in self.config_fill_in['operations']:
+
+            # select the appropriate job_filling strategy
+            filler = job_filling_types[filling_strategy_config["type"]](self.workloads)
+
+            # apply the strategy
+            filler.apply(filling_strategy_config, self.config_fill_in['user_functions'])
 
     def generate_synthetic_workload(self):
 
@@ -160,7 +163,9 @@ class KronosModel(object):
 
         dt_orig = self.tot_duration_wl_original
         dt_sapps = sa_workload.max_sa_time_interval()
-        Report.add_measure(ModelMeasure("relative_time_interval [%]", (dt_orig-dt_sapps/t_scaling)/dt_orig*100., __name__))
+        Report.add_measure(ModelMeasure("relative_time_interval [%]",
+                                        (dt_orig-dt_sapps/t_scaling)/dt_orig*100.,
+                                        __name__))
 
     def export_synthetic_workload(self):
         """
@@ -223,7 +228,9 @@ class KronosModel(object):
                     logger.info("Splitting workload {}".format(op_config['apply_to']))
                     wl = next(wl for wl in self.workloads if wl.tag == op_config['apply_to'])
                     sub_workloads = wl.split_by_keywords(op_config)
-                    logger.info("splitting has created workload {} with {} jobs".format(sub_workloads.tag, len(sub_workloads.jobs)))
+                    logger.info("splitting has created workload {} with {} jobs".format(
+                        sub_workloads.tag,
+                        len(sub_workloads.jobs)))
 
                     # accumulate cutout worklaods
                     cutout_workloads.append(sub_workloads)
@@ -269,7 +276,8 @@ class KronosModel(object):
             matrix_jobs_in_cluster_all = []
             nbins = clustering_config['num_timesignal_bins']
             for cc in range(clusters_matrix.shape[0]):
-                matrix_jobs_in_cluster = np.asarray([j.ts_to_vector(nbins) for j in np.asarray(wl.jobs)[clusters_labels == cc]])
+                matrix_jobs_in_cluster = np.asarray([j.ts_to_vector(nbins) for j in
+                                                     np.asarray(wl.jobs)[clusters_labels == cc]])
                 r_sub_wl_mean.append(r_gyration(matrix_jobs_in_cluster))
                 matrix_jobs_in_cluster_all.append(matrix_jobs_in_cluster)
 
@@ -307,12 +315,15 @@ class KronosModel(object):
             if req_item not in self.config_generator.keys():
                 raise ConfigurationError("'generator' requires to specify {}".format(req_item))
 
+        n_bins_for_pdf = self.config_classification['clustering']['num_timesignal_bins']
+        n_bins_timesignals = self.config_classification['clustering']['num_timesignal_bins']
+
         sapps_generator = generator.SyntheticWorkloadGenerator(self.config_generator,
                                                                self.clusters,
                                                                global_t0,
                                                                global_tend,
-                                                               n_bins_for_pdf=self.config_generator['n_bins_for_pdf'],
-                                                               n_bins_timesignals=self.config_classification['clustering']['num_timesignal_bins'])
+                                                               n_bins_for_pdf=n_bins_for_pdf,
+                                                               n_bins_timesignals=n_bins_timesignals)
 
         self.modelled_sa_jobs = sapps_generator.generate_synthetic_apps()
 
@@ -329,7 +340,8 @@ class KronosModel(object):
 
     def _kschedule_from_kprofile_one_to_one(self):
         """
-        This function very simply translates model_jobs into synthetic applications with a one-to-one relationship
+        This function very simply translates model_jobs into
+        synthetic applications with a one-to-one relationship
         :return:
         """
 

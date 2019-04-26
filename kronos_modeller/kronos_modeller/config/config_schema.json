@@ -145,7 +145,7 @@
                       "type": {
                         "type": "string",
                         "description": "Function identification string",
-                        "enum": ["fill_missing_entries"]
+                        "enum": ["user_defaults"]
                       },
                       "apply_to": {
                         "type": "array",

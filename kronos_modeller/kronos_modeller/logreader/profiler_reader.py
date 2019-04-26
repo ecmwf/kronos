@@ -15,7 +15,7 @@ from datetime import datetime
 
 import numpy as np
 from kronos_executor.definitions import signal_types
-from kronos_modeller.exceptions_iows import ConfigurationError
+from kronos_modeller.kronos_exceptions import ConfigurationError
 from kronos_modeller.jobs import IngestedJob, ModelJob
 from kronos_modeller.logreader.dataset import IngestedDataSet
 from kronos_modeller.time_signal.time_signal import TimeSignal

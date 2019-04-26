@@ -10,7 +10,7 @@ import fnmatch
 import os
 import sys
 
-from kronos_modeller.exceptions_iows import ConfigurationError
+from kronos_modeller.kronos_exceptions import ConfigurationError
 from kronos_modeller.jobs import IngestedJob
 
 from kronos_modeller.tools.process_pool import ProcessingPool

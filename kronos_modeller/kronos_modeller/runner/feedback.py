@@ -19,7 +19,7 @@ from kronos_executor.io_formats.schedule_format import ScheduleFormat
 from kronos_modeller import run_control
 from kronos_modeller import time_signal
 from kronos_executor.definitions import signal_types
-from kronos_modeller.exceptions_iows import ConfigurationError
+from kronos_modeller.kronos_exceptions import ConfigurationError
 from kronos_modeller.kronos_tools import utils
 from kronos_modeller.logreader import profiler_reader
 from kronos_modeller.workload_data import WorkloadData

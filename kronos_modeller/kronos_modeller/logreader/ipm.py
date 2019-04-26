@@ -8,7 +8,7 @@
 
 import xml.etree.ElementTree as ET
 
-from kronos_modeller.exceptions_iows import IngestionError
+from kronos_modeller.kronos_exceptions import IngestionError
 from kronos_modeller.jobs import IngestedJob, ModelJob
 from kronos_modeller.time_signal.time_signal import TimeSignal
 

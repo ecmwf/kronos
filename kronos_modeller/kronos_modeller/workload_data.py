@@ -8,10 +8,10 @@
 import logging
 from difflib import SequenceMatcher
 
-import fill_in_functions as fillf
+from kronos_modeller.job_filling import filling_functions as fillf
 import numpy as np
 from data_analysis import recommender
-from exceptions_iows import ConfigurationError
+from kronos_exceptions import ConfigurationError
 from jobs import ModelJob
 
 from kronos_executor.definitions import signal_types, time_signal_names

@@ -7,7 +7,7 @@
 # does it submit to any jurisdiction.
 import os
 
-from kronos_modeller.exceptions_iows import ConfigurationError
+from kronos_modeller.kronos_exceptions import ConfigurationError
 
 
 class ExporterBase(object):
