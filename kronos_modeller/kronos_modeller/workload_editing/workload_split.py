@@ -26,6 +26,12 @@ class WorkloadSplit(EditingStrategy):
     workload_created = []
 
     def _apply(self, config, user_functions):
+        """
+        Apply this strategy
+        :param config:
+        :param user_functions:
+        :return:
+        """
 
         logger.info("Applying workload splitting..")
 
@@ -51,6 +57,12 @@ class WorkloadSplit(EditingStrategy):
 
     @staticmethod
     def split_by_keywords(workload, split_config_output):
+        """
+        Auxiliary internal splitting function
+        :param workload:
+        :param split_config_output:
+        :return:
+        """
 
         # Extract configurations for the splitting
         new_wl_name = split_config_output['create_workload']
