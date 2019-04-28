@@ -1,20 +1,21 @@
 import logging
 
-from kronos_modeller.job_filling.strategy_base import StrategyBase
 from kronos_modeller.kronos_exceptions import ConfigurationError
 from kronos_modeller.workload_data import WorkloadData
 from difflib import SequenceMatcher
 
+from kronos_modeller.job_filling.filling_strategy import FillingStrategy
+
 logger = logging.getLogger(__name__)
 
 
-class StrategyMatchKeyword(StrategyBase):
+class StrategyMatchKeyword(FillingStrategy):
 
     """
     Apply job metrics from a name matching job
     """
 
-    required_config_fields = StrategyBase.required_config_fields + \
+    required_config_fields = FillingStrategy.required_config_fields + \
         [
             'keywords',
             'similarity_threshold',

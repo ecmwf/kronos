@@ -1,9 +1,9 @@
 
 import logging
 
-from kronos_modeller.job_filling.strategy_match_keyword import StrategyMatchKeyword
-from kronos_modeller.job_filling.strategy_user_defaults import StrategyUserDefaults
-from kronos_modeller.job_filling.strategy_recommender import StrategyRecommender
+from kronos_modeller.job_filling.match_keyword import StrategyMatchKeyword
+from kronos_modeller.job_filling.user_defaults import StrategyUserDefaults
+from kronos_modeller.job_filling.recommender_sys import StrategyRecommender
 
 logger = logging.getLogger(__name__)
 

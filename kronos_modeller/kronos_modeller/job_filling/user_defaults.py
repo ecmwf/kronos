@@ -1,7 +1,7 @@
 import logging
 
 import numpy as np
-from kronos_modeller.job_filling.strategy_base import StrategyBase
+from kronos_modeller.job_filling.filling_strategy import FillingStrategy
 from kronos_modeller.kronos_exceptions import ConfigurationError
 from kronos_modeller.time_signal.time_signal import TimeSignal
 from kronos_modeller.job_filling import filling_functions as fillf
@@ -9,14 +9,14 @@ from kronos_modeller.job_filling import filling_functions as fillf
 logger = logging.getLogger(__name__)
 
 
-class StrategyUserDefaults(StrategyBase):
+class StrategyUserDefaults(FillingStrategy):
 
     """
     Apply user defined defaults to jobs of a
     certain workload type
     """
 
-    required_config_fields = StrategyBase.required_config_fields + \
+    required_config_fields = FillingStrategy.required_config_fields + \
         [
             "apply_to",
             "metrics"

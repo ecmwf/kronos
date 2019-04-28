@@ -7,10 +7,8 @@ class StrategyBase(object):
     Base class that represents a job filling strategy
     """
 
-    required_config_fields = [
-        "type",
-        "priority"
-    ]
+    # required params
+    required_config_fields = []
 
     def __init__(self, workloads):
         """
