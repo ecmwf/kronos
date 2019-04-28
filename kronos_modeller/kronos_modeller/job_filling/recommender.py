@@ -31,7 +31,9 @@ class Recommender(object):
         """
 
         if self.input_matrix.shape[1] % self.n_bins:
-            raise ConfigurationError("matrix col number={} not consistent with n_bins={}in the RS".format(self.input_matrix.shape[1], self.n_bins))
+            err_tmpl = "matrix col number={} not consistent with n_bins={}in the RS"
+            err = err_tmpl.format(self.input_matrix.shape[1], self.n_bins)
+            raise ConfigurationError(err)
 
         assert(isinstance(self.input_matrix, np.ndarray))
 
@@ -76,7 +78,8 @@ class Recommender(object):
         for c in range(mat_norm.shape[1]):
             for cc in range(mat_norm.shape[1]):
                 valid_rows = np.logical_and(mat_norm[:, c] > 0, mat_norm[:, cc] > 0)
-                dist = -pdist(np.vstack((mat_norm[valid_rows==True, c], mat_norm[valid_rows == True, cc])), 'cosine')+1
+                dist = -pdist(np.vstack((mat_norm[valid_rows==True, c],
+                                         mat_norm[valid_rows == True, cc])), 'cosine')+1
                 item_simil_mat[c, cc] = dist.item(0)
 
         # retain only max values in similarity matrix
@@ -88,7 +91,8 @@ class Recommender(object):
             not_max_mask[ind] = False
             row[not_max_mask] = 0.0
 
-        item_prediction_norm = mat_norm.dot(item_simil_mat_stencil) / (np.array([np.abs(item_simil_mat_stencil).sum(axis=1)])+1.e-20)
+        item_prediction_norm = mat_norm.dot(item_simil_mat_stencil) / \
+                               (np.array([np.abs(item_simil_mat_stencil).sum(axis=1)])+1.e-20)
         filled_matrix = item_prediction_norm * item_max_train
 
         return filled_matrix, mapped_columns

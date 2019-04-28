@@ -15,6 +15,7 @@ from kronos_modeller.kronos_tools.gyration_radius import r_gyration
 from kronos_modeller.report import Report, ModelMeasure
 
 import data_analysis
+import kronos_modeller.workload_data_group
 import workload_data
 from config.config import Config
 from kronos_exceptions import ConfigurationError
@@ -243,7 +244,7 @@ class KronosModel(object):
             # for wl in self.workloads:
             #     kprofile_hdl = ProfileFormat(model_jobs=wl.jobs, workload_tag=wl.tag)
             #     kprofile_hdl.write_filename(os.path.join(self.config.dir_output, wl.tag+"_workload.kprofile"))
-            wl_group = workload_data.WorkloadDataGroup(cutout_workloads)
+            wl_group = kronos_modeller.workload_data_group.WorkloadDataGroup(cutout_workloads)
             wl_group.export_pickle(os.path.join(self.config.dir_output, "_workload"))
 
         # check validity of jobs before doing the actual modelling..
