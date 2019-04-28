@@ -146,9 +146,9 @@ class ConfigTests(unittest.TestCase):
         # ------------- invalid "model" config file (INV-1) ----------
         config_invalid_1 = config_empty_model
         config_invalid_1["model"] = {
-            "fill_in": {},
-            "classification": {},
-            "generator": {}
+            "job_filling": {},
+            "job_classification": {},
+            "schedule_generation": {}
         }
 
         # check that exception is raised
@@ -160,8 +160,8 @@ class ConfigTests(unittest.TestCase):
         # so they cannot be empty
         config_invalid_2 = config_empty_model
         config_invalid_2["model"] = {
-            "classification": {},
-            "generator": {}
+            "job_classification": {},
+            "schedule_generation": {}
         }
 
         # check that exception is raised
@@ -195,7 +195,7 @@ class ConfigTests(unittest.TestCase):
                     "num_timesignal_bins": 5
                 }
             },
-            "generator": {
+            "schedule_generation": {
                 "type": "match_job_pdf_exact",
                 "n_bins_for_pdf": 20,
                 "random_seed": 0,
@@ -231,7 +231,7 @@ class ConfigTests(unittest.TestCase):
                     "aasdasdfgsdfgdfg4": "adfgsdfgd",
                 }
             },
-            "generator": {
+            "schedule_generation": {
                 "type": "match_job_pdf_exact",
                 "n_bins_for_pdf": 20,
                 "random_seed": 0,
@@ -353,7 +353,7 @@ class ConfigTests(unittest.TestCase):
                     "num_timesignal_bins": 5
                 }
             },
-            "generator": {
+            "schedule_generation": {
                 "type": "match_job_pdf_exact",
                 "n_bins_for_pdf": 20,
                 "random_seed": 0,

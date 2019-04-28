@@ -80,8 +80,8 @@ class Config(object):
         # ---------------------------------------------
         # TODO: #nodes does not pass through the model (set by kronos_executor config for now..)
         if self.model:
-            if self.model.get('generator'):
-                self.model['generator']['synthapp_n_nodes'] = 1
+            if self.model.get('schedule_generation'):
+                self.model['schedule_generation']['synthapp_n_nodes'] = 1
         # ---------------------------------------------
 
         # if input or output folders do not exist, an error is raised

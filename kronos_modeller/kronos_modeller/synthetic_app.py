@@ -135,7 +135,7 @@ class SyntheticWorkload(object):
         this file can be given directly to the kronos_executor
         :return:
         """
-        n_bins = self.config.model["generator"]["synth_apps_n_bins"]
+        n_bins = self.config.model["schedule_generation"]["synth_apps_n_bins"]
 
         logger.info( "Exporting {} synth-apps to KSchedule schedule: {}".format(len(self.app_list), filename))
 

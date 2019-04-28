@@ -10,6 +10,7 @@ import os
 
 import numpy as np
 from kronos_modeller.job_filling import job_filling_types
+from kronos_modeller.workload_editing import workload_editing_types
 from kronos_modeller.job_generation import generator
 from kronos_modeller.kronos_tools.gyration_radius import r_gyration
 from kronos_modeller.report import Report, ModelMeasure
@@ -44,9 +45,10 @@ class KronosModel(object):
 
         # configuration parameters
         self.config = config
-        self.config_fill_in = None
-        self.config_classification = None
-        self.config_generator = None
+        self.config_job_filling = None
+        self.config_job_classification = None
+        self.config_schedule_generation = None
+        self.config_workload_editing = None
 
         self.workloads = workloads
         self.total_metrics_wl_orig = {}
@@ -84,8 +86,11 @@ class KronosModel(object):
         """
 
         # 1) apply fill-in strategies
-        if self.config_fill_in:
+        if self.config_job_filling:
             self._apply_workload_fillin()
+
+        if self.config_workload_editing:
+            self._apply_workload_editing()
 
         # calculate metrics of total sums over all the original workloads
         # TODO: the calculation of the original sums should go somewhere else..
@@ -107,17 +112,17 @@ class KronosModel(object):
         self.tot_duration_wl_original = t_max - t_min
 
         # 2) apply classification
-        if self.config_classification:
+        if self.config_job_classification:
             self._apply_classification()
 
         # 3) apply generation
-        if self.config_classification and self.config_generator:
+        if self.config_job_classification and self.config_schedule_generation:
             self._apply_generation()
             self.generate_synthetic_workload()
 
         # in the case neither the classification nor the generation entries are specified in the config file,
         # just translate the KProfile file into the KSchedule file in a one-to-one relationship
-        if not self.config_classification:
+        if not self.config_job_classification:
             self._kschedule_from_kprofile_one_to_one()
 
     def _apply_workload_fillin(self):
@@ -127,13 +132,13 @@ class KronosModel(object):
         """
 
         # call functions corresponding to fill_in types
-        for filling_strategy_config in self.config_fill_in['operations']:
+        for filling_strategy_config in self.config_job_filling['operations']:
 
             # select the appropriate job_filling strategy
             filler = job_filling_types[filling_strategy_config["type"]](self.workloads)
 
             # apply the strategy
-            filler.apply(filling_strategy_config, self.config_fill_in['user_functions'])
+            filler.apply(filling_strategy_config, self.config_job_filling['user_functions'])
 
     def generate_synthetic_workload(self):
 
@@ -144,8 +149,8 @@ class KronosModel(object):
         sa_workload = SyntheticWorkload(self.config, self.modelled_sa_jobs)
 
         # set up the scaling factors as individual sc * global sc
-        scaling_facts = self.config_generator['scaling_factors']
-        scaling_global = self.config_generator['global_scaling_factor']
+        scaling_facts = self.config_schedule_generation['scaling_factors']
+        scaling_global = self.config_schedule_generation['global_scaling_factor']
         sa_workload.scaling_factors = {k: v*scaling_global for k, v in scaling_facts.iteritems()}
 
         self.sa_workload = sa_workload
@@ -158,7 +163,7 @@ class KronosModel(object):
 
         # calculate the measure relative to the number of jobs..
         if self.tot_duration_wl_original:
-            t_scaling = self.config_generator['total_submit_interval'] / self.tot_duration_wl_original
+            t_scaling = self.config_schedule_generation['total_submit_interval'] / self.tot_duration_wl_original
         else:
             t_scaling = 0.0
 
@@ -197,63 +202,39 @@ class KronosModel(object):
             except StopIteration:
                 raise ValueError(" workload named {} not found!".format(wl_name))
 
+    def _apply_workload_editing(self):
+
+        # call functions corresponding to fill_in types
+        for wl_edit_config in self.config_workload_editing:
+
+            # select the appropriate job_filling strategy
+            editor = workload_editing_types[wl_edit_config["type"]](self.workloads)
+
+            # apply the strategy
+            editor.apply(wl_edit_config)
+
     def _apply_classification(self):
         """
         Apply modelling classification to selected workloads
         :return:
         """
 
-        # apply operations on workloads (if required..)
-        class_operations_config = self.config_classification.get('operations', None)
-
-        cutout_workloads = []
-        if class_operations_config is not None:
-            for op_config in class_operations_config:
-
-                if op_config['type'] == "split":
-
-                    # check splitting function configuration
-                    required_fields = [
-                        'apply_to',
-                        'create_workload',
-                        'split_by',
-                        'keywords_in',
-                        'keywords_out'
-                    ]
-
-                    # check that all the required fields are set
-                    for req_item in required_fields:
-                        if req_item not in op_config.keys():
-                            raise ConfigurationError("'step_function' requires to specify {}".format(req_item))
-
-                    logger.info("Splitting workload {}".format(op_config['apply_to']))
-                    wl = next(wl for wl in self.workloads if wl.tag == op_config['apply_to'])
-                    sub_workloads = wl.split_by_keywords(op_config)
-                    logger.info("splitting has created workload {} with {} jobs".format(
-                        sub_workloads.tag,
-                        len(sub_workloads.jobs)))
-
-                    # accumulate cutout worklaods
-                    cutout_workloads.append(sub_workloads)
-
-            self.workloads.extend(cutout_workloads)
-
         # save the KProfile's of the sub-workloads before attempting the clustering
-        save_wl_before_clustering = self.config_classification.get('save_wl_before_clustering', False)
-        if save_wl_before_clustering:
-            # for wl in self.workloads:
-            #     kprofile_hdl = ProfileFormat(model_jobs=wl.jobs, workload_tag=wl.tag)
-            #     kprofile_hdl.write_filename(os.path.join(self.config.dir_output, wl.tag+"_workload.kprofile"))
-            wl_group = kronos_modeller.workload_data_group.WorkloadDataGroup(cutout_workloads)
-            wl_group.export_pickle(os.path.join(self.config.dir_output, "_workload"))
+        save_wl_before_clustering = self.config_job_classification.get('save_wl_before_clustering', False)
+        # if save_wl_before_clustering:
+        #     # for wl in self.workloads:
+        #     #     kprofile_hdl = ProfileFormat(model_jobs=wl.jobs, workload_tag=wl.tag)
+        #     #     kprofile_hdl.write_filename(os.path.join(self.config.dir_output, wl.tag+"_workload.kprofile"))
+        #     wl_group = kronos_modeller.workload_data_group.WorkloadDataGroup(cutout_workloads)
+        #     wl_group.export_pickle(os.path.join(self.config.dir_output, "_workload"))
 
         # check validity of jobs before doing the actual modelling..
         # NB: the preliminary phase of workload manipulation (defaults, lookup tables and recommender sys
         # should have produced a set of "complete" and therefore valid jobs)
-        self._check_jobs(self.config_classification['clustering']['apply_to'])
+        self._check_jobs(self.config_job_classification['apply_to'])
 
         # loop over all the workloads used to create the synthetic workload
-        clustering_config = self.config_classification['clustering']
+        clustering_config = self.config_job_classification
         for wl_entry in clustering_config['apply_to']:
             wl = next(wl for wl in self.workloads if wl.tag == wl_entry)
 
@@ -313,13 +294,13 @@ class KronosModel(object):
 
         # check that all the required fields are set
         for req_item in required_fields:
-            if req_item not in self.config_generator.keys():
+            if req_item not in self.config_schedule_generation.keys():
                 raise ConfigurationError("'generator' requires to specify {}".format(req_item))
 
-        n_bins_for_pdf = self.config_classification['clustering']['num_timesignal_bins']
-        n_bins_timesignals = self.config_classification['clustering']['num_timesignal_bins']
+        n_bins_for_pdf = self.config_job_classification['num_timesignal_bins']
+        n_bins_timesignals = self.config_job_classification['num_timesignal_bins']
 
-        sapps_generator = generator.SyntheticWorkloadGenerator(self.config_generator,
+        sapps_generator = generator.SyntheticWorkloadGenerator(self.config_schedule_generation,
                                                                self.clusters,
                                                                global_t0,
                                                                global_tend,
@@ -370,7 +351,7 @@ class KronosModel(object):
         self.sa_workload = SyntheticWorkload(self.config, self.modelled_sa_jobs)
 
         # set up the scaling factors as individual sc * global sc
-        scaling_facts = self.config_generator['scaling_factors']
-        scaling_global = self.config_generator['global_scaling_factor']
+        scaling_facts = self.config_schedule_generation['scaling_factors']
+        scaling_global = self.config_schedule_generation['global_scaling_factor']
         self.sa_workload.scaling_factors = {k: v*scaling_global for k, v in scaling_facts.iteritems()}
 

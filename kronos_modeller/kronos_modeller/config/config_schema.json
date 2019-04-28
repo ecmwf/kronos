@@ -39,9 +39,9 @@
     },
     "model": {
       "type": "object",
-      "description": "Modelling process",
+      "description": "Modelling process (configures the process that leads to the schedule generation)",
       "properties": {
-        "fill_in": {
+        "job_filling": {
           "type": "object",
           "description": "Methodologies for dealing with sparse data",
           "properties": {
@@ -243,13 +243,9 @@
             }
           }
         },
-        "classification": {
-          "type": "object",
-          "description": "Job-classification process",
-          "properties": {
-            "operations": {
+        "workload_editing": {
               "type": "array",
-              "minItems": 1,
+              "minItems": 0,
               "description": "Operations to perform on the workloads before clustering (e.g., workload splitting, etc..)",
               "items": {
                 "type": "object",
@@ -304,118 +300,115 @@
               	]
               }
             },
-            "save_wl_before_clustering": {
-              "type": "boolean",
-              "description": "flag to save workloads into corresponding kprofile's before clustering"
-            },
-            "clustering": {
-              "type": "object",
-              "description": "Clustering algorithm",
-              "oneOf": [
-
-              {
-                "type": "object",
-                "description": "K-means Clustering algorithm",
-                "properties": {
-                  "apply_to": {
-                    "type": "array",
-                    "description": "Target workloads",
-                    "items": {
-                      "type": "string"
-                    }
-                  },
-                  "type": {
-                    "type": "string",
-                    "description": "Function identification string",
-                    "enum": ["Kmeans"]
-                  },
-                  "ok_if_low_rank": {
-                    "type": "boolean",
-                    "description": "Keep going even if there are just few distinct elements in the input set"
-                  },
-                  "user_does_not_check": {
-                    "type": "boolean",
-                    "description": "If True, the algorithm does not stop"
-                  },
-                  "rseed": {
-                    "type": "integer",
-                    "description": "Seed for random number generator"
-                  },
-                  "max_iter": {
-                    "type": "integer",
-                    "description": "Max iteration of the algorithm"
-                  },
-                  "max_num_clusters": {
-                    "type": "integer",
-                    "description": "Max number of clusters to explore to find the optimum"
-                  },
-                  "delta_num_clusters": {
-                    "type": "integer",
-                    "description": "Delta number of clusters to explore to find the optimum"
-                  },
-                  "num_timesignal_bins": {
-                    "type": "integer",
-                    "description": "Number of bins to discretise the job metrics for applying the clustering"
-                  }
-                },
-                "additionalProperties": false,
-                "required": [
-                  "apply_to",
-                  "type",
-                  "ok_if_low_rank",
-                  "user_does_not_check",
-                  "rseed",
-                  "max_iter",
-                  "max_num_clusters",
-                  "delta_num_clusters",
-                  "num_timesignal_bins"]
-              },
-
-              {
-                "type": "object",
-                "description": "DBSCAN Clustering algorithm",
-                "properties": {
-                  "apply_to": {
-                    "type": "array",
-                    "description": "Target workloads",
-                    "items": {
-                      "type": "string"
-                    }
-                  },
-                  "type": {
-                    "type": "string",
-                    "description": "Function identification string",
-                    "enum": ["DBSCAN"]
-                  },
-                  "rseed": {
-                    "type": "integer",
-                    "description": "Seed for random number generator"
-                  },
-                  "max_num_clusters": {
-                    "type": "integer",
-                    "description": "Max number of clusters to explore to find the optimum"
-                  },
-                  "num_timesignal_bins": {
-                    "type": "integer",
-                    "description": "Number of bins to discretize the job metrics for applying the clustering"
-                  }
-                },
-                "additionalProperties": false,
-                "required": [
-                  "apply_to",
-                  "type",
-                  "rseed",
-                  "max_num_clusters",
-                  "num_timesignal_bins"]
-              }
-
-
-             ]
-            }
-          },
-          "required": ["clustering"]
+        "job_classification": {
+          "type": "object",
+          "description": "Job-classification process",
+          "oneOf": [
+          {
+            "type": "object",
+            "description": "K-means Clustering algorithm",
+            "properties": {
+              "save_wl_before_clustering": {
+          "type": "boolean",
+          "description": "flag to save workloads into corresponding kprofile's before clustering"
         },
-        "generator": {
+              "apply_to": {
+                "type": "array",
+                "description": "Target workloads",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "type": {
+                "type": "string",
+                "description": "Function identification string",
+                "enum": ["Kmeans"]
+              },
+              "ok_if_low_rank": {
+                "type": "boolean",
+                "description": "Keep going even if there are just few distinct elements in the input set"
+              },
+              "user_does_not_check": {
+                "type": "boolean",
+                "description": "If True, the algorithm does not stop"
+              },
+              "rseed": {
+                "type": "integer",
+                "description": "Seed for random number generator"
+              },
+              "max_iter": {
+                "type": "integer",
+                "description": "Max iteration of the algorithm"
+              },
+              "max_num_clusters": {
+                "type": "integer",
+                "description": "Max number of clusters to explore to find the optimum"
+              },
+              "delta_num_clusters": {
+                "type": "integer",
+                "description": "Delta number of clusters to explore to find the optimum"
+              },
+              "num_timesignal_bins": {
+                "type": "integer",
+                "description": "Number of bins to discretise the job metrics for applying the clustering"
+              }
+            },
+            "additionalProperties": false,
+            "required": [
+              "apply_to",
+              "type",
+              "ok_if_low_rank",
+              "user_does_not_check",
+              "rseed",
+              "max_iter",
+              "max_num_clusters",
+              "delta_num_clusters",
+              "num_timesignal_bins"]
+          },
+          {
+            "type": "object",
+            "description": "DBSCAN Clustering algorithm",
+            "properties": {
+              "save_wl_before_clustering": {
+          "type": "boolean",
+          "description": "flag to save workloads into corresponding kprofile's before clustering"
+        },
+              "apply_to": {
+                "type": "array",
+                "description": "Target workloads",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "type": {
+                "type": "string",
+                "description": "Function identification string",
+                "enum": ["DBSCAN"]
+              },
+              "rseed": {
+                "type": "integer",
+                "description": "Seed for random number generator"
+              },
+              "max_num_clusters": {
+                "type": "integer",
+                "description": "Max number of clusters to explore to find the optimum"
+              },
+              "num_timesignal_bins": {
+                "type": "integer",
+                "description": "Number of bins to discretize the job metrics for applying the clustering"
+              }
+            },
+            "additionalProperties": false,
+            "required": [
+              "apply_to",
+              "type",
+              "rseed",
+              "max_num_clusters",
+              "num_timesignal_bins"]
+          }
+         ]
+        },
+        "schedule_generation": {
           "type": "object",
           "description": "Configuration for generating synthetic apps",
           "properties": {

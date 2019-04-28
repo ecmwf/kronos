@@ -266,7 +266,7 @@ class FeedbackLoopRunner(BaseRunner):
 
                 print os.path.join(self.config.dir_output, self.kschedule_filename)
                 kschedule_data.export(filename=os.path.join(self.config.dir_output, self.kschedule_filename),
-                                nbins=self.config.model['generator']['synthapp_n_frames'])
+                                nbins=self.config.model['schedule_generation']['synthapp_n_frames'])
 
                 # write log file
                 write_log_file(log_file, metrics_sum_dict, scaling_factors)

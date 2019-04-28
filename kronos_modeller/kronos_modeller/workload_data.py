@@ -7,7 +7,6 @@
 # does it submit to any jurisdiction.
 import logging
 import numpy as np
-from kronos_exceptions import ConfigurationError
 from jobs import ModelJob
 
 from kronos_executor.definitions import signal_types, time_signal_names
@@ -29,11 +28,6 @@ class WorkloadData(object):
         # a workload data contains a list of model jobs + some global properties
         self.jobs = list(jobs) if jobs else None
         self.tag = tag if tag else str(WorkloadData.tag_default+1)
-
-        # # workload-level properties
-        # self.min_start_time = None
-        # self.max_start_time = None
-        # self.total_metrics = None
 
     def __unicode__(self):
         return "WorkloadData - {} job sets".format(len(self.jobs))
@@ -162,40 +156,3 @@ class WorkloadData(object):
 
         for job in self.jobs:
             job.check_job()
-
-    def split_by_keywords(self, split_config_output):
-
-        # extract configurations for the splitting
-        new_wl_name = split_config_output['create_workload']
-        split_attr = split_config_output['split_by']
-        kw_include = split_config_output['keywords_in']
-        kw_exclude = split_config_output['keywords_out']
-
-        sub_wl_jobs = []
-        if kw_include and not kw_exclude:
-            for j in self.jobs:
-                if getattr(j, split_attr):
-                    if all(kw in getattr(j, split_attr) for kw in kw_include):
-                        sub_wl_jobs.append(j)
-
-        elif not kw_include and kw_exclude:
-            for j in self.jobs:
-                if getattr(j, split_attr):
-                    if not any(kw in getattr(j, split_attr) for kw in kw_exclude):
-                        sub_wl_jobs.append(j)
-
-        elif kw_include and kw_exclude:
-            sub_wl_jobs = [j for j in self.jobs if all(kw in getattr(j, split_attr) for kw in kw_include) and not
-                    any(kw in getattr(j, split_attr) for kw in kw_exclude)]
-
-            for j in self.jobs:
-                if getattr(j, split_attr):
-                    if all(kw in getattr(j, split_attr) for kw in kw_include) and \
-                            not any(kw in getattr(j, split_attr) for kw in kw_exclude):
-                        sub_wl_jobs.append(j)
-        else:
-            raise ConfigurationError("either included or excluded keywords are needed for splitting a workload")
-
-        return WorkloadData(jobs=sub_wl_jobs, tag=new_wl_name)
-
-
