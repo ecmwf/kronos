@@ -19,6 +19,18 @@ class StrategyBase(object):
         """
         self.workloads = workloads
 
+    def check_config(self, config):
+        """
+        make sure that all the required params
+        are set in the config
+        :return:
+        """
+        # check that all the required fields are set
+        for req_item in self.required_config_fields:
+            if req_item not in config.keys():
+                err = "{} requires config {}".format(self.__class__.__name__, req_item)
+                raise ConfigurationError(err)
+
     def apply(self, config, user_functions):
         """
         Main interface to apply the strategy
@@ -27,12 +39,10 @@ class StrategyBase(object):
         :return:
         """
 
-        # check that all the required fields are set
-        for req_item in self.required_config_fields:
-            if req_item not in config.keys():
-                err = "{} requires config {}".format(self.__class__.__name__, req_item)
-                raise ConfigurationError(err)
+        # check the config
+        self.check_config(config)
 
+        # apply the strategy
         self._apply(config, user_functions)
 
     def _apply(self, config, user_functions):
