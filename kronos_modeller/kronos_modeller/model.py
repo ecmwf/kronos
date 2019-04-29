@@ -5,22 +5,21 @@
 # In applying this licence, ECMWF does not waive the privileges and immunities 
 # granted to it by virtue of its status as an intergovernmental organisation nor
 # does it submit to any jurisdiction.
-import logging
-import os
 
+import os
+import logging
 import numpy as np
+
+from kronos_modeller.workload_data import WorkloadData
 from kronos_modeller.job_clustering import clustering_types
 from kronos_modeller.job_filling import job_filling_types
 from kronos_modeller.workload_editing import workload_editing_types
 from kronos_modeller.job_generation import generator
-from kronos_modeller.kronos_tools.gyration_radius import r_gyration
 from kronos_modeller.report import Report, ModelMeasure
 
-import kronos_modeller.workload_data_group
-import workload_data
-from config.config import Config
-from kronos_exceptions import ConfigurationError
-from synthetic_app import SyntheticWorkload, SyntheticApp
+from kronos_modeller.config.config import Config
+from kronos_modeller.kronos_exceptions import ConfigurationError
+from kronos_modeller.synthetic_app import SyntheticWorkload, SyntheticApp
 
 logger = logging.getLogger(__name__)
 
@@ -37,7 +36,7 @@ class KronosModel(object):
 
     def __init__(self, workloads, config):
 
-        assert all(isinstance(wl, workload_data.WorkloadData) for wl in workloads)
+        assert all(isinstance(wl, WorkloadData) for wl in workloads)
         assert isinstance(config, Config)
 
         # configuration parameters
