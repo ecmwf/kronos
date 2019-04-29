@@ -300,9 +300,9 @@
               	]
               }
             },
-        "job_classification": {
+        "job_clustering": {
           "type": "object",
-          "description": "Job-classification process",
+          "description": "Job-clustering process",
           "oneOf": [
           {
             "type": "object",

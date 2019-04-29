@@ -150,7 +150,7 @@ class WorkloadData(object):
 
     def check_jobs(self):
         """
-        Check all jobs of this workload (to be used just before classification..)
+        Check all jobs of this workload (to be used just before clustering..)
         :return:
         """
 

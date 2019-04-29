@@ -22,7 +22,7 @@ class StrategyRecommender(FillingStrategy):
             'apply_to'
         ]
 
-    def _apply(self, config, user_functions):
+    def _apply(self, config):
 
         for wl_name in config['apply_to']:
 

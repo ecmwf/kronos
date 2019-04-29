@@ -22,9 +22,12 @@ class StrategyUserDefaults(FillingStrategy):
             "metrics"
         ]
 
-    def _apply(self, config, user_functions):
+    def _apply(self, config):
 
-        print "applying defaults"
+        logger.info("applying defaults")
+
+        # get user functions in the configuration (if any)
+        user_functions = config.get("user_functions")
 
         # apply function to all the specified workloads
         for wl in self.workloads:

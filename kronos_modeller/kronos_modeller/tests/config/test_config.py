@@ -147,7 +147,7 @@ class ConfigTests(unittest.TestCase):
         config_invalid_1 = config_empty_model
         config_invalid_1["model"] = {
             "job_filling": {},
-            "job_classification": {},
+            "job_clustering": {},
             "schedule_generation": {}
         }
 
@@ -160,7 +160,7 @@ class ConfigTests(unittest.TestCase):
         # so they cannot be empty
         config_invalid_2 = config_empty_model
         config_invalid_2["model"] = {
-            "job_classification": {},
+            "job_clustering": {},
             "schedule_generation": {}
         }
 

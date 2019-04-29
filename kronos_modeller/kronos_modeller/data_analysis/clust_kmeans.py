@@ -8,13 +8,12 @@
 import logging
 
 import numpy as np
-from kronos_modeller.data_analysis.silhouette import find_n_clusters_silhouette
+from clust_base import ClusteringBase
+from kronos_modeller.job_clustering.silhouette import find_n_clusters_silhouette
 from kronos_modeller.plot_handler import PlotHandler
 from scipy.spatial.distance import cdist
 from sklearn.cluster import KMeans
 from sklearn.metrics import silhouette_score
-
-from clust_base import ClusteringBase
 
 logger = logging.getLogger(__name__)
 

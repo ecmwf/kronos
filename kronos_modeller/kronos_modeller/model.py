@@ -9,13 +9,13 @@ import logging
 import os
 
 import numpy as np
+from kronos_modeller.job_clustering import clustering_types
 from kronos_modeller.job_filling import job_filling_types
 from kronos_modeller.workload_editing import workload_editing_types
 from kronos_modeller.job_generation import generator
 from kronos_modeller.kronos_tools.gyration_radius import r_gyration
 from kronos_modeller.report import Report, ModelMeasure
 
-import data_analysis
 import kronos_modeller.workload_data_group
 import workload_data
 from config.config import Config
@@ -33,10 +33,7 @@ class KronosModel(object):
     3) returns a synthetic workload
     """
 
-    required_config_fields = [
-        # 'classification',
-        # 'generator',
-    ]
+    required_config_fields = []
 
     def __init__(self, workloads, config):
 
@@ -46,7 +43,7 @@ class KronosModel(object):
         # configuration parameters
         self.config = config
         self.config_job_filling = None
-        self.config_job_classification = None
+        self.config_job_clustering = None
         self.config_schedule_generation = None
         self.config_workload_editing = None
 
@@ -112,17 +109,17 @@ class KronosModel(object):
         self.tot_duration_wl_original = t_max - t_min
 
         # 2) apply classification
-        if self.config_job_classification:
+        if self.config_job_clustering:
             self._apply_classification()
 
         # 3) apply generation
-        if self.config_job_classification and self.config_schedule_generation:
+        if self.config_job_clustering and self.config_schedule_generation:
             self._apply_generation()
             self.generate_synthetic_workload()
 
         # in the case neither the classification nor the generation entries are specified in the config file,
         # just translate the KProfile file into the KSchedule file in a one-to-one relationship
-        if not self.config_job_classification:
+        if not self.config_job_clustering:
             self._kschedule_from_kprofile_one_to_one()
 
     def _apply_workload_fillin(self):
@@ -137,8 +134,31 @@ class KronosModel(object):
             # select the appropriate job_filling strategy
             filler = job_filling_types[filling_strategy_config["type"]](self.workloads)
 
-            # apply the strategy
-            filler.apply(filling_strategy_config, self.config_job_filling['user_functions'])
+            # configure the strategy with specific config + user defined functions
+            filling_strategy_config.update({"user_functions": self.config_job_filling['user_functions']})
+
+            filler.apply(filling_strategy_config)
+
+    def _apply_workload_editing(self):
+
+        # call functions corresponding to fill_in types
+        for wl_edit_config in self.config_workload_editing:
+
+            # select the appropriate job_filling strategy
+            editor = workload_editing_types[wl_edit_config["type"]](self.workloads)
+            editor.apply(wl_edit_config)
+
+    def _apply_classification(self):
+        """
+        Apply job classification to selected workloads
+        and sets the clusters later used for schedule generation
+        :return:
+        """
+
+        # select the appropriate job_filling strategy
+        classifier = clustering_types[self.config_job_clustering["type"]](self.workloads)
+        classifier.apply(self.config_job_clustering)
+        self.clusters = classifier.get_clusters()
 
     def generate_synthetic_workload(self):
 
@@ -202,76 +222,6 @@ class KronosModel(object):
             except StopIteration:
                 raise ValueError(" workload named {} not found!".format(wl_name))
 
-    def _apply_workload_editing(self):
-
-        # call functions corresponding to fill_in types
-        for wl_edit_config in self.config_workload_editing:
-
-            # select the appropriate job_filling strategy
-            editor = workload_editing_types[wl_edit_config["type"]](self.workloads)
-
-            # apply the strategy
-            editor.apply(wl_edit_config)
-
-    def _apply_classification(self):
-        """
-        Apply modelling classification to selected workloads
-        :return:
-        """
-
-        # save the KProfile's of the sub-workloads before attempting the clustering
-        save_wl_before_clustering = self.config_job_classification.get('save_wl_before_clustering', False)
-        # if save_wl_before_clustering:
-        #     # for wl in self.workloads:
-        #     #     kprofile_hdl = ProfileFormat(model_jobs=wl.jobs, workload_tag=wl.tag)
-        #     #     kprofile_hdl.write_filename(os.path.join(self.config.dir_output, wl.tag+"_workload.kprofile"))
-        #     wl_group = kronos_modeller.workload_data_group.WorkloadDataGroup(cutout_workloads)
-        #     wl_group.export_pickle(os.path.join(self.config.dir_output, "_workload"))
-
-        # check validity of jobs before doing the actual modelling..
-        # NB: the preliminary phase of workload manipulation (defaults, lookup tables and recommender sys
-        # should have produced a set of "complete" and therefore valid jobs)
-        self._check_jobs(self.config_job_classification['apply_to'])
-
-        # loop over all the workloads used to create the synthetic workload
-        clustering_config = self.config_job_classification
-        for wl_entry in clustering_config['apply_to']:
-            wl = next(wl for wl in self.workloads if wl.tag == wl_entry)
-
-            logger.info("-------> applying classification to workload {}".format(wl_entry))
-
-            # Apply clustering
-            cluster_handler = data_analysis.factory(clustering_config['type'], clustering_config)
-            job_signal_matrix = wl.jobs_to_matrix(clustering_config['num_timesignal_bins'])
-            cluster_handler.cluster_jobs(job_signal_matrix)
-            clusters_matrix = cluster_handler.clusters
-            clusters_labels = cluster_handler.labels
-
-            # # check values in the matrix
-            # for row in clusters_matrix:
-            #     if (row < 0.).any():
-            #         print "value < 0 encountered after clustering! corrected to 0."
-            #         row[row < 0.] = 0.
-
-            # calculate the mean radius of gyration (among all clusters) for each sub-workload
-            r_sub_wl_mean = []
-            matrix_jobs_in_cluster_all = []
-            nbins = clustering_config['num_timesignal_bins']
-            for cc in range(clusters_matrix.shape[0]):
-                matrix_jobs_in_cluster = np.asarray([j.ts_to_vector(nbins) for j in
-                                                     np.asarray(wl.jobs)[clusters_labels == cc]])
-                r_sub_wl_mean.append(r_gyration(matrix_jobs_in_cluster))
-                matrix_jobs_in_cluster_all.append(matrix_jobs_in_cluster)
-
-            self.clusters.append({
-                                  'source-workload': wl_entry,
-                                  'jobs_for_clustering': wl.jobs,
-                                  'cluster_matrix': clusters_matrix,
-                                  'labels': clusters_labels,
-                                  'r_gyration': r_sub_wl_mean,
-                                  'matrix_jobs_in_cluster': matrix_jobs_in_cluster_all
-                                  })
-
     def _apply_generation(self):
         """
         Generate synthetic workload form the supplied model jobs
@@ -297,8 +247,8 @@ class KronosModel(object):
             if req_item not in self.config_schedule_generation.keys():
                 raise ConfigurationError("'generator' requires to specify {}".format(req_item))
 
-        n_bins_for_pdf = self.config_job_classification['num_timesignal_bins']
-        n_bins_timesignals = self.config_job_classification['num_timesignal_bins']
+        n_bins_for_pdf = self.config_job_clustering['num_timesignal_bins']
+        n_bins_timesignals = self.config_job_clustering['num_timesignal_bins']
 
         sapps_generator = generator.SyntheticWorkloadGenerator(self.config_schedule_generation,
                                                                self.clusters,

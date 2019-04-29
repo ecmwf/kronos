@@ -29,11 +29,10 @@ class StrategyBase(object):
                 err = "{} requires config {}".format(self.__class__.__name__, req_item)
                 raise ConfigurationError(err)
 
-    def apply(self, config, user_functions):
+    def apply(self, config):
         """
         Main interface to apply the strategy
         :param config: strategy configuration
-        :param user_functions: user defined functions
         :return:
         """
 
@@ -41,14 +40,13 @@ class StrategyBase(object):
         self.check_config(config)
 
         # apply the strategy
-        self._apply(config, user_functions)
+        self._apply(config)
 
-    def _apply(self, config, user_functions):
+    def _apply(self, config):
         """
         Specialised apply (needs to be implemented
         by the child classes)
         :param config: strategy configuration
-        :param user_functions: user defined functions
         :return:
         """
 

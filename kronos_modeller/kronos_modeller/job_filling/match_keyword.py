@@ -23,7 +23,7 @@ class StrategyMatchKeyword(FillingStrategy):
             'apply_to'
         ]
 
-    def _apply(self, config, user_functions):
+    def _apply(self, config):
 
         # Apply each source workload into each destination workload
         n_job_matched = 0
