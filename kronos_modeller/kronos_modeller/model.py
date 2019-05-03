@@ -48,18 +48,7 @@ class KronosModel(object):
             raise ConfigurationError("'model' entry not set in config file, but required!")
 
         self.config = config
-
         self.workloads = workloads
-        self.total_metrics_wl_orig = {}
-
-        self.jobs_for_clustering = []
-        self.clusters = []
-        self.modelled_sa_jobs = []
-
-        self.synthetic_apps = None
-        self.sa_workload = None
-        self.tot_n_jobs_wl_original = None
-        self.real_wl_duration = None
 
         # check that there is the "model" entry in the config file..
         if not self.config.model:
@@ -153,7 +142,7 @@ class KronosModel(object):
         """
 
         # Simply convert the model workloads into synthetic apps
-        self.synthetic_apps = []
+        synthetic_apps = []
         synapp_counter = 0
         for ww, wl in enumerate(self.workloads):
             for cc, job in enumerate(wl.jobs):
@@ -165,12 +154,12 @@ class KronosModel(object):
                     label="WL{}-JOB{}-ID{}".format(ww, cc, synapp_counter)
                 )
 
-                self.synthetic_apps.append(app)
+                synthetic_apps.append(app)
 
                 synapp_counter += 1
 
         # set up the synthetic workload
-        sa_workload = SyntheticWorkload(self.config, self.synthetic_apps)
+        sa_workload = SyntheticWorkload(self.config, synthetic_apps)
 
         # calculate the discretisation error (model to syn-apps)
         self.calculate_model_to_synapp_error(sa_workload)
@@ -187,10 +176,11 @@ class KronosModel(object):
         """
 
         # calculate the total values measure
-        tot_apps = sa_workload.total_metrics_dict()
+        real_wl_metrics = self.workloads[0].total_metrics_sum_dict
+        modl_wl_metrics = sa_workload.total_metrics_dict()
 
-        relative_metrics_totals = {k: np.abs(v - tot_apps[k]) / float(v) * 100.0
-                                   for k, v in self.total_metrics_wl_orig.iteritems()}
+        relative_metrics_totals = {k: np.abs(v - modl_wl_metrics[k]) / float(v) * 100.0
+                                   for k, v in real_wl_metrics.iteritems()}
 
         msr = ModelMeasure("Scaled metrics sums - error [%]", relative_metrics_totals, __name__)
         Report.add_measure(msr)
@@ -199,15 +189,15 @@ class KronosModel(object):
         # Calc max execution time for all the workloads..
         t_min = min(j.time_start for wl in self.workloads for j in wl.jobs)
         t_max = max(j.time_start for wl in self.workloads for j in wl.jobs)
-        self.real_wl_duration = t_max - t_min
+        real_wl_duration = t_max - t_min
 
-        if self.real_wl_duration:
+        if real_wl_duration:
             submit_interval = self.config.model["workload_modelling"]["job_submission_strategy"]['total_submit_interval']
-            t_scaling = submit_interval / self.real_wl_duration
+            t_scaling = submit_interval / real_wl_duration
         else:
             t_scaling = 0.0
 
-        dt_orig = self.real_wl_duration
+        dt_orig = real_wl_duration
         dt_sapps = sa_workload.max_sa_time_interval()
 
         rel_time_interval = (dt_orig - dt_sapps / t_scaling) / dt_orig * 100.
