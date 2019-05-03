@@ -21,6 +21,8 @@ class ModelMeasure(object):
 
 
 class Report(object):
+
+    # list of all measures to be printed
     list_measures = []
 
     def __init__(self):
@@ -48,7 +50,4 @@ class Report(object):
                 logger.info("\n{}: (calculated in {})".format(m.name, m.source_function))
 
                 for k, v in m.value.iteritems():
-                    logger.info( "{}: {}".format(k, v))
-
-
-
+                    logger.info("{}: {}".format(k, v))

@@ -52,6 +52,7 @@ class JobGeneratorSpawn(JobGenerator):
             # TODO: address the decision on Ncpu and Nnodes once and for all
             job = ModelJob(
                 time_start=start_times_vec_sa[cc],
+                job_name="job-{}-cl-{}".format(cc, idx),
                 duration=None,
                 ncpus=1,
                 nnodes=1,

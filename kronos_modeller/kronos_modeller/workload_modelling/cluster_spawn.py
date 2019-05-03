@@ -105,6 +105,7 @@ class ClusterSpawnStrategy(WorkloadModellingStrategy):
             # model jobs
             self.model_jobs = model_jobs
 
+
     def get_model_jobs(self):
         """
         Explicitly return the model jobs

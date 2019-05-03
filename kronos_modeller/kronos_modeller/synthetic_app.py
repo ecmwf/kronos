@@ -137,33 +137,7 @@ class SyntheticWorkload(object):
         """
         n_bins = self.config.model["schedule_exporting"]["synth_apps_n_bins"]
 
-        logger.info( "Exporting {} synth-apps to KSchedule time_schedule: {}".format(len(self.app_list), filename))
-
-        # # pre-calculate sums for efficiency..
-        # tot_metrics_apps = self.total_metrics_apps(n_bins=n_bins)
-        # tot_metrics_orig = self.total_metrics_dict()
-        #
-        # print "----- Metrics sums over workload: ------"
-        # for k in time_signal_names:
-        #     unit = signal_types[k]["print_info"]["unit"]
-        #     form = signal_types[k]["print_info"]["format"]
-        #     conv = signal_types[k]["print_info"]["conv"]
-        #     str_format = "%-14s: " + form + " [" + unit + "]"
-        #     print str_format % (k, tot_metrics_orig[k] * conv)
-        #
-        # print "------ Actual Scaling factors: ---------"
-        # for k in time_signal_names:
-        #     form = "%14f"
-        #     str_format = "%-14s: " + form + " [n/a]"
-        #     print str_format % (k, tot_metrics_apps[k]/float(tot_metrics_orig[k]))
-        #
-        # print "-------- Exported Metrics sums: --------"
-        # for k in time_signal_names:
-        #     unit = signal_types[k]["print_info"]["unit"]
-        #     form = signal_types[k]["print_info"]["format"]
-        #     conv = signal_types[k]["print_info"]["conv"]
-        #     str_format = "%-14s: " + form + " [" + unit + "]"
-        #     print str_format % (k, tot_metrics_apps[k] * conv)
+        logger.info("Exporting {} synth-apps to KSchedule time_schedule: {}".format(len(self.app_list), filename))
 
         ScheduleFormat.from_synthetic_workload(self, n_bins=n_bins).write_filename(filename)
 

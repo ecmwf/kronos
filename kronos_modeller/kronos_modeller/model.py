@@ -9,7 +9,9 @@
 import os
 import logging
 
+import numpy as np
 from kronos_modeller.config.config import Config
+from kronos_modeller.report import ModelMeasure, Report
 
 from kronos_modeller.synthetic_app import SyntheticWorkload, SyntheticApp
 from kronos_modeller.workload_filling import job_filling_types
@@ -57,7 +59,7 @@ class KronosModel(object):
         self.synthetic_apps = None
         self.sa_workload = None
         self.tot_n_jobs_wl_original = None
-        self.tot_duration_wl_original = None
+        self.real_wl_duration = None
 
         # check that there is the "model" entry in the config file..
         if not self.config.model:
@@ -145,9 +147,8 @@ class KronosModel(object):
         # explicitly return the model jobs
         model_jobs = workload_modeller.get_model_jobs()
 
-        print "trying to use the modelled jobs to generate a workload.."
+        # TODO: check this step (multiple workloads might need to be retained..)
         self.workloads = [WorkloadData(model_jobs)]
-        print "done!"
 
     def _apply_schedule_exporting(self):
         """
@@ -156,31 +157,64 @@ class KronosModel(object):
         :return:
         """
 
-        # convert the model workloads into synthetic apps
-        self.synthetic_apps = [SyntheticApp(job.job_name, job.timesignals)
-                               for wl in self.workloads for job in wl.jobs]
+        # Simply convert the model workloads into synthetic apps
+        self.synthetic_apps = []
+        synapp_counter = 0
+        for ww, wl in enumerate(self.workloads):
+            for cc, job in enumerate(wl.jobs):
+                app = SyntheticApp(
+                    job_name="job-{}".format(synapp_counter),
+                    time_signals=job.timesignals,
+                    ncpus=job.ncpus,
+                    time_start=job.time_start,
+                    label="WL{}-JOB{}-ID{}".format(ww, cc, synapp_counter)
+                )
+
+                self.synthetic_apps.append(app)
+
+                synapp_counter += 1
 
         # set up the synthetic workload
         sa_workload = SyntheticWorkload(self.config, self.synthetic_apps)
 
-        # TODO: all of these calculations should not be here..
-        # # calculate the total values measure
-        # tot_apps = self.sa_workload.total_metrics_dict()
-        # relative_metrics_totals = {k: np.abs(v - tot_apps[k]) / float(v) * 100.0
-        #                            for k, v in self.total_metrics_wl_orig.iteritems()}
-        # Report.add_measure(ModelMeasure("Scaled metrics sums - error [%]", relative_metrics_totals, __name__))
-        #
-        # # calculate the measure relative to the number of jobs..
-        # if self.tot_duration_wl_original:
-        #     t_scaling = self.config_schedule_generation['total_submit_interval'] / self.tot_duration_wl_original
-        # else:
-        #     t_scaling = 0.0
-        #
-        # dt_orig = self.tot_duration_wl_original
-        # dt_sapps = sa_workload.max_sa_time_interval()
-        # Report.add_measure(ModelMeasure("relative_time_interval [%]",
-        #                                 (dt_orig-dt_sapps/t_scaling)/dt_orig*100.,
-        #                                 __name__))
+        # calculate the discretisation error (model to syn-apps)
+        self.calculate_model_to_synapp_error(sa_workload)
 
+        # export the synthetic workload
         kschedule_path = os.path.join(self.config.dir_output, self.config.kschedule_filename)
         sa_workload.export_kschedule(kschedule_path)
+
+    def calculate_model_to_synapp_error(self, sa_workload):
+        """
+        Calculation of error produced by discretising the model jobs into
+        synthetic applications. The error gets appended to the unique modelling "Report"
+        :return:
+        """
+
+        # calculate the total values measure
+        tot_apps = sa_workload.total_metrics_dict()
+
+        relative_metrics_totals = {k: np.abs(v - tot_apps[k]) / float(v) * 100.0
+                                   for k, v in self.total_metrics_wl_orig.iteritems()}
+
+        msr = ModelMeasure("Scaled metrics sums - error [%]", relative_metrics_totals, __name__)
+        Report.add_measure(msr)
+
+        # calculate the measure relative to the number of jobs..
+        # Calc max execution time for all the workloads..
+        t_min = min(j.time_start for wl in self.workloads for j in wl.jobs)
+        t_max = max(j.time_start for wl in self.workloads for j in wl.jobs)
+        self.real_wl_duration = t_max - t_min
+
+        if self.real_wl_duration:
+            submit_interval = self.config_workload_modelling["job_submission_strategy"]['total_submit_interval']
+            t_scaling = submit_interval / self.real_wl_duration
+        else:
+            t_scaling = 0.0
+
+        dt_orig = self.real_wl_duration
+        dt_sapps = sa_workload.max_sa_time_interval()
+
+        rel_time_interval = (dt_orig - dt_sapps / t_scaling) / dt_orig * 100.
+        msr = ModelMeasure("relative_time_interval [%]", rel_time_interval, __name__)
+        Report.add_measure(msr)
