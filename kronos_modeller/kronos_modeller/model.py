@@ -27,10 +27,12 @@ logger = logging.getLogger(__name__)
 
 class KronosModel(object):
     """
-    The model class operates on a list of workloads:
-    1) applies corrections to the workloads according to the configuration instructions passed by the user
-    2) applies a modelling strategy
-    3) returns a synthetic workload
+    The model class operates on a list of workloads and
+    performs the following actions in sequence:
+      1) Applies user instructions on potentially partially filled workloads
+      2) Edit the workloads (e.g. splitting them)
+      3) Generate a workload model through clustering+generation process
+      4) Export the workload as a synthetic workload
     """
 
     required_config_fields = []
@@ -78,8 +80,9 @@ class KronosModel(object):
         """
         takes the list of workloads and performs three actions in sequence:
         1) Applies user instructions on potentially partially filled workloads
-        2) Generate a workload model through clustering+generation process
-        3) Export the workload as a synthetic workload
+        2) Edit the workloads (e.g. splitting them)
+        3) Generate a workload model through clustering+generation process
+        4) Export the workload as a synthetic workload
         :return:
         """
 
