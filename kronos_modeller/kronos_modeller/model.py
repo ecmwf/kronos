@@ -21,8 +21,6 @@ from kronos_modeller.workload_data import WorkloadData
 from kronos_modeller.workload_editing import workload_editing_types
 from kronos_modeller.workload_modelling import workload_modelling_types
 
-# import numpy as np
-# from kronos_modeller.report import Report, ModelMeasure
 
 logger = logging.getLogger(__name__)
 
