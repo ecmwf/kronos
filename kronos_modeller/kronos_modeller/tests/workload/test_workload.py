@@ -16,7 +16,7 @@ from kronos_executor.io_formats.profile_format import ProfileFormat
 from kronos_executor.definitions import signal_types, time_signal_names
 from kronos_modeller.jobs import ModelJob
 from kronos_modeller.time_signal.time_signal import TimeSignal
-from kronos_modeller.workload_data import WorkloadData
+from kronos_modeller.workload import Workload
 
 
 class WorkloadTests(unittest.TestCase):
@@ -52,7 +52,7 @@ class WorkloadTests(unittest.TestCase):
             self.assertTrue(job.is_valid())
 
         # create a workload with 5 model jobs
-        test_workload = WorkloadData(
+        test_workload = Workload(
                                     jobs=input_jobs,
                                     tag='test_wl'
                                     )
@@ -90,7 +90,7 @@ class WorkloadTests(unittest.TestCase):
         }
         job2 = ModelJob(**valid_args_2)
 
-        test_workload = WorkloadData(jobs=[job1, job2], tag='wl_2jobs')
+        test_workload = Workload(jobs=[job1, job2], tag='wl_2jobs')
 
         for job in [job1, job2]:
             for ts in signal_types:
@@ -121,7 +121,7 @@ class WorkloadTests(unittest.TestCase):
         }
         job2 = ModelJob(**valid_args_2)
 
-        test_workload = WorkloadData(jobs=[job1, job2], tag='wl_2jobs')
+        test_workload = Workload(jobs=[job1, job2], tag='wl_2jobs')
 
         # ---------------------- fill in config -----------------------
         fillin_funct_config = [
@@ -226,8 +226,8 @@ class WorkloadTests(unittest.TestCase):
 
         job3 = ModelJob(**valid_args_3)
 
-        test_wl = WorkloadData(jobs=[job1, job2], tag='wl_test')
-        source_wl = WorkloadData(jobs=[job3], tag='wl_match_source')
+        test_wl = Workload(jobs=[job1, job2], tag='wl_test')
+        source_wl = Workload(jobs=[job3], tag='wl_match_source')
 
         test_wl.apply_lookup_table(source_wl, 1.0, 10, ['job_name'])
 
@@ -269,7 +269,7 @@ class WorkloadTests(unittest.TestCase):
 
         pf = ProfileFormat.from_file(StringIO(json.dumps(valid)))
 
-        workload = WorkloadData.from_kprofile(pf)
+        workload = Workload.from_kprofile(pf)
 
         self.assertEquals(workload.tag, "A-tag")
 

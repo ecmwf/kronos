@@ -17,7 +17,7 @@ from kronos_modeller.synthetic_app import SyntheticWorkload, SyntheticApp
 from kronos_modeller.workload_filling import job_filling_types
 from kronos_modeller.kronos_exceptions import ConfigurationError
 
-from kronos_modeller.workload_data import WorkloadData
+from kronos_modeller.workload import Workload
 from kronos_modeller.workload_editing import workload_editing_types
 from kronos_modeller.workload_modelling import workload_modelling_types
 
@@ -40,7 +40,7 @@ class KronosModel(object):
 
     def __init__(self, workloads, config):
 
-        assert all(isinstance(wl, WorkloadData) for wl in workloads)
+        assert all(isinstance(wl, Workload) for wl in workloads)
         assert isinstance(config, Config)
 
         # check that there is the "model" entry in the config file..
@@ -132,7 +132,7 @@ class KronosModel(object):
         model_jobs = workload_modeller.get_model_jobs()
 
         # TODO: check this step (multiple workloads might need to be retained..)
-        self.workloads = [WorkloadData(model_jobs)]
+        self.workloads = [Workload(model_jobs)]
 
     def _apply_schedule_exporting(self):
         """

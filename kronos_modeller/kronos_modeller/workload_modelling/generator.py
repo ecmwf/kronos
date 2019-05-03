@@ -11,7 +11,7 @@ import numpy as np
 
 from kronos_modeller.kronos_tools.gyration_radius import r_gyration
 from kronos_modeller.synthetic_app import SyntheticApp
-from kronos_modeller.workload_data import WorkloadData
+from kronos_modeller.workload import Workload
 from kronos_modeller.workload_modelling.time_schedule import job_schedule_factory
 
 
@@ -123,8 +123,8 @@ class SyntheticWorkloadGenerator(object):
         """
 
         # create a workload from jobs in cluster and generated model jobs
-        wl_original = WorkloadData(jobs=wl_clusters['jobs_for_clustering'], tag="original_jobs")
-        wl_generated = WorkloadData(jobs=model_jobs, tag="generated_jobs")
+        wl_original = Workload(jobs=wl_clusters['jobs_for_clustering'], tag="original_jobs")
+        wl_generated = Workload(jobs=model_jobs, tag="generated_jobs")
         ts_orig = wl_original.total_metrics_sum_dict
         ts_generated = wl_generated.total_metrics_sum_dict
 

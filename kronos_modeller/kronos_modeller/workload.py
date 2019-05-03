@@ -16,7 +16,7 @@ from kronos_modeller.time_signal.time_signal import TimeSignal
 logger = logging.getLogger(__name__)
 
 
-class WorkloadData(object):
+class Workload(object):
     """
     Workload data contains "jobs", each composed of standardized "model jobs"
     """
@@ -27,7 +27,7 @@ class WorkloadData(object):
 
         # a workload data contains a list of model jobs + some global properties
         self.jobs = list(jobs) if jobs else None
-        self.tag = tag if tag else str(WorkloadData.tag_default+1)
+        self.tag = tag if tag else str(Workload.tag_default + 1)
 
     def __unicode__(self):
         return "WorkloadData - {} job sets".format(len(self.jobs))
@@ -40,7 +40,7 @@ class WorkloadData(object):
         """
         Obtain a workload from read-in and checked json data in a KProfile
         """
-        return WorkloadData(
+        return Workload(
             jobs=(ModelJob.from_json(j) for j in kprofile.profiled_jobs),
             tag=kprofile.workload_tag
         )

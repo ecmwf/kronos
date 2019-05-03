@@ -13,7 +13,7 @@ import numpy as np
 from kronos_executor.definitions import time_signal_names
 from kronos_modeller.jobs import ModelJob
 from kronos_modeller.time_signal.time_signal import TimeSignal
-from kronos_modeller.workload_data import WorkloadData
+from kronos_modeller.workload import Workload
 from kronos_modeller.workload_modelling import generator
 
 
@@ -73,7 +73,7 @@ class GeneratorTests(unittest.TestCase):
                             }
 
         # create a workload with 5 model jobs
-        test_workload = WorkloadData(
+        test_workload = Workload(
                                     jobs=input_jobs,
                                     tag='test_wl'
                                     )
@@ -155,7 +155,7 @@ class GeneratorTests(unittest.TestCase):
         }
 
         # create a workload with 5 model jobs
-        test_workload = WorkloadData(
+        test_workload = Workload(
             jobs=input_jobs,
             tag='test_wl'
         )

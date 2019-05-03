@@ -2,7 +2,7 @@ import logging
 
 from kronos_modeller.kronos_exceptions import ConfigurationError
 from kronos_modeller.tools.shared_utils import progress_percentage
-from kronos_modeller.workload_data import WorkloadData
+from kronos_modeller.workload import Workload
 from difflib import SequenceMatcher
 
 from kronos_modeller.workload_filling.filling_strategy import FillingStrategy
@@ -70,7 +70,7 @@ class StrategyMatchKeyword(FillingStrategy):
 
         logger.info('Applying look up from workload: {} onto workload: {}'.format(look_up_wl.tag, wl_dest.tag))
 
-        assert isinstance(look_up_wl, WorkloadData)
+        assert isinstance(look_up_wl, Workload)
         assert isinstance(threshold, float)
         assert isinstance(priority, int)
         assert isinstance(match_keywords, list)

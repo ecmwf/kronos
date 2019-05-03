@@ -1,7 +1,7 @@
 import logging
 
 from kronos_modeller.kronos_exceptions import ConfigurationError
-from kronos_modeller.workload_data import WorkloadData
+from kronos_modeller.workload import Workload
 from kronos_modeller.workload_editing.editing_strategy import EditingStrategy
 
 logger = logging.getLogger(__name__)
@@ -96,4 +96,4 @@ class WorkloadSplit(EditingStrategy):
         else:
             raise ConfigurationError("either included or excluded keywords are needed for splitting a workload")
 
-        return WorkloadData(jobs=sub_wl_jobs, tag=new_wl_name)
+        return Workload(jobs=sub_wl_jobs, tag=new_wl_name)

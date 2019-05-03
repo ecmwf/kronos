@@ -1,22 +1,22 @@
 from kronos_executor.definitions import signal_types
 from kronos_modeller.framework.pickable import PickableObject
 
-from kronos_modeller.workload_data import WorkloadData
+from kronos_modeller.workload import Workload
 
 
-class WorkloadDataGroup(PickableObject):
+class WorkloadSet(PickableObject):
     """
     Class that defines a group of workloads, it contains a list of workloads and
     implements common operations that span across multiple sets of workloads
     """
 
     def __init__(self, workloads):
-        super(WorkloadDataGroup, self).__init__()
+        super(WorkloadSet, self).__init__()
         self.workloads = workloads
 
     @classmethod
     def from_labelled_jobs(cls, wl_dict):
-        return cls([WorkloadData(jobs=v, tag=k) for k,v in wl_dict.iteritems()])
+        return cls([Workload(jobs=v, tag=k) for k, v in wl_dict.iteritems()])
 
     def max_timeseries(self, n_bins=None):
         """

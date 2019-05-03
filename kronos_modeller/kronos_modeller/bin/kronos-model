@@ -26,7 +26,7 @@ from kronos_modeller.config.config import Config
 from kronos_modeller.kronos_exceptions import ConfigurationError
 from kronos_modeller.model import KronosModel
 from kronos_modeller.report import Report
-from kronos_modeller.workload_data import WorkloadData
+from kronos_modeller.workload import Workload
 
 
 logger = logging.getLogger(__name__)
@@ -54,11 +54,12 @@ class Kronos(object):
         self.workloads = []
         for filename in self.config.kprofile_files:
             with open(os.path.join(self.config.dir_input, filename), 'r') as f:
-                self.workloads.append(WorkloadData.from_kprofile(ProfileFormat.from_file(f)))
+                self.workloads.append(Workload.from_kprofile(ProfileFormat.from_file(f)))
 
         logger.info("Ingested workloads: [\n" + ",\n".join(["    {}".format(d.tag) for d in self.workloads]) + "\n]")
 
         logger.info("Generating model workload...\n----------------------------------")
+
         self.workload_model = KronosModel(self.workloads, self.config)
         self.workload_model.generate_model()
 

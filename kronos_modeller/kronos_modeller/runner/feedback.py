@@ -22,7 +22,7 @@ from kronos_executor.definitions import signal_types
 from kronos_modeller.kronos_exceptions import ConfigurationError
 from kronos_modeller.kronos_tools import utils
 from kronos_modeller.logreader import profiler_reader
-from kronos_modeller.workload_data import WorkloadData
+from kronos_modeller.workload import Workload
 
 logger = logging.getLogger(__name__)
 
@@ -226,8 +226,8 @@ class FeedbackLoopRunner(BaseRunner):
                                                                           json_label_map=dict_name_label)
 
                 # the data from the datasets are loaded into a list of model jobs
-                map_workload = WorkloadData(jobs=[job for job in job_map_dataset.model_jobs()],
-                                            tag='allinea_map_files')
+                map_workload = Workload(jobs=[job for job in job_map_dataset.model_jobs()],
+                                        tag='allinea_map_files')
 
                 # export the workload to a kprofile file
                 ScheduleFormat.from_synthetic_workload(map_workload).write_filename(os.path.join(dir_run_iter_map, 'kprofile_output.kprofile'))
