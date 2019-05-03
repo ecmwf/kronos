@@ -41,7 +41,7 @@
       "type": "object",
       "description": "Modelling process (configures the process that leads to the schedule generation)",
       "properties": {
-        "job_filling": {
+        "workload_filling": {
           "type": "object",
           "description": "Methodologies for dealing with sparse data",
           "properties": {
@@ -300,135 +300,149 @@
               	]
               }
             },
-        "job_clustering": {
-          "type": "object",
-          "description": "Job-clustering process",
-          "oneOf": [
-          {
-            "type": "object",
-            "description": "K-means Clustering algorithm",
-            "properties": {
-              "save_wl_before_clustering": {
-          "type": "boolean",
-          "description": "flag to save workloads into corresponding kprofile's before clustering"
-        },
-              "apply_to": {
-                "type": "array",
-                "description": "Target workloads",
-                "items": {
-                  "type": "string"
-                }
-              },
-              "type": {
-                "type": "string",
-                "description": "Function identification string",
-                "enum": ["Kmeans"]
-              },
-              "ok_if_low_rank": {
-                "type": "boolean",
-                "description": "Keep going even if there are just few distinct elements in the input set"
-              },
-              "user_does_not_check": {
-                "type": "boolean",
-                "description": "If True, the algorithm does not stop"
-              },
-              "rseed": {
-                "type": "integer",
-                "description": "Seed for random number generator"
-              },
-              "max_iter": {
-                "type": "integer",
-                "description": "Max iteration of the algorithm"
-              },
-              "max_num_clusters": {
-                "type": "integer",
-                "description": "Max number of clusters to explore to find the optimum"
-              },
-              "delta_num_clusters": {
-                "type": "integer",
-                "description": "Delta number of clusters to explore to find the optimum"
-              },
-              "num_timesignal_bins": {
-                "type": "integer",
-                "description": "Number of bins to discretise the job metrics for applying the clustering"
-              }
-            },
-            "additionalProperties": false,
-            "required": [
-              "apply_to",
-              "type",
-              "ok_if_low_rank",
-              "user_does_not_check",
-              "rseed",
-              "max_iter",
-              "max_num_clusters",
-              "delta_num_clusters",
-              "num_timesignal_bins"]
-          },
-          {
-            "type": "object",
-            "description": "DBSCAN Clustering algorithm",
-            "properties": {
-              "save_wl_before_clustering": {
-          "type": "boolean",
-          "description": "flag to save workloads into corresponding kprofile's before clustering"
-        },
-              "apply_to": {
-                "type": "array",
-                "description": "Target workloads",
-                "items": {
-                  "type": "string"
-                }
-              },
-              "type": {
-                "type": "string",
-                "description": "Function identification string",
-                "enum": ["DBSCAN"]
-              },
-              "rseed": {
-                "type": "integer",
-                "description": "Seed for random number generator"
-              },
-              "max_num_clusters": {
-                "type": "integer",
-                "description": "Max number of clusters to explore to find the optimum"
-              },
-              "num_timesignal_bins": {
-                "type": "integer",
-                "description": "Number of bins to discretize the job metrics for applying the clustering"
-              }
-            },
-            "additionalProperties": false,
-            "required": [
-              "apply_to",
-              "type",
-              "rseed",
-              "max_num_clusters",
-              "num_timesignal_bins"]
-          }
-         ]
-        },
-        "schedule_generation": {
+
+        "workload_modelling": {
           "type": "object",
           "description": "Configuration for generating synthetic apps",
           "properties": {
             "type": {
               "type": "string",
-              "enum": ["match_job_pdf","match_job_pdf_exact", "match_job_pdf_exact_rand"],
+              "enum": ["cluster_and_spawn"],
               "description": "PDF distribution of profiled jobs to generate the synth apps: \n\n- match_job_pdf_exact: synth apps are scheduled to result in a perfect \n  match with the profiled jobs PDF (intended as how probable a job is to be scheduled \n  in a certain interval of time relative to the duration of the  synthetic schedule)]\n\n- match_job_pdf: synthetic apps are randomly generated from a PDF that matches the profiled jobs PDF\n"
             },
-            "n_bins_for_pdf": {
+
+            "job_clustering": {
+              "type": "object",
+              "description": "Job-clustering process",
+              "oneOf": [
+              {
+                "type": "object",
+                "description": "K-means Clustering algorithm",
+                "properties": {
+                  "save_wl_before_clustering": {
+                    "type": "boolean",
+                    "description": "flag to save workloads into corresponding kprofile's before clustering"
+                  },
+                  "apply_to": {
+                    "type": "array",
+                    "description": "Target workloads",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  "type": {
+                    "type": "string",
+                    "description": "Function identification string",
+                    "enum": ["Kmeans"]
+                  },
+                  "ok_if_low_rank": {
+                    "type": "boolean",
+                    "description": "Keep going even if there are just few distinct elements in the input set"
+                  },
+                  "user_does_not_check": {
+                    "type": "boolean",
+                    "description": "If True, the algorithm does not stop"
+                  },
+                  "rseed": {
+                    "type": "integer",
+                    "description": "Seed for random number generator"
+                  },
+                  "max_iter": {
+                    "type": "integer",
+                    "description": "Max iteration of the algorithm"
+                  },
+                  "max_num_clusters": {
+                    "type": "integer",
+                    "description": "Max number of clusters to explore to find the optimum"
+                  },
+                  "delta_num_clusters": {
+                    "type": "integer",
+                    "description": "Delta number of clusters to explore to find the optimum"
+                  },
+                  "num_timesignal_bins": {
+                    "type": "integer",
+                    "description": "Number of bins to discretise the job metrics for applying the clustering"
+                  }
+                },
+                "additionalProperties": false,
+                "required": [
+                  "apply_to",
+                  "type",
+                  "ok_if_low_rank",
+                  "user_does_not_check",
+                  "rseed",
+                  "max_iter",
+                  "max_num_clusters",
+                  "delta_num_clusters",
+                  "num_timesignal_bins"]
+              },
+              {
+                "type": "object",
+                "description": "DBSCAN Clustering algorithm",
+                "properties": {
+                  "save_wl_before_clustering": {
+                    "type": "boolean",
+                    "description": "flag to save workloads into corresponding kprofile's before clustering"
+                  },
+                  "apply_to": {
+                    "type": "array",
+                    "description": "Target workloads",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  "type": {
+                    "type": "string",
+                    "description": "Function identification string",
+                    "enum": ["DBSCAN"]
+                  },
+                  "rseed": {
+                    "type": "integer",
+                    "description": "Seed for random number generator"
+                  },
+                  "max_num_clusters": {
+                    "type": "integer",
+                    "description": "Max number of clusters to explore to find the optimum"
+                  },
+                  "num_timesignal_bins": {
+                    "type": "integer",
+                    "description": "Number of bins to discretize the job metrics for applying the clustering"
+                  }
+                },
+                "additionalProperties": false,
+                "required": [
+                  "apply_to",
+                  "type",
+                  "rseed",
+                  "max_num_clusters",
+                  "num_timesignal_bins"]
+              }
+             ]
+            },
+
+            "job_submission_strategy": {
+              "type": "object",
+              "description": "Job-clustering process",
+              "properties": {
+                "n_bins_for_pdf": {
               "type": "integer",
               "description": "Number of bins for calculating the PDF of the schedule"
             },
-            "random_seed": {
+                "submit_rate_factor": {
+              "type": "number",
+              "description": "Scaling factor of the job submission rate"
+            },
+                "total_submit_interval": {
+              "type": "integer",
+              "description": "Total time interval within which synthetic applications are submitted"
+            },
+                "random_seed": {
               "type": "integer",
               "description": "Seed for random number generation"
+            }
+              }
             },
-            "synth_apps_n_bins": {
-              "type": "integer",
-              "description": "Number of bins that are used to discretise the time-signals into synthetic apps kernels"
-            },
+
             "global_scaling_factor": {
               "type": "number",
               "description": "Global scaling factor"
@@ -450,29 +464,31 @@
                   "type": "number"
                 }
               }
-            },
-            "submit_rate_factor": {
-              "type": "number",
-              "description": "Scaling factor of the job submission rate"
-            },
-            "synthapp_n_cpu": {
-              "type": "integer",
-              "description": "N cpus to be used to run each synthetic application"
-            },
-            "total_submit_interval": {
-              "type": "integer",
-              "description": "Total time interval within which synthetic applications are submitted"
             }
           },
+          "additionalProperties": false,
           "required": [
             "type",
-            "n_bins_for_pdf",
-            "random_seed",
-            "scaling_factors",
-            "submit_rate_factor",
-            "synthapp_n_cpu",
-            "total_submit_interval"]
+            "job_clustering",
+            "job_submission_strategy"]
+        },
+
+        "schedule_exporting": {
+                "type": "object",
+                "description": "Job-clustering process",
+                "properties": {
+                  "synth_apps_n_bins": {
+                "type": "integer",
+                "description": "Number of bins that are used to discretise the time-signals into synthetic apps kernels"
+              },
+                  "synth_apps_n_cpu": {
+              "type": "integer",
+              "description": "N cpus to be used to run each synthetic application"
+            }
+                }
+
         }
+
       }
     }
   },

@@ -9,7 +9,7 @@
 
 class TimeScheduleBase(object):
     """
-    This class generate a time schedule for the model jobs
+    This class generate a time time_schedule for the model jobs
     """
 
     def __init__(self, start_times, global_t0, global_tend, total_submit_interval, submit_rate_factor, n_bins_for_pdf):
@@ -22,7 +22,7 @@ class TimeScheduleBase(object):
 
     def create_schedule(self):
         """
-        Function to create a time schedule for the jobs
+        Function to create a time time_schedule for the jobs
         :return:
         """
         raise NotImplementedError("Not implemented attribute in base class..")

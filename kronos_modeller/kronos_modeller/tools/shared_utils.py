@@ -9,6 +9,20 @@
 import numpy as np
 
 
+def progress_percentage(idx, len_list, percent_out):
+    """
+    Trivial function to monitor percentage of a generic loop
+    """
+
+    print_delta = max(1, int(np.ceil(percent_out / 100. * len_list)))
+
+    if not idx % print_delta or idx == len_list - 1:
+        pc_past = (idx + 1) / print_delta * percent_out if idx != len_list - 1 else 100
+        return pc_past
+    else:
+        return -1
+
+
 def digitize_xyvalues(xvalues, yvalues, nbins=None, key="sum"):
     """
     On-the-fly return digitized time series (rather than using

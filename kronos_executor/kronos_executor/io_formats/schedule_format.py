@@ -16,7 +16,7 @@ from kronos_executor.io_formats.json_io_format import JSONIoFormat
 
 class ScheduleFormat(JSONIoFormat):
     """
-    A standardised format for schedule information.
+    A standardised format for time_schedule information.
     """
     format_version = 3
     format_magic = "KRONOS-KSCHEDULE-MAGIC"

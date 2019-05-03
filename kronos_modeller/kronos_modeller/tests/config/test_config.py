@@ -146,8 +146,8 @@ class ConfigTests(unittest.TestCase):
         # ------------- invalid "model" config file (INV-1) ----------
         config_invalid_1 = config_empty_model
         config_invalid_1["model"] = {
-            "job_filling": {},
-            "job_clustering": {},
+            "workload_filling": {},
+            "clustering": {},
             "schedule_generation": {}
         }
 
@@ -160,7 +160,7 @@ class ConfigTests(unittest.TestCase):
         # so they cannot be empty
         config_invalid_2 = config_empty_model
         config_invalid_2["model"] = {
-            "job_clustering": {},
+            "clustering": {},
             "schedule_generation": {}
         }
 

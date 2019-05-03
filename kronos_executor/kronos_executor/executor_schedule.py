@@ -4,7 +4,7 @@ from kronos_executor.executor import Executor
 
 class ExecutorDepsScheduler(Executor):
     """
-    An ExecutorDepsScheduler passes a schedule of jobs to the real scheduler to be executed.
+    An ExecutorDepsScheduler passes a time_schedule of jobs to the real scheduler to be executed.
 
     Certain elements of the ExecutorDepsScheduler can be overridden by the user.
     """

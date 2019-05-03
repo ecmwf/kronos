@@ -462,7 +462,7 @@ def ingest_pbs_logs(path, cfg=None):
         raise ConfigurationError("Specified path to ingest PBS profiles does not exist: {}".format(path))
 
     if not os.path.isfile(path):
-        raise ConfigurationError("Specified path for PBS schedule is not a file")
+        raise ConfigurationError("Specified path for PBS time_schedule is not a file")
 
     jobs = read_pbs_log(path)
 
@@ -477,7 +477,7 @@ def ingest_epcc_csv_logs(path, cfg=None):
         raise ConfigurationError("Specified path to ingest CSV profiles does not exist: {}".format(path))
 
     if not os.path.isfile(path):
-        raise ConfigurationError("Specified path for CSV schedule is not a file")
+        raise ConfigurationError("Specified path for CSV time_schedule is not a file")
 
     jobs = read_epcc_csv_logs(path)
 

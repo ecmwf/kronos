@@ -1,10 +1,11 @@
 import logging
 
 from kronos_modeller.kronos_exceptions import ConfigurationError
+from kronos_modeller.tools.shared_utils import progress_percentage
 from kronos_modeller.workload_data import WorkloadData
 from difflib import SequenceMatcher
 
-from kronos_modeller.job_filling.filling_strategy import FillingStrategy
+from kronos_modeller.workload_filling.filling_strategy import FillingStrategy
 
 logger = logging.getLogger(__name__)
 
@@ -77,15 +78,17 @@ class StrategyMatchKeyword(FillingStrategy):
         n_jobs_replaced = 0
 
         # apply matching logic (if threshold < 1.0 - so not an exact matching is sought)
+        n_print = 10
         if threshold < 1.0:
             for jj, job in enumerate(wl_dest.jobs):
 
-                if not int(jj % (len(wl_dest.jobs) / 100.)):
-                    print "Scanned {}% of source jobs".format(int(jj / float(len(wl_dest.jobs)) * 100.))
+                pc_scanned = progress_percentage(jj, len(wl_dest.jobs), n_print)
+                if pc_scanned > 0:
+                    print "Scanned {}% of source jobs".format(pc_scanned)
 
                 for lu_job in look_up_wl.jobs:
 
-                    # ---------- in case of multiple keys considers tha average matching ratio -----------
+                    # in case of multiple keys considers tha average matching ratio
                     current_match = 0
                     for kw in match_keywords:
                         if getattr(job, kw) and getattr(lu_job, kw):
@@ -94,7 +97,7 @@ class StrategyMatchKeyword(FillingStrategy):
                                                              str(getattr(lu_job, kw))
                                                              ).ratio()
                     current_match /= float(len(match_keywords))
-                    # -------------------------------------------------------------------------------------
+                    # ---------------------------------------------------------------
 
                     if current_match >= threshold:
                         n_jobs_replaced += 1
@@ -106,8 +109,9 @@ class StrategyMatchKeyword(FillingStrategy):
         elif threshold == 1:
             for jj, job in enumerate(wl_dest.jobs):
 
-                if not int(jj % (len(wl_dest.jobs) / 100.)):
-                    print "Scanned {}% of source jobs".format(int(jj / float(len(wl_dest.jobs)) * 100.))
+                pc_scanned = progress_percentage(jj, len(wl_dest.jobs), n_print)
+                if pc_scanned > 0:
+                    print "Scanned {}% of source jobs".format(pc_scanned)
 
                 for lu_job in look_up_wl.jobs:
 

@@ -1,10 +1,10 @@
 import logging
 
 import numpy as np
-from kronos_modeller.job_filling.filling_strategy import FillingStrategy
+from kronos_modeller.workload_filling.filling_strategy import FillingStrategy
 from kronos_modeller.kronos_exceptions import ConfigurationError
 from kronos_modeller.time_signal.time_signal import TimeSignal
-from kronos_modeller.job_filling import filling_functions as fillf
+from kronos_modeller.workload_filling import filling_functions as fillf
 
 logger = logging.getLogger(__name__)
 

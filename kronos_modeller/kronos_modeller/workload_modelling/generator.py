@@ -8,13 +8,11 @@
 import copy
 
 import numpy as np
-from kronos_modeller.kronos_exceptions import ConfigurationError
-from kronos_modeller.job_generation import strategy_factory
-from kronos_modeller.job_generation.schedule import job_schedule_factory
-from kronos_modeller.synthetic_app import SyntheticApp
-from kronos_modeller.workload_data import WorkloadData
 
 from kronos_modeller.kronos_tools.gyration_radius import r_gyration
+from kronos_modeller.synthetic_app import SyntheticApp
+from kronos_modeller.workload_data import WorkloadData
+from kronos_modeller.workload_modelling.time_schedule import job_schedule_factory
 
 
 class SyntheticWorkloadGenerator(object):
@@ -24,14 +22,6 @@ class SyntheticWorkloadGenerator(object):
     - random: jobs are randomly generated from the clusters to match the submit rate
     - match probability: jobs are generated to match PDF of jobs..
     """
-    required_config_fields = [
-                             "type"
-                             "random_seed",
-                             "_scaling_factors",
-                             "submit_rate_factor",
-                             "synthapp_n_proc",
-                             "total_submit_interval",
-                             ]
 
     # this map stores various combinations of generation strategies
     generation_mapping = {
@@ -40,27 +30,43 @@ class SyntheticWorkloadGenerator(object):
         "match_job_pdf_exact_rand": ("equiv_time_pdf_exact", "spawn_random")
     }
 
-    def __init__(self, config_generator, clusters, global_t0, global_tend, n_bins_for_pdf=None, n_bins_timesignals=None):
-        self.config_generator = config_generator
+    # def __init__(self, config_generator,
+    #              clusters,
+    #              global_t0,
+    #              global_tend,
+    #              n_bins_for_pdf=None,
+    #              n_bins_timesignals=None):
+    #
+    #     self.config_generator = config_generator
+    #     self.clusters = clusters
+    #     self.global_t0 = global_t0
+    #     self.global_tend = global_tend
+    #     self.n_bins_for_pdf = n_bins_for_pdf
+    #     self.n_bins_timesignals = n_bins_timesignals
+    #
+    #     # dictionary of all the un-normalized jobs created
+    #     # from clusters (stored for calculating r_gyration)
+    #     self.unnormalized_modelled_jobs_dict = {}
+
+    def __init__(self, config, clusters):
+
+        self.config = config
         self.clusters = clusters
+
+        # some auxiliary properties of the workloads
+        global_t0 = min(j.time_start for cl in clusters for j in cl['jobs_for_clustering'])
+        global_tend = max(j.time_start for cl in clusters for j in cl['jobs_for_clustering'])
+        n_bins_for_pdf = config["job_submission_strategy"]['n_bins_for_pdf']
+        n_bins_timesignals = config["job_clustering"]['num_timesignal_bins']
+
         self.global_t0 = global_t0
         self.global_tend = global_tend
         self.n_bins_for_pdf = n_bins_for_pdf
         self.n_bins_timesignals = n_bins_timesignals
 
-        # dictionary of all the un-normalized jobs created from clusters (stored for calculating r_gyration)
+        # dictionary of all the un-normalized jobs created
+        # from clusters (stored for calculating r_gyration)
         self.unnormalized_modelled_jobs_dict = {}
-
-    def check_config(self):
-        """
-        Check the keys of the configuration
-        :return:
-        """
-
-        for req_item in self.required_config_fields:
-            if req_item not in self.config_generator.keys():
-                raise ConfigurationError("{} requires to specify {}".format(self.__class__.__name__, req_item))
-            setattr(self, req_item, self.config_generator[req_item])
 
     def generate_synthetic_apps(self):
         """
@@ -68,27 +74,32 @@ class SyntheticWorkloadGenerator(object):
         :return:
         """
 
-        schedule_key = self.generation_mapping[self.config_generator['type']][0]
-        spawning_strategy = self.generation_mapping[self.config_generator['type']][1]
+        schedule_key = self.generation_mapping[self.config["job_submission_strategy"]['type']][0]
+        spawning_strategy = self.generation_mapping[self.config["job_submission_strategy"]['type']][1]
 
         generated_sa_from_all_wl = []
         n_bins_for_pdf = self.n_bins_for_pdf if self.n_bins_for_pdf else 20
 
         # generate a synthetic workload for each cluster of jobs
+        t_submit_interval = self.config["job_submission_strategy"]['total_submit_interval']
+        submit_rate_factor = self.config["job_submission_strategy"]['submit_rate_factor']
         for wl_clusters in self.clusters:
-
             start_times = [j.time_start for j in wl_clusters['jobs_for_clustering']]
+            print "using cluster generated from workload {}".format(wl_clusters["source-workload"])
 
             # invoke the required scheduling strategy
             jobs_schedule_strategy = job_schedule_factory[schedule_key](start_times,
                                                                         self.global_t0,
                                                                         self.global_tend,
-                                                                        self.config_generator['total_submit_interval'],
-                                                                        self.config_generator['submit_rate_factor'],
+                                                                        t_submit_interval,
+                                                                        submit_rate_factor,
                                                                         n_bins_for_pdf)
 
             # instantiate and invoke the required scheduling strategy
-            generation_strategy = strategy_factory[spawning_strategy](jobs_schedule_strategy, wl_clusters, self.config_generator)
+            generation_strategy = strategy_factory[spawning_strategy](jobs_schedule_strategy,
+                                                                      wl_clusters,
+                                                                      self.config)
+
             model_jobs, vec_clust_indexes = generation_strategy.generate_jobs()
 
             # Store the model jobs into the unnormalized_modelled_jobs_dict
@@ -99,12 +110,8 @@ class SyntheticWorkloadGenerator(object):
             # Then create the synthetic apps from the generated model jobs
             modelled_sa_jobs = self.model_jobs_to_sa(normalized_jobs,
                                                      wl_clusters['source-workload'],
-                                                     metrics_hard_limits=self.config_generator.get("metrics_hard_limits"))
+                                                     metrics_hard_limits=self.config.get("metrics_hard_limits"))
 
-            # And append the synthetic apps to the list
-            generated_sa_from_all_wl.extend(modelled_sa_jobs)
-
-        return generated_sa_from_all_wl
 
     @staticmethod
     def normalize_jobs(model_jobs, wl_clusters):

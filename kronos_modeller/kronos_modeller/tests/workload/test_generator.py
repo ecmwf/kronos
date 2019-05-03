@@ -11,10 +11,10 @@ import unittest
 
 import numpy as np
 from kronos_executor.definitions import time_signal_names
-from kronos_modeller.job_generation import generator
 from kronos_modeller.jobs import ModelJob
 from kronos_modeller.time_signal.time_signal import TimeSignal
 from kronos_modeller.workload_data import WorkloadData
+from kronos_modeller.workload_modelling import generator
 
 
 class GeneratorTests(unittest.TestCase):
@@ -102,7 +102,7 @@ class GeneratorTests(unittest.TestCase):
 
     def test_generator_job_schedule(self):
         """
-        test the job schedule generation
+        test the job time_schedule generation
         :return:
         """
 
@@ -133,7 +133,7 @@ class GeneratorTests(unittest.TestCase):
         for job in input_jobs:
             self.assertTrue(job.is_valid())
 
-        # test schedule of sa when submit_rate_factor == 1
+        # test time_schedule of sa when submit_rate_factor == 1
         config_generator = {
             "type": "match_job_pdf_exact",
             "random_seed": 0,

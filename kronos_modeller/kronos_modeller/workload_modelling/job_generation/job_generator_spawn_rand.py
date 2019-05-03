@@ -8,26 +8,26 @@
 
 import copy
 import logging
-import numpy as np
 
-from kronos_modeller.job_generation.strategy_base import StrategyBase
+import numpy as np
 from kronos_modeller.jobs import ModelJob
+from kronos_modeller.workload_modelling.job_generation.job_generator import JobGenerator
 
 logger = logging.getLogger(__name__)
 
 
-class StrategySpawnRand(StrategyBase):
+class JobGeneratorSpawnRand(JobGenerator):
     """
     This class generates jobs by spawning them from the jobs taken randomly among the clusters
     """
 
     def __init__(self, schedule_strategy, wl_clusters, config):
-        super(StrategySpawnRand, self).__init__(schedule_strategy, wl_clusters, config)
+        super(JobGeneratorSpawnRand, self).__init__(schedule_strategy, wl_clusters, config)
 
     def generate_jobs(self):
 
-        logger.info( "====> Generating jobs from sub-workload: {}, that has {} jobs".format(self.wl_clusters['source-workload'],
-                                                                                               len(self.wl_clusters['jobs_for_clustering'])))
+        logger.info("====> Generating jobs from sub-workload: {}, that has {} jobs".format(self.wl_clusters['source-workload'],
+                                                                                           len(self.wl_clusters['jobs_for_clustering'])))
 
         start_times_vec_sa, _, _ = self.schedule_strategy.create_schedule()
 

@@ -7,12 +7,13 @@
 # does it submit to any jurisdiction.
 
 
-class StrategyBase(object):
+class JobGenerator(object):
     """
     This class generates
     """
 
     def __init__(self, schedule_strategy, wl_clusters, config):
+
         self.schedule_strategy = schedule_strategy
         self.wl_clusters = wl_clusters
         self.config = config

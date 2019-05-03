@@ -3,7 +3,7 @@ import logging
 import numpy as np
 from scipy.spatial.distance import pdist
 
-from kronos_modeller.job_filling.filling_strategy import FillingStrategy
+from kronos_modeller.workload_filling.filling_strategy import FillingStrategy
 from kronos_modeller.kronos_exceptions import ConfigurationError
 
 logger = logging.getLogger(__name__)

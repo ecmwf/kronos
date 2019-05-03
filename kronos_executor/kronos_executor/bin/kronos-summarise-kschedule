@@ -9,7 +9,7 @@
 
 """
 
-Tool that shows information of a kronos schedule file (KSchedule).
+Tool that shows information of a kronos time_schedule file (KSchedule).
 ------------------------------------------------------------------
 
 Two main functionalties are provided:

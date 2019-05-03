@@ -4,7 +4,13 @@ from kronos_modeller.kronos_exceptions import ConfigurationError
 class StrategyBase(object):
 
     """
-    Base class that represents a job filling strategy
+    Base class that represents a generic "strategy"
+    applied to kronos workloads. A strategy can be
+    specialised to do things like:
+     - filling missing metrics in the workload
+     - split workloads according to some job properties
+     - find clusters in the workloads
+     - etc..
     """
 
     # required params

@@ -2,11 +2,11 @@
 
 """
 
-Generate a schedule for the kronos ioserver workflow
+Generate a time_schedule for the kronos ioserver workflow
 
 Example of usage:
 
- - Generate a schedule of 10 jobs, each with 10 IO-tasks, each writing
+ - Generate a time_schedule of 10 jobs, each with 10 IO-tasks, each writing
  files and each distributing the files periodically onto the io-servers
 
 ./generete_ioserver_schedule.py \
@@ -119,10 +119,10 @@ def generate_timestep_workflow(args):
     Generate a workload that models a multiple
     "time-stepping" writers and multiple readers
     :param args:
-    :return: schedule
+    :return: time_schedule
     """
 
-    # -------- start creating the schedule ------------
+    # -------- start creating the time_schedule ------------
     creation_time = datetime.datetime.now().strftime("%Y-%m-%dT%H:%M:%SZ")
     schedule_templ = copy.deepcopy(schedule_template)
     schedule_templ["created"] = creation_time
@@ -178,7 +178,7 @@ def generate_timestep_workflow(args):
             # append this IO task into the job task list
             job_templ["config_params"]["tasks"].append(task_templ)
 
-        # now append the job into the schedule template
+        # now append the job into the time_schedule template
         schedule_templ.get("jobs",[]).append(job_templ)
         global_job_id += 1
         
@@ -222,7 +222,7 @@ def generate_timestep_workflow(args):
                 global_job_id += 1
                 
                 
-            # now append the job into the schedule template
+            # now append the job into the time_schedule template
             schedule_templ.get("jobs",[]).append(job_templ)
             global_job_id += 1
 
@@ -236,7 +236,7 @@ def generate_allwrite_workflow(args):
     :return: schedule_templ:
     """
 
-    # -------- start creating the schedule ------------
+    # -------- start creating the time_schedule ------------
     creation_time = datetime.datetime.now().strftime("%Y-%m-%dT%H:%M:%SZ")
     schedule_templ = copy.deepcopy(schedule_template)
     schedule_templ["created"] = creation_time
@@ -278,7 +278,7 @@ def generate_allwrite_workflow(args):
 
             # print "job_templ ", job_templ
 
-        # now append the job into the schedule template
+        # now append the job into the time_schedule template
         schedule_templ.get("jobs",[]).append(job_templ)
 
     return schedule_templ
@@ -291,7 +291,7 @@ def generate_allread_workflow(args):
     :return:
     """
 
-    # -------- start creating the schedule ------------
+    # -------- start creating the time_schedule ------------
     creation_time = datetime.datetime.now().strftime("%Y-%m-%dT%H:%M:%SZ")
     schedule_templ = copy.deepcopy(schedule_template)
     schedule_templ["created"] = creation_time
@@ -332,7 +332,7 @@ def generate_allread_workflow(args):
 
             # print "job_templ ", job_templ
 
-        # now append the job into the schedule template
+        # now append the job into the time_schedule template
         schedule_templ.get("jobs",[]).append(job_templ)
 
     return schedule_templ    

@@ -25,11 +25,10 @@ class WorkloadSplit(EditingStrategy):
     # TODO: list of uniq created workloads (and seq counter)
     workload_created = []
 
-    def _apply(self, config, user_functions):
+    def _apply(self, config):
         """
         Apply this strategy
         :param config:
-        :param user_functions:
         :return:
         """
 

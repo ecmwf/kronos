@@ -12,8 +12,8 @@
 
 Simple utility tool that can be used to send an "end-of-job" notification 
 message to the Kronos executor. This tool is used to run applications other 
-than synthetic applications as part of the Kronos schedule. In fact, if an 
-arbitrary application is submitted as part of the schedule, the Kronos-executor 
+than synthetic applications as part of the Kronos time_schedule. In fact, if an
+arbitrary application is submitted as part of the time_schedule, the Kronos-executor
 needs to know when the applications has completed and therefore this tool
 is invoked straight after the invokation of the application executable in the 
 job submit script. This tool is not needed in the job submit script of 

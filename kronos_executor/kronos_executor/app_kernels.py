@@ -65,11 +65,12 @@ class KernelBase(object):
         Return a synthetic app configuration. This can be overridden for more complex behaviour if required
         """
 
-        # This code takes a list of signal-name and key-name pairs (in general these don't have to be
-        # equal, but in all cases so far they are.
-        #
+        # This code takes a list of signal-name and key-name pairs (in general
+        # these don't have to be equal, but in all cases so far they are.
+
         # i) Extract the data series associated with each of these
-        # ii) Put that data into a sequence of dictionaries, with each element labelled with the appropriate key
+        # ii) Put that data into a sequence of dictionaries, with each element
+        # labelled with the appropriate key
 
         time_signal_names, key_names = zip(*self.signals)
 
@@ -229,6 +230,8 @@ class FileWriteKernel(KernelBase):
             # set the number of files
             d['n_files'] = max(1, int(d['n_write']/100.0))
 
+            # set
+
         return data
 
 
@@ -249,7 +252,7 @@ class MEMKernel(KernelBase):
                 raise ValueError('kb_mem={} is < 0!'.format(d['kb_mem']))
 
             if d['kb_mem'] >= 0:
-                d['kb_mem'] = int(d['kb_mem'])
+                d['kb_mem'] = float(d['kb_mem'])
 
         return data
 

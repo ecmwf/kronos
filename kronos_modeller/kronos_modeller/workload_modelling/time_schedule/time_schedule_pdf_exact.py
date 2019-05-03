@@ -6,13 +6,12 @@
 # granted to it by virtue of its status as an intergovernmental organisation nor
 # does it submit to any jurisdiction.
 import numpy as np
-
-from kronos_modeller.job_generation.schedule.base import TimeScheduleBase
+from kronos_modeller.workload_modelling.time_schedule.time_schedule import TimeScheduleBase
 
 
 class TimeSchedulePDFexact(TimeScheduleBase):
     """
-    This class generate a time schedule for the model jobs according to the PDF of the submit times
+    This class generate a time time_schedule for the model jobs according to the PDF of the submit times
     """
 
     def __init__(self,

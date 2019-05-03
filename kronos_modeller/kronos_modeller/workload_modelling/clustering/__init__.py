@@ -1,5 +1,6 @@
 import logging
-from kronos_modeller.job_clustering.kmeans_cluster import KmeansClusters
+
+from kronos_modeller.workload_modelling.clustering.kmeans_cluster import KmeansClusters
 
 logger = logging.getLogger(__name__)
 

@@ -20,7 +20,7 @@ logger = logging.getLogger(__name__)
 
 class Executor(object):
     """
-    An Executor passes a schedule of jobs to the real scheduler to be executed.
+    An Executor passes a time_schedule of jobs to the real scheduler to be executed.
 
     Certain elements of the Executor can be overridden by the user.
     """
@@ -155,7 +155,7 @@ class Executor(object):
 
         self.read_cache_path = config.get("read_cache", None)
         if self.read_cache_path is None:
-            raise KeyError("read_cache not provided in schedule config")
+            raise KeyError("read_cache not provided in time_schedule config")
 
         self.thread_manager = SubprocessManager(config.get('submission_workers', 5))
 
@@ -375,7 +375,7 @@ class Executor(object):
 
     def run(self):
         """
-        Main function that manages the execution of the schedule,
+        Main function that manages the execution of the time_schedule,
         it includes the following phases:
           - setup()
           - prologue()

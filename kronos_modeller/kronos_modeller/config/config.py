@@ -33,7 +33,7 @@ class Config(object):
     dir_input = None
     dir_output = None
     kprofile_files = []
-    kschedule_filename = 'schedule.kschedule'
+    kschedule_filename = 'time_schedule.kschedule'
 
     model = None
     run = None
@@ -70,6 +70,8 @@ class Config(object):
 
         # check all the configurations
         for k, v in config_dict.iteritems():
+
+            print "checking for attribute {}..".format(k)
             if not hasattr(self, k):
                 raise ConfigurationError("Unexpected configuration keyword provided - {}:{}".format(k, v))
             setattr(self, k, v)

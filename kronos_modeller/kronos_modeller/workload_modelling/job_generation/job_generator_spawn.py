@@ -6,34 +6,35 @@
 # granted to it by virtue of its status as an intergovernmental organisation nor
 # does it submit to any jurisdiction.
 
-import numpy as np
 import logging
+
+import numpy as np
 from kronos_executor.definitions import time_signal_names
-from kronos_modeller.job_generation.strategy_base import StrategyBase
 from kronos_modeller.jobs import ModelJob
 from kronos_modeller.time_signal.time_signal import TimeSignal
+from kronos_modeller.workload_modelling.job_generation.job_generator import JobGenerator
 
 logger = logging.getLogger(__name__)
 
 
-class StrategySpawn(StrategyBase):
+class JobGeneratorSpawn(JobGenerator):
     """
     This class generates jobs by spawning them from the cluster centroids
     """
 
     def __init__(self, schedule_strategy, wl_clusters, config):
-        super(StrategySpawn, self).__init__(schedule_strategy, wl_clusters, config)
+        super(JobGeneratorSpawn, self).__init__(schedule_strategy, wl_clusters, config)
 
     def generate_jobs(self):
 
-        logger.info( "Generating jobs from cluster: {}, that has {} jobs".format(self.wl_clusters['source-workload'],
+        logger.info("Generating jobs from cluster: {}, that has {} jobs".format(self.wl_clusters['source-workload'],
                                                                           len(self.wl_clusters['jobs_for_clustering'])))
 
         start_times_vec_sa, _, _ = self.schedule_strategy.create_schedule()
 
         # Random vector of cluster indices
         n_modelled_jobs = len(start_times_vec_sa)
-        np.random.seed(self.config['random_seed'])
+        np.random.seed(self.config["job_submission_strategy"]['random_seed'])
         vec_clust_indexes = np.random.randint(self.wl_clusters['cluster_matrix'].shape[0], size=n_modelled_jobs)
 
         # loop over the clusters and generates jos as needed
@@ -48,11 +49,12 @@ class StrategySpawn(StrategyBase):
                 ts = TimeSignal(ts_name).from_values(ts_name, np.arange(len(ts_vv)), ts_vv)
                 ts_dict[ts_name] = ts
 
+            # TODO: address the decision on Ncpu and Nnodes once and for all
             job = ModelJob(
                 time_start=start_times_vec_sa[cc],
                 duration=None,
-                ncpus=self.config['synthapp_n_cpu'],
-                nnodes=self.config['synthapp_n_nodes'],
+                ncpus=1,
+                nnodes=1,
                 timesignals=ts_dict,
                 label="job-{}-cl-{}".format(cc, idx)
             )

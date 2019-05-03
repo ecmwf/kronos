@@ -131,13 +131,13 @@ class SyntheticWorkload(object):
 
     def export_kschedule(self, filename):
         """
-        Write a KSchedule file that describes the synthetic schedule,
+        Write a KSchedule file that describes the synthetic time_schedule,
         this file can be given directly to the kronos_executor
         :return:
         """
-        n_bins = self.config.model["schedule_generation"]["synth_apps_n_bins"]
+        n_bins = self.config.model["schedule_exporting"]["synth_apps_n_bins"]
 
-        logger.info( "Exporting {} synth-apps to KSchedule schedule: {}".format(len(self.app_list), filename))
+        logger.info( "Exporting {} synth-apps to KSchedule time_schedule: {}".format(len(self.app_list), filename))
 
         # # pre-calculate sums for efficiency..
         # tot_metrics_apps = self.total_metrics_apps(n_bins=n_bins)
@@ -173,7 +173,9 @@ class SyntheticApp(ModelJob):
     A type of ModelJob which is used as the output stage (after modelling, scaling, etc.). There is a one-to-one
     mapping between these SyntheticApp classes and execution runs of the synthetic application (coordinator).
     """
-    def __init__(self, job_name=None, time_signals=None, metrics_hard_limits=None, **kwargs):
+    def __init__(self, job_name="unknown",
+                 time_signals=None,
+                 metrics_hard_limits=None, **kwargs):
 
         super(SyntheticApp, self).__init__(
             timesignals=time_signals,
@@ -194,11 +196,11 @@ class SyntheticApp(ModelJob):
 
         job_entry = {
             'num_procs': self.ncpus,
-            'start_delay': self.time_start,
+            'start_delay': self.time_start if self.time_start else 0,
             'frames': frames,
             'metadata': {
-                'job_name': self.job_name,
-                'workload_name': self.label,
+                'job_name': self.job_name if self.job_name else "generic-job",
+                'workload_name': self.label if self.label else "generic-workload",
             }
         }
 
@@ -237,8 +239,9 @@ class SyntheticApp(ModelJob):
         if not all(len(i) == len(kernels[0]) for i in kernels):
             raise ConfigurationError("something is wrong, kernels should have the same length!")
 
-        # Instead of a list of kernels, each of which contains a time series, we want a time series each of
-        # which contains a list of kernels. Do the inversion!
+        # Instead of a list of kernels, each of which contains a time series,
+        # we want a time series each of which contains a list of kernels =>
+        # Do the inversion!
         frames = zip(*kernels)
 
         # Filter out empty elements from the list of kernels

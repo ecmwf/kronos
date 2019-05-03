@@ -61,11 +61,6 @@ class Kronos(object):
         logger.info("Generating model workload...\n----------------------------------")
         self.workload_model = KronosModel(self.workloads, self.config)
         self.workload_model.generate_model()
-        self.workload_model.export_synthetic_workload()
-
-    def export(self):
-        logger.info("Outputting synthetic app input...\n----------------------------------")
-        self.workload_model.export_synthetic_workload()
 
 
 if __name__ == "__main__":

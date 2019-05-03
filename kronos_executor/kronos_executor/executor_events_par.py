@@ -16,7 +16,7 @@ logger = logging.getLogger(__name__)
 
 class ExecutorEventsPar(Executor):
     """
-    An ExecutorDepsScheduler passes a schedule of jobs to the real scheduler to be executed.
+    An ExecutorDepsScheduler passes a time_schedule of jobs to the real scheduler to be executed.
 
     """
 

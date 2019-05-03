@@ -1,10 +1,10 @@
 import logging
 
 import numpy as np
-from kronos_modeller.job_clustering.clustering_strategy import ClusteringStrategy
-from kronos_modeller.job_clustering.silhouette import find_n_clusters_silhouette
+from kronos_modeller.workload_modelling.clustering.silhouette import find_n_clusters_silhouette
 from kronos_modeller.kronos_tools.gyration_radius import r_gyration
 from kronos_modeller.plot_handler import PlotHandler
+from kronos_modeller.workload_modelling.clustering.clustering_strategy import ClusteringStrategy
 from scipy.spatial.distance import cdist
 from sklearn.cluster import KMeans
 from sklearn.metrics import silhouette_score
@@ -51,8 +51,12 @@ class KmeansClusters(ClusteringStrategy):
         # should have produced a set of "complete" and therefore valid jobs)
         # self._check_jobs(self.config_job_classification['apply_to'])
 
-        # This internal function finds the clusters
+        # This internal function finds the clusters (they are not yet applied
+        # to the workloads. Clusters are stored into self.clusters)
         self.do_clustering(config)
+
+        # this step rebuild workloads that include clusters
+        self.rebuild_workload()
 
     def do_clustering(self, config):
 
@@ -154,3 +158,10 @@ class KmeansClusters(ClusteringStrategy):
             plt.show()
 
         return y_pred.cluster_centers_, y_pred.labels_
+
+
+    def rebuild_workload(self):
+        """
+        This function takes the clusters found in the do_clustering step and
+        :return:
+        """

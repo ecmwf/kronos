@@ -2,10 +2,8 @@ import logging
 
 import numpy as np
 from kronos_modeller.kronos_tools.gyration_radius import r_gyration
+from kronos_modeller.workload_modelling.clustering.clustering_strategy import ClusteringStrategy
 from sklearn.cluster import DBSCAN
-
-from kronos_modeller.job_clustering.clustering_strategy import ClusteringStrategy
-
 
 logger = logging.getLogger(__name__)
 

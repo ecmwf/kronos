@@ -10,17 +10,17 @@
 
 """
 
-Kronos Executor is the main command that executes the Kronos schedule on an HPC system.
+Kronos Executor is the main command that executes the Kronos time_schedule on an HPC system.
 
 The kronos_executor is invoked as follows:
 
-> kronos-kronos_executor -c <config>.json <schedule>.kschedule
+> kronos-kronos_executor -c <config>.json <time_schedule>.kschedule
 
 For details on how to configure the configurations file <config>.json, run:
 
 > kronos-format-config-exe -s
 
-The schedule must be in KSchedule file format. The following command provides details of the
+The time_schedule must be in KSchedule file format. The following command provides details of the
 kschedule schema:
 
 > kronos-format-kschedule -s
@@ -56,7 +56,7 @@ if __name__ == "__main__":
                         help="Executor config file")
 
     parser.add_argument('-d', "--dry-run",
-                        help="Does not run the schedule, only submits scripts get generated.",
+                        help="Does not run the time_schedule, only submits scripts get generated.",
                         action="store_true")
 
     # print the help if no arguments are passed
