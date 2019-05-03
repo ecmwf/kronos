@@ -8,10 +8,12 @@
 
 import logging
 
+from kronos_modeller.workload import Workload
 from kronos_modeller.workload_modelling.clustering import clustering_types
 from kronos_modeller.workload_modelling.job_generation import strategy_factory
 from kronos_modeller.workload_modelling.modelling_strategy import WorkloadModellingStrategy
 from kronos_modeller.workload_modelling.time_schedule import job_schedule_factory
+from kronos_modeller.workload_set import WorkloadSet
 
 logger = logging.getLogger(__name__)
 
@@ -42,9 +44,6 @@ class ClusterSpawnStrategy(WorkloadModellingStrategy):
         super(ClusterSpawnStrategy, self).__init__(workloads)
 
         self.clusters = None
-
-        # The jobs generated through the modelling step
-        self.model_jobs = None
 
     def _apply(self, config):
         """
@@ -104,20 +103,7 @@ class ClusterSpawnStrategy(WorkloadModellingStrategy):
 
             # model jobs
             self.model_jobs = model_jobs
-
-
-    def get_model_jobs(self):
-        """
-        Explicitly return the model jobs
-        :return:
-        """
-
-        if not self.model_jobs:
-            logger.error("Modelled jobs seem empty - something went wrong..")
-
-        return self.model_jobs
-
-
+            self.workload_set = WorkloadSet([Workload(self.model_jobs)])
 
     # @staticmethod
     # def normalize_jobs(model_jobs, wl_clusters):

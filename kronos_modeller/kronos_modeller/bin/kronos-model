@@ -26,8 +26,9 @@ from kronos_modeller.config.config import Config
 from kronos_modeller.kronos_exceptions import ConfigurationError
 from kronos_modeller.model import KronosModel
 from kronos_modeller.report import Report
-from kronos_modeller.workload import Workload
 
+from kronos_modeller.workload import Workload
+from kronos_modeller.workload_set import WorkloadSet
 
 logger = logging.getLogger(__name__)
 
@@ -60,7 +61,7 @@ class Kronos(object):
 
         logger.info("Generating model workload...\n----------------------------------")
 
-        self.workload_model = KronosModel(self.workloads, self.config)
+        self.workload_model = KronosModel(WorkloadSet(self.workloads), self.config)
         self.workload_model.generate_model()
 
 

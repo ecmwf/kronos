@@ -38,9 +38,9 @@ class KronosModel(object):
     # no required params at model level
     required_config_fields = []
 
-    def __init__(self, workloads, config):
+    def __init__(self, workload_set, config):
 
-        assert all(isinstance(wl, Workload) for wl in workloads)
+        assert all(isinstance(wl, Workload) for wl in workload_set.workloads)
         assert isinstance(config, Config)
 
         # check that there is the "model" entry in the config file..
@@ -48,7 +48,7 @@ class KronosModel(object):
             raise ConfigurationError("'model' entry not set in config file, but required!")
 
         self.config = config
-        self.workloads = workloads
+        self.workload_set = workload_set
 
         # check that there is the "model" entry in the config file..
         if not self.config.model:
@@ -95,7 +95,7 @@ class KronosModel(object):
         for filling_strategy_config in self.config.model["workload_filling"]['operations']:
 
             # select the appropriate workload_filling strategy
-            filler = job_filling_types[filling_strategy_config["type"]](self.workloads)
+            filler = job_filling_types[filling_strategy_config["type"]](self.workload_set.workloads)
 
             # configure the strategy with specific config + user defined functions
             filling_strategy_config.update({"user_functions": self.config.model["workload_filling"]['user_functions']})
@@ -112,7 +112,7 @@ class KronosModel(object):
         for wl_edit_config in self.config.model["workload_editing"]:
 
             # select the appropriate workload_filling strategy
-            editor = workload_editing_types[wl_edit_config["type"]](self.workloads)
+            editor = workload_editing_types[wl_edit_config["type"]](self.workload_set.workloads)
             editor.apply(wl_edit_config)
 
     def _apply_workload_modelling(self):
@@ -125,14 +125,11 @@ class KronosModel(object):
         """
 
         # select the appropriate workload_filling strategy
-        workload_modeller = workload_modelling_types[self.config.model["workload_modelling"]["type"]](self.workloads)
+        workload_modeller = workload_modelling_types[self.config.model["workload_modelling"]["type"]](self.workload_set.workloads)
         workload_modeller.apply(self.config.model["workload_modelling"])
 
-        # explicitly return the model jobs
-        model_jobs = workload_modeller.get_model_jobs()
-
-        # TODO: check this step (multiple workloads might need to be retained..)
-        self.workloads = [Workload(model_jobs)]
+        # get the newly created set of (modelled) workloads
+        self.workload_set = workload_modeller.get_workload_set()
 
     def _apply_schedule_exporting(self):
         """
@@ -141,24 +138,10 @@ class KronosModel(object):
         :return:
         """
 
-        # Simply convert the model workloads into synthetic apps
-        synthetic_apps = []
-        synapp_counter = 0
-        for ww, wl in enumerate(self.workloads):
-            for cc, job in enumerate(wl.jobs):
-                app = SyntheticApp(
-                    job_name="job-{}".format(synapp_counter),
-                    time_signals=job.timesignals,
-                    ncpus=job.ncpus,
-                    time_start=job.time_start,
-                    label="WL{}-JOB{}-ID{}".format(ww, cc, synapp_counter)
-                )
+        # generate synthetic apps from the workload set
+        synthetic_apps = self.workload_set.generate_synapps_from_workloads()
 
-                synthetic_apps.append(app)
-
-                synapp_counter += 1
-
-        # set up the synthetic workload
+        # set up the synthetic workload (from synapps and config)
         sa_workload = SyntheticWorkload(self.config, synthetic_apps)
 
         # calculate the discretisation error (model to syn-apps)
@@ -176,7 +159,7 @@ class KronosModel(object):
         """
 
         # calculate the total values measure
-        real_wl_metrics = self.workloads[0].total_metrics_sum_dict
+        real_wl_metrics = self.workload_set.sum_timeseries
         modl_wl_metrics = sa_workload.total_metrics_dict()
 
         relative_metrics_totals = {k: np.abs(v - modl_wl_metrics[k]) / float(v) * 100.0
@@ -187,8 +170,8 @@ class KronosModel(object):
 
         # calculate the measure relative to the number of jobs..
         # Calc max execution time for all the workloads..
-        t_min = min(j.time_start for wl in self.workloads for j in wl.jobs)
-        t_max = max(j.time_start for wl in self.workloads for j in wl.jobs)
+        t_min = min(j.time_start for wl in self.workload_set.workloads for j in wl.jobs)
+        t_max = max(j.time_start for wl in self.workload_set.workloads for j in wl.jobs)
         real_wl_duration = t_max - t_min
 
         if real_wl_duration:

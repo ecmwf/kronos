@@ -1,5 +1,6 @@
 from kronos_executor.definitions import signal_types
 from kronos_modeller.framework.pickable import PickableObject
+from kronos_modeller.synthetic_app import SyntheticApp
 
 from kronos_modeller.workload import Workload
 
@@ -107,3 +108,30 @@ class WorkloadSet(PickableObject):
     @property
     def max_end_time(self):
         return max(j.time_start+j.duration for wl in self.workloads for j in wl.jobs)
+
+    def generate_synapps_from_workloads(self):
+
+        """
+        Generates synthetic apps from each model job in
+        each of the workloads of the set
+        :return:
+        """
+
+        # Simply convert the model workloads into synthetic apps
+        synthetic_apps = []
+        synapp_counter = 0
+        for ww, wl in enumerate(self.workloads):
+            for cc, job in enumerate(wl.jobs):
+                app = SyntheticApp(
+                    job_name="job-{}".format(synapp_counter),
+                    time_signals=job.timesignals,
+                    ncpus=job.ncpus,
+                    time_start=job.time_start,
+                    label="WL{}-JOB{}-ID{}".format(ww, cc, synapp_counter)
+                )
+
+                synthetic_apps.append(app)
+
+                synapp_counter += 1
+
+        return synthetic_apps
