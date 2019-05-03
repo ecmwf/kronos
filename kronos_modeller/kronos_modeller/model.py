@@ -35,6 +35,7 @@ class KronosModel(object):
       4) Export the workload as a synthetic workload
     """
 
+    # no required params at model level
     required_config_fields = []
 
     def __init__(self, workloads, config):
@@ -42,12 +43,11 @@ class KronosModel(object):
         assert all(isinstance(wl, WorkloadData) for wl in workloads)
         assert isinstance(config, Config)
 
-        # configuration parameters
+        # check that there is the "model" entry in the config file..
+        if not config.model:
+            raise ConfigurationError("'model' entry not set in config file, but required!")
+
         self.config = config
-        self.config_workload_filling = None
-        self.config_workload_editing = None
-        self.config_workload_modelling = None
-        self.config_schedule_exporting = None
 
         self.workloads = workloads
         self.total_metrics_wl_orig = {}
@@ -70,36 +70,30 @@ class KronosModel(object):
             if req_item not in self.config.model.keys():
                 raise ConfigurationError("{} requires to specify {}".format(self.__class__.__name__, req_item))
 
-        # check that configuration keys are correct
-        for k, v in self.config.model.iteritems():
-            if not hasattr(self, 'config_'+k):
-                raise ConfigurationError("Unexpected configuration keyword provided - {}:{}".format(k, v))
-            setattr(self, 'config_'+k, v)
-
     def generate_model(self):
         """
         takes the list of workloads and performs three actions in sequence:
         1) Applies user instructions on potentially partially filled workloads
         2) Edit the workloads (e.g. splitting them)
         3) Generate a workload model through clustering+generation process
-        4) Export the workload as a synthetic workload
+        ) Export the workload as a synthetic workload
         :return:
         """
 
         # 1) Apply fill-in strategies
-        if self.config_workload_filling:
+        if self.config.model["workload_filling"]:
             self._apply_workload_filling()
 
         # 2) Edit the workloads (if necessary)
-        if self.config_workload_editing:
+        if self.config.model["workload_editing"]:
             self._apply_workload_editing()
 
         # 3) Applies modelling techniques to jobs
-        if self.config_workload_modelling:
+        if self.config.model["workload_modelling"]:
             self._apply_workload_modelling()
 
         # 4) Generated synthetic apps from workloads
-        if self.config_schedule_exporting:
+        if self.config.model["schedule_exporting"]:
             self._apply_schedule_exporting()
 
     def _apply_workload_filling(self):
@@ -109,13 +103,13 @@ class KronosModel(object):
         """
 
         # call functions corresponding to fill_in types
-        for filling_strategy_config in self.config_workload_filling['operations']:
+        for filling_strategy_config in self.config.model["workload_filling"]['operations']:
 
             # select the appropriate workload_filling strategy
             filler = job_filling_types[filling_strategy_config["type"]](self.workloads)
 
             # configure the strategy with specific config + user defined functions
-            filling_strategy_config.update({"user_functions": self.config_workload_filling['user_functions']})
+            filling_strategy_config.update({"user_functions": self.config.model["workload_filling"]['user_functions']})
 
             filler.apply(filling_strategy_config)
 
@@ -126,7 +120,7 @@ class KronosModel(object):
         """
 
         # call functions corresponding to fill_in types
-        for wl_edit_config in self.config_workload_editing:
+        for wl_edit_config in self.config.model["workload_editing"]:
 
             # select the appropriate workload_filling strategy
             editor = workload_editing_types[wl_edit_config["type"]](self.workloads)
@@ -142,8 +136,8 @@ class KronosModel(object):
         """
 
         # select the appropriate workload_filling strategy
-        workload_modeller = workload_modelling_types[self.config_workload_modelling["type"]](self.workloads)
-        workload_modeller.apply(self.config_workload_modelling)
+        workload_modeller = workload_modelling_types[self.config.model["workload_modelling"]["type"]](self.workloads)
+        workload_modeller.apply(self.config.model["workload_modelling"])
 
         # explicitly return the model jobs
         model_jobs = workload_modeller.get_model_jobs()
@@ -208,7 +202,7 @@ class KronosModel(object):
         self.real_wl_duration = t_max - t_min
 
         if self.real_wl_duration:
-            submit_interval = self.config_workload_modelling["job_submission_strategy"]['total_submit_interval']
+            submit_interval = self.config.model["workload_modelling"]["job_submission_strategy"]['total_submit_interval']
             t_scaling = submit_interval / self.real_wl_duration
         else:
             t_scaling = 0.0
