@@ -98,7 +98,8 @@ class KronosModel(object):
             filler = job_filling_types[filling_strategy_config["type"]](self.workload_set.workloads)
 
             # configure the strategy with specific config + user defined functions
-            filling_strategy_config.update({"user_functions": self.config.model["workload_filling"]['user_functions']})
+            user_functions = self.config.model["workload_filling"]['user_functions']
+            filling_strategy_config.update({"user_functions": user_functions})
 
             filler.apply(filling_strategy_config)
 
@@ -125,7 +126,9 @@ class KronosModel(object):
         """
 
         # select the appropriate workload_filling strategy
-        workload_modeller = workload_modelling_types[self.config.model["workload_modelling"]["type"]](self.workload_set.workloads)
+        workload_modeller = workload_modelling_types[self.config.model["workload_modelling"]["type"]] \
+            (self.workload_set.workloads)
+
         workload_modeller.apply(self.config.model["workload_modelling"])
 
         # get the newly created set of (modelled) workloads
@@ -133,8 +136,9 @@ class KronosModel(object):
 
     def _apply_schedule_exporting(self):
         """
-        Export the synthetic workload generated from the model (or from the one-to-one translation
-        of the KProfile into the KSchedule)
+        Export the synthetic workload generated from the model
+        (or from the one-to-one translation of the KProfile
+        into the KSchedule)
         :return:
         """
 
@@ -175,8 +179,8 @@ class KronosModel(object):
         real_wl_duration = t_max - t_min
 
         if real_wl_duration:
-            submit_interval = self.config.model["workload_modelling"]["job_submission_strategy"]['total_submit_interval']
-            t_scaling = submit_interval / real_wl_duration
+            dt_submit = self.config.model["workload_modelling"]["job_submission_strategy"]['total_submit_interval']
+            t_scaling = dt_submit / real_wl_duration
         else:
             t_scaling = 0.0
 
