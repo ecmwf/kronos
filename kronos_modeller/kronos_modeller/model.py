@@ -13,7 +13,7 @@ import numpy as np
 from kronos_modeller.config.config import Config
 from kronos_modeller.report import ModelMeasure, Report
 
-from kronos_modeller.synthetic_app import SyntheticWorkload, SyntheticApp
+from kronos_modeller.synthetic_app import SyntheticWorkload
 from kronos_modeller.workload_filling import job_filling_types
 from kronos_modeller.kronos_exceptions import ConfigurationError
 
