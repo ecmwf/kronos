@@ -170,7 +170,8 @@ class SyntheticApp(ModelJob):
 
         job_entry = {
             'num_procs': self.ncpus,
-            'start_delay': self.time_start if self.time_start else 0,
+            'start_delay': self.start_delay if self.start_delay else 0,
+            'depends': self.depends,
             'frames': frames,
             'metadata': {
                 'job_name': self.job_name if self.job_name else "generic-job",

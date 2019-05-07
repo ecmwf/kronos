@@ -127,6 +127,18 @@ class WorkloadSet(PickableObject):
                     time_signals=job.timesignals,
                     ncpus=job.ncpus,
                     time_start=job.time_start,
+
+                    # NB: the modeller introduces only "time" dependencies
+                    # no other dependency types are set (e.g. job-complete, etc..)
+                    depends=[
+                        {
+                          "type": "Time",
+                          "info": {
+                            "timestamp": job.time_start
+                          }
+                        }
+                    ],
+                    start_delay=0,
                     label="WL{}-JOB{}-ID{}".format(ww, cc, synapp_counter)
                 )
 

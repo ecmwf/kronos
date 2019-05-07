@@ -35,6 +35,8 @@ class ModelJob(object):
     nnodes = None
     stdout = None
     label = None  # placeholder for user defined labels..
+    depends = None
+    start_delay = None
 
     # -------------- optional fields ------------------
     # Times may come from the scheduler (+ associated systems), or from other profiling sources. Those from the
