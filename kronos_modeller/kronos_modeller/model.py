@@ -9,9 +9,7 @@
 import os
 import logging
 
-import numpy as np
 from kronos_modeller.config.config import Config
-from kronos_modeller.report import ModelMeasure, Report
 
 from kronos_modeller.synthetic_app import SyntheticWorkload
 from kronos_modeller.workload_filling import job_filling_types
@@ -70,19 +68,19 @@ class KronosModel(object):
         """
 
         # 1) Apply fill-in strategies
-        if self.config.model["workload_filling"]:
+        if self.config.model.get("workload_filling"):
             self._apply_workload_filling()
 
         # 2) Edit the workloads (if necessary)
-        if self.config.model["workload_editing"]:
+        if self.config.model.get("workload_editing"):
             self._apply_workload_editing()
 
         # 3) Applies modelling techniques to jobs
-        if self.config.model["workload_modelling"]:
+        if self.config.model.get("workload_modelling"):
             self._apply_workload_modelling()
 
         # 4) Generated synthetic apps from workloads
-        if self.config.model["schedule_exporting"]:
+        if self.config.model.get("schedule_exporting"):
             self._apply_schedule_exporting()
 
     def _apply_workload_filling(self):
@@ -92,14 +90,15 @@ class KronosModel(object):
         """
 
         # call functions corresponding to fill_in types
-        for filling_strategy_config in self.config.model["workload_filling"]['operations']:
+        for filling_strategy_config in self.config.model["workload_filling"].get('operations', []):
 
             # select the appropriate workload_filling strategy
             filler = job_filling_types[filling_strategy_config["type"]](self.workload_set.workloads)
 
-            # configure the strategy with specific config + user defined functions
-            user_functions = self.config.model["workload_filling"]['user_functions']
-            filling_strategy_config.update({"user_functions": user_functions})
+            # configure the strategy with specific config + user defined functions (if present)
+            if self.config.model["workload_filling"].get('user_functions'):
+                user_functions = self.config.model["workload_filling"]['user_functions']
+                filling_strategy_config.update({"user_functions": user_functions})
 
             filler.apply(filling_strategy_config)
 
@@ -148,52 +147,12 @@ class KronosModel(object):
         # set up the synthetic workload (from synapps and config)
         sa_workload = SyntheticWorkload(self.config, synthetic_apps)
 
-        # calculate the discretisation error (model to syn-apps)
-        self.calculate_model_to_synapp_error(sa_workload)
+        # Apply global and individual scaling factors to the synthetic apps (if set)
+        sc_facts = self.config.model["schedule_exporting"].get('scaling_factors')
+        sc_facts_g = self.config.model["schedule_exporting"].get('global_scaling_factor', 1.0)
+        if sc_facts:
+            sa_workload.scaling_factors = {k: v*sc_facts_g for k, v in sc_facts.iteritems()}
 
-        # export the synthetic workload
-
-        #   - Apply global and individual scaling factors to the synthetic apps
-        scaling_facts = self.config.model["schedule_exporting"]['scaling_factors']
-        scaling_global = self.config.model["schedule_exporting"]['global_scaling_factor']
-        sa_workload.scaling_factors = {k: v*scaling_global for k, v in scaling_facts.iteritems()}
-
-        #   - Then export each synthetic app of the workload
+        # Then export each synthetic app of the workload
         kschedule_path = os.path.join(self.config.dir_output, self.config.kschedule_filename)
         sa_workload.export_kschedule(kschedule_path)
-
-    def calculate_model_to_synapp_error(self, sa_workload):
-        """
-        Calculation of error produced by discretising the model jobs into
-        synthetic applications. The error gets appended to the unique modelling "Report"
-        :return:
-        """
-
-        # calculate the total values measure
-        real_wl_metrics = self.workload_set.sum_timeseries
-        modl_wl_metrics = sa_workload.total_metrics_dict()
-
-        relative_metrics_totals = {k: np.abs(v - modl_wl_metrics[k]) / float(v) * 100.0
-                                   for k, v in real_wl_metrics.iteritems()}
-
-        msr = ModelMeasure("Scaled metrics sums - error [%]", relative_metrics_totals, __name__)
-        Report.add_measure(msr)
-
-        # calculate the measure relative to the number of jobs..
-        # Calc max execution time for all the workloads..
-        t_min = min(j.time_start for wl in self.workload_set.workloads for j in wl.jobs)
-        t_max = max(j.time_start for wl in self.workload_set.workloads for j in wl.jobs)
-        real_wl_duration = t_max - t_min
-
-        if real_wl_duration:
-            dt_submit = self.config.model["workload_modelling"]["job_submission_strategy"]['total_submit_interval']
-            t_scaling = dt_submit / real_wl_duration
-        else:
-            t_scaling = 0.0
-
-        dt_orig = real_wl_duration
-        dt_sapps = sa_workload.max_sa_time_interval()
-
-        rel_time_interval = (dt_orig - dt_sapps / t_scaling) / dt_orig * 100.
-        msr = ModelMeasure("relative_time_interval [%]", rel_time_interval, __name__)
-        Report.add_measure(msr)
