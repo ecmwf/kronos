@@ -61,21 +61,38 @@ class StrategyUserDefaults(FillingStrategy):
                     # if the entry is a list, generate the random number in [min, max]
                     if isinstance(metrics_dict[ts_name], list):
 
-                        # check on the length of the list (should be 2)
-                        if len(metrics_dict[ts_name]) != 2:
-                            err = "For metrics {} 2 values are expected for filling operation, " \
-                                  "but got {} instead!".format(ts_name, len(metrics_dict[ts_name]))
-                            raise ConfigurationError(err)
+                        # if only one value is provided, just use a single value "time-series"
+                        if len(metrics_dict[ts_name]) == 1:
 
-                        # generate a random number between provided min and max values
-                        y_min = metrics_dict[ts_name][0]
-                        y_max = metrics_dict[ts_name][1]
-                        random_y_value = y_min + np.random.rand() * (y_max - y_min)
-                        job.timesignals[ts_name] = TimeSignal.from_values(name=ts_name,
-                                                                          xvals=0.,
-                                                                          yvals=float(random_y_value),
-                                                                          priority=defaults_dict['priority']
-                                                                          )
+                            user_val = metrics_dict[ts_name]
+                            job.timesignals[ts_name] = TimeSignal.from_values(name=ts_name,
+                                                                              xvals=0.,
+                                                                              yvals=user_val,
+                                                                              priority=defaults_dict['priority']
+                                                                              )
+
+                        # if 2 values are passed, choose a random value in between the two values
+                        elif len(metrics_dict[ts_name]) == 2:
+
+                            # generate a random number between provided min and max values
+                            y_min = metrics_dict[ts_name][0]
+                            y_max = metrics_dict[ts_name][1]
+                            random_y_value = y_min + np.random.rand() * (y_max - y_min)
+                            job.timesignals[ts_name] = TimeSignal.from_values(name=ts_name,
+                                                                              xvals=0.,
+                                                                              yvals=random_y_value,
+                                                                              priority=defaults_dict['priority']
+                                                                              )
+
+                        else:
+
+                            logger.error("Metrics {}: 2 values are expected for filling operation," 
+                                         " got {} instead!".format(ts_name,
+                                                                   len(metrics_dict[ts_name]))
+                                         )
+
+                            raise ConfigurationError
+
                     elif isinstance(metrics_dict[ts_name], dict):
                         # this entry is specified through a function (name and scaling)
 
