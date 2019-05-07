@@ -20,10 +20,10 @@ class KernelBase(object):
     name = None
     signals = ()
 
-    def __init__(self, timesignals, stretching_factor_dict=None, metrics_hard_limits=None):
+    def __init__(self, timesignals, scaling_factors=None, metrics_hard_limits=None):
 
         self.timesignals = timesignals
-        self.stretching_factor_dict = stretching_factor_dict
+        self.stretching_factor_dict = scaling_factors
         self.metrics_hard_limits = metrics_hard_limits
 
     @property

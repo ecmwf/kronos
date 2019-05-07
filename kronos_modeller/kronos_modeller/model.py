@@ -152,6 +152,13 @@ class KronosModel(object):
         self.calculate_model_to_synapp_error(sa_workload)
 
         # export the synthetic workload
+
+        #   - Apply global and individual scaling factors to the synthetic apps
+        scaling_facts = self.config.model["schedule_exporting"]['scaling_factors']
+        scaling_global = self.config.model["schedule_exporting"]['global_scaling_factor']
+        sa_workload.scaling_factors = {k: v*scaling_global for k, v in scaling_facts.iteritems()}
+
+        #   - Then export each synthetic app of the workload
         kschedule_path = os.path.join(self.config.dir_output, self.config.kschedule_filename)
         sa_workload.export_kschedule(kschedule_path)
 

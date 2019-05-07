@@ -441,6 +441,26 @@
               "description": "Seed for random number generation"
             }
               }
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "type",
+            "job_clustering",
+            "job_submission_strategy"]
+        },
+
+        "schedule_exporting": {
+          "type": "object",
+          "description": "Job-clustering process",
+          "properties": {
+            "synth_apps_n_bins": {
+              "type": "integer",
+              "description": "Number of bins that are used to discretise the time-signals into synthetic apps kernels"
+            },
+            "synth_apps_n_cpu": {
+              "type": "integer",
+              "description": "N cpus to be used to run each synthetic application"
             },
 
             "global_scaling_factor": {
@@ -465,27 +485,7 @@
                 }
               }
             }
-          },
-          "additionalProperties": false,
-          "required": [
-            "type",
-            "job_clustering",
-            "job_submission_strategy"]
-        },
-
-        "schedule_exporting": {
-                "type": "object",
-                "description": "Job-clustering process",
-                "properties": {
-                  "synth_apps_n_bins": {
-                "type": "integer",
-                "description": "Number of bins that are used to discretise the time-signals into synthetic apps kernels"
-              },
-                  "synth_apps_n_cpu": {
-              "type": "integer",
-              "description": "N cpus to be used to run each synthetic application"
-            }
-                }
+          }
 
         }
 
