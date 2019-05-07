@@ -77,6 +77,10 @@ class KernelBase(object):
         factors = {name: 1.0 for name in time_signal_names}
         factors.update(self.stretching_factor_dict or {})
 
+        for sig_name, sig in self.timesignals.items():
+            if not sig:
+                logger.error("timesignal:{} is missing, check workload filling!".format(sig_name))
+
         time_signals = [self.timesignals[ts_name].digitized(nbins=n_bins)[1] * factors[ts_name] for ts_name in time_signal_names]
 
         # apply hard limits if set by user..
