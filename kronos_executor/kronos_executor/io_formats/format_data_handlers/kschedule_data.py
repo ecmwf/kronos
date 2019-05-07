@@ -25,8 +25,6 @@ class KScheduleData(ScheduleFormat):
                  created=None,
                  uid=None,
                  n_bins=None,
-                 scaling_factors=None,
-                 unscaled_metrics_sums=None,
                  prologue=None,
                  epilogue=None
                  ):
@@ -36,8 +34,6 @@ class KScheduleData(ScheduleFormat):
                                             created=created,
                                             uid=uid,
                                             n_bins=n_bins,
-                                            scaling_factors=scaling_factors,
-                                            unscaled_metrics_sums=unscaled_metrics_sums,
                                             prologue=prologue,
                                             epilogue=epilogue
                                             )

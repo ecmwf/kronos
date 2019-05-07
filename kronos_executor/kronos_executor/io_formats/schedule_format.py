@@ -28,8 +28,6 @@ class ScheduleFormat(JSONIoFormat):
                  created=None,
                  uid=None,
                  n_bins=None,
-                 scaling_factors=None,
-                 unscaled_metrics_sums=None,
                  prologue=None,
                  epilogue=None,
                  ):
@@ -42,8 +40,6 @@ class ScheduleFormat(JSONIoFormat):
 
         # initialize internals
         self.synapp_data = sa_data_json
-        self.scaling_factors = scaling_factors
-        self.unscaled_metrics_sums = unscaled_metrics_sums
 
         # prologue/epilogue info in the kschedule
         self.prologue = prologue
@@ -78,8 +74,6 @@ class ScheduleFormat(JSONIoFormat):
             sa_data_json=data.get('jobs'),
             created=datetime.fromtimestamp(strict_rfc3339.rfc3339_to_timestamp(data['created'])),
             uid=data.get('uid'),
-            unscaled_metrics_sums=data.get('unscaled_metrics_sums'),
-            scaling_factors=data.get('scaling_factors'),
             prologue=data.get('prologue'),
             epilogue=data.get('epilogue')
         )
@@ -96,8 +90,6 @@ class ScheduleFormat(JSONIoFormat):
 
         return cls(
             sa_data=synth_workload.app_list,
-            unscaled_metrics_sums=synth_workload.total_metrics_dict(),
-            scaling_factors=synth_workload.scaling_factors,
             n_bins=n_bins
         )
 
@@ -108,9 +100,7 @@ class ScheduleFormat(JSONIoFormat):
         """
         output_dict = super(ScheduleFormat, self).output_dict()
         output_dict.update({
-            "jobs": self.synapp_data,
-            "scaling_factors": self.scaling_factors,
-            "unscaled_metrics_sums": self.unscaled_metrics_sums,
+            "jobs": self.synapp_data
         })
 
         # add prologue/epilogue if they exist
@@ -121,17 +111,6 @@ class ScheduleFormat(JSONIoFormat):
             output_dict.update({"epilogue": self.epilogue})
 
         return output_dict
-
-    @property
-    def scaled_sums(self):
-        """
-        REturn the scaled sums..
-        :return:
-        """
-        scaled_sums = {}
-        for k in self.unscaled_metrics_sums.keys():
-            scaled_sums[k] = self.unscaled_metrics_sums[k] * self.scaling_factors[k]
-        return scaled_sums
 
     def set_scaling_factors(self, scaling_factors):
         """

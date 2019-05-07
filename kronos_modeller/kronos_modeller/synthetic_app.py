@@ -137,9 +137,10 @@ class SyntheticWorkload(object):
         """
         n_bins = self.config.model["schedule_exporting"]["synth_apps_n_bins"]
 
-        logger.info("Exporting {} synth-apps to KSchedule time_schedule: {}".format(len(self.app_list), filename))
+        logger.info("Exporting {} synth-apps to KSchedule: {}".format(len(self.app_list), filename))
 
-        ScheduleFormat.from_synthetic_workload(self, n_bins=n_bins).write_filename(filename)
+        ScheduleFormat.from_synthetic_workload(self, n_bins=n_bins).write_filename(filename,
+                                                                                   indent=2)
 
 
 class SyntheticApp(ModelJob):
