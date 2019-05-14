@@ -8,6 +8,7 @@
 import logging
 import multiprocessing
 
+import copy
 from kronos_executor.kronos_events.dispatcher import EventDispatcher
 from kronos_executor.kronos_events import EventFactory
 
@@ -38,6 +39,10 @@ class Manager(object):
         # list of events occurring during the simulation
         # categorised by event type (for efficiency)
         self.__events = {}
+
+        # stores all the newly arrived events
+        # it gets emptied each time the "next_events" is called
+        self.latest_events = []
 
         # just a quick sum
         self._total_n_processed_events = 0
@@ -73,47 +78,40 @@ class Manager(object):
 
         return self._total_n_processed_events
 
-    def next_events(self, batch_size=1):
+    def get_latest_events(self, batch_size=1):
         """
         Wait until a message arrives from the dispatcher
         :return:
         """
 
         # get latest event from the dispatcher
-        queue_empty_reached, latest_events = self.dispatcher.get_events_batch(batch_size=batch_size)
+        queue_empty_reached, latest_dispatcher_events = \
+            self.dispatcher.get_events_batch(batch_size=batch_size)
 
         if queue_empty_reached:
             logger.debug("Empty queue reached!")
 
-        if latest_events:
-            logger.info("New events arrived [Total so far: {}]".format(self._total_n_processed_events))
+        if latest_dispatcher_events:
+            info = "New events arrived [Total so far: {}]".format(self._total_n_processed_events)
+            logger.info(info)
 
-            for ev in latest_events:
+            for ev in latest_dispatcher_events:
                 logger.info(str(ev))
 
         # update internal list of events as appropriate
-        self.update_events(latest_events)
+        self.update_events(latest_dispatcher_events)
 
         # update total n of processed events so far..
-        self._total_n_processed_events += len(latest_events)
+        self._total_n_processed_events += len(latest_dispatcher_events)
 
-        # return the event
-        return latest_events
+        # update the list of newly arrived events
+        self.latest_events.extend(latest_dispatcher_events)
 
-    def next_event(self):
-        """
-        Wait until a message arrives from the dispatcher
-        :return:
-        """
+        # return the newly arrived events and empty the internal list
+        all_latest_events = copy.deepcopy(self.latest_events)
+        self.latest_events = []
 
-        # get latest event from the dispatcher
-        latest_event = self.dispatcher.get_next_message()
-
-        # update internal list of events as appropriate
-        self.update_events([latest_event])
-
-        # return the event
-        return latest_event
+        return all_latest_events
 
     def add_time_event(self, timestamp):
         """
@@ -121,7 +119,16 @@ class Manager(object):
         :param timestamp:
         :return:
         """
-        self.__events.setdefault("Time", []).append(EventFactory.from_timestamp(timestamp))
+
+        time_event = EventFactory.from_timestamp(timestamp)
+
+        # append this even to the internal database
+        self.__events.setdefault("Time", []).append(time_event)
+
+        # append this also to the newly arrived events
+        self.latest_events.append(time_event)
+
+        # increment total number of events stored
         self._total_n_processed_events += 1
 
     def stop_dispatcher(self):

@@ -81,14 +81,14 @@ class ExecutorEventsPar(Executor):
             new_seconds = time_ticker.get_elapsed_seconds(datetime.now())
             for i_sec in new_seconds:
                 self.event_manager.add_time_event(i_sec)
-                logger.debug("added second {}".format(i_sec))
+                logger.info("added second {}".format(i_sec))
 
             # submit jobs
             self.job_submitter.submit_eligible_jobs(new_events=new_events)
 
             # Get next message from manager
             if not all(j.id in completed_jobs for j in self.jobs):
-                new_events = self.event_manager.next_events(batch_size=self.event_batch_size)
+                new_events = self.event_manager.get_latest_events(batch_size=self.event_batch_size)
 
             # completed job id's
             completed_jobs = set([e.info["job"] for e in self.event_manager.get_events(type_filter="Complete")])
