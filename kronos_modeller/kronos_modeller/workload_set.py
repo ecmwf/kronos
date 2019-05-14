@@ -134,7 +134,7 @@ class WorkloadSet(PickableObject):
                         {
                           "type": "Time",
                           "info": {
-                            "timestamp": job.time_start
+                            "timestamp": int(job.time_start)
                           }
                         }
                     ],
