@@ -327,9 +327,11 @@ class Executor(object):
         :return:
         """
 
+        logger.info("Executing setup..")
+
         self.jobs = self.generate_job_internals()
 
-        pass
+        logger.info("Setup executed")
 
     def epilogue(self):
         """

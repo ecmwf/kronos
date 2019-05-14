@@ -75,6 +75,7 @@ class ExecutorEventsPar(Executor):
         time_ticker = TimeTicker(time_0)
 
         # ========= MAIN SIMULATION LOOP =========
+        logger.info("Running..")
         while not all(j.id in completed_jobs for j in self.jobs):
 
             # Add a time event for every second elapsed since last call
