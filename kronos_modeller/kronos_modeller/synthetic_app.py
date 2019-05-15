@@ -26,6 +26,7 @@ class SyntheticWorkload(object):
     This is a workload of SyntheticApp objects, described below.
     """
     def __init__(self, config, apps=None):
+
         self.config = config
         self.app_list = apps
         self._scaling_factors = None
@@ -118,8 +119,11 @@ class SyntheticWorkload(object):
         :return:
         """
         with open(os.path.join(self.config.dir_output, 'sa_workload_pickle'), 'w') as f:
+
             pickle.dump(self, f)
-            logger.info( "synthetic workload pickle file saved to {}".format(self.config.dir_output))
+
+            info_str = "Synthetic workload pickle file saved to {}".format(self.config.dir_output)
+            logger.info(info_str)
 
     def max_sa_time_interval(self):
         """
@@ -136,17 +140,21 @@ class SyntheticWorkload(object):
         :return:
         """
         n_bins = self.config.model["schedule_exporting"]["synth_apps_n_bins"]
+        trunc_pc = self.config.model["schedule_exporting"].get('truncate_at_percent')
 
         logger.info("Exporting {} synth-apps to KSchedule: {}".format(len(self.app_list), filename))
 
-        ScheduleFormat.from_synthetic_workload(self, n_bins=n_bins).write_filename(filename,
-                                                                                   indent=2)
+        ScheduleFormat.from_synthetic_workload(self,
+                                               n_bins=n_bins,
+                                               trunc_pc=trunc_pc
+                                               ).write_filename(filename, indent=2)
 
 
 class SyntheticApp(ModelJob):
     """
-    A type of ModelJob which is used as the output stage (after modelling, scaling, etc.). There is a one-to-one
-    mapping between these SyntheticApp classes and execution runs of the synthetic application (coordinator).
+    A type of ModelJob which is used as the output stage (after modelling, scaling, etc.).
+    There is a one-to-one mapping between these SyntheticApp classes and execution runs of
+    the synthetic application (coordinator).
     """
     def __init__(self, job_name="unknown",
                  time_signals=None,
@@ -162,12 +170,12 @@ class SyntheticApp(ModelJob):
         self._scaling_factors = None
         self.metrics_hard_limits = metrics_hard_limits
 
-    def export(self, filename=None, n_bins=None, job_entry_only=False):
+    def export(self, filename=None, n_bins=None, trunc_pc=None, job_entry_only=False):
         """
         Produce a json file suitable to control a synthetic application (coordinator)
         """
 
-        frames = self.frame_data(n_bins)
+        frames = self.frame_data(n_bins, trunc_pc)
 
         job_entry = {
             'num_procs': self.ncpus,
@@ -191,25 +199,35 @@ class SyntheticApp(ModelJob):
             return job_entry
         else:
             if filename is None:
-                raise ConfigurationError("trying to export synthetic apps to {} file".format(filename))
+                err_str = "trying to export synthetic apps to {} file".format(filename)
+                raise ConfigurationError(err_str)
             else:
                 with open(filename, 'wa') as f:
-                    json.dump(job_entry, f, ensure_ascii=True, sort_keys=True, indent=4, separators=(',', ': '))
+                    json.dump(job_entry, f,
+                              ensure_ascii=True,
+                              sort_keys=True,
+                              indent=4,
+                              separators=(',', ': ')
+                              )
 
-    def frame_data(self, n_bins=None):
+    def frame_data(self, n_bins=None, trunc_pc=None):
         """
         Write data in each frame of the synthetic apps
-        :param n_bins:
+        :param n_bins: N bins for kernels
+        :param trunc_pc: truncation percentage
         :return:
         """
 
         kernels = []
         for kernel_type in app_kernels.available_kernels:
 
-            kernel = kernel_type(self.timesignals, self._scaling_factors, self.metrics_hard_limits)
+            kernel = kernel_type(self.timesignals,
+                                 self._scaling_factors,
+                                 self.metrics_hard_limits)
 
+            # if these
             if not kernel.empty:
-                kernels.append(kernel.synapp_config(n_bins=n_bins))
+                kernels.append(kernel.synapp_config(n_bins=n_bins, trunc_pc=trunc_pc))
 
         # check if all the kernels have the same length
         if not all(len(i) == len(kernels[0]) for i in kernels):

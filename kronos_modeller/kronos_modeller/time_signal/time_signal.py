@@ -11,6 +11,7 @@ import math
 import numpy as np
 from kronos_executor.definitions import signal_types
 from kronos_modeller.kronos_tools import utils
+from kronos_modeller.tools.shared_utils import trunc_at_percent
 
 
 class TimeSignal(object):
@@ -119,9 +120,12 @@ class TimeSignal(object):
             priority=priority
         )
 
-    def digitized(self, nbins=None):
+    def digitized(self, nbins=None, trunc_pc=None):
         """
         On-the-fly return digitized time series (rather than using
+        :param nbins: N of digitised bins
+        :param trunc_pc: requested truncation of the signal (expressed in percent)
+        :return:
         """
         if nbins is None:
             return self.xvalues, self.yvalues
@@ -155,7 +159,13 @@ class TimeSignal(object):
 
                 yvalues[i] = val
 
-        return xvalues, yvalues
+        # if trunc_pc is specified, use it
+        if not trunc_pc:
+            return xvalues, yvalues
+        else:
+
+            return trunc_at_percent(xvalues, trunc_pc), \
+                   trunc_at_percent(yvalues, trunc_pc)
 
     def digitize_durations(self, nbins, key=None):
 

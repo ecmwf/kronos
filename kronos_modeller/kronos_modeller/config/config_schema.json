@@ -463,6 +463,11 @@
               "description": "N cpus to be used to run each synthetic application"
             },
 
+            "truncate_at_percent": {
+              "type": "integer",
+              "description": "percentage at which the synthetic app gets truncated"
+            },
+
             "global_scaling_factor": {
               "type": "number",
               "description": "Global scaling factor"

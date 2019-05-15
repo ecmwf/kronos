@@ -20,7 +20,10 @@ class KernelBase(object):
     name = None
     signals = ()
 
-    def __init__(self, timesignals, scaling_factors=None, metrics_hard_limits=None):
+    def __init__(self,
+                 timesignals,
+                 scaling_factors=None,
+                 metrics_hard_limits=None):
 
         self.timesignals = timesignals
         self.stretching_factor_dict = scaling_factors
@@ -53,14 +56,12 @@ class KernelBase(object):
                 if self.metrics_hard_limits.get(ts_name):
 
                     if sum(time_signals[tt]) > self.metrics_hard_limits[ts_name]:
-                        logger.info(
-                                     log_level="debug")
                         sc_ = self.metrics_hard_limits[ts_name] / float(sum(time_signals[tt]))
                         time_signals[tt] = [t * sc_ for t in time_signals[tt]]
 
         return time_signals
 
-    def synapp_config(self, n_bins=None):
+    def synapp_config(self, n_bins=None, trunc_pc=None):
         """
         Return a synthetic app configuration. This can be overridden for more complex behaviour if required
         """
@@ -81,7 +82,9 @@ class KernelBase(object):
             if not sig:
                 logger.error("timesignal:{} is missing, check workload filling!".format(sig_name))
 
-        time_signals = [self.timesignals[ts_name].digitized(nbins=n_bins)[1] * factors[ts_name] for ts_name in time_signal_names]
+        time_signals = [self.timesignals[ts_name].digitized(nbins=n_bins,
+                                                            trunc_pc=trunc_pc)[1] * factors[ts_name]
+                        for ts_name in time_signal_names]
 
         # apply hard limits if set by user..
         time_signals = self.apply_hard_limits(time_signal_names, time_signals)
@@ -107,11 +110,11 @@ class CPUKernel(KernelBase):
     name = 'cpu'
     signals = (("flops", "flops"),)
 
-    def synapp_config(self, n_bins=None):
+    def synapp_config(self, n_bins=None, trunc_pc=None):
         """
         Special case code: apply max value constrain.
         """
-        data = super(CPUKernel, self).synapp_config(n_bins=n_bins)
+        data = super(CPUKernel, self).synapp_config(n_bins=n_bins, trunc_pc=trunc_pc)
 
         for d in data:
 
@@ -133,11 +136,11 @@ class MPIKernel(KernelBase):
         ("n_pairwise", "n_pairwise"),
         ("kb_pairwise", "kb_pairwise"))
 
-    def synapp_config(self,n_bins=None):
+    def synapp_config(self, n_bins=None, trunc_pc=None):
         """
         Special case code: We cannot have a zero number of actions for a non-zero amount of data.
         """
-        data = super(MPIKernel, self).synapp_config(n_bins=n_bins)
+        data = super(MPIKernel, self).synapp_config(n_bins=n_bins, trunc_pc=trunc_pc)
 
         for d in data:
 
@@ -173,11 +176,11 @@ class FileReadKernel(KernelBase):
     def extra_data(self):
         return super(FileReadKernel, self).extra_data(mmap=True, invalidate=True)
 
-    def synapp_config(self, n_bins=None):
+    def synapp_config(self, n_bins=None, trunc_pc=None):
         """
         Special case code: We cannot have a zero number of actions for a non-zero amount of data.
         """
-        data = super(FileReadKernel, self).synapp_config(n_bins=n_bins)
+        data = super(FileReadKernel, self).synapp_config(n_bins=n_bins, trunc_pc=trunc_pc)
 
         for d in data:
 
@@ -209,12 +212,12 @@ class FileWriteKernel(KernelBase):
     def extra_data(self):
         return super(FileWriteKernel, self).extra_data()
 
-    def synapp_config(self, n_bins=None):
+    def synapp_config(self, n_bins=None, trunc_pc=None):
         """
         Special case code: We cannot have a zero amount of data for a non-zero number of writes,
         nor a zero amount of data for a non-zero number of writes
         """
-        data = super(FileWriteKernel, self).synapp_config(n_bins=n_bins)
+        data = super(FileWriteKernel, self).synapp_config(n_bins=n_bins, trunc_pc=trunc_pc)
 
         for d in data:
 
@@ -244,11 +247,11 @@ class MEMKernel(KernelBase):
     name = 'memory'
     signals = (("kb_mem", "kb_mem"),)
 
-    def synapp_config(self, n_bins=None):
+    def synapp_config(self, n_bins=None, trunc_pc=None):
         """
         Special case code: apply max value constrain.
         """
-        data = super(MEMKernel, self).synapp_config(n_bins=n_bins)
+        data = super(MEMKernel, self).synapp_config(n_bins=n_bins, trunc_pc=trunc_pc)
 
         for d in data:
 

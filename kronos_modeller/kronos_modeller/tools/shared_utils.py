@@ -7,6 +7,9 @@
 # does it submit to any jurisdiction.
 
 import numpy as np
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 def progress_percentage(idx, len_list, percent_out):
@@ -61,4 +64,29 @@ def digitize_xyvalues(xvalues, yvalues, nbins=None, key="sum"):
             yvalues_bin[i] = val
 
     return xvalues_bin, yvalues_bin
+
+
+def trunc_at_percent(vals, trunc_pc):
+    """
+    Return the truncated part of a numpy.
+    Truncation fraction expressed in percentage
+    :param vals:
+    :param trunc_pc:
+    :return:
+    """
+
+    if trunc_pc < 0:
+        logger.warning("Truncation % < 0! ({}) => ignoring..".format(trunc_pc))
+        return vals
+    elif trunc_pc > 100:
+        logger.warning("Truncation % > 100! ({}) => ignoring..".format(trunc_pc))
+        return vals
+
+    # calculate index corresponding to truncation percentage
+    pc_idx = max(0, min(vals.size, int(vals.size * trunc_pc / 100.)))
+
+    if pc_idx == 0:
+        logger.warning("Truncation % low! ({}) => no items in this % range".format(trunc_pc))
+
+    return vals[:pc_idx]
 
