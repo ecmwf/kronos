@@ -29,7 +29,12 @@ class SyntheticWorkload(object):
 
         self.config = config
         self.app_list = apps
+
+        # scaling factors applied to TS
         self._scaling_factors = None
+
+        # glob scaling factor applied to TS and ncpus
+        self._glob_scaling_factor = None
 
     def __unicode__(self):
         return "SyntheticWorkload - {} jobs".format(len(self.app_list))
@@ -98,10 +103,20 @@ class SyntheticWorkload(object):
     @property
     def scaling_factors(self):
         """
-        Get the tuning factors
+        Get the time-series scaling factors
         :return:
         """
         return self._scaling_factors
+
+    @property
+    def glob_scaling_factor(self):
+        """
+        Get the global scaling factor that gets
+        applied to the time-series AND ncpu that the
+        synthetic app will require
+        :return:
+        """
+        return self._glob_scaling_factor
 
     @scaling_factors.setter
     def scaling_factors(self, scaling_factors):
@@ -112,6 +127,16 @@ class SyntheticWorkload(object):
         self._scaling_factors = scaling_factors
         for app in self.app_list:
             app._scaling_factors = dict(scaling_factors)
+
+    @glob_scaling_factor.setter
+    def glob_scaling_factor(self, glob_scaling_factor):
+        """
+        Set the tuning factor for all the applications
+        """
+        # NB each app receives a *copy* of the scaling_factors dictionary..
+        self._glob_scaling_factor = glob_scaling_factor
+        for app in self.app_list:
+            app._glob_scaling_factor = glob_scaling_factor
 
     def export_pickle(self):
         """
@@ -167,7 +192,15 @@ class SyntheticApp(ModelJob):
         )
 
         self.job_name = job_name
+
+        # scaling factors applied to the time series of this app
         self._scaling_factors = None
+
+        # global scaling factor that gets applied to the time-series of
+        # this app plut the ncpus that this app will require..
+        self._glob_scaling_factor = None
+
+        # synthetic app hard limits..
         self.metrics_hard_limits = metrics_hard_limits
 
     def export(self, filename=None, n_bins=None, trunc_pc=None, job_entry_only=False):
@@ -177,8 +210,15 @@ class SyntheticApp(ModelJob):
 
         frames = self.frame_data(n_bins, trunc_pc)
 
+        # decide the n_cpus when exporting this synapp (it depends also
+        # on the global scaling factor)
+        if self._glob_scaling_factor:
+            n_cpus = max(1, int(self.ncpus * self._glob_scaling_factor))
+        else:
+            n_cpus = max(1, int(self.ncpus))
+
         job_entry = {
-            'num_procs': self.ncpus,
+            'num_procs': n_cpus,
             'start_delay': self.start_delay if self.start_delay else 0,
             'depends': self.depends,
             'frames': frames,
@@ -193,6 +233,7 @@ class SyntheticApp(ModelJob):
             for ker in frame:
                 if ker["name"] == "mpi":
                     job_entry["num_procs"] = max(2, job_entry["num_procs"])
+                    break
 
         # if job_entry_only, export dictionary data only
         if job_entry_only:

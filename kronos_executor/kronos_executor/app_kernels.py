@@ -26,7 +26,7 @@ class KernelBase(object):
                  metrics_hard_limits=None):
 
         self.timesignals = timesignals
-        self.stretching_factor_dict = scaling_factors
+        self.scaling_factors = scaling_factors
         self.metrics_hard_limits = metrics_hard_limits
 
     @property
@@ -76,7 +76,7 @@ class KernelBase(object):
         time_signal_names, key_names = zip(*self.signals)
 
         factors = {name: 1.0 for name in time_signal_names}
-        factors.update(self.stretching_factor_dict or {})
+        factors.update(self.scaling_factors or {})
 
         for sig_name, sig in self.timesignals.items():
             if not sig:

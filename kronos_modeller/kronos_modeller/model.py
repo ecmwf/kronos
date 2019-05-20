@@ -147,11 +147,15 @@ class KronosModel(object):
         # set up the synthetic workload (from synapps and config)
         sa_workload = SyntheticWorkload(self.config, synthetic_apps)
 
-        # Apply global and individual scaling factors to the synthetic apps (if set)
+        # Apply individual scaling factors to the time-series of the synthetic apps
         sc_facts = self.config.model["schedule_exporting"].get('scaling_factors')
-        sc_facts_g = self.config.model["schedule_exporting"].get('global_scaling_factor', 1.0)
         if sc_facts:
-            sa_workload.scaling_factors = {k: v*sc_facts_g for k, v in sc_facts.iteritems()}
+            sa_workload.scaling_factors = sc_facts
+
+        # Apply global scaling factor to the synthetic apps (including #CPU's, etc..)
+        sc_facts_g = self.config.model["schedule_exporting"].get('global_scaling_factor', 1.0)
+        if sc_facts_g:
+            sa_workload.glob_scaling_factor = sc_facts_g
 
         # Then export each synthetic app of the workload
         kschedule_path = os.path.join(self.config.dir_output, self.config.kschedule_filename)

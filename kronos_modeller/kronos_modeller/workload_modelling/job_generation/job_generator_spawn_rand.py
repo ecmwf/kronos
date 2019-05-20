@@ -26,12 +26,13 @@ class JobGeneratorSpawnRand(JobGenerator):
 
     def generate_jobs(self):
 
-        logger.info("====> Generating jobs from sub-workload: {}, that has {} jobs".format(self.wl_clusters['source-workload'],
-                                                                                           len(self.wl_clusters['jobs_for_clustering'])))
+        logger.info("====> Generating jobs from sub-workload: {}, "
+                    "that has {} jobs".format(self.wl_clusters['source-workload'],
+                                              len(self.wl_clusters['jobs_for_clustering'])))
 
         start_times_vec_sa, _, _ = self.schedule_strategy.create_schedule()
 
-        np.random.seed(self.config['random_seed'])
+        np.random.seed(self.config["job_submission_strategy"]['random_seed'])
 
         n_modelled_jobs = len(start_times_vec_sa)
         n_clusters = self.wl_clusters['cluster_matrix'].shape[0]
@@ -39,11 +40,11 @@ class JobGeneratorSpawnRand(JobGenerator):
         clustered_jobs_labels = self.wl_clusters['labels']
 
         # this is the fraction of jobs that need to be taken from eah cluster..
-        model_job_fraction = min(1, n_modelled_jobs/float(len(self.wl_clusters['jobs_for_clustering'])))
+        n_job_cluster = len(self.wl_clusters['jobs_for_clustering'])
+        model_job_fraction = min(1.0, n_modelled_jobs/float(n_job_cluster))
 
         chosen_model_jobs = []
         vec_clust_indexes = np.asarray([], dtype=int)
-        mean_ncpu_nnodes_in_cluster = []
         for ic in range(n_clusters):
 
             # jobs in this cluster
@@ -66,18 +67,8 @@ class JobGeneratorSpawnRand(JobGenerator):
             # chosen_model_jobs.extend(jobs_in_cluster[jobs_in_cluster_sampled_idx])
             chosen_model_jobs.extend(jobs_in_cluster_for_generation)
 
-            ncpus_vec = [job.ncpus for job in jobs_in_cluster_for_generation]
-            ncpus_vec = ncpus_vec if ncpus_vec else [self.config['synthapp_n_cpu']]
-            mean_ncpus = np.mean(ncpus_vec)
-
-            nnodes_vec = [job.nnodes for job in jobs_in_cluster_for_generation]
-            nnodes_vec = nnodes_vec if nnodes_vec else self.config['synthapp_n_nodes']
-            mean_nnodes = np.mean(nnodes_vec)
-            mean_ncpu_nnodes_in_cluster.append({"ncpus": mean_ncpus, "nnodes": mean_nnodes})
-
-            logger.info( "cluster {} - mean_ncpus={}, mean_nnodes={}".format(ic, mean_ncpus, mean_nnodes))
-
-            vec_clust_indexes = np.append(vec_clust_indexes, np.ones(n_jobs_to_generate_from_cluster, dtype=int)*ic)
+            vec_clust_indexes = np.append(vec_clust_indexes,
+                                          np.ones(n_jobs_to_generate_from_cluster, dtype=int)*ic)
 
         # generates model jobs as needed
         generated_model_jobs = []
@@ -85,21 +76,28 @@ class JobGeneratorSpawnRand(JobGenerator):
 
             job_copy = copy.deepcopy(job)
 
-            cluster_idx = vec_clust_indexes[cc]
-
-            scaled_mean_cpus_in_cluster = mean_ncpu_nnodes_in_cluster[cluster_idx]["ncpus"] * self.config['global_scaling_factor']
-            job_ncpus = max(1, int(job_copy.ncpus*self.config['global_scaling_factor'])) if job_copy.ncpus else max(1, int(scaled_mean_cpus_in_cluster))
-
-            scaled_mean_nnodes_in_cluster = mean_ncpu_nnodes_in_cluster[cluster_idx]["nnodes"] * self.config['global_scaling_factor']
-            job_nnodes = max(1, int(job_copy.nnodes * self.config['global_scaling_factor'])) if job_copy.nnodes else max(1, int(scaled_mean_nnodes_in_cluster))
-
-            # assign this job a start time (if more jobs are created, the start time is chosen randomly within the
-            # start times..)
+            # assign this job a start time (if more jobs are created,
+            # the start time is chosen randomly within the start times..)
             if cc < len(start_times_vec_sa):
                 start_time = start_times_vec_sa[cc]
             else:
                 start_time = start_times_vec_sa[np.random.randint(0, len(start_times_vec_sa), 1)[0]]
 
+            # choose a number of cpu for this job
+            if not job.ncpus:
+                logger.warning("job ID {} had not ncpu specified, "
+                               "set to default ncpu=1 instead".format(cc))
+                job_ncpus = 1
+            else:
+                job_ncpus = job.ncpus
+
+            # choose a number of nodes for this job
+            if not job.nnodes:
+                job_nnodes = 1
+            else:
+                job_nnodes = job.nnodes
+
+            # Spawn and append the model job
             job = ModelJob(
                 time_start=start_time,
                 duration=None,
@@ -110,6 +108,10 @@ class JobGeneratorSpawnRand(JobGenerator):
             )
             generated_model_jobs.append(job)
 
-        n_job_ratio = len(generated_model_jobs) / float(len(self.wl_clusters['jobs_for_clustering'])) * 100.
-        logger.info( "<==== Generated {} jobs (#job ratio = {:.2f}%)".format(len(generated_model_jobs), n_job_ratio))
+        n_cluster_jobs = len(self.wl_clusters['jobs_for_clustering'])
+        n_job_ratio = len(generated_model_jobs)/float(n_cluster_jobs) * 100.
+
+        logger.info("<==== Generated {} jobs (#job ratio = {:.2f}%)".format(
+            len(generated_model_jobs), n_job_ratio))
+
         return generated_model_jobs, vec_clust_indexes.tolist()
