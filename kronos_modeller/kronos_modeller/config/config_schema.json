@@ -458,10 +458,6 @@
               "type": "integer",
               "description": "Number of bins that are used to discretise the time-signals into synthetic apps kernels"
             },
-            "synth_apps_n_cpu": {
-              "type": "integer",
-              "description": "N cpus to be used to run each synthetic application"
-            },
 
             "truncate_at_percent": {
               "type": "integer",

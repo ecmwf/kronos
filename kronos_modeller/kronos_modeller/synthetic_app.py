@@ -233,7 +233,6 @@ class SyntheticApp(ModelJob):
             for ker in frame:
                 if ker["name"] == "mpi":
                     job_entry["num_procs"] = max(2, job_entry["num_procs"])
-                    break
 
         # if job_entry_only, export dictionary data only
         if job_entry_only:

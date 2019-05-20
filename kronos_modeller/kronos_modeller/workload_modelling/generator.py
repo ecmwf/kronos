@@ -12,6 +12,7 @@ import numpy as np
 from kronos_modeller.kronos_tools.gyration_radius import r_gyration
 from kronos_modeller.synthetic_app import SyntheticApp
 from kronos_modeller.workload import Workload
+from kronos_modeller.workload_modelling.job_generation import strategy_factory
 from kronos_modeller.workload_modelling.time_schedule import job_schedule_factory
 
 

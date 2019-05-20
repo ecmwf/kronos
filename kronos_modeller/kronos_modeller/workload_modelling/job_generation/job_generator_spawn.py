@@ -27,37 +27,53 @@ class JobGeneratorSpawn(JobGenerator):
 
     def generate_jobs(self):
 
-        logger.info("Generating jobs from cluster: {}, that has {} jobs".format(self.wl_clusters['source-workload'],
-                                                                          len(self.wl_clusters['jobs_for_clustering'])))
+        logger.info("Generating jobs from cluster: {}, "
+                    "that has {} jobs".format(self.wl_clusters['source-workload'],
+                                              len(self.wl_clusters['jobs_for_clustering'])))
 
         start_times_vec_sa, _, _ = self.schedule_strategy.create_schedule()
 
-        # Random vector of cluster indices
+        # Random vector of cluster indexes
         n_modelled_jobs = len(start_times_vec_sa)
-        np.random.seed(self.config["job_submission_strategy"]['random_seed'])
-        vec_clust_indexes = np.random.randint(self.wl_clusters['cluster_matrix'].shape[0], size=n_modelled_jobs)
+        np.random.seed(self.config["job_submission_strategy"].get('random_seed', 0))
+        vec_clust_indexes = np.random.randint(self.wl_clusters['cluster_matrix'].shape[0],
+                                              size=n_modelled_jobs)
 
-        # loop over the clusters and generates jos as needed
+        # Mean NCPU in cluster (considering jobs in cluster)
+        jobs_all = self.wl_clusters['jobs_for_clustering']
+        lab_all = self.wl_clusters['labels']
+
+        # jobs in each cluster
+        jobs_in_each_cluster = {cl: np.asarray(jobs_all)[lab_all == cl] for cl in set(lab_all)}
+
+        # mean #CPUS in each cluster (from jobs for which ncpus is available, otherwise 1)
+        mean_cpus = {cl_id: np.mean([job.ncpus if job.ncpus else 1 for job in cl_jobs])
+                     for cl_id, cl_jobs in jobs_in_each_cluster.iteritems()}
+
+        # mean #NODES in each cluster (from jobs for which nnodes is available, otherwise 1)
+        mean_nodes = {cl_id: np.mean([job.nnodes if job.nnodes else 1 for job in cl_jobs])
+                      for cl_id, cl_jobs in jobs_in_each_cluster.iteritems()}
+
+        # loop over the clusters and generates jobs as needed
         generated_model_jobs = []
-        for cc, idx in enumerate(vec_clust_indexes):
+        for cc, cl_idx in enumerate(vec_clust_indexes):
 
             ts_dict = {}
-            row = self.wl_clusters['cluster_matrix'][idx, :]
+            row = self.wl_clusters['cluster_matrix'][cl_idx, :]
             ts_yvalues = np.split(row, len(time_signal_names))
             for tt, ts_vv in enumerate(ts_yvalues):
                 ts_name = time_signal_names[tt]
                 ts = TimeSignal(ts_name).from_values(ts_name, np.arange(len(ts_vv)), ts_vv)
                 ts_dict[ts_name] = ts
 
-            # TODO: address the decision on Ncpu and Nnodes once and for all
             job = ModelJob(
                 time_start=start_times_vec_sa[cc],
-                job_name="job-{}-cl-{}".format(cc, idx),
+                job_name="job-{}-cl-{}".format(cc, cl_idx),
                 duration=None,
-                ncpus=1,
-                nnodes=1,
+                ncpus=mean_cpus[cl_idx],
+                nnodes=mean_nodes[cl_idx],
                 timesignals=ts_dict,
-                label="job-{}-cl-{}".format(cc, idx)
+                label="job-{}-cl-{}".format(cc, cl_idx)
             )
             generated_model_jobs.append(job)
 
