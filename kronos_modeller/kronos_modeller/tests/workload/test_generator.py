@@ -9,7 +9,6 @@
 
 import unittest
 
-import numpy as np
 from kronos_executor.definitions import time_signal_names
 from kronos_modeller.jobs import ModelJob
 from kronos_modeller.time_signal.time_signal import TimeSignal
@@ -102,17 +101,23 @@ class GeneratorTests(unittest.TestCase):
         ]
 
         workload_modeller = workload_modelling_types[config_generator["type"]](workloads)
-
         workload_modeller.apply(config_generator)
 
         # get the newly created set of (modelled) workloads
         workload_set = workload_modeller.get_workload_set()
 
-        # # check that the produced sapps are produced from one of the clusters in the matrix..
-        # self.assertTrue(any(np.equal(input_jobs_matrix, job.timesignals[ts].yvalues).all(1))
-        #                 for job in modelled_sa_jobs
-        #                 for ts in time_signal_names
-        #                 )
+        # make sure that we are creating only one workload
+        self.assertEquals(len(workload_set.workloads), 1)
+
+        # ---- check that all the jobs are correctly formed.. ----
+
+        # check that each job has time-signals as expected..
+        for job in workload_set.workloads[0].jobs:
+            self.assertTrue(hasattr(job, "timesignals"))
+
+        # check that each job has all the time-signals at this point..
+        for job in workload_set.workloads[0].jobs:
+            self.assertTrue( all([k in job.timesignals.keys() for k in time_signal_names]))
 
 if __name__ == "__main__":
     unittest.main()

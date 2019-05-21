@@ -219,7 +219,7 @@ class WorkloadTests(unittest.TestCase):
 
         # ------------ verify global time signals -------------------
         valid_args_1 = {
-            'job_name': "job1",
+            'job_name': "blabla_weird_name",
             'time_start': 0.1,
             'duration': 0.222,
             'ncpus': 1,
