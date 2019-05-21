@@ -6,6 +6,8 @@ HISTORY
 ------------------
 
  - modeller/executor: 2 separate python pckg's
+ - general refactoring of the modeller
+ - time events properly handled by the executor
 
 
 0.5.0 (12-11-2018)
