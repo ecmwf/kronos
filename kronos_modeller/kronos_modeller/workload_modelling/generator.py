@@ -31,24 +31,6 @@ class SyntheticWorkloadGenerator(object):
         "match_job_pdf_exact_rand": ("equiv_time_pdf_exact", "spawn_random")
     }
 
-    # def __init__(self, config_generator,
-    #              clusters,
-    #              global_t0,
-    #              global_tend,
-    #              n_bins_for_pdf=None,
-    #              n_bins_timesignals=None):
-    #
-    #     self.config_generator = config_generator
-    #     self.clusters = clusters
-    #     self.global_t0 = global_t0
-    #     self.global_tend = global_tend
-    #     self.n_bins_for_pdf = n_bins_for_pdf
-    #     self.n_bins_timesignals = n_bins_timesignals
-    #
-    #     # dictionary of all the un-normalized jobs created
-    #     # from clusters (stored for calculating r_gyration)
-    #     self.unnormalized_modelled_jobs_dict = {}
-
     def __init__(self, config, clusters):
 
         self.config = config

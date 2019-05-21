@@ -37,19 +37,22 @@ class WorkloadSplit(EditingStrategy):
         # Apply function to all the specified workloads
         cutout_workloads = []
 
+        if not isinstance(config["apply_to"], list):
+            logger.error("Make sure that apply_to field is a list!")
+
         for wl_name in config["apply_to"]:
 
             logger.info("Splitting workload {}".format(config['apply_to']))
             wl = next(wl for wl in self.workloads if wl.tag == wl_name)
 
-            sub_workloads = wl.split_by_keywords(wl, config)
+            sub_workload = self.split_by_keywords(wl, config)
 
             logger.info("splitting created workload {} with {} jobs".format(
-                sub_workloads.tag,
-                len(sub_workloads.jobs)))
+                sub_workload.tag,
+                len(sub_workload.jobs)))
 
-            # Accumulate cutout worklaods
-            cutout_workloads.extend(sub_workloads)
+            # Accumulate cutout workloads
+            cutout_workloads.append(sub_workload)
 
         # extend the workloads with the newly created ones
         self.workloads.extend(cutout_workloads)
@@ -83,17 +86,17 @@ class WorkloadSplit(EditingStrategy):
                         sub_wl_jobs.append(j)
 
         elif kw_include and kw_exclude:
+
             sub_wl_jobs = [j for j in workload.jobs
                            if all(kw in getattr(j, split_attr) for kw in kw_include) and not
                            any(kw in getattr(j, split_attr) for kw in kw_exclude)
                            ]
 
-            for j in workload.jobs:
-                if getattr(j, split_attr):
-                    if all(kw in getattr(j, split_attr) for kw in kw_include) and \
-                            not any(kw in getattr(j, split_attr) for kw in kw_exclude):
-                        sub_wl_jobs.append(j)
         else:
-            raise ConfigurationError("either included or excluded keywords are needed for splitting a workload")
+            raise ConfigurationError("either included or excluded "
+                                     "keywords are needed for splitting a workload")
+
+        if not sub_wl_jobs:
+            logger.error("Workload splitting has produced an empty workload!")
 
         return Workload(jobs=sub_wl_jobs, tag=new_wl_name)

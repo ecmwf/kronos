@@ -9,5 +9,4 @@ class EditingStrategy(StrategyBase):
 
     required_config_fields = [
         "type",
-        "priority"
     ]
