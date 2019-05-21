@@ -41,7 +41,7 @@ class JobGeneratorSpawn(JobGenerator):
 
         # Mean NCPU in cluster (considering jobs in cluster)
         jobs_all = self.wl_clusters['jobs_for_clustering']
-        lab_all = self.wl_clusters['labels']
+        lab_all = np.asarray(self.wl_clusters['labels'])
 
         # jobs in each cluster
         jobs_in_each_cluster = {cl: np.asarray(jobs_all)[lab_all == cl] for cl in set(lab_all)}

@@ -1,5 +1,6 @@
 import logging
 
+import copy
 from kronos_modeller.kronos_exceptions import ConfigurationError
 from kronos_modeller.tools.shared_utils import progress_percentage
 from kronos_modeller.workload import Workload
@@ -102,8 +103,23 @@ class StrategyMatchKeyword(FillingStrategy):
                     if current_match >= threshold:
                         n_jobs_replaced += 1
                         for tsk in job.timesignals.keys():
-                            if job.timesignals[tsk].priority <= priority and lu_job.timesignals[tsk]:
-                                job.timesignals[tsk] = lu_job.timesignals[tsk]
+
+                            # if the time series happen to be empty, apply the
+                            # cross-over
+                            if not job.timesignals[tsk] and lu_job.timesignals[tsk]:
+                                logger.warning("job {} has empty time series {}!".format(
+                                    job.label, tsk))
+                                job.timesignals[tsk] = copy.deepcopy(lu_job.timesignals[tsk])
+
+                            # if there is no priority associated to the target job,
+                            # do the cross-over
+                            elif not job.timesignals[tsk].priority and lu_job.timesignals[tsk]:
+                                job.timesignals[tsk] = copy.deepcopy(lu_job.timesignals[tsk])
+
+                            # if there is a priority associated to the target job, but is
+                            # lower that the source job, do the cross-over
+                            elif job.timesignals[tsk].priority <= priority and lu_job.timesignals[tsk]:
+                                job.timesignals[tsk] = copy.deepcopy(lu_job.timesignals[tsk])
 
         # compare directly (much faster..)
         elif threshold == 1:

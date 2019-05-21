@@ -12,11 +12,12 @@ import unittest
 from StringIO import StringIO
 
 import numpy as np
-from kronos_executor.io_formats.profile_format import ProfileFormat
 from kronos_executor.definitions import signal_types, time_signal_names
+from kronos_executor.io_formats.profile_format import ProfileFormat
 from kronos_modeller.jobs import ModelJob
 from kronos_modeller.time_signal.time_signal import TimeSignal
 from kronos_modeller.workload import Workload
+from kronos_modeller.workload_filling import StrategyUserDefaults, StrategyMatchKeyword
 
 
 class WorkloadTests(unittest.TestCase):
@@ -53,11 +54,11 @@ class WorkloadTests(unittest.TestCase):
 
         # create a workload with 5 model jobs
         test_workload = Workload(
-                                    jobs=input_jobs,
-                                    tag='test_wl'
-                                    )
+                                 jobs=input_jobs,
+                                 tag='test_wl'
+                                )
 
-        # ------- verify that all the jobs in workload are actually the initial jobs provided --------
+        # -- verify that all the jobs in workload are actually the initial jobs provided --
         self.assertTrue(all(job is input_jobs[jj] for jj, job in enumerate(test_workload.jobs)))
 
         # ------------ verify sums of timesignals -------------------
@@ -76,7 +77,7 @@ class WorkloadTests(unittest.TestCase):
             'ncpus': 1,
             'nnodes': 1,
             'timesignals': {tsk: TimeSignal.from_values(tsk, np.random.rand(10), np.random.rand(10))
-                           for tsk in time_signal_names}
+                            for tsk in time_signal_names}
         }
         job1 = ModelJob(**valid_args_1)
 
@@ -86,7 +87,7 @@ class WorkloadTests(unittest.TestCase):
             'ncpus': 1,
             'nnodes': 1,
             'timesignals': {tsk: TimeSignal.from_values(tsk, np.random.rand(10), np.random.rand(10))
-                           for tsk in time_signal_names}
+                            for tsk in time_signal_names}
         }
         job2 = ModelJob(**valid_args_2)
 
@@ -99,15 +100,26 @@ class WorkloadTests(unittest.TestCase):
         # -----------------------------------------------------------
 
     def test_workload_fillin_default(self):
+        """
+        Test the correct assignment of user-defined time-series
+        :return:
+        """
 
-        # create 2 random jobs..
+        io_metrics = [
+            'kb_read',
+            'kb_write',
+            'n_read',
+            'n_write'
+        ]
+
+        # create 2 random jobs (with ONLY io metrics)
         valid_args_1 = {
             'time_start': 0.1,
             'duration': 0.2,
             'ncpus': 1,
             'nnodes': 1,
             'timesignals': {tsk: TimeSignal.from_values(tsk, np.random.rand(10), np.random.rand(10))
-                            for tsk in time_signal_names}
+                            for tsk in io_metrics}
         }
         job1 = ModelJob(**valid_args_1)
 
@@ -117,14 +129,14 @@ class WorkloadTests(unittest.TestCase):
             'ncpus': 1,
             'nnodes': 1,
             'timesignals': {tsk: TimeSignal.from_values(tsk, np.random.rand(10), np.random.rand(10))
-                            for tsk in time_signal_names}
+                            for tsk in io_metrics}
         }
         job2 = ModelJob(**valid_args_2)
 
         test_workload = Workload(jobs=[job1, job2], tag='wl_2jobs')
 
         # ---------------------- fill in config -----------------------
-        fillin_funct_config = [
+        filling_funct_config = [
                                 {
                                     "type": "step",
                                     "name": "step-1",
@@ -136,60 +148,74 @@ class WorkloadTests(unittest.TestCase):
                                     "x_values": [0, 0.1, 0.15, 0.3333, 0.5, 0.8, 0.9, 1.0],
                                     "y_values": [0, 0.1, 0.2, 0.3, 0.5, 0.8, 0.9, 1.0]
                                 }
-                                ]
+                              ]
 
+        # Values to assign to all the unspecified metrics
         default_config = {
                             "type": "fill_missing_entries",
-                            "apply_to": ["operational-ipm"],
+                            "apply_to": ["wl_2jobs"],
                             "priority": 0,
                             "metrics": {
-                                        "kb_collective": [100, 1000],
-                                        "n_collective": [10, 1000],
-                                        "kb_write": {"function": "step-1",
-                                                     "scaling": 1000.0
-                                                     },
+                                        "kb_collective": [100, 101],
+                                        "n_collective": [100, 101],
+
+                                        "kb_pairwise": {"function": "step-1",
+                                                        "scaling": 1000.0
+                                                        },
                                         "n_pairwise": {"function": "custom-1",
                                                        "scaling": 1000.0
                                                        },
-                                        "n_write": [10, 1000],
-                                        "n_read": [10, 1000],
-                                        "kb_read": [100, 1000],
-                                        "flops": [1e6, 1e8],
-                                        "kb_pairwise": [100, 1000]
+                                        "flops": [100, 101],
                                         }
                         }
 
-        test_workload.apply_default_metrics(default_config, fillin_funct_config)
+        # update the filling config with the user-defined functions
+        default_config.update({"user_functions": filling_funct_config})
 
-        # test that the random number generated is within the range considered
-        for j in test_workload.jobs:
+        # Apply the user defaults to the workloads
+        workloads = [test_workload]
+        filler = StrategyUserDefaults(workloads)
+        filler.apply(default_config)
 
-            self.assertTrue(all(min(default_config['metrics']['kb_collective']) <= v <= max(default_config['metrics']['kb_collective'])
-                                for v in j.timesignals['kb_collective'].yvalues))
+        # test that the IO metrics are within the random range used [0,1]
+        for j in workloads[0].jobs:
+            self.assertTrue(all([0.0 < x < 1.0 for x in j.timesignals['n_write'].xvalues]))
+            self.assertTrue(all([0.0 < x < 1.0 for x in j.timesignals['n_write'].yvalues]))
 
-            self.assertTrue(all(min(default_config['metrics']['n_collective']) <= v <= max(default_config['metrics']['n_collective'])
-                                for v in j.timesignals['n_collective'].yvalues))
+            self.assertTrue(all([0.0 < x < 1.0 for x in j.timesignals['kb_write'].xvalues]))
+            self.assertTrue(all([0.0 < x < 1.0 for x in j.timesignals['kb_write'].yvalues]))
 
-            self.assertTrue(all(min(default_config['metrics']['n_write']) <= v <= max(default_config['metrics']['n_write'])
-                                for v in j.timesignals['n_write'].yvalues))
+            self.assertTrue(all([0.0 < x < 1.0 for x in j.timesignals['n_read'].xvalues]))
+            self.assertTrue(all([0.0 < x < 1.0 for x in j.timesignals['n_read'].yvalues]))
 
-            self.assertTrue(all(min(default_config['metrics']['n_read']) <= v <= max(default_config['metrics']['n_read'])
-                                for v in j.timesignals['n_read'].yvalues))
+            self.assertTrue(all([0.0 < x < 1.0 for x in j.timesignals['kb_read'].xvalues]))
+            self.assertTrue(all([0.0 < x < 1.0 for x in j.timesignals['kb_read'].yvalues]))
 
-            self.assertTrue(all(min(default_config['metrics']['kb_read']) <= v <= max(default_config['metrics']['kb_read'])
-                                for v in j.timesignals['kb_read'].yvalues))
+        # test that the user-defined metrics are within the random range chosen [0,1]
+        for j in workloads[0].jobs:
+            self.assertTrue(all([100 < x < 101 for x in j.timesignals['flops'].yvalues]))
+            self.assertTrue(all([100 < x < 101 for x in j.timesignals['n_collective'].yvalues]))
+            self.assertTrue(all([100 < x < 101 for x in j.timesignals['kb_collective'].yvalues]))
 
-            self.assertTrue(all(min(default_config['metrics']['flops']) <= v <= max(default_config['metrics']['flops'])
-                                for v in j.timesignals['flops'].yvalues))
+        # test that the user-defined functions are being applied as expected
 
-            self.assertTrue(all(min(default_config['metrics']['kb_pairwise']) <= v <= max(default_config['metrics']['kb_pairwise'])
-                                for v in j.timesignals['kb_pairwise'].yvalues))
+        for j in workloads[0].jobs:
 
-        # test the values assigned by the custom function:
-        for j in test_workload.jobs:
-            self.assertTrue(all(v/float(default_config['metrics']['n_pairwise']['scaling']) in fillin_funct_config[1]['y_values'] for v in j.timesignals['n_pairwise'].yvalues))
+            # values vs expected
+            val_exp = zip(j.timesignals['n_pairwise'].yvalues,
+                          [0, 0.1, 0.2, 0.3, 0.5, 0.8, 0.9, 1.0]
+                          )
+            self.assertTrue(all([x == y*1000. for x,y in val_exp]))
+
+            # and the step function
+            self.assertTrue(all([(x == 0 or x == 1000.)
+                                 for x in j.timesignals['kb_pairwise'].yvalues]))
 
     def test_workload_fillin_match(self):
+        """
+        Test the metrics assignment through job name (label) matching
+        :return:
+        """
 
         # ------------ verify global time signals -------------------
         valid_args_1 = {
@@ -209,37 +235,55 @@ class WorkloadTests(unittest.TestCase):
             'duration': 0.333,
             'ncpus': 1,
             'nnodes': 1,
-            'timesignals': {tsk: TimeSignal.from_values(tsk, np.random.rand(10), np.random.rand(10))
-                            for tsk in time_signal_names}
+            'timesignals': {}
         }
         job2 = ModelJob(**valid_args_2)
 
+        # ------ target workload (that will receive the time metrics..)
+        target_wl = Workload(jobs=[job1, job2], tag='target_workload')
+
+        # ---------- source workload
         valid_args_3 = {
             'job_name': "job_match",
             'time_start': 0.1,
             'duration': 0.333,
             'ncpus': 1,
             'nnodes': 1,
-            'timesignals': {tsk: TimeSignal.from_values(tsk, np.arange(10), np.arange(10))
+            'timesignals': {tsk: TimeSignal.from_values(tsk, np.random.rand(10), np.random.rand(10))
                             for tsk in time_signal_names}
         }
 
         job3 = ModelJob(**valid_args_3)
-
-        test_wl = Workload(jobs=[job1, job2], tag='wl_test')
         source_wl = Workload(jobs=[job3], tag='wl_match_source')
 
-        test_wl.apply_lookup_table(source_wl, 1.0, 10, ['job_name'])
+        # filler config
+        filler_config = {
+            "type": "match_by_keyword",
+            "priority": 0,
+            "keywords": [
+                "job_name"
+            ],
+            "similarity_threshold": 0.3,
+            "source_workloads": [
+                "wl_match_source"
+            ],
+            "apply_to": ["target_workload"]
+        }
 
-        # not match with job 1
-        self.assertFalse(all(np.array_equal(test_wl.jobs[0].timesignals[ts].yvalues,
-                                           source_wl.jobs[0].timesignals[ts].yvalues)
-                            for ts in time_signal_names))
+        # Apply the user defaults to the workloads
+        workloads = [target_wl, source_wl]
+        filler = StrategyMatchKeyword(workloads)
+        filler.apply(filler_config)
 
-        # match with job 2
-        self.assertTrue(all(np.array_equal(test_wl.jobs[1].timesignals[ts].yvalues,
-                                           source_wl.jobs[0].timesignals[ts].yvalues)
-                            for ts in time_signal_names))
+        # for ts_k, ts_v in job3.timesignals.iteritems():
+        #     print "JOB3:{}:{}".format(ts_k, ts_v.yvalues)
+        #
+        # for ts_k, ts_v in target_wl.jobs[1].timesignals.iteritems():
+        #     print "TRG_J1:{}:{}".format(ts_k, ts_v.yvalues)
+
+        self.assertTrue(all([all(ys == yt
+                                 for ys, yt in zip(job3.timesignals[ts_k].yvalues, ts_v.yvalues))
+                             for ts_k, ts_v in target_wl.jobs[1].timesignals.iteritems()]))
 
     def test_reanimate_kprofile(self):
         """
@@ -293,9 +337,6 @@ class WorkloadTests(unittest.TestCase):
             else:
                 self.assertIsNone(signal)
 
-    def test_workload_fillin_RS(self):
-        # TODO: to write..
-        pass
 
 if __name__ == "__main__":
     unittest.main()

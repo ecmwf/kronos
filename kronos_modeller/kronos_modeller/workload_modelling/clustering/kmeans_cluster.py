@@ -34,29 +34,9 @@ class KmeansClusters(ClusteringStrategy):
         :return:
         """
 
-        # # save the KProfile's of the sub-workloads before attempting the clustering
-        # save_wl_before_clustering = self.config_job_classification.get(
-        # 'save_wl_before_clustering', False)
-        # # if save_wl_before_clustering:
-        # #     # for wl in self.workloads:
-        # #     #     kprofile_hdl = ProfileFormat(model_jobs=wl.jobs, workload_tag=wl.tag)
-        # #     #     kprofile_hdl.write_filename(os.path.join(self.config.dir_output,
-        #             wl.tag+"_workload.kprofile"))
-        # #     wl_group = kronos_modeller.workload_data_group.WorkloadDataGroup(cutout_workloads)
-        # #     wl_group.export_pickle(os.path.join(self.config.dir_output, "_workload"))
-
-        # check validity of jobs before doing the actual modelling..
-        # NB: the preliminary phase of workload manipulation
-        # (defaults, lookup tables and recommender sys
-        # should have produced a set of "complete" and therefore valid jobs)
-        # self._check_jobs(self.config_job_classification['apply_to'])
-
         # This internal function finds the clusters (they are not yet applied
         # to the workloads. Clusters are stored into self.clusters)
         self.do_clustering(config)
-
-        # this step rebuild workloads that include clusters
-        self.rebuild_workload()
 
     def do_clustering(self, config):
 
@@ -158,10 +138,3 @@ class KmeansClusters(ClusteringStrategy):
             plt.show()
 
         return y_pred.cluster_centers_, y_pred.labels_
-
-
-    def rebuild_workload(self):
-        """
-        This function takes the clusters found in the do_clustering step and
-        :return:
-        """

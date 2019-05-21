@@ -126,6 +126,7 @@ class ConfigTests(unittest.TestCase):
             self.assertRaises(ConfigurationError, lambda: Config(config_path=f.name))
 
     def test_config_model_structure_from_file(self):
+
         # ------------- generic/valid config file ---------------
         config_empty_model = {
             "verbose": True,
@@ -141,14 +142,14 @@ class ConfigTests(unittest.TestCase):
 
         # ------------- invalid "model" config file (INV-0) ----------
         config_invalid_0 = config_empty_model
-        config_invalid_0["model"] = {}
+        config_invalid_0["model_invalid"] = {}
 
         # ------------- invalid "model" config file (INV-1) ----------
         config_invalid_1 = config_empty_model
         config_invalid_1["model"] = {
-            "workload_filling": {},
-            "clustering": {},
-            "schedule_generation": {}
+            "workload_filling_invalid": {},
+            "clustering_invalid": {},
+            "schedule_generation_invalid": {}
         }
 
         # check that exception is raised
@@ -160,8 +161,8 @@ class ConfigTests(unittest.TestCase):
         # so they cannot be empty
         config_invalid_2 = config_empty_model
         config_invalid_2["model"] = {
-            "clustering": {},
-            "schedule_generation": {}
+            "clustering_invalid": {},
+            "schedule_generation_invalid": {}
         }
 
         # check that exception is raised
@@ -195,24 +196,19 @@ class ConfigTests(unittest.TestCase):
                     "num_timesignal_bins": 5
                 }
             },
-            "schedule_generation": {
-                "type": "match_job_pdf_exact",
-                "n_bins_for_pdf": 20,
-                "random_seed": 0,
+            "schedule_exporting_asdfasdf_asdfasdf": {
+                "synth_apps_n_bins": 20,
                 "scaling_factors": {
-                    "kb_collective": 1e1,
+                    "kb_collective_asdfasdf": 1e1,
                     "n_collective": 1e-1,
                     "kb_write": 1e-4,
-                    "n_pairwise": 1e-1,
+                    "n_pairwise_asdfasdf": 1e-1,
                     "n_write": 1e-4,
                     "n_read": 1e-3,
-                    "kb_read": 1e-3,
+                    "kb_read_asdfasdf": 1e-3,
                     "flops": 1e1,
                     "kb_pairwise": 10e-0
-                },
-                "submit_rate_factor": 4.0,
-                "synthapp_n_cpu": 2,
-                "total_submit_interval": 300
+                }
             }
         }
         # check that exception is raised
@@ -254,128 +250,6 @@ class ConfigTests(unittest.TestCase):
         # check that exception is raised
         self.assertRaises(jsonschema.ValidationError,
                           lambda: ConfigFormat.from_file(StringIO(json.dumps(config_invalid_4))))
-
-        # ------------- invalid "model" config file (INV-5) ----------
-        # NB: missing clustering keys
-        config_invalid_5 = copy.deepcopy(config_invalid_3)
-        config_invalid_5["model"]["classification"].pop("operations") # empty operations
-
-        config_invalid_5["model"]["classification"]["clustering"] = {
-                                                                    "apply_to": [
-                                                                        "HR_other",
-                                                                        "ENS_data_assimilation",
-                                                                        "ENS_other"
-                                                                    ],
-                                                                    "type": "Kmeans",
-                                                                    # "ok_if_low_rank": True,
-                                                                    # "user_does_not_check": True,
-                                                                    # "rseed": 0,
-                                                                    "max_iter": 100,
-                                                                    "max_num_clusters": 20,
-                                                                    "delta_num_clusters": 1,
-                                                                    "num_timesignal_bins": 5
-                                                                    }
-
-        # check that exception is raised
-        self.assertRaises(jsonschema.ValidationError,
-                          lambda: ConfigFormat.from_file(StringIO(json.dumps(config_invalid_5))))
-
-        # ------------- invalid "model" config file (INV-6) ----------
-        # NB: missing clustering keys
-        config_invalid_6 = copy.deepcopy(config_invalid_3)
-        config_invalid_6["model"]["classification"].pop("operations")  # empty operations
-
-        config_invalid_6["model"]["classification"]["clustering"] = {
-            "apply_to": [
-                "HR_other",
-                "ENS_data_assimilation",
-                "ENS_other"
-            ],
-            "type": "Kmeans",
-            # "ok_if_low_rank": True,
-            # "user_does_not_check": True,
-            # "rseed": 0,
-            "max_iter": 100,
-            "max_num_clusters": 20,
-            "delta_num_clusters": 1,
-            "num_timesignal_bins": 5
-        }
-
-        # check that exception is raised
-        self.assertRaises(jsonschema.ValidationError,
-                          lambda: ConfigFormat.from_file(StringIO(json.dumps(config_invalid_6))))
-        # ==========================================================================================
-
-        # ------------- invalid "model" config file (INV-7) ----------
-        # NB: mis-spelt operation key
-        config_invalid_7 = copy.deepcopy(config_invalid_3)
-        config_invalid_7["model"]["classification"]["operations"].append(
-            {
-                "type": "split_wrong_keys",
-                "apply_to": "operational-ipm",
-                "create_workload": "law",
-                "split_by": "label",
-                "keywords_in": ["law/"],
-                "keywords_out": []
-            })
-
-        # check that exception is raised
-        # pprint(config_invalid_7)
-        # ConfigFormat.from_file(StringIO(json.dumps(config_invalid_7)))
-        self.assertRaises(jsonschema.ValidationError,
-                          lambda: ConfigFormat.from_file(StringIO(json.dumps(config_invalid_7))))
-        # ==========================================================================================
-
-        # ==========================================================================================
-        # ------------- valid "model" config file (VAL-0) ----------
-        # NB: classification.operations can be empty
-        config_valid_0 = config_empty_model
-        config_valid_0["model"] = {
-            "classification": {
-
-                "clustering": {
-                    "apply_to": [
-                        "HR_other",
-                        "ENS_data_assimilation",
-                        "ENS_other",
-                        "law",
-                        "Other",
-                        "HR_model",
-                        "ENS_model"
-                    ],
-                    "type": "Kmeans",
-                    "ok_if_low_rank": True,
-                    "user_does_not_check": True,
-                    "rseed": 0,
-                    "max_iter": 100,
-                    "max_num_clusters": 20,
-                    "delta_num_clusters": 1,
-                    "num_timesignal_bins": 5
-                }
-            },
-            "schedule_generation": {
-                "type": "match_job_pdf_exact",
-                "n_bins_for_pdf": 20,
-                "random_seed": 0,
-                "scaling_factors": {
-                    "kb_collective": 1e1,
-                    "n_collective": 1e-1,
-                    "kb_write": 1e-4,
-                    "n_pairwise": 1e-1,
-                    "n_write": 1e-4,
-                    "n_read": 1e-3,
-                    "kb_read": 1e-3,
-                    "flops": 1e1,
-                    "kb_pairwise": 10e-0
-                },
-                "submit_rate_factor": 4.0,
-                "synthapp_n_cpu": 2,
-                "total_submit_interval": 300
-            }
-        }
-
-        # check that no exceptions are raised - empty "model" is OK
-        ConfigFormat.from_file(StringIO(json.dumps(config_valid_0)))
 
 
 if __name__ == "__main__":
