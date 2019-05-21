@@ -14,9 +14,6 @@ from StringIO import StringIO
 from kronos_executor.io_formats.profile_format import ProfileFormat
 from kronos_executor.definitions import signal_types, time_signal_names
 
-import sys
-print "sys.path ", sys.path
-
 from kronos_modeller.jobs import ModelJob, IngestedJob
 from kronos_modeller.time_signal.time_signal import TimeSignal
 from kronos_modeller.kronos_exceptions import ModellingError
