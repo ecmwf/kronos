@@ -10,8 +10,8 @@ ecbuild_add_executable(
     TARGET terminate_io_worker
 
     SOURCES
-        ${CMAKE_SOURCE_DIR}/kronos_apps/common/network/network.h
-        ${CMAKE_SOURCE_DIR}/kronos_apps/common/network/message.h
+        ${PROJECT_SOURCE_DIR}/kronos_apps/common/network/network.h
+        ${PROJECT_SOURCE_DIR}/kronos_apps/common/network/message.h
         terminate_io_worker.c
 
     DEFINITIONS        
@@ -63,8 +63,8 @@ ecbuild_add_executable(
     TARGET remote_io_master
 
     SOURCES
-        ${CMAKE_SOURCE_DIR}/kronos_apps/common/network/network.h
-        ${CMAKE_SOURCE_DIR}/kronos_apps/common/network/message.h
+        ${PROJECT_SOURCE_DIR}/kronos_apps/common/network/network.h
+        ${PROJECT_SOURCE_DIR}/kronos_apps/common/network/message.h
         remote_io_master.c
         io_data.h
         io_data.c
@@ -88,17 +88,17 @@ add_subdirectory( tests )
 add_custom_command(
         TARGET remote_io_worker POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy
-                ${CMAKE_SOURCE_DIR}/kronos_apps/scripts/spinup_servers.py
-                ${CMAKE_BINARY_DIR}/bin)
+                ${PROJECT_SOURCE_DIR}/kronos_apps/scripts/spinup_servers.py
+                ${PROJECT_BINARY_DIR}/bin)
 
 add_custom_command(
         TARGET remote_io_worker POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy
-                ${CMAKE_SOURCE_DIR}/kronos_apps/scripts/spindown_servers.py
-                ${CMAKE_BINARY_DIR}/bin)
+                ${PROJECT_SOURCE_DIR}/kronos_apps/scripts/spindown_servers.py
+                ${PROJECT_BINARY_DIR}/bin)
 
 add_custom_command(
         TARGET remote_io_worker POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy
-                ${CMAKE_SOURCE_DIR}/kronos_apps/scripts/generate_ioserver_schedule.py
-                ${CMAKE_BINARY_DIR}/bin)
+                ${PROJECT_SOURCE_DIR}/kronos_apps/scripts/generate_ioserver_schedule.py
+                ${PROJECT_BINARY_DIR}/bin)

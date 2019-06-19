@@ -5,8 +5,8 @@ ecbuild_add_library(
     TARGET msglogger
 
     SOURCES
-        ${CMAKE_SOURCE_DIR}/kronos_apps/common/logger.h
-        ${CMAKE_SOURCE_DIR}/kronos_apps/common/logger.c
+        ${PROJECT_SOURCE_DIR}/kronos_apps/common/logger.h
+        ${PROJECT_SOURCE_DIR}/kronos_apps/common/logger.c
 
     DEFINITIONS
 
@@ -21,11 +21,11 @@ ecbuild_add_library(
     TARGET network
 
     SOURCES
-        ${CMAKE_SOURCE_DIR}/kronos_apps/common/bool.h
-        ${CMAKE_SOURCE_DIR}/kronos_apps/common/network/network.h
-        ${CMAKE_SOURCE_DIR}/kronos_apps/common/network/network.c
-        ${CMAKE_SOURCE_DIR}/kronos_apps/common/network/message.h
-        ${CMAKE_SOURCE_DIR}/kronos_apps/common/network/message.c
+        ${PROJECT_SOURCE_DIR}/kronos_apps/common/bool.h
+        ${PROJECT_SOURCE_DIR}/kronos_apps/common/network/network.h
+        ${PROJECT_SOURCE_DIR}/kronos_apps/common/network/network.c
+        ${PROJECT_SOURCE_DIR}/kronos_apps/common/network/message.h
+        ${PROJECT_SOURCE_DIR}/kronos_apps/common/network/message.c
 
     DEFINITIONS
 

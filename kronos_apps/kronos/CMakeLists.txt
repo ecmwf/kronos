@@ -28,11 +28,11 @@ ecbuild_add_library (
     TARGET kronos
 
     SOURCES
-        ${CMAKE_SOURCE_DIR}/kronos_apps/common/bool.h
-        ${CMAKE_SOURCE_DIR}/kronos_apps/common/json.c
-        ${CMAKE_SOURCE_DIR}/kronos_apps/common/json.h
-        ${CMAKE_SOURCE_DIR}/kronos_apps/common/utility.c
-        ${CMAKE_SOURCE_DIR}/kronos_apps/common/utility.h
+        ${PROJECT_SOURCE_DIR}/kronos_apps/common/bool.h
+        ${PROJECT_SOURCE_DIR}/kronos_apps/common/json.c
+        ${PROJECT_SOURCE_DIR}/kronos_apps/common/json.h
+        ${PROJECT_SOURCE_DIR}/kronos_apps/common/utility.c
+        ${PROJECT_SOURCE_DIR}/kronos_apps/common/utility.h
         configure_read_files.h
         configure_write_files.h
         kronos_version.h
@@ -103,11 +103,11 @@ ecbuild_add_executable(
         "${PMEMIO_OBJ_LIBRARY}"
         )
 
-file( RELATIVE_PATH _tgt_path ${CMAKE_SOURCE_DIR} ${CMAKE_CURRENT_LIST_DIR} )
+file( RELATIVE_PATH _tgt_path ${PROJECT_SOURCE_DIR} ${CMAKE_CURRENT_LIST_DIR} )
 
-configure_file( configure_read_files.h.in ${CMAKE_BINARY_DIR}/${_tgt_path}/configure_read_files.h @ONLY )
+configure_file( configure_read_files.h.in ${PROJECT_BINARY_DIR}/${_tgt_path}/configure_read_files.h @ONLY )
 
-configure_file( configure_write_files.h.in ${CMAKE_BINARY_DIR}/${_tgt_path}/configure_write_files.h @ONLY )
+configure_file( configure_write_files.h.in ${PROJECT_BINARY_DIR}/${_tgt_path}/configure_write_files.h @ONLY )
 
 # include the tests
 add_subdirectory( tests )
@@ -116,5 +116,5 @@ add_subdirectory( tests )
 add_custom_command(
         TARGET kronos-synapp POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy
-                ${CMAKE_SOURCE_DIR}/kronos_apps/scripts/send_job_complete_msg.py
-                ${CMAKE_BINARY_DIR}/bin)
+                ${PROJECT_SOURCE_DIR}/kronos_apps/scripts/send_job_complete_msg.py
+                ${PROJECT_BINARY_DIR}/bin)
