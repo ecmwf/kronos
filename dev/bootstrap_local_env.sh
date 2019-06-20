@@ -37,8 +37,8 @@ conda install -y pyyaml
 
 # ========= environment for the modeller =========
 cd $HOME/kronos_modeller
-if [[ -f conda_environment.txt ]]; then
-    conda env create -n test_env -f conda_environment.txt
+if [[ -f conda_env_modeller.yml ]]; then
+    conda env create -n test_env -f conda_env_modeller.yml
 fi
 
 # install the executor+modeller
@@ -50,8 +50,8 @@ pip install -e kronos_modeller
 
 # ========= environment for the executor =========
 cd $HOME/kronos_executor
-if [[ -f conda_environment_exe.txt ]]; then
-    conda env create -n test_env_exe -f conda_environment_exe.txt
+if [[ -f conda_env_executor.yml ]]; then
+    conda env create -n test_env_exe -f conda_env_executor.yml
 fi
 
 # install the executor

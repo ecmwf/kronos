@@ -151,7 +151,7 @@ install_executor() {
 
             echo "installing executor dependencies (online).."
 
-            conda env create -n kronos_executor_env -f ${KRONOS_SOURCES_TOP_DIR}/kronos_executor/conda_environment_exe.txt
+            conda env create -n kronos_executor_env -f ${KRONOS_SOURCES_TOP_DIR}/kronos_executor/conda_env_executor.yml
 
         fi
 
@@ -260,7 +260,7 @@ install_modeller() {
 
             echo "installing modeller dependencies (online).."
 
-            conda env create -n kronos_modeller_env -f ${KRONOS_SOURCES_TOP_DIR}/kronos_modeller/conda_environment.txt
+            conda env create -n kronos_modeller_env -f ${KRONOS_SOURCES_TOP_DIR}/kronos_modeller/conda_env_modeller.yml
 
         fi
 

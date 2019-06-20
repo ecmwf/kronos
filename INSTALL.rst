@@ -33,13 +33,13 @@ benchmarking purposes. Here below step-by-step guide for installing the executor
 
   > cd kronos-<version>-Source
 
-  > conda env create -n executor -f conda_environment_exe.txt
+  > conda env create -n executor -f kronos_executor/conda_env_executor.yml
 
 4. **Install Kronos Executor**
 
   > source activate executor
 
-  > cd kronos-<version>-Source
+  > cd kronos_executor
 
   > pip install .
 
