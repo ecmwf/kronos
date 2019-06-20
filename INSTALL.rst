@@ -30,7 +30,7 @@ benchmarking purposes. Here below step-by-step guide for installing the executor
   > tar xzvf kronos-<version>-Source.tar.gz
 
 3. **Create conda environment for executor**
-  
+
   > cd kronos-<version>-Source
 
   > conda env create -n executor -f conda_environment_exe.txt
