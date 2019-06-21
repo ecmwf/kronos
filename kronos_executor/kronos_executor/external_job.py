@@ -77,7 +77,7 @@ class UserAppJob(BaseJob):
 
         # print self.job_config["config_params"]
         for param_name in self.needed_config_params:
-            assert self.job_config["config_params"].get(param_name) is not None
+            assert self.job_config["config_params"].get(param_name) is not None, param_name
 
         for param_name in self.job_config["config_params"].keys():
 
@@ -94,6 +94,8 @@ class UserAppJob(BaseJob):
                 _str = "'"+_str+"'"
 
                 script_format.update({param_name: _str})
+
+        assert self.submit_script_template is not None
 
         with open(self.submit_script, 'w') as f:
             f.write(self.submit_script_template.format(**script_format))
@@ -162,6 +164,7 @@ class UserAppJob(BaseJob):
     def get_submission_arguments(self, depend_job_ids):
 
         subprocess_args = []
+        assert self.submit_command is not None
         subprocess_args.append(self.submit_command)
 
         if depend_job_ids:
