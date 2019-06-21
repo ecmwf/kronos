@@ -5,6 +5,7 @@ import imp
 import logging
 import os
 import socket
+import sys
 import time
 import uuid
 from shutil import copy2
@@ -291,7 +292,11 @@ class Executor(object):
                 raise IOError
 
             # now load the module
-            job_class_module = imp.load_source('job', job_class_module_file)
+            job_module_name = "kronos_job_class_{}".format(job_template_name)
+            if job_module_name in sys.modules:
+                job_class_module = sys.modules[job_module_name]
+            else:
+                job_class_module = imp.load_source(job_module_name, job_class_module_file)
 
             job_class = job_class_module.Job
 
