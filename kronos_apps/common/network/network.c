@@ -22,10 +22,10 @@
 /* write all to socket */
 static ssize_t write_wait(int sockfd, const void *buf, size_t len){
 
-    DEBG1("synchronous writing..");
-
     ssize_t actually_written;
     size_t remaining;
+
+    DEBG1("synchronous writing..");
 
     /* write synchronously full len */
     remaining = len;
@@ -44,10 +44,10 @@ static ssize_t write_wait(int sockfd, const void *buf, size_t len){
 /* read all from socket */
 static ssize_t read_wait(int sockfd, void *buf, size_t len){
 
-    DEBG1("synchronous reading..");
-
     ssize_t actually_read;
     size_t remaining;
+
+    DEBG1("synchronous reading..");
 
     /* read synchronously full len */
     remaining = len;
@@ -341,11 +341,11 @@ int send_net_msg(const NetConnection* conn, NetMessage* msg){
 /* recv a net message (hd_len + hd + payload_len + payload) */
 NetMessage* recv_net_msg(const NetConnection* conn){
 
+    NetMessage* msg;
+
     DEBG1("receiving message");
 
     /* make minimal space for incoming message */
-    NetMessage* msg;
-
     msg = malloc(sizeof(NetMessage));
     if (msg == NULL){
         ERRO1("memory allocation of msg failed!");
