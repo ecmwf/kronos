@@ -312,6 +312,9 @@ install_synapps() {
       mkdir ${KRONOS_BUILD_DIR}
     fi
 
+    # export python command
+    export PATH=${KRONOS_CONDA_BIN_DIR}/:${PATH}
+
     # build the synthetic apps
     cd ${KRONOS_BUILD_DIR} && cmake ${KRONOS_SOURCES_TOP_DIR} && make
 }
