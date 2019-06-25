@@ -32,7 +32,8 @@ static void test_logger(){
     putenv("LOG_FILE=test_logger.tmp");
     log_file = getenv("LOG_FILE");
 
-    if (getcwd(cwd, sizeof(cwd)) != '\n') {
+    if (getcwd(cwd, sizeof(cwd)) != NULL) {
+
 
         strcpy(cwd_and_filepath, cwd);
         LOG_FILE = strcat(cwd_and_filepath, "/logfile.log");
