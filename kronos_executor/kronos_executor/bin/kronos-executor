@@ -80,8 +80,8 @@ if __name__ == "__main__":
         if not os.path.exists(args.config):
             raise ValueError("config file {} does not exist!".format(args.config))
 
-    print "Configuration JSON: {}".format(args.kschedule_file)
-    print "Schedule (KSchedule): {}".format(args.config)
+    print "Configuration JSON: {}".format(args.config)
+    print "Schedule (KSchedule): {}".format(args.kschedule_file)
 
     with open(args.config, 'r') as f:
         config = json.load(f)
