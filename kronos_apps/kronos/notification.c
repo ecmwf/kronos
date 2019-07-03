@@ -112,7 +112,7 @@ int open_notification_connection() {
         timeout.tv_sec = notification_timeout;
         timeout.tv_usec = 0;
 
-        switch (select(sockfd + 1, NULL, &fds, NULL, &timeout) == 1) {
+        switch (select(sockfd + 1, NULL, &fds, NULL, &timeout)) {
         case 1:
             err_len = sizeof(err);
             getsockopt(sockfd, SOL_SOCKET, SO_ERROR, &err, &err_len);
@@ -210,7 +210,7 @@ bool send_final_notification() {
     if (p) {
         kronos_token = p;
     } else {
-        fprintf(stderr, "KRONOS_TOKEN (%s). Using default: %s", p, kronos_token);
+        fprintf(stderr, "KRONOS_TOKEN (%s). Using default: %s\n", p, kronos_token);
     }
 
 
