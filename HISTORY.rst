@@ -2,10 +2,10 @@
 HISTORY
 =======
 
-0.6.0 (xx-xx-xxxx)
+0.6.0 (04-07-2019)
 ------------------
 
- - modeller/executor: 2 separate python pckg's
+ - modeller/executor: 2 separate python pkg's
  - general refactoring of the modeller
  - time events properly handled by the executor
 
