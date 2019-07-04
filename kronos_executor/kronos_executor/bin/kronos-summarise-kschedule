@@ -1,0 +1,149 @@
+#!/usr/bin/env python
+# (C) Copyright 1996-2018 ECMWF.
+#
+# This software is licensed under the terms of the Apache Licence Version 2.0
+# which can be obtained at http://www.apache.org/licenses/LICENSE-2.0.
+# In applying this licence, ECMWF does not waive the privileges and immunities
+# granted to it by virtue of its status as an intergovernmental organisation nor
+# does it submit to any jurisdiction.
+
+"""
+
+Tool that shows information of a kronos time_schedule file (KSchedule).
+------------------------------------------------------------------
+
+Two main functionalties are provided:
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+1. Jobs in the kschedule can be "listed" according to their "labels" as defined in the kschedule (--list option)
+   A regex expression can be used to select a subset of jobs (--filter=<expression>)
+
+2. Produce a summary for the different types of operations that are performed by the
+   selected jobs ( --summary=<summary type>). In particular, the summary type defines the level of granularity
+   at which statistics are aggregated. Summary types are listed here below:
+
+     - "job": Aggregation is "per job"
+
+     - "kernel": Aggregation is "per kernel" (each job contains a series of "kernels" which define "work" to be
+       distributed among processes - "work" is here intended as a defined amount of CPU, MPI or IO operations)
+
+     - "process": Aggregation is "per process" (this aggregation takes into account how kernel "work" is
+       distributed among the processes of the application
+
+     - "call": Aggregation is per system call. This is the lowest level of granularity and is used to check the
+       distribution of "work" per call (e.g. IO bytes written per IO write call).
+
+Examples of usage:
+~~~~~~~~~~~~~~~~~~
+
+ > kronos-summarise-kschedule dummy.kschedule --list
+   (lists all jobs in the KSF)
+
+ > kronos-summarise-kschedule dummy.kschedule -f=".*serial" --list
+   (lists all jobs whose label matches the regex expression ".*serial")
+
+ > kronos-summarise-kschedule dummy.kschedule -f=".*serial" --summary=job --metrics kb_write flops
+   (prints statistics (aggregated per "job") of all jobs whose label matches the ...
+   regex expression ".*serial" - for metrics "kb_write" and "flops")
+
+ > kronos-summarise-kschedule dummy.kschedule -f=".*serial" --summary=kernel --metrics kb_write flops
+   (prints statistics (aggregated per "kernel") of all jobs whose label matches the ...
+   regex expression ".*serial" - for metrics "kb_write" and "flops")
+
+"""
+
+import argparse
+import sys
+
+from kronos_executor.io_formats.format_data_handlers.kschedule_data import KScheduleData
+from kronos_executor.io_formats.format_data_handlers.kschedule_summary import \
+    kschedule_summary_handlers
+
+
+# TODO: these definitions need to be moved somewhere else..
+metric_keys = [
+    "kb_read",
+    "kb_write",
+    "n_read",
+    "n_write",
+    "n_pairwise",
+    "kb_pairwise",
+    "n_collective",
+    "kb_collective",
+    "flops",
+    "kb_mem"
+]
+
+
+if __name__ == "__main__":
+
+    # Parser for the required arguments
+    parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawTextHelpFormatter)
+    parser.add_argument("kschedule", type=str, help="Name of KSchedule file to inspect")
+
+    # filter jobs to be either listed or summarised
+    parser.add_argument("-f", "--filter",
+                        type=str,
+                        help="Only jobs whose label matches this file-name expression are included")
+
+    # choose what to do (either list or summarise jobs)
+    parser_group = parser.add_mutually_exclusive_group(required=True)
+    parser_group.add_argument("-l", "--list",
+                              help="Full list of job names (labels)",
+                              action='store_true')
+
+    parser_group.add_argument('-s', "--summary",
+                              help="Show summary information",
+                              choices=kschedule_summary_handlers.keys(),
+                              type=str)
+
+    parser.add_argument("-m", "--metrics",
+                        help="name of metrics to summarise (default = 'all')",
+                        choices=metric_keys+["all"],
+                        nargs='*')
+
+    parser.add_argument("-b", "--nbins",
+                        type=int,
+                        help="Nbins for distributions (default = 10)")
+
+    # print the help if no arguments are passed
+    if len(sys.argv) == 1:
+        parser.print_help()
+        sys.exit(1)
+
+    # parse the arguments..
+    args = parser.parse_args()
+
+    # Some checks:
+    if args.list and args.metrics:
+        print "'--metrics' option ignored (only valid with '--summary')"
+
+    if args.list and args.nbins:
+        print "'--nbins' option ignored (only valid with '--summary')"
+
+    if args.summary and not args.metrics:
+        args.metrics = ["all"]  # set the default here..
+
+    # get the data from the schedule..
+    kschedule_data = KScheduleData.from_filename(args.kschedule)
+
+    if args.list:
+
+        job_names = kschedule_data.list_job_names(regex=args.filter)
+        print "\n".join(job_names)
+
+    elif args.summary:
+
+        # get the full list of metrics to test (considering the all case)
+        metrics_to_test = [user_metric for user_metric in args.metrics if user_metric.lower() != "all"]
+        if "all" in args.metrics:
+            metrics_to_test += metric_keys
+
+        filtered_jobs = kschedule_data.filter_jobs(args.filter)
+        print "\n{} jobs match the filter: {}\n".format(len(filtered_jobs), args.filter if args.filter else "ALL")
+
+        for i_param in metrics_to_test:
+            kschedule_summary_handlers[args.summary](kschedule_data,
+                                                     filtered_jobs,
+                                                     i_param,
+                                                     n_bins=args.nbins if args.nbins else 10).get_summary()

@@ -5,10 +5,10 @@ README
 1. Description
 --------------
 Kronos is a HPC workload simulator that generates a workload model starting from workload data
-collected on a real HPC system and then translates the worklaod model into a set of applications
+collected on a real HPC system and then translates the workload model into a set of applications
 (+schedule) usable to benchmark HPC prototypes.
 The software is mainly split into two components:
-  - Kronos Modellder: ingests HPC workload data and generate a workload model (and schedule)
+  - Kronos Modeller: ingests HPC workload data and generate a workload model (and schedule)
   - Kronos Executor: reads the workload model and deploys it on a real HPC system
   (through a set of portable "synthetic applications")
 
@@ -20,7 +20,7 @@ Please read the LICENCE file
 --------
 Kronos Modeller reads profiled workload data (.KProfile format) and generates a synthetic schedule
 (KSchedule format). Kronos Executor reads a synthetic schedule (KSchedule format) and executes it
- on a HPC system
+on a HPC system.
 
 3. Kronos File formats
 ----------------------
@@ -46,7 +46,7 @@ environment)
   > source activate executor
 
 - Setup the executor configuration file
-  - A detailad description of the fields of the configuration file is shown by executing
+  - A detailed description of the fields of the configuration file is shown by executing
     > kronos-config-exe
 
 - Setup the submit job template

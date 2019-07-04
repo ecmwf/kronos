@@ -1,0 +1,84 @@
+#!/usr/bin/env python
+# (C) Copyright 1996-2018 ECMWF.
+#
+# This software is licensed under the terms of the Apache Licence Version 2.0
+# which can be obtained at http://www.apache.org/licenses/LICENSE-2.0.
+# In applying this licence, ECMWF does not waive the privileges and immunities
+# granted to it by virtue of its status as an intergovernmental organisation nor
+# does it submit to any jurisdiction.
+
+"""
+
+Tool that generates a summary of a Kronos run. It shows total amount of "work" (defined as CPU, MPI, I/O operations)
+and total elapsed time to perform the work on a per-job-class basis. job classes can be specified through --filter option
+
+Example usage
+
+  > kronos-summarise-results <path-to-kronos-run> --filter ".*parallel"
+
+"""
+
+import argparse
+import os
+import sys
+
+from kronos_executor.io_formats.format_data_handlers.kresults_data import KResultsData
+from kronos_executor.tools import print_formatted_class_stats
+
+if __name__ == "__main__":
+
+    # Parser for the required arguments
+    parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawTextHelpFormatter)
+
+    parser.add_argument("job_dir",
+                        type=str,
+                        help="Path of the kronos output folder 'job_dir' (path that contains job-<ID> sub-folders..)")
+
+    parser.add_argument("-p", "--permissive",
+                        help="If set, it skips the check on the number of successful jobs",
+                        action='store_true')
+
+    parser.add_argument("-f", "--filter",
+                        type=str,
+                        help="A regex expression to select jobs according to their 'labels'"
+                        )
+
+    # print the help if no arguments are passed
+    if len(sys.argv) == 1:
+        parser.print_help()
+        sys.exit(1)
+
+    # parse the arguments..
+    args = parser.parse_args()
+
+    # check that the run path exists
+    if not os.path.exists(args.job_dir):
+        print "Specified run path does not exist: {}".format(args.job_dir)
+        sys.exit(1)
+
+    # check that the run path contains the job sub-folders
+    job_dirs = [x for x in os.listdir(args.job_dir) if os.path.isdir(os.path.join(args.job_dir, x)) and "job-" in x]
+    if not job_dirs:
+        print "Specified path does not contain any job folder (<job-ID>..)!"
+        sys.exit(1)
+
+    # read simulation data
+    simulation_tag = "kronos-sim"
+    sim_data = KResultsData.read_from_sim_paths(args.job_dir, simulation_tag, permissive=args.permissive)
+
+    # job statistics per class..
+    filter = {"filtered_jobs": args.filter} if args.filter else {}
+    per_class_job_stats = sim_data.class_stats_sums(filter)
+
+    # ///////////////////// print summary ////////////////////////
+    print "{:<52s}".format("\n\nPERFORMANCE SUMMARY:\n")
+
+    # overall runtime
+    print "Total Simulation Runtime [s]: {:20.2f} \n".format(sim_data.runtime())
+
+    if args.filter:
+        print "Statistics for jobs matching regex filter: {}".format(args.filter)
+        print_formatted_class_stats("filtered_jobs", per_class_job_stats)
+    else:
+        print "Statistics for all jobs"
+        print_formatted_class_stats("generic_class", per_class_job_stats)

@@ -1,0 +1,31 @@
+{
+  "output_path": "path_to_save_postprocess_output",
+  "job_classes": {},
+  "n_procs_node": 32,
+  "simulation_labels": [],
+  "simulation_paths": [],
+  "exports":[
+    {
+      "type": "normalised_rates",
+      "format": "png",
+      "tag": "normrates"
+    },
+    {      
+      "type": "time_series",
+      "format": "png",
+      "tag": "profiled_metrics",
+      "signals": {
+        "flops":    {},
+        "kb_read":  {},
+        "kb_write": {},
+        "n_read":   {},
+        "n_write":  {},        
+        "n_pairwise":    {},
+        "kb_pairwise":   {},
+        "n_collective":  {},                
+        "kb_collective": {}                
+      }
+    }
+  ]
+}
+
