@@ -65,3 +65,6 @@ target/
 input
 output
 .un*
+
+#qtcreator
+CMakeLists.txt.user

@@ -1,0 +1,47 @@
+#!/usr/bin/env python2.7
+
+# (C) Copyright 1996-2018 ECMWF.
+#
+# This software is licensed under the terms of the Apache Licence Version 2.0
+# which can be obtained at http://www.apache.org/licenses/LICENSE-2.0.
+# In applying this licence, ECMWF does not waive the privileges and immunities
+# granted to it by virtue of its status as an intergovernmental organisation nor
+# does it submit to any jurisdiction.
+
+"""
+
+============================================================================
+       **DEVELOPMENT TOOL** - USAGE OF THIS TOOL IS UNSUPPORTED
+============================================================================
+
+This tool enquires the global configuration of the kronos_executor (used by CMake)
+
+"""
+
+import os
+import sys
+import argparse
+
+# Used to make use of this tool even out of the executor env
+sys.path.append(os.path.dirname(os.path.dirname(__file__)))
+
+try:
+    from kronos_executor.global_config import global_config
+except ImportError:
+    # this import will work also in the executor env is not loaded..
+    from global_config import global_config
+
+
+# Parser for the required arguments
+parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawTextHelpFormatter)
+parser.add_argument("param_name", type=str, help="Name of parameter to enquire")
+
+# print the help if no arguments are passed
+if len(sys.argv) == 1:
+    parser.print_help()
+    sys.exit(1)
+
+# parse the arguments..
+args = parser.parse_args()
+
+print global_config.get(args.param_name, "[Unknown]")

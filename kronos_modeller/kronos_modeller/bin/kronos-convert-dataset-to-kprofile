@@ -1,0 +1,49 @@
+#!/usr/bin/env python
+# (C) Copyright 1996-2018 ECMWF.
+# 
+# This software is licensed under the terms of the Apache Licence Version 2.0
+# which can be obtained at http://www.apache.org/licenses/LICENSE-2.0. 
+# In applying this licence, ECMWF does not waive the privileges and immunities 
+# granted to it by virtue of its status as an intergovernmental organisation nor
+# does it submit to any jurisdiction.
+
+"""
+
+Exports a KProfile file from a dataset
+
+"""
+
+import sys
+import argparse
+
+from kronos_executor.io_formats.profile_format import ProfileFormat
+from kronos_modeller.logreader.dataset import IngestedDataSet
+
+
+if __name__ == "__main__":
+
+    # Parser for the required arguments
+    parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawTextHelpFormatter)
+    parser.add_argument("path_pickled", type=str, help="The path of the pickeld dataset to ingest")
+    parser.add_argument("path_output", type=str, help="The path of the KProfile file to write out")
+    parser.add_argument("-t", "--tag", type=str, help="worklaod tag")
+
+    # print the help if no arguments are passed
+    if len(sys.argv) == 1:
+        parser.print_help()
+        sys.exit(1)
+
+    # parse the arguments..
+    args = parser.parse_args()
+
+    dataset = IngestedDataSet.from_pickled(args.path_pickled)
+    
+    tag = args.tag if args.tag else "unknown"
+    pf = ProfileFormat(model_jobs=dataset.model_jobs(), workload_tag=tag)
+    
+    for job in pf.profiled_jobs:
+        if not job.get("label"):
+            job["label"] = "unknown"
+
+    with open(args.path_output, 'w') as f:
+        pf.write(f)

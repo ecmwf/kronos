@@ -1,0 +1,102 @@
+#!/usr/bin/env python
+# (C) Copyright 1996-2018 ECMWF.
+#
+# This software is licensed under the terms of the Apache Licence Version 2.0
+# which can be obtained at http://www.apache.org/licenses/LICENSE-2.0.
+# In applying this licence, ECMWF does not waive the privileges and immunities
+# granted to it by virtue of its status as an intergovernmental organisation nor
+# does it submit to any jurisdiction.
+
+"""
+
+Script to collect and aggregate in a tarball all the relevant files of a Kronos run.
+
+"""
+
+import os
+import sys
+import argparse
+import tarfile
+
+
+if __name__ == "__main__":
+
+    # Parser for the required arguments
+    parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawTextHelpFormatter)
+    parser.add_argument("tarball_path", type=str, help="Path of the kronos tarball")
+    parser.add_argument("path_run", type=str, help="Path of the kronos output folder "
+                                                   "(contains the job-<ID> sub-folders)")
+
+    # print the help if no arguments are passed
+    if len(sys.argv) == 1:
+        parser.print_help()
+        sys.exit(1)
+
+    # parse the arguments..
+    args = parser.parse_args()
+
+    if not os.path.exists(args.path_run):
+        print "Specified Kronos output path does not exist: {}".format(args.path_run)
+        sys.exit(1)
+
+    if os.path.exists(args.tarball_path):
+        print "File {} already exists".format(args.tarball_path)
+        sys.exit(1)
+    else:
+        tar_file = tarfile.open(args.tarball_path, "w:gz")
+
+    # add the KSCHEDULE FILE into the tarball
+    kschedule_files = [x for x in os.listdir(args.path_run) if os.path.isfile(os.path.join(args.path_run, x)) and x.endswith('.kschedule')]
+    if not kschedule_files:
+        print "Specified path does not contain the KSchedule file!"
+        sys.exit(1)
+    elif len(kschedule_files) > 1:
+        print "More than one KSchedule file found in the output folder!"
+        sys.exit(1)
+    else:
+        kschedule_file = kschedule_files[0]
+        print "collecting kschedule {}".format(kschedule_file)
+        tar_file.add(os.path.join(args.path_run, kschedule_file), arcname=os.path.join("run_data", kschedule_file))
+
+    # add the LOG FILE(s) into the tarball (if any)
+    log_files = [x for x in os.listdir(args.path_run) if os.path.isfile(os.path.join(args.path_run, x)) and x.endswith('.log')]
+    if log_files:
+        for log_file in log_files:
+            print "collecting log file {}".format(log_file)
+            tar_file.add(os.path.join(args.path_run, log_file), arcname=os.path.join("run_data", log_file))
+
+    files_to_be_collected = [
+        'submit_script',
+        'input.json',
+        'error',
+        'output',
+        'statistics.kresults',
+        '.darshan',
+        '.map',
+    ]
+
+    # job sub-directories
+    job_dirs = [x for x in os.listdir(args.path_run) if os.path.isdir(os.path.join(args.path_run, x)) and "job-" in x]
+
+    fname_list = []
+    dict_name_label = {}
+
+    jobs_data_all = []
+    for job_dir in job_dirs:
+
+        print "processing directory {}".format(job_dir)
+
+        sub_dir_path_abs = os.path.join(args.path_run, job_dir)
+        sub_dir_files = os.listdir(sub_dir_path_abs)
+
+        file_names = [f_name for f_name in sub_dir_files for f_name_coll in files_to_be_collected if f_name_coll in f_name]
+
+        print "files {}".format(file_names)
+
+        for file_name in file_names:
+            file_abs_path = os.path.join(sub_dir_path_abs, file_name)
+            tar_file.add(file_abs_path, arcname=os.path.join("run_data", os.path.join(job_dir, file_name)))
+
+    tar_file.close()
+
+    print "done!"

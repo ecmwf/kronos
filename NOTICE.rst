@@ -2,7 +2,7 @@
 NOTICE
 ======
 
-Copyright 1996-2018 ECMWF
+Copyright 1996-2019 ECMWF
 -------------------------
 
 This product is developed by the
@@ -53,4 +53,4 @@ Below the list of *python packages* used by kronos:
 - wheel=0.29.0=py27_0
 - zlib=1.2.8=3
 - pip:
-  - strict-rfc3339==0.7                                             
+  - strict-rfc3339==0.7
