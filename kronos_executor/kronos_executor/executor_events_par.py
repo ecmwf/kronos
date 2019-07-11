@@ -103,6 +103,9 @@ class ExecutorEventsPar(Executor):
         # Finally stop the event dispatcher
         logger.info("Total #events received: {}".format(self.event_manager.get_total_n_events()))
 
+    def error(self):
+        self.event_manager.stop_dispatcher()
+
     def unsetup(self):
         """
         Various after-run tasks

@@ -395,17 +395,22 @@ class Executor(object):
         # setup the executor
         self.setup()
 
-        # only do the actual run when is not a dry run
-        if not self.arg_config.get("dry_run"):
+        try:
+            # only do the actual run when is not a dry run
+            if not self.arg_config.get("dry_run"):
 
-            # executes the prologue of the kschedule
-            self.prologue()
+                # executes the prologue of the kschedule
+                self.prologue()
 
-            # do the actual run (submits the kschedule jobs)
-            self.do_run()
+                # do the actual run (submits the kschedule jobs)
+                self.do_run()
 
-            # executes the epilogue of the kschedule
-            self.epilogue()
+                # executes the epilogue of the kschedule
+                self.epilogue()
+
+        except Exception as e:
+            self.error()
+            raise
 
         # un-setup the executor
         self.unsetup()
@@ -443,6 +448,13 @@ class Executor(object):
 
             logger.debug("script stdout: {}".format(proc_stdout))
             logger.debug("script stderr: {}".format(proc_stderr))
+
+    def error(self):
+        """
+        General placeholder for tearing down the executor because of an error.
+        """
+
+        pass
 
     def unsetup(self):
         """
