@@ -381,6 +381,12 @@ class Executor(object):
 
         raise NotImplementedError
 
+    def __enter__(self):
+        self.setup()
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        self.teardown(exc_type is not None)
+
     def run(self):
         """
         Main function that manages the execution of the time_schedule,
@@ -389,14 +395,11 @@ class Executor(object):
           - prologue()
           - do_run()
           - epilogue()
-          - unsetup()
+          - teardown()
         :return:
         """
 
-        # setup the executor
-        self.setup()
-
-        try:
+        with self:
             # only do the actual run when is not a dry run
             if not self.arg_config.get("dry_run"):
 
@@ -408,13 +411,6 @@ class Executor(object):
 
                 # executes the epilogue of the kschedule
                 self.epilogue()
-
-        except Exception as e:
-            self.error()
-            raise
-
-        # un-setup the executor
-        self.unsetup()
 
     def prologue(self):
         """
@@ -450,23 +446,19 @@ class Executor(object):
             logger.debug("script stdout: {}".format(proc_stdout))
             logger.debug("script stderr: {}".format(proc_stderr))
 
-    def error(self):
+    def teardown(self, error=False):
         """
-        General placeholder for tearing down the executor because of an error.
-        """
-
-        pass
-
-    def unsetup(self):
-        """
-        General placeholder for un-setting up the simulation
-        Each executor might have different things to setup
+        General placeholder for tearing down the simulation
+        Each executor might have different things to clean up
         (e.g. clean-up files, etc..).
         :return:
         """
 
         # Copy the log file into the output directory
         if os.path.exists(self.logfile_path):
-            logger.info("kronos simulation completed.".upper())
+            if error:
+                logger.error("kronos simulation failed.".upper())
+            else:
+                logger.info("kronos simulation completed.".upper())
             logger.info("copying {} into {}".format(self.logfile_path, self.job_dir))
             copy2(self.logfile_path, self.job_dir)
