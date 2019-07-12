@@ -140,8 +140,4 @@ class ExecutorEventsPar(Executor):
         else:
             logger.info("No timed jobs found.".upper())
 
-        # Copy the log file into the output directory
-        if os.path.exists(os.path.join(os.getcwd(), "kronos-kronos_executor.log")):
-            logger.info("kronos simulation completed.".upper())
-            logger.info("copying {} into {}".format(os.path.join(os.getcwd(), "kronos-kronos_executor.log"), self.job_dir))
-            copy2(os.path.join(os.getcwd(), "kronos-kronos_executor.log"), self.job_dir)
+        super(ExecutorEventsPar, self).unsetup()

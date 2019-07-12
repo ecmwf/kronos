@@ -70,8 +70,9 @@ class Executor(object):
         """
 
         # root logs directed to file only if the executor is instantiated..
+        self.logfile_path = os.path.join(os.getcwd(), "kronos-executor.log")
         root_logger = logging.getLogger()
-        fh = logging.FileHandler('kronos-executor.log', mode='w')
+        fh = logging.FileHandler(self.logfile_path, mode='w')
         fh.setFormatter(logging.Formatter(log_msg_format))
         fh.setLevel(logging.DEBUG)
         root_logger.addHandler(fh)
@@ -464,4 +465,8 @@ class Executor(object):
         :return:
         """
 
-        pass
+        # Copy the log file into the output directory
+        if os.path.exists(self.logfile_path):
+            logger.info("kronos simulation completed.".upper())
+            logger.info("copying {} into {}".format(self.logfile_path, self.job_dir))
+            copy2(self.logfile_path, self.job_dir)
