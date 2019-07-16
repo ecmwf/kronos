@@ -244,29 +244,9 @@ class Executor(object):
 
     def generate_job_internals(self):
 
-        # Test the read cache
-        logger.info("Testing read cache ...")
-        if not generate_read_files.test_read_cache(
-                self.read_cache_path,
-                self._file_read_multiplicity,
-                self._file_read_size_min_pow,
-                self._file_read_size_max_pow):
-
-            logger.info("Read cache not filled, generating ...")
-
-            generate_read_files.generate_read_cache(
-                self.read_cache_path,
-                self._file_read_multiplicity,
-                self._file_read_size_min_pow,
-                self._file_read_size_max_pow
-            )
-            logger.info("Generated.")
-        else:
-            logger.info("OK.")
-
         # Launched jobs, matched with their job-ids
-
         jobs = []
+        need_cache = False
 
         for job_num, job_config in enumerate(self.job_iterator()):
             job_dir = os.path.join(self.job_dir, "job-{}".format(job_num))
@@ -300,6 +280,7 @@ class Executor(object):
                 job_class_module = imp.load_source(job_module_name, job_class_module_file)
 
             job_class = job_class_module.Job
+            need_cache = need_cache or job_class.needs_read_cache
 
             # Enrich the job configuration with the necessary global configurations
             # coming from the configuration file
@@ -323,6 +304,29 @@ class Executor(object):
 
             j.generate()
             jobs.append(j)
+
+        # Test the read cache if needed
+        if need_cache:
+            logger.info("Testing read cache ...")
+            if not generate_read_files.test_read_cache(
+                    self.read_cache_path,
+                    self._file_read_multiplicity,
+                    self._file_read_size_min_pow,
+                    self._file_read_size_max_pow):
+
+                logger.info("Read cache not filled, generating ...")
+
+                generate_read_files.generate_read_cache(
+                    self.read_cache_path,
+                    self._file_read_multiplicity,
+                    self._file_read_size_min_pow,
+                    self._file_read_size_max_pow
+                )
+                logger.info("Generated.")
+            else:
+                logger.info("OK.")
+        else:
+            logger.info("Not testing read cache, no job needs it.")
 
         return jobs
 

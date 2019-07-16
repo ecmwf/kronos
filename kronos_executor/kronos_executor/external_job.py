@@ -8,6 +8,8 @@ from kronos_executor.base_job import BaseJob
 
 class UserAppJob(BaseJob):
 
+    needs_read_cache = False
+
     submit_script_template = None
     ipm_template = None
     darshan_template = None
