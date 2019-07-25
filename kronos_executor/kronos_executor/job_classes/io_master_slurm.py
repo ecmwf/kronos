@@ -21,7 +21,7 @@ export KRONOS_SHARED_DIR="{shared_dir}"
 export KRONOS_TOKEN="{simulation_token}"
 
 # Call the io master and configure it with the appropriate I/O tasks in the time_schedule
-{kronos_bin_dir}/remote_io_master <HOST_FILE> {tasks}
+{kronos_bin_dir}/remote_io_master <HOST_FILE> {input_file}
 
 sleep 5
 
