@@ -219,7 +219,6 @@ def generate_timestep_workflow(args):
 
                 # append this IO task into the job task list
                 job_templ["config_params"]["tasks"].append(task_templ)
-                global_job_id += 1
                 
                 
             # now append the job into the time_schedule template
