@@ -47,6 +47,9 @@ class Executor(object):
         'file_read_size_min_pow',
         'file_read_size_max_pow',
 
+        # ioserver options
+        'ioserver_hosts_file',
+
         # options specific for event based submission
         'execution_mode',
         'notification_host',
@@ -173,6 +176,9 @@ class Executor(object):
             logger.info("Read cache multiplicity: {}".format(self._file_read_multiplicity))
             logger.info("File read min size (2 ^ {}) bytes".format(self._file_read_size_min_pow))
             logger.info("File read max size (2 ^ {}) bytes".format(self._file_read_size_max_pow))
+
+        # path to the ioserver hosts.json file
+        self.ioserver_hosts_file = config.get('ioserver_hosts_file', None)
 
         # check the EVENTS execution mode settings
         self.execution_mode = config.get('execution_mode', "events")
