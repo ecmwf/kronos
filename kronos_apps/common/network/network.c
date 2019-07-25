@@ -2,6 +2,7 @@
 #include "network.h"
 #include "common/logger.h"
 
+#include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -281,7 +282,7 @@ NetConnection* connect_to_server(const char *host, const long int port){
 
     if (connect(srv_conn->socket_fd, (const struct sockaddr *)&serveraddr, sizeof(serveraddr)) < 0){
 
-      ERRO2("Connection error to host %s: ", host);
+      ERRO3("Connection error to host %s: %s", host, strerror(errno));
       return NULL;
 
     } else {
