@@ -115,7 +115,7 @@ int main(int argc, char **argv) {
 
         WARN1("ERROR: Invalid arguments passed");
         WARN1("USAGE:");
-        WARN1("remote_io_master <host-file> <input-json-string>");
+        WARN1("remote_io_master <host-file> <input-json-file>");
         ERRO();
 
     } else {

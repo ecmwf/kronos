@@ -103,14 +103,10 @@ class ExecutorEventsPar(Executor):
         # Finally stop the event dispatcher
         logger.info("Total #events received: {}".format(self.event_manager.get_total_n_events()))
 
-    def unsetup(self):
+    def print_summary(self):
         """
-        Various after-run tasks
-        :return:
+        Print a simulation summary
         """
-
-        # first terminates the dispatcher process
-        self.event_manager.stop_dispatcher()
 
         # print TOTAL TIMED simulation time (= T_end_last_timed_job - T_start_first_timed_job)
         if self.job_submitter.initial_submission_time:
@@ -137,8 +133,16 @@ class ExecutorEventsPar(Executor):
         else:
             logger.info("No timed jobs found.".upper())
 
-        # Copy the log file into the output directory
-        if os.path.exists(os.path.join(os.getcwd(), "kronos-kronos_executor.log")):
-            logger.info("kronos simulation completed.".upper())
-            logger.info("copying {} into {}".format(os.path.join(os.getcwd(), "kronos-kronos_executor.log"), self.job_dir))
-            copy2(os.path.join(os.getcwd(), "kronos-kronos_executor.log"), self.job_dir)
+    def teardown(self, error=False):
+        """
+        Various after-run tasks
+        :return:
+        """
+
+        # first terminates the dispatcher process
+        self.event_manager.stop_dispatcher()
+
+        if not error:
+            self.print_summary()
+
+        super(ExecutorEventsPar, self).teardown(error)

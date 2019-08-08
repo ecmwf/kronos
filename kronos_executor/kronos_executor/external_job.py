@@ -8,6 +8,8 @@ from kronos_executor.base_job import BaseJob
 
 class UserAppJob(BaseJob):
 
+    needs_read_cache = False
+
     submit_script_template = None
     ipm_template = None
     darshan_template = None
@@ -76,6 +78,7 @@ class UserAppJob(BaseJob):
         # update the job submit template with all the configs
 
         # print self.job_config["config_params"]
+        assert self.needed_config_params is not None
         for param_name in self.needed_config_params:
             assert self.job_config["config_params"].get(param_name) is not None, param_name
 

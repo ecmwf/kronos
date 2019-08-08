@@ -24,14 +24,20 @@ def submit_job_from_args(submission_and_callback_params):
 
     jid = submission_and_callback_params["jid"]
     proc_args = submission_and_callback_params["submission_params"]
-    output = subprocess.check_output(proc_args)
+    try:
+        output = subprocess.check_output(proc_args)
+        success = True
+    except subprocess.CalledProcessError as e:
+        # circumvent https://bugs.python.org/issue9400
+        output = (e.returncode, e.cmd, e.output)
+        success = False
 
     submit_job_from_args.t_queue.put( (datetime.now(), jid) )
 
     # TODO: callback not strictly needed anymore, but it would be nice to retain..
     # Job.submission_callback_static(output, submission_and_callback_params["callback_params"])
 
-    return jid, output
+    return jid, success, output
 
 
 def f_init(q):
@@ -141,7 +147,9 @@ class JobSubmitter(object):
         submission_output = self.submitters_pool.map(submit_job_from_args, submission_and_callback_params)
 
         min_submission_time = None
-        for jid in submission_output:
+        for jid, success, output in submission_output:
+            if not success:
+                raise subprocess.CalledProcessError(*output)
 
             tt_jj = self.tsub_queue.get()
             t_ep = datetime2epochs(tt_jj[0])

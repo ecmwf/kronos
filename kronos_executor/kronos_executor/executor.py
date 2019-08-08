@@ -70,8 +70,9 @@ class Executor(object):
         """
 
         # root logs directed to file only if the executor is instantiated..
+        self.logfile_path = os.path.join(os.getcwd(), "kronos-executor.log")
         root_logger = logging.getLogger()
-        fh = logging.FileHandler('kronos-executor.log', mode='w')
+        fh = logging.FileHandler(self.logfile_path, mode='w')
         fh.setFormatter(logging.Formatter(log_msg_format))
         fh.setLevel(logging.DEBUG)
         root_logger.addHandler(fh)
@@ -243,29 +244,9 @@ class Executor(object):
 
     def generate_job_internals(self):
 
-        # Test the read cache
-        logger.info("Testing read cache ...")
-        if not generate_read_files.test_read_cache(
-                self.read_cache_path,
-                self._file_read_multiplicity,
-                self._file_read_size_min_pow,
-                self._file_read_size_max_pow):
-
-            logger.info("Read cache not filled, generating ...")
-
-            generate_read_files.generate_read_cache(
-                self.read_cache_path,
-                self._file_read_multiplicity,
-                self._file_read_size_min_pow,
-                self._file_read_size_max_pow
-            )
-            logger.info("Generated.")
-        else:
-            logger.info("OK.")
-
         # Launched jobs, matched with their job-ids
-
         jobs = []
+        need_cache = False
 
         for job_num, job_config in enumerate(self.job_iterator()):
             job_dir = os.path.join(self.job_dir, "job-{}".format(job_num))
@@ -299,6 +280,7 @@ class Executor(object):
                 job_class_module = imp.load_source(job_module_name, job_class_module_file)
 
             job_class = job_class_module.Job
+            need_cache = need_cache or job_class.needs_read_cache
 
             # Enrich the job configuration with the necessary global configurations
             # coming from the configuration file
@@ -322,6 +304,29 @@ class Executor(object):
 
             j.generate()
             jobs.append(j)
+
+        # Test the read cache if needed
+        if need_cache:
+            logger.info("Testing read cache ...")
+            if not generate_read_files.test_read_cache(
+                    self.read_cache_path,
+                    self._file_read_multiplicity,
+                    self._file_read_size_min_pow,
+                    self._file_read_size_max_pow):
+
+                logger.info("Read cache not filled, generating ...")
+
+                generate_read_files.generate_read_cache(
+                    self.read_cache_path,
+                    self._file_read_multiplicity,
+                    self._file_read_size_min_pow,
+                    self._file_read_size_max_pow
+                )
+                logger.info("Generated.")
+            else:
+                logger.info("OK.")
+        else:
+            logger.info("Not testing read cache, no job needs it.")
 
         return jobs
 
@@ -380,6 +385,12 @@ class Executor(object):
 
         raise NotImplementedError
 
+    def __enter__(self):
+        self.setup()
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        self.teardown(exc_type is not None)
+
     def run(self):
         """
         Main function that manages the execution of the time_schedule,
@@ -388,27 +399,22 @@ class Executor(object):
           - prologue()
           - do_run()
           - epilogue()
-          - unsetup()
+          - teardown()
         :return:
         """
 
-        # setup the executor
-        self.setup()
+        with self:
+            # only do the actual run when is not a dry run
+            if not self.arg_config.get("dry_run"):
 
-        # only do the actual run when is not a dry run
-        if not self.arg_config.get("dry_run"):
+                # executes the prologue of the kschedule
+                self.prologue()
 
-            # executes the prologue of the kschedule
-            self.prologue()
+                # do the actual run (submits the kschedule jobs)
+                self.do_run()
 
-            # do the actual run (submits the kschedule jobs)
-            self.do_run()
-
-            # executes the epilogue of the kschedule
-            self.epilogue()
-
-        # un-setup the executor
-        self.unsetup()
+                # executes the epilogue of the kschedule
+                self.epilogue()
 
     def prologue(self):
         """
@@ -444,12 +450,19 @@ class Executor(object):
             logger.debug("script stdout: {}".format(proc_stdout))
             logger.debug("script stderr: {}".format(proc_stderr))
 
-    def unsetup(self):
+    def teardown(self, error=False):
         """
-        General placeholder for un-setting up the simulation
-        Each executor might have different things to setup
+        General placeholder for tearing down the simulation
+        Each executor might have different things to clean up
         (e.g. clean-up files, etc..).
         :return:
         """
 
-        pass
+        # Copy the log file into the output directory
+        if os.path.exists(self.logfile_path):
+            if error:
+                logger.error("kronos simulation failed.".upper())
+            else:
+                logger.info("kronos simulation completed.".upper())
+            logger.info("copying {} into {}".format(self.logfile_path, self.job_dir))
+            copy2(self.logfile_path, self.job_dir)
