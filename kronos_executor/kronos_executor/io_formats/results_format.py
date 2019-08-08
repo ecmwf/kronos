@@ -76,7 +76,7 @@ class ResultsFormat(JSONIoFormat):
             "created": self.created,
             "uid": self.uid,
             "ranks": self.ranks,
-            "kronosVersion": "0.6.0",
+            "kronosVersion": "0.6.1",
             "kronosSHA1": "none"
         }
 

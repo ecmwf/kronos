@@ -2,6 +2,11 @@
 HISTORY
 =======
 
+0.6.1 (08-08-2019)
+------------------
+
+- apps/executor: improved error handling and reporting
+
 0.6.0 (04-07-2019)
 ------------------
 
