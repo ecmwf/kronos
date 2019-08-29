@@ -238,6 +238,13 @@
                                                     "n_read": {
                                                         "type": "integer",
                                                         "description": "Number of read"
+                                                    },
+                                                    "files": {
+                                                        "type": "array",
+                                                        "description": "Specific files to read from",
+                                                        "items": {
+                                                            "type": "string"
+                                                        }
                                                     }
                                                 },
                                                 "required": [
@@ -264,7 +271,14 @@
                                                     },
                                                     "n_files": {
                                                         "type": "integer",
-                                                        "description": "The number of files to wirite to"
+                                                        "description": "The number of files to write to"
+                                                    },
+                                                    "files": {
+                                                        "type": "array",
+                                                        "description": "Specific files to write to",
+                                                        "items": {
+                                                            "type": "string"
+                                                        }
                                                     },
                                                     "n_write": {
                                                         "type": "integer",
