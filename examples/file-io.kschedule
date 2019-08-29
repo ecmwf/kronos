@@ -1,0 +1,46 @@
+{
+    "created": "2018-07-09T21:30:53Z",
+    "jobs": [
+        {
+            "timed": true,
+            "depends": [],
+            "frames": [
+                [
+                    {
+                        "name": "file-write",
+                        "kb_write": 1048576,
+                        "n_write": 1024,
+                        "n_files": 3,
+                        "files": ["file1", "file2", "file3"]
+                    },
+                    {
+                        "name": "file-read",
+                        "mmap": false,
+                        "kb_read": 1048576,
+                        "n_read": 1024,
+                        "files": ["file1", "file2", "file3"]
+                    }
+                ]
+            ],
+            "metadata": {
+                "job_name": "appID-0",
+                "workload_name": "fileio"
+            },
+            "num_procs": 1,
+            "start_delay": 0
+        }
+    ],
+    "scaling_factors": {
+        "flops": 1.0,
+        "kb_collective": 1.0,
+        "kb_pairwise": 1.0,
+        "kb_read": 1.0,
+        "kb_write": 1.0,
+        "n_collective": 1.0,
+        "n_pairwise": 1.0,
+        "n_read": 1.0,
+        "n_write": 1.0
+    },
+    "tag": "KRONOS-KSCHEDULE-MAGIC",
+    "version": 3
+}

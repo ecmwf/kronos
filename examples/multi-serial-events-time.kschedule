@@ -1,0 +1,166 @@
+{
+    "created": "2018-07-09T21:30:26Z",
+    "jobs": [
+        {
+            "timed": true,
+            "depends": [],
+            "frames": [
+                [
+                    {
+                        "flops": 10000000000,
+                        "name": "cpu"
+                    },
+                    {
+                        "continue_files": false,
+                        "kb_write": 2500.0,
+                        "mmap": false,
+                        "n_files": 1,
+                        "n_write": 10,
+                        "name": "file-write"
+                    }
+                ]
+            ],
+            "metadata": {
+                "job_name": "dummy-appID-0",
+                "workload_name": "dummy-workload"
+            },
+            "num_procs": 1,
+            "start_delay": 0
+        },
+        {
+            "timed": true,
+            "depends": [
+                        {    
+                          "info": {
+                            "timestamp": 0
+                          },   
+                          "type": "Time"
+                        } 
+            ],
+            "frames": [
+                [
+                    {
+                        "flops": 10000000000,
+                        "name": "cpu"
+                    },
+                    {
+                        "continue_files": false,
+                        "kb_write": 2500.0,
+                        "mmap": false,
+                        "n_files": 1,
+                        "n_write": 10,
+                        "name": "file-write"
+                    }
+                ]
+            ],
+            "metadata": {
+                "job_name": "dummy-appID-1",
+                "workload_name": "dummy-workload"
+            },
+            "num_procs": 1,
+            "start_delay": 0
+        },
+        {
+            "timed": true,
+            "depends": [
+                        {    
+                          "info": {
+                            "timestamp": 5
+                          },   
+                          "type": "Time"
+                        } 
+            ],
+            "frames": [
+                [
+                    {
+                        "flops": 10000000000,
+                        "name": "cpu"
+                    },
+                    {
+                        "continue_files": false,
+                        "kb_write": 2500.0,
+                        "mmap": false,
+                        "n_files": 1,
+                        "n_write": 10,
+                        "name": "file-write"
+                    }
+                ]
+            ],
+            "metadata": {
+                "job_name": "dummy-appID-2",
+                "workload_name": "dummy-workload"
+            },
+            "num_procs": 1,
+            "start_delay": 0
+        },
+        {
+            "timed": true,
+            "depends": [
+                        {    
+                          "info": {
+                            "timestamp": 8
+                          },   
+                          "type": "Time"
+                        } 
+            ],
+            "frames": [
+                [
+                    {
+                        "flops": 10000000000,
+                        "name": "cpu"
+                    },
+                    {
+                        "continue_files": false,
+                        "kb_write": 2500.0,
+                        "mmap": false,
+                        "n_files": 1,
+                        "n_write": 10,
+                        "name": "file-write"
+                    }
+                ]
+            ],
+            "metadata": {
+                "job_name": "dummy-appID-3",
+                "workload_name": "dummy-workload"
+            },
+            "num_procs": 1,
+            "start_delay": 0
+        },
+        {
+            "timed": true,
+            "depends": [
+                        {    
+                          "info": {
+                            "timestamp": 10
+                          },   
+                          "type": "Time"
+                        } 
+            ],
+            "frames": [
+                [
+                    {
+                        "flops": 10000000000,
+                        "name": "cpu"
+                    },
+                    {
+                        "continue_files": false,
+                        "kb_write": 250.0,
+                        "mmap": false,
+                        "n_files": 1,
+                        "n_write": 10,
+                        "name": "file-write"
+                    }
+                ]
+            ],
+            "metadata": {
+                "job_name": "dummy-appID-4",
+                "workload_name": "dummy-workload"
+            },
+            "num_procs": 1,
+            "start_delay": 0
+        }
+    ],
+    "tag": "KRONOS-KSCHEDULE-MAGIC",
+    "uid": 4426,
+    "version": 3
+}
