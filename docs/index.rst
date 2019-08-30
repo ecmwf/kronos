@@ -13,6 +13,8 @@ Welcome to Kronos's documentation!
    README
    INSTALL
 
+   synapp/index
+
    ref/index
 
    HISTORY
