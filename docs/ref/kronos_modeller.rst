@@ -1,8 +1,9 @@
+=======================
 kronos_modeller package
 =======================
 
 Subpackages
------------
+===========
 
 .. toctree::
 
@@ -21,7 +22,7 @@ Subpackages
     kronos_modeller.tools
 
 Submodules
-----------
+==========
 
 kronos_modeller.app_kernels module
 ----------------------------------

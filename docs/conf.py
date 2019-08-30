@@ -126,7 +126,7 @@ latex_elements = {
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
     (master_doc, 'Kronos.tex', u'Kronos Documentation',
-     u'Tiago Quintino, Antonino Bonanni, Simon Smart', 'manual'),
+     u'Tiago Quintino, Antonino Bonanni, Simon Smart, Olivier Iffrig', 'manual'),
 ]
 
 

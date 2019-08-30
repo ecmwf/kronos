@@ -7,11 +7,15 @@ Welcome to Kronos's documentation!
 ==================================
 
 .. toctree::
-   :maxdepth: 4
+   :maxdepth: 2
    :caption: Contents:
 
-   kronos_executor
-   kronos_modeller
+   README
+   INSTALL
+
+   ref/index
+
+   HISTORY
 
 
 Indices and tables

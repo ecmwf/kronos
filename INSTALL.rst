@@ -1,6 +1,6 @@
-=======
-INSTALL
-=======
+=================
+Installing Kronos
+=================
 
 
 Kronos Executor
@@ -11,45 +11,36 @@ The Kronos Executor is part of the Kronos package. It reads a schedule file KSch
 benchmarking purposes. Here below step-by-step guide for installing the executor is provided.
 
 1. **Get and install *conda* from sources (if not available on the system):**
-  The easiest way to install the required python dependencies is using the *conda* package management system. If this is not available in your system it may be installed in a local directory as follows:
+  The easiest way to install the required python dependencies is using the *conda* package management system. If this is not available in your system it may be installed in a local directory as follows::
 
-  > wget https://repo.continuum.io/miniconda/Miniconda2-latest-Linux-x86_64.sh
+    wget https://repo.continuum.io/miniconda/Miniconda2-latest-Linux-x86_64.sh
+    sh Miniconda2-latest-Linux-x86_64.sh -b -p ${working_directory}/miniconda
+    unset PYTHONPATH
+    export PATH=${working_directory}/miniconda/bin:${PATH}
 
-  > sh Miniconda2-latest-Linux-x86_64.sh -b -p ${working_directory}/miniconda
+2. **Extract Kronos sources**::
 
-  > unset PYTHONPATH
+    cd {working_directory}
+    cp kronos-<version>-Source.tar.gz .
+    tar xzvf kronos-<version>-Source.tar.gz
 
-  > export PATH=${working_directory}/miniconda/bin:${PATH}
+3. **Create conda environment for executor**::
 
-2. **Extract Kronos sources**
+    cd kronos-<version>-Source
+    conda env create -n executor -f kronos_executor/conda_env_executor.yml
 
-  > cd {working_directory}
+4. **Install Kronos Executor**::
 
-  > cp kronos-<version>-Source.tar.gz .
-
-  > tar xzvf kronos-<version>-Source.tar.gz
-
-3. **Create conda environment for executor**
-
-  > cd kronos-<version>-Source
-
-  > conda env create -n executor -f kronos_executor/conda_env_executor.yml
-
-4. **Install Kronos Executor**
-
-  > source activate executor
-
-  > cd kronos_executor
-
-  > pip install .
+    source activate executor
+    cd kronos_executor
+    pip install .
 
   At this stage, Kronos-Executor should be installed under the “executor” conda environment and all
   the appropriate environment settings should be automatically detected. It is possible to verify
-  the correct installation of the Kronos-Executor by running:
+  the correct installation of the Kronos-Executor by running::
 
-    > source activate executor
-
-    > conda env export
+      source activate executor
+      conda env export
 
   The name of kronos=<version> should now appear in the list of packages available in the executor
   environment.
@@ -67,15 +58,12 @@ benchmarking purposes. Here below step-by-step guide for installing the executor
     4. POSIX 2004 system
 
   To build the synthetic app executable (named kronos-synapp), create a build directory outside the
-  source tree:
+  source tree::
 
-  > mkdir {kronos-build}
-
-  > cd {kronos-build}
-
-  > cmake <path-to-kronos-source>
-
-  > make
+    mkdir {kronos-build}
+    cd {kronos-build}
+    cmake <path-to-kronos-source>
+    make
 
 If the synthetic apps are successfully installed, an executor called "kronos-synapp" is generated
 in {kronos-build}/bin

@@ -401,12 +401,12 @@ class Executor(object):
         """
         Main function that manages the execution of the time_schedule,
         it includes the following phases:
-          - setup()
-          - prologue()
-          - do_run()
-          - epilogue()
-          - teardown()
-        :return:
+
+        - setup()
+        - prologue()
+        - do_run()
+        - epilogue()
+        - teardown()
         """
 
         with self:
