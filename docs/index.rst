@@ -14,6 +14,7 @@ Welcome to Kronos's documentation!
    INSTALL
 
    synapp/index
+   executor/index
 
    ref/index
 
