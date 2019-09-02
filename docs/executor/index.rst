@@ -42,3 +42,4 @@ Reference documentation
 
    config
    kschedule
+   events
