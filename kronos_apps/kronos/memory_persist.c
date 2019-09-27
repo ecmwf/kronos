@@ -82,8 +82,6 @@ static int execute_mem_persist(const void* data) {
     long n_bytes;
     char *pmemaddr;
 
-    char file_buffer[BUF_LEN];
-    int cc;
     int is_pmem;
 
     size_t mapped_len;
@@ -95,9 +93,6 @@ static int execute_mem_persist(const void* data) {
 
     /* #bytes that this process allocates */
     n_bytes = params.node_mem/page_size > 0? (params.node_mem/page_size+1) * page_size : page_size;
-
-    /* copying some bytes on this buffer */
-    memset(file_buffer, 'v', n_bytes);
 
     TRACE3("Executing MEM PERSISTs: %li, per MPI process: %li", config->mem_kb, params.node_mem);
     TRACE2( "PATH_MAX: %i\n", PATH_MAX);
@@ -126,11 +121,11 @@ static int execute_mem_persist(const void* data) {
     /* write it to the pmem */
     if (is_pmem) {
         TRACE1( "Real PMEM found, persisting..");
-        pmem_memcpy_persist(pmemaddr, file_buffer, cc);
+        pmem_memset_persist(pmemaddr, 'v', n_bytes);
     } else {
         TRACE1( "No real PMEM found, persisting..");
-        memcpy(pmemaddr, file_buffer, cc);
-        pmem_msync(pmemaddr, cc);
+        memset(pmemaddr, 'v', n_bytes);
+        pmem_msync(pmemaddr, n_bytes);
     }
 
     pmem_unmap(pmemaddr, mapped_len);

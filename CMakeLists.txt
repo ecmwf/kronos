@@ -23,6 +23,10 @@ ecbuild_add_option(
 
 # look for pmemio
 find_package(pmemio)
+ecbuild_add_option(
+    FEATURE PMEMIO
+    DESCRIPTION "Enable persistent memory support"
+    CONDITION pmemio_FOUND )
 message("HAVE_PMEMIO: ${HAVE_PMEMIO}")
 
 if(PMEMIO_FOUND)
