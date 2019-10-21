@@ -13,7 +13,7 @@ test_requirements = [
 
 setup(
     name='kronos-executor',
-    version='0.6.1',
+    version='0.6.2',
     description="Execution of a HPC workload on a target system",
     long_description="Execution of a HPC workload on a target system",
     author="Tiago Quintino, Antonino Bonanni, Simon Smart",

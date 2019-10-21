@@ -2,6 +2,12 @@
 Kronos version history
 ======================
 
+0.6.2 (21-10-2019)
+------------------
+
+- update documentation
+- synapp: fix some issues (data chaining, memory_persist)
+
 0.6.1 (08-08-2019)
 ------------------
 
