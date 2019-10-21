@@ -1,0 +1,329 @@
+{
+    "created": "2018-07-09T21:30:53Z",
+    "jobs": [
+        {
+            "timed": true,
+            "depends": [],
+            "frames": [
+                [
+                    {
+                        "flops": 260412581,
+                        "name": "cpu"
+                    },
+                    {
+                        "invalidate": true,
+                        "kb_read": 7365724.8125,
+                        "mmap": true,
+                        "n_read": 156,
+                        "name": "file-read"
+                    },
+                    {
+                        "continue_files": false,
+                        "kb_write": 125.263671875,
+                        "mmap": false,
+                        "n_files": 1,
+                        "n_write": 5,
+                        "name": "file-write"
+                    }
+                ],
+                [
+                    {
+                        "continue_files": false,
+                        "kb_write": 1.0,
+                        "mmap": false,
+                        "n_files": 1,
+                        "n_write": 1,
+                        "name": "file-write"
+                    }
+                ],
+                [
+                    {
+                        "continue_files": false,
+                        "kb_write": 5355243.4306640625,
+                        "mmap": false,
+                        "n_files": 1,
+                        "n_write": 9,
+                        "name": "file-write"
+                    }
+                ],
+                [
+                    {
+                        "continue_files": false,
+                        "kb_write": 25790.390625,
+                        "mmap": false,
+                        "n_files": 1,
+                        "n_write": 1,
+                        "name": "file-write"
+                    }
+                ],
+                [
+                    {
+                        "continue_files": false,
+                        "kb_write": 8.009765625,
+                        "mmap": false,
+                        "n_files": 1,
+                        "n_write": 1,
+                        "name": "file-write"
+                    }
+                ],
+                [
+                    {
+                        "flops": 260412581,
+                        "name": "cpu"
+                    }
+                ],
+                [
+                    {
+                        "continue_files": false,
+                        "kb_write": 374741.71875,
+                        "mmap": false,
+                        "n_files": 1,
+                        "n_write": 1,
+                        "name": "file-write"
+                    }
+                ],
+                [
+                    {
+                        "continue_files": false,
+                        "kb_write": 1323552.0703125,
+                        "mmap": false,
+                        "n_files": 1,
+                        "n_write": 2,
+                        "name": "file-write"
+                    }
+                ],
+                [
+                    {
+                        "flops": 260412581,
+                        "name": "cpu"
+                    }
+                ],
+                [
+                    {
+                        "continue_files": false,
+                        "kb_write": 3533604.609375,
+                        "mmap": false,
+                        "n_files": 1,
+                        "n_write": 1,
+                        "name": "file-write"
+                    }
+                ],
+                [
+                    {
+                        "flops": 260412581,
+                        "name": "cpu"
+                    }
+                ],
+                [
+                    {
+                        "continue_files": false,
+                        "kb_write": 4599628.0078125,
+                        "mmap": false,
+                        "n_files": 1,
+                        "n_write": 3,
+                        "name": "file-write"
+                    }
+                ],
+                [
+                    {
+                        "flops": 260412581,
+                        "name": "cpu"
+                    }
+                ],
+                [
+                    {
+                        "flops": 260412581,
+                        "name": "cpu"
+                    }
+                ],
+                [
+                    {
+                        "flops": 260412581,
+                        "name": "cpu"
+                    }
+                ],
+                [
+                    {
+                        "invalidate": true,
+                        "kb_read": 1.0,
+                        "mmap": true,
+                        "n_read": 1,
+                        "name": "file-read"
+                    }
+                ],
+                [
+                    {
+                        "flops": 260412581,
+                        "name": "cpu"
+                    }
+                ],
+                [
+                    {
+                        "invalidate": true,
+                        "kb_read": 1.0,
+                        "mmap": true,
+                        "n_read": 1,
+                        "name": "file-read"
+                    }
+                ],
+                [
+                    {
+                        "continue_files": false,
+                        "kb_write": 32235.404296875,
+                        "mmap": false,
+                        "n_files": 1,
+                        "n_write": 3,
+                        "name": "file-write"
+                    }
+                ],
+                [
+                    {
+                        "continue_files": false,
+                        "kb_write": 19340.19140625,
+                        "mmap": false,
+                        "n_files": 1,
+                        "n_write": 1,
+                        "name": "file-write"
+                    }
+                ],
+                [
+                    {
+                        "continue_files": false,
+                        "kb_write": 12895.19140625,
+                        "mmap": false,
+                        "n_files": 1,
+                        "n_write": 1,
+                        "name": "file-write"
+                    }
+                ],
+                [
+                    {
+                        "continue_files": false,
+                        "kb_write": 12895.19140625,
+                        "mmap": false,
+                        "n_files": 1,
+                        "n_write": 1,
+                        "name": "file-write"
+                    }
+                ],
+                [
+                    {
+                        "continue_files": false,
+                        "kb_write": 25790.3828125,
+                        "mmap": false,
+                        "n_files": 1,
+                        "n_write": 2,
+                        "name": "file-write"
+                    }
+                ],
+                [
+                    {
+                        "flops": 260412581,
+                        "name": "cpu"
+                    }
+                ],
+                [
+                    {
+                        "continue_files": false,
+                        "kb_write": 12895.19140625,
+                        "mmap": false,
+                        "n_files": 1,
+                        "n_write": 1,
+                        "name": "file-write"
+                    }
+                ],
+                [
+                    {
+                        "continue_files": false,
+                        "kb_write": 12895.19140625,
+                        "mmap": false,
+                        "n_files": 1,
+                        "n_write": 1,
+                        "name": "file-write"
+                    }
+                ],
+                [
+                    {
+                        "continue_files": false,
+                        "kb_write": 19340.19140625,
+                        "mmap": false,
+                        "n_files": 1,
+                        "n_write": 1,
+                        "name": "file-write"
+                    }
+                ],
+                [
+                    {
+                        "continue_files": false,
+                        "kb_write": 722886.5546875,
+                        "mmap": false,
+                        "n_files": 1,
+                        "n_write": 1,
+                        "name": "file-write"
+                    }
+                ],
+                [
+                    {
+                        "invalidate": true,
+                        "kb_read": 1.0,
+                        "mmap": true,
+                        "n_read": 1,
+                        "name": "file-read"
+                    }
+                ],
+                [
+                    {
+                        "flops": 260412581,
+                        "name": "cpu"
+                    },
+                    {
+                        "invalidate": true,
+                        "kb_read": 1.0,
+                        "mmap": true,
+                        "n_read": 1,
+                        "name": "file-read"
+                    },
+                    {
+                        "continue_files": false,
+                        "kb_write": 736.4267578125,
+                        "mmap": false,
+                        "n_files": 1,
+                        "n_write": 2,
+                        "name": "file-write"
+                    }
+                ]
+            ],
+            "metadata": {
+                "job_name": "appID-0",
+                "workload_name": "main/fc/inigroup/an/getini/serial"
+            },
+            "num_procs": 1,
+            "start_delay": 0
+        }
+    ],
+    "scaling_factors": {
+        "flops": 1.0,
+        "kb_collective": 1.0,
+        "kb_pairwise": 1.0,
+        "kb_read": 1.0,
+        "kb_write": 1.0,
+        "n_collective": 1.0,
+        "n_pairwise": 1.0,
+        "n_read": 1.0,
+        "n_write": 1.0
+    },
+    "tag": "KRONOS-KSCHEDULE-MAGIC",
+    "uid": 4426,
+    "unscaled_metrics_sums": {
+        "flops": 95136577882416.19,
+        "kb_collective": 208517553.62158203,
+        "kb_pairwise": 673515252.5620931,
+        "kb_read": 728008033.3916016,
+        "kb_write": 741712101.625,
+        "n_collective": 4027725.0,
+        "n_pairwise": 21589693.0,
+        "n_read": 554277.9349999997,
+        "n_write": 32810.097499999974
+    },
+    "version": 3
+}

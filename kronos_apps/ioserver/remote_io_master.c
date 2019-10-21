@@ -97,6 +97,7 @@ int main(int argc, char **argv) {
     JSON* json_input;
     const JSON* json_input_tasks;
     const JSON* _jsonmsg;
+    const JSON* json_tmp;
 
     int imsg, io_msg_len;
 
@@ -164,7 +165,14 @@ int main(int argc, char **argv) {
         FATL2("opening input file %s failed!", input_json_file);
     }
 
-    json_input_tasks = json_object_get(json_object_get(json_input, "config_params") , "tasks");
+    json_tmp = json_object_get(json_input, "config_params");
+    if (json_tmp == NULL) {
+        FATL2("no \"config_params\" found in %s", input_json_file);
+    }
+    json_input_tasks = json_object_get(json_tmp, "tasks");
+    if (json_tmp == NULL) {
+        FATL2("no \"tasks\" found in %s[\"config_params\"]", input_json_file);
+    }
     /* --------------------------------------- */
 
 

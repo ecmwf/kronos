@@ -1,12 +1,12 @@
+=======================
 kronos_executor package
 =======================
 
 Subpackages
------------
+===========
 
 .. toctree::
 
-    kronos_executor.bin
     kronos_executor.config_format
     kronos_executor.io_formats
     kronos_executor.job_classes
@@ -14,7 +14,7 @@ Subpackages
     kronos_executor.tests
 
 Submodules
-----------
+==========
 
 kronos_executor.base_job module
 -------------------------------
