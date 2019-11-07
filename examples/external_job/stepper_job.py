@@ -82,6 +82,45 @@ class PBSMixin(object):
     load_env = True
 
 
+job_template_slurm = """\
+#!/bin/bash
+#SBATCH --job-name={job_name}
+#SBATCH --ntasks=1
+#SBATCH --cpus-per-task=1
+#SBATCH --output={job_output_file}
+#SBATCH --error={job_error_file}
+
+wdir="{write_dir}"
+cd $wdir
+
+# kronos simulation token
+export KRONOS_TOKEN="{simulation_token}"
+
+{source_kronos_env}
+
+nsteps={nsteps}
+
+for step in $(seq 1 $nsteps) ; do
+    echo "Running step $step"
+    {stepper} $step {size_kb} "{shared_dir}"
+    sleep 10
+    {notify_script} --type="NotifyMetadata" stepper "{{\\"step\\": $step}}"
+done
+
+# send end-of-job msg
+{notify_script} --type="Complete" stepper
+"""
+
+
+class SlurmMixin(object):
+    submit_script_template = job_template_slurm
+    submit_command = "sbatch"
+    depend_parameter = "--dependency=afterany:"
+    depend_separator = ":"
+    launcher_command = 'mpirun'
+    load_env = True
+
+
 class Job(TrivialMixin, UserAppJob):
 
     needed_config_params = [
