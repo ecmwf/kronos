@@ -264,8 +264,8 @@ class KResultsData(object):
                 if self.n_procs_node:
 
                     # #nodes
-                    n_nodes = job.n_cpu/int(self.n_procs_node) if not job.n_cpu % int(self.n_procs_node) else \
-                        job.n_cpu/int(self.n_procs_node)+1
+                    n_nodes = job.n_cpu//int(self.n_procs_node) if not job.n_cpu % int(self.n_procs_node) else \
+                        job.n_cpu//int(self.n_procs_node)+1
 
                     running_jpn["nodes"] = add_value_to_sublist(running_jpn["nodes"], first, last, n_nodes)
 

@@ -19,7 +19,7 @@ def distribute_int_kernel_ops(n_procs, nelems, mpi_rank, work_accumulator):
     :return:
     """
 
-    nelems_local = nelems / n_procs
+    nelems_local = nelems // n_procs
     accumulator_new = (work_accumulator + nelems) % n_procs
 
     if accumulator_new > work_accumulator:
