@@ -7,7 +7,7 @@ import unittest
 from kronos_executor import generate_read_files
 from kronos_executor.global_config import global_config
 
-from testutils import scratch_tmpdir
+from .testutils import scratch_tmpdir
 
 
 class ReadFileGenerationTests(unittest.TestCase):
@@ -66,7 +66,7 @@ class ReadFileGenerationTests(unittest.TestCase):
             for sz in [32]:
                 for cnt in range(3):
                     fn = os.path.join(path, "read-cache-{}".format(cnt))
-                    print fn
+                    print(fn)
                     self.assertTrue(os.path.exists(fn))
                     self.assertTrue(os.path.isfile(fn))
                     self.assertEqual(os.path.getsize(fn), sz)

@@ -75,7 +75,7 @@ class KernelWorkDistribution(object):
         kernel_params = {ker.name: [s[0] for s in ker.signals] for ker in available_kernels}
 
         # kernel type associated to each metric (e.g. kernel_type_for_metric["kb_write"] = "file-write")
-        kernel_type_for_metric = {p:ker_name for ker_name, params in kernel_params.iteritems() for p in params}
+        kernel_type_for_metric = {p:ker_name for ker_name, params in kernel_params.items() for p in params}
 
         # kernel type for the metric requested
         kernel_type_of_requested_metric = kernel_type_for_metric[metric_name]

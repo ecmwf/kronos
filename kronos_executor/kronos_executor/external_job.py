@@ -86,7 +86,7 @@ class UserAppJob(BaseJob):
 
             if isinstance(self.job_config["config_params"][param_name], int) or \
                 isinstance(self.job_config["config_params"][param_name], bool) or \
-                  isinstance(self.job_config["config_params"][param_name], unicode) or \
+                  isinstance(self.job_config["config_params"][param_name], str) or \
                     isinstance(self.job_config["config_params"][param_name], float):
                         script_format.update({param_name: self.job_config["config_params"][param_name]})
 
@@ -198,7 +198,7 @@ class UserAppJob(BaseJob):
         # get the submission params
         subprocess_args = self.get_submission_arguments(depend_job_ids)
 
-        print "Submitting job {}".format(self.id)
+        print("Submitting job {}".format(self.id))
 
         # multi-threaded option
         if multi_threading:

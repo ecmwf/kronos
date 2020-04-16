@@ -5,7 +5,7 @@ import shutil
 import unittest
 
 from kronos_executor.base_job import BaseJob
-from testutils import scratch_tmpdir
+from .testutils import scratch_tmpdir
 
 
 class ExecutorStub(object):

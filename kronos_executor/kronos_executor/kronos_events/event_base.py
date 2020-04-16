@@ -29,7 +29,7 @@ class EventBase(object):
             self.validate_json(message_json)
 
         # keep the top-level keys as attributes
-        for k, v in message_json.iteritems():
+        for k, v in message_json.items():
             setattr(self, k, v)
 
     def get_hashed(self):
@@ -39,12 +39,12 @@ class EventBase(object):
         """
         raise NotImplementedError
 
-    def __unicode__(self):
+    def __str__(self):
         return "KRONOS-EVENT: type: {}; job: {}".format(self.__message_json["type"],
                                                         self.__message_json["info"].get("job"))
 
-    def __str__(self):
-        return unicode(self).encode('utf-8')
+    def __bytes__(self):
+        return str(self).encode('utf-8')
 
     def __eq__(self, other_event):
         """

@@ -77,7 +77,7 @@ class ProfileFormat(JSONIoFormat):
 
         # Append any time series data that is present
         time_series = {}
-        for name, values in model_job.timesignals.iteritems():
+        for name, values in model_job.timesignals.items():
 
             if values is not None:
                 time_series[name] = {
