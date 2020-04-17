@@ -9,7 +9,7 @@ class PickableObject(object):
     def __init__(self):
         pass
 
-    def __unicode__(self):
+    def __str__(self):
         return "class name: {}".format(self.__class__.__name__)
 
     @classmethod

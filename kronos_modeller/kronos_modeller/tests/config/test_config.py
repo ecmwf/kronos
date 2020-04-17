@@ -89,7 +89,7 @@ class ConfigTests(unittest.TestCase):
 
         # An empty override dictionary does nothing
         with tempfile.NamedTemporaryFile() as f:
-            f.write("{}")
+            f.write(b"{}")
             f.flush()
             self.assertRaises(ConfigurationError, lambda: Config(config_dict=f.name))
 
@@ -105,7 +105,7 @@ class ConfigTests(unittest.TestCase):
                 "kschedule_filename": "kschedule_output",
                 #"unknown": "parameter",
                 "dir_output": "{}"
-            }}""".format(existing_path, existing_path))
+            }}""".format(existing_path, existing_path).encode('utf-8'))
             f.flush()
             cfg = Config(config_path=f.name)
         self.assertEqual(cfg.dir_input, existing_path)
@@ -121,7 +121,7 @@ class ConfigTests(unittest.TestCase):
                 "kprofile_files": ["file1", "file2"],
                 "kschedule_filename": "kschedule_output",
                 "unknown": "{}"
-            }}""".format(existing_path, existing_path))
+            }}""".format(existing_path, existing_path).encode('utf-8'))
             f.flush()
             self.assertRaises(ConfigurationError, lambda: Config(config_path=f.name))
 
