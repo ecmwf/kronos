@@ -43,8 +43,8 @@ class StdoutECMWFIngestedJob(IngestedJob):
 
             assert self.duration == (time_end - time_start)
 
-            max_cpus = self.nnodes * self.max_node_threads / self.hyperthreads
-            threads = self.tasks * self.task_threads / self.hyperthreads
+            max_cpus = self.nnodes * self.max_node_threads // self.hyperthreads
+            threads = self.tasks * self.task_threads // self.hyperthreads
 
         except Exception as e:
             print("Rethrowing exception {}".format(e))
