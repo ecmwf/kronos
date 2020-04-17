@@ -15,6 +15,8 @@ ii) A modified imap, which has a hook to report when each object has finished pr
 """
 from multiprocessing.pool import Pool, IMapIterator, RUN, mapstar
 
+import sys
+
 # The worker processes are only used for one task. We store the global data here to ensure that we
 # don't have to worry about pickling the objects at any point other than initialisation, whilst retaining
 # executable functions that are trivial.
@@ -58,7 +60,7 @@ class IMapIteratorLocal(IMapIterator):
     completes, rather than when it is released back into the queue
     """
     def __init__(self, callback, *args, **kwargs):
-        super(IMapIteratorLocal, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
         self.element_count = 0
         self.callback = callback
@@ -68,7 +70,14 @@ class IMapIteratorLocal(IMapIterator):
         self.callback(self.element_count, i, obj[1])
 
         # print "Calling _set: {} {}".format(i, obj)
-        super(IMapIteratorLocal, self)._set(i, obj)
+        super()._set(i, obj)
+
+if sys.version_info < (3, 8):
+    class IMapIteratorLocalWrapper(IMapIteratorLocal):
+        def __init__(self, callback, pool, *args, **kwargs):
+            super(IMapIteratorLocalWrapper, self).__init__(callback, pool._cache, *args, **kwargs)
+
+    IMapIteratorLocal = IMapIteratorLocalWrapper
 
 
 class ProcessingPool(Pool):
@@ -114,14 +123,14 @@ class ProcessingPool(Pool):
             # This is derived from super().imap, but using IMapIteratorLocal instead of IMapIterator
             assert self._state == RUN
             if chunksize == 1:
-                result = IMapIteratorLocal(self.callback, self._cache)
+                result = IMapIteratorLocal(self.callback, self)
                 self._taskqueue.put((((result._job, i, _internal_worker, (x,), {})
                                       for i, x in enumerate(iterable)), result._set_length))
                 return result
             else:
                 assert chunksize > 1
                 task_batches = Pool._get_tasks(_internal_worker, iterable, chunksize)
-                result = IMapIteratorLocal(self.callback, self._cache)
+                result = IMapIteratorLocal(self.callback, self)
                 self._taskqueue.put((((result._job, i, mapstar, (x,), {})
                                       for i, x in enumerate(task_batches)), result._set_length))
                 return (item for chunk in result for item in chunk)
