@@ -149,7 +149,7 @@ class IPMIngestedJobTest(unittest.TestCase):
             label='label2'
         )
 
-        self.assertRaises(AssertionError, job1.aggregate(job2))
+        self.assertRaises(AssertionError, job1.aggregate, job2)
 
     def test_aggregation(self):
         """

@@ -198,7 +198,11 @@ class DarshanIngestedJob(IngestedJob):
                 file_detail.adjust_times(time_difference)
 
         # update the time end
-        self.time_end = max(self.time_end, other.time_end)
+        if other.time_end is not None:
+            if self.time_end is None:
+                self.time_end = other.time_end
+            else:
+                self.time_end = max(self.time_end, other.time_end)
 
         for filename, file_detail in other.file_details.items():
             if filename in self.file_details:

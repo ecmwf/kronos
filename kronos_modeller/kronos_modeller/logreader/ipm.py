@@ -133,6 +133,7 @@ class IPMIngestedJob(IngestedJob):
         # n.b. Essentially all of the interesting information is contained in the tasks.
         # TODO: It is possible that doing this will result in errors if there are IPM runs of different commands
         #       within a submit script, with differing MPI configurations.
+        assert self.label == rhs.label
         self.tasks += rhs.tasks
 
     def model_time_series(self):
