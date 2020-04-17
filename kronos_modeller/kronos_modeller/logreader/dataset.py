@@ -16,7 +16,7 @@ those to be processed.
 import logging
 
 try:
-    import cPickle as pickle
+    import pickle as pickle
 except:
     import pickle
 
@@ -43,11 +43,11 @@ class IngestedDataSet(object):
         self.ingest_path = ingest_path
         self.ingest_config = ingest_config
 
-    def __unicode__(self):
+    def __str__(self):
         return "Dataset({}) - {} jobs".format(self.__class__.__name__, len(self.joblist))
 
-    def __str__(self):
-        return unicode(self).encode('utf-8')
+    def __bytes__(self):
+        return str(self).encode('utf-8')
 
     def model_jobs(self):
         """
@@ -104,7 +104,7 @@ class IngestedDataSet(object):
 
     @classmethod
     def from_pickled(cls, ingest_file):
-        print "ingesting {}".format(ingest_file)
+        print("ingesting {}".format(ingest_file))
         with open(ingest_file, 'r') as f:
             return pickle.load(f)
 
@@ -121,7 +121,7 @@ class IngestedDataSet(object):
         dataset = None
 
         # Remove reparse from the dictionary, so it is never used to compare validity of cached files.
-        print ingest_config
+        print(ingest_config)
         reparse = ingest_config.pop('reparse', False)
         cache = ingest_config.pop('cache', True)
 
@@ -129,12 +129,12 @@ class IngestedDataSet(object):
 
             try:
                 with open(cache_file, 'r') as f:
-                    print "Using cached data from: {}".format(f.name)
+                    print("Using cached data from: {}".format(f.name))
                     dataset = pickle.load(f)
 
             except (IOError, OSError) as e:
                 if e.errno == errno.ENOENT:
-                    print "No cache file found for ingest path"
+                    print("No cache file found for ingest path")
                 else:
                     # An actual file read error occurred. Throw back to the user.
                     raise
@@ -159,7 +159,7 @@ class IngestedDataSet(object):
 
             # Pickle the object for later rapid loading.
             if cache:
-                print "Writing cache file: {}".format(cache_file)
+                print("Writing cache file: {}".format(cache_file))
                 with open(cache_file, "w") as f:
                     pickle.dump(dataset, f)
 

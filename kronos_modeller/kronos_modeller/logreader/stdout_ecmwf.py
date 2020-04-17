@@ -47,9 +47,9 @@ class StdoutECMWFIngestedJob(IngestedJob):
             threads = self.tasks * self.task_threads / self.hyperthreads
 
         except Exception as e:
-            print "Rethrowing exception {}".format(e)
-            print "Error in job: {}".format(self.label)
-            print "Filename: {}".format(self.filename)
+            print("Rethrowing exception {}".format(e))
+            print("Error in job: {}".format(self.label))
+            print("Filename: {}".format(self.filename))
             raise
 
         # TODO: We want to capture multi-threading as well as multi-processing somewhere3
@@ -134,7 +134,7 @@ class StdoutECMWFLogReader(LogReader):
                                 # Keep track of if this is the first error printed for this file. If it is, we want to
                                 # start a newline so it doesn't interfere with the printing of the progress.
                                 if not have_error:
-                                    print ""
+                                    print("")
                                 logger.info( "Fieldname {} already has value {}, not {} for file {}".format(
                                     fieldname, attrs[fieldname], fieldval, filename))
                                 have_error = True
@@ -157,7 +157,7 @@ class StdoutECMWFLogReader(LogReader):
             if attrs.get(field, None) is None:
                 valid = False
                 if not have_error:
-                    print ""
+                    print("")
                 logger.info( "Required field {} not found in log file {}".format(field, filename))
                 have_error = True
 

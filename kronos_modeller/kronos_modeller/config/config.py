@@ -9,7 +9,7 @@ import json
 import logging
 import os
 
-from config_format import ConfigFormat
+from .config_format import ConfigFormat
 from kronos_modeller import log_msg_format
 from kronos_modeller.kronos_exceptions import ConfigurationError
 
@@ -69,9 +69,9 @@ class Config(object):
             raise ConfigurationError("no keys found in configuration file")
 
         # check all the configurations
-        for k, v in config_dict.iteritems():
+        for k, v in config_dict.items():
 
-            print "checking for attribute {}..".format(k)
+            print("checking for attribute {}..".format(k))
             if not hasattr(self, k):
                 raise ConfigurationError("Unexpected configuration keyword provided - {}:{}".format(k, v))
             setattr(self, k, v)

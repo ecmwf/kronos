@@ -110,7 +110,7 @@ class UserGeneratedJob(object):
         """
 
         pruned_time_signals = {}
-        for tsk, tsv in self.timesignals.iteritems():
+        for tsk, tsv in self.timesignals.items():
             pruned_time_signals[tsk] = copy.deepcopy(tsv)
 
             # if the time-signal is not available, repalce all its values with -1
@@ -126,7 +126,7 @@ class UserGeneratedJob(object):
         :return:
         """
 
-        return max([max(tsv.xvalues) for tsk, tsv in self.timesignals.iteritems()])
+        return max([max(tsv.xvalues) for tsk, tsv in self.timesignals.items()])
 
     def model_job(self):
         """
@@ -150,7 +150,7 @@ class UserGeneratedJob(object):
         """
 
         # NOTE: User-generated job time-signals all have the same length!
-        return len(self.timesignals.values()[0].yvalues)
+        return len(next(iter(self.timesignals.values())).yvalues)
 
 
 class UserGeneratedJobSet(object):

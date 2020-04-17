@@ -68,7 +68,7 @@ class SyntheticWorkloadGenerator(object):
         submit_rate_factor = self.config["job_submission_strategy"]['submit_rate_factor']
         for wl_clusters in self.clusters:
             start_times = [j.time_start for j in wl_clusters['jobs_for_clustering']]
-            print "using cluster generated from workload {}".format(wl_clusters["source-workload"])
+            print("using cluster generated from workload {}".format(wl_clusters["source-workload"]))
 
             # invoke the required scheduling strategy
             jobs_schedule_strategy = job_schedule_factory[schedule_key](start_times,

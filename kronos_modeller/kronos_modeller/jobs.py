@@ -9,7 +9,7 @@
 import numpy as np
 import logging
 
-from kronos_exceptions import ModellingError, ConfigurationError
+from .kronos_exceptions import ModellingError, ConfigurationError
 from kronos_executor.definitions import time_signal_names
 from kronos_modeller.time_signal.time_signal import TimeSignal
 from kronos_modeller.tools.merge import max_not_none, min_not_none
@@ -57,7 +57,7 @@ class ModelJob(object):
         """
         Set the fields as passed in
         """
-        for k, v in kwargs.iteritems():
+        for k, v in kwargs.items():
             if not hasattr(self, k):
                 raise ModellingError("Setting field {} of ModelJob. Field not available.".format(k))
             if getattr(self, k) is not None:
@@ -71,7 +71,7 @@ class ModelJob(object):
             self.timesignals[series] = None
 
         if timesignals:
-            for series, values in timesignals.iteritems():
+            for series, values in timesignals.items():
 
                 # if this timeseries is available then get it into the modeljob timeseries..
                 if values:
@@ -84,11 +84,11 @@ class ModelJob(object):
         #      multiple sources, and be merged in. Or added in with regression processes. check_job() should be
         #      called immediately before the first time the ModelJob is to be USED where validity would be required.
 
-    def __unicode__(self):
+    def __str__(self):
         return "ModelJob({})".format(self.label)
 
-    def __str__(self):
-        return unicode(self).encode('utf-8')
+    def __bytes__(self):
+        return str(self).encode('utf-8')
 
     @staticmethod
     def from_json(js):
@@ -99,8 +99,8 @@ class ModelJob(object):
             timesignals={n: TimeSignal.from_values(n, xvals=t['times'], yvals=t['values'],
                                                                priority=t['priority'],
                                                                base_signal_name=n)
-                         for n, t in js.get('time_series', {}).iteritems()},
-            **{k: v for k, v in js.iteritems() if hasattr(ModelJob, k) and v is not None}
+                         for n, t in js.get('time_series', {}).items()},
+            **{k: v for k, v in js.items() if hasattr(ModelJob, k) and v is not None}
         )
 
     def merge(self, other, force=False):
@@ -208,7 +208,7 @@ class ModelJob(object):
         """
 
         output = None
-        for ts_name, ts in self.timesignals.iteritems():
+        for ts_name, ts in self.timesignals.items():
             if ts is not None and ts.sum != 0:
                 if output is None:
                     output = "Num samples: \t{}\n".format(len(ts.xvalues))
@@ -243,7 +243,7 @@ class ModelJob(object):
                                                                                             null_ts))
             return False
 
-        for ts_name, ts in self.timesignals.iteritems():
+        for ts_name, ts in self.timesignals.items():
 
             if max(ts.xvalues) > self.duration:
                 logger.info("job [{}] with label [{}] "
@@ -401,7 +401,7 @@ class IngestedJob(object):
         self.timesignals = {}
 
         # Other parameters to update
-        for key, value in kwargs.iteritems():
+        for key, value in kwargs.items():
             if not hasattr(self, key):
                 raise AttributeError("Attribute {} of {} is unknown".format(key, self.__class__.__name__))
             else:
@@ -496,7 +496,7 @@ def concatenate_modeljobs(cat_job_label, job_list):
                                              xvalues=xvalues,
                                              yvalues=yvalues
                                              )
-    print "job {} created".format(cat_job_label)
+    print("job {} created".format(cat_job_label))
 
     # TODO: make a decision on what nnodes and nproc to choose..
     return ModelJob(

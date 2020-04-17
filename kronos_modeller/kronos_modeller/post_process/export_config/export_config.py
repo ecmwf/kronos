@@ -42,7 +42,7 @@ class ExportConfig(object):
         ExportConfigFormat().validate_json(self._config_dict)
 
         # check all the configurations
-        for k, v in self._config_dict.iteritems():
+        for k, v in self._config_dict.items():
 
             if not hasattr(self, k):
                 raise ConfigurationError("Unexpected configuration keyword provided - {}:{}".format(k, v))
@@ -55,7 +55,7 @@ class ExportConfig(object):
         if os.path.exists(out_dir):
             time_stamp_now = datetime.datetime.now().strftime('%Y%m%d%H%M%S')
             time_stamped_outdir = out_dir + "." + time_stamp_now
-            print "Dir: {} already exists!\n..moving it to: {}".format(out_dir, time_stamped_outdir)
+            print("Dir: {} already exists!\n..moving it to: {}".format(out_dir, time_stamped_outdir))
             os.rename(out_dir, time_stamped_outdir)
 
     @classmethod

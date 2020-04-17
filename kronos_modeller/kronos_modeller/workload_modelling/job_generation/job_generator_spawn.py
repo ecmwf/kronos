@@ -48,11 +48,11 @@ class JobGeneratorSpawn(JobGenerator):
 
         # mean #CPUS in each cluster (from jobs for which ncpus is available, otherwise 1)
         mean_cpus = {cl_id: np.mean([job.ncpus if job.ncpus else 1 for job in cl_jobs])
-                     for cl_id, cl_jobs in jobs_in_each_cluster.iteritems()}
+                     for cl_id, cl_jobs in jobs_in_each_cluster.items()}
 
         # mean #NODES in each cluster (from jobs for which nnodes is available, otherwise 1)
         mean_nodes = {cl_id: np.mean([job.nnodes if job.nnodes else 1 for job in cl_jobs])
-                      for cl_id, cl_jobs in jobs_in_each_cluster.iteritems()}
+                      for cl_id, cl_jobs in jobs_in_each_cluster.items()}
 
         # loop over the clusters and generates jobs as needed
         generated_model_jobs = []

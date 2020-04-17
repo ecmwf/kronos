@@ -66,7 +66,7 @@ class IPMTaskInfo(object):
         self.bytes_read = 0
         self.bytes_written = 0
 
-    def __unicode__(self):
+    def __str__(self):
         return "IPMTaskInfo({} MPI events, {} MPI bytes, {} IO events, {} IO bytes)".format(
             self.mpi_pairwise_count_send + self.mpi_pairwise_count_recv + self.mpi_collective_count,
             self.mpi_pairwise_bytes_send + self.mpi_pairwise_bytes_recv + self.mpi_collective_bytes,
@@ -74,8 +74,8 @@ class IPMTaskInfo(object):
             self.bytes_read + self.bytes_written
         )
 
-    def __str__(self):
-        return unicode(self).encode('utf-8')
+    def __bytes__(self):
+        return str(self).encode('utf-8')
 
 
 class IPMIngestedJob(IngestedJob):

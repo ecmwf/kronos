@@ -62,12 +62,12 @@ class DarshanIngestedJobFile(object):
         for p_name, p_descr in self.param_map.items():
             setattr(self, p_name, p_descr["init"])
 
-    def __unicode__(self):
+    def __str__(self):
         return "DarshanFile(times: [{:.6f}, {:.6f}]: {} reads, {} bytes, {} writes, {} bytes)".format(
             self.open_time, self.close_time, self.read_count, self.bytes_read, self.write_count, self.bytes_written)
 
-    def __str__(self):
-        return unicode(self).encode('utf-8')
+    def __bytes__(self):
+        return str(self).encode('utf-8')
 
     def update_parameter(self, val_name, new_value):
         """
@@ -186,7 +186,7 @@ class DarshanIngestedJob(IngestedJob):
         (and all these should be together).
         """
         assert self.label == other.label
-        print "aggregating job: {}".format(self.label)
+        print("aggregating job: {}".format(self.label))
 
         time_difference = other.time_start - self.time_start
         if time_difference < 0:
@@ -200,7 +200,7 @@ class DarshanIngestedJob(IngestedJob):
         # update the time end
         self.time_end = max(self.time_end, other.time_end)
 
-        for filename, file_detail in other.file_details.iteritems():
+        for filename, file_detail in other.file_details.items():
             if filename in self.file_details:
                 self.file_details[filename].aggregate(file_detail)
             else:
@@ -225,7 +225,7 @@ class DarshanIngestedJob(IngestedJob):
               ])
 
             # print summary data of this ingested job
-            for fk, fv in self.file_details.iteritems():
+            for fk, fv in self.file_details.items():
                 summary_data[fv.define_behaviour()] = summary_data.get(fv.define_behaviour(), 0) + 1
                 for sk, sv in summary_data.items():
                     summary_data[sk] += getattr(fv, sk, 0)
@@ -238,7 +238,7 @@ class DarshanIngestedJob(IngestedJob):
         # write time series of operations
         elif mode == "time_series":
             time_series = []
-            for fk, fv in self.file_details.iteritems():
+            for fk, fv in self.file_details.items():
                 time_series.append(
                     [fv.open_time,
                      fv.close_time if fv.close_time else -1,
@@ -401,7 +401,7 @@ class DarshanLogReader(LogReader):
         #  => it will only "cat" the file
         self.parser_command = self.parser_command if self.parser_command else "cat"
         if self.parser_command == "cat":
-            print "INFO: Darshan parser-command not provided, I assume the file has already been parsed.."
+            print("INFO: Darshan parser-command not provided, I assume the file has already been parsed..")
 
         super(DarshanLogReader, self).__init__(path, **kwargs)
 
@@ -418,7 +418,7 @@ class DarshanLogReader(LogReader):
 
         if pipes.returncode != 0:
             if len(error) == 0:
-                print ""
+                print("")
             logger.info( "Got an error: {} - {}".format(pipes.returncode, filename), flush=True)
 
             # Just skip this (with warnings), as the Darshan data is only being used in conjunction with something
@@ -608,7 +608,7 @@ class DarshanLogReader3(LogReader):
 
         if pipes.returncode != 0:
             if len(error) == 0:
-                print ""
+                print("")
             logger.info( "Got an error: {} - {}".format(pipes.returncode, filename), flush=True)
 
             # Just skip this (with warnings), as the Darshan data is only being used in conjunction with something

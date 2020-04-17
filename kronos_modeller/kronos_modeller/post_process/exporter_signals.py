@@ -34,7 +34,7 @@ class ExporterTimeSeries(ExporterBase):
         plot time series of metrics
         :return:
         """
-        print "Exporting time-series data to {}".format(output_path)
+        print("Exporting time-series data to {}".format(output_path))
         for sim in self.sim_set.sims:
 
             # time bins (default value is one per second)
@@ -63,7 +63,7 @@ class ExporterTimeSeries(ExporterBase):
                                                 tsv["times"],
                                                 tsv["values"],
                                                 tsv["elapsed"],
-                                                tsv["processes"]) for tsk, tsv in series_dict.iteritems()}
+                                                tsv["processes"]) for tsk, tsv in series_dict.items()}
 
             # if some jobs in this class have been found:
             if found_jobs_in_class:
@@ -82,7 +82,7 @@ class ExporterTimeSeries(ExporterBase):
 
             # add the running signals
             found_jobs_in_class, times, running_signals = sim.create_global_running_series(times_plot, job_class_regex=cl_regex)
-            _signals = {k: ResultRunningSignal(k, times, values) for k, values in running_signals.iteritems()}
+            _signals = {k: ResultRunningSignal(k, times, values) for k, values in running_signals.items()}
 
             if found_jobs_in_class:
                 signals[cl_name].update(_signals)
@@ -93,7 +93,7 @@ class ExporterTimeSeries(ExporterBase):
         n_groups = len(config_lines)
         groups = []
 
-        for ts_name, ts_options in config_lines.iteritems():
+        for ts_name, ts_options in config_lines.items():
 
             pp += 1
 
@@ -107,7 +107,7 @@ class ExporterTimeSeries(ExporterBase):
             group_signals = [all_classes_signal.get_exportable()]
 
             # Then append all the other signals to the group
-            for cl_name, cl_regex in job_classes.iteritems():
+            for cl_name, cl_regex in job_classes.items():
                 signal = signals[cl_name][ts_name]
                 signal.name = cl_name
                 signal.color = job_class_color(cl_name, job_classes.keys())

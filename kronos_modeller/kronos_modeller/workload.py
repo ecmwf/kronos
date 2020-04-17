@@ -7,7 +7,7 @@
 # does it submit to any jurisdiction.
 import logging
 import numpy as np
-from jobs import ModelJob
+from .jobs import ModelJob
 
 from kronos_executor.definitions import signal_types, time_signal_names
 from kronos_modeller.kronos_tools.utils import running_sum
@@ -29,11 +29,11 @@ class Workload(object):
         self.jobs = list(jobs) if jobs else None
         self.tag = tag if tag else str(Workload.tag_default + 1)
 
-    def __unicode__(self):
+    def __str__(self):
         return "WorkloadData - {} job sets".format(len(self.jobs))
 
-    def __str__(self):
-        return unicode(self).encode('utf-8')
+    def __bytes__(self):
+        return str(self).encode('utf-8')
 
     @staticmethod
     def from_kprofile(kprofile):
@@ -80,7 +80,7 @@ class Workload(object):
 
         # Concatenate all the available time series data for each of the jobs
         total_metrics = {}
-        for signal_name, signal_details in signal_types.iteritems():
+        for signal_name, signal_details in signal_types.items():
 
             try:
                 times_vec = np.concatenate([job.timesignals[signal_name].xvalues + job.time_start

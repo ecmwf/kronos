@@ -11,7 +11,7 @@ import json
 import os
 import tempfile
 import unittest
-from StringIO import StringIO
+from io import StringIO
 
 import jsonschema
 from kronos_modeller.config.config import Config
