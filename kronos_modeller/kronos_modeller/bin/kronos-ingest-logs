@@ -18,10 +18,7 @@ This cache file may be used in other elements of the kronos process.
 
 import sys
 import argparse
-try:
-    import cPickle as pickle
-except:
-    import pickle
+import pickle
 
 from kronos_modeller import logreader
 from kronos_modeller.logreader.base import LogReader
