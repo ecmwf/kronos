@@ -45,10 +45,10 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     if args.show:
-        print ResultsFormat.describe()
+        print(ResultsFormat.describe())
     elif args.validate:
         try:
             ResultsFormat.from_filename(args.validate)
         except Exception as e:
-            print e
+            print(e)
             sys.exit(1)

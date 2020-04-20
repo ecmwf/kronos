@@ -1,4 +1,4 @@
-#!/usr/bin/env python2.7
+#!/usr/bin/env python3
 # (C) Copyright 1996-2018 ECMWF.
 # 
 # This software is licensed under the terms of the Apache Licence Version 2.0
@@ -71,15 +71,15 @@ if __name__ == "__main__":
     # parse the arguments..
     args = parser.parse_args()
 
-    print "ARGS", args
+    print("ARGS", args)
 
     if not args.type:
-        print "Ingestion type is required."
-        print "Please supply --type=<type>"
-        print "Choices: {}".format(logreader.ingest_types)
+        print("Ingestion type is required.")
+        print("Please supply --type=<type>")
+        print("Choices: {}".format(logreader.ingest_types))
         sys.exit(1)
 
-    print "Ingesting file(s) associated with path: {}".format(args.path)
+    print("Ingesting file(s) associated with path: {}".format(args.path))
 
     ingest_config = {
 
@@ -99,11 +99,11 @@ if __name__ == "__main__":
     if args.clock_rate:
         ingest_config['clock_rate'] = args.clock_rate
 
-    print "Ingest config: {}".format(ingest_config)
+    print("Ingest config: {}".format(ingest_config))
 
     dataset = logreader.ingest_data(args.type, args.path, ingest_config=ingest_config)
 
-    print "Ingestion complete. Writing dump file ..."
+    print("Ingestion complete. Writing dump file ...")
     with open(args.output, "w") as f:
         pickle.dump(dataset, f)
-    print "done"
+    print("done")

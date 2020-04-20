@@ -46,10 +46,10 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     if args.show:
-        print ScheduleFormat.describe()
+        print(ScheduleFormat.describe())
     elif args.validate:
         try:
             ScheduleFormat.from_filename(args.validate)
         except Exception as e:
-            print e
+            print(e)
             sys.exit(1)
