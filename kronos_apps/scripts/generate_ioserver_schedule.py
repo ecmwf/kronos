@@ -390,12 +390,12 @@ if __name__ == "__main__":
     # ///////// some args checks.. /////////
     # check the output directory
     if not os.path.isdir(args.io_root_path):
-        print "Root path not valid!"
+        print("Root path not valid!")
         exit(1)
         
     if args.workflow != "timestep" and (args.n_producer_timesteps or args.n_consumers):
-        print "\n\nWARNING: options --n-producer-timesteps and --n-consumers only valid" + \
-            " with workflow=timestep => options ignored\n"
+        print("\n\nWARNING: options --n-producer-timesteps and --n-consumers only valid" + \
+            " with workflow=timestep => options ignored\n")
     #///////////////////////////////////////
 
     if args.workflow == "timestep":
@@ -408,7 +408,7 @@ if __name__ == "__main__":
         kschedule = generate_allread_workflow(args)
 
     else:
-        print "workflow option not recognised"
+        print("workflow option not recognised")
         exit(1)
 
     schedule_name = "ioserver_workflow_{}.kschedule".format(args.workflow)
@@ -417,8 +417,8 @@ if __name__ == "__main__":
     with open(schedule_name, "w") as f:
         json.dump(kschedule, f, indent=2)
 
-    print "\n * WORKFLOW SUMMARY * "
-    print "N jobs:      {:10}".format( len(kschedule.get("jobs", [])) )
-    print "__________________________"
-    print "TOTAL N jobs:      {:10}".format(len(kschedule.get("jobs", [])))
-    print "\nSchedule: {}".format(schedule_name)
+    print("\n * WORKFLOW SUMMARY * ")
+    print("N jobs:      {:10}".format( len(kschedule.get("jobs", [])) ))
+    print("__________________________")
+    print("TOTAL N jobs:      {:10}".format(len(kschedule.get("jobs", []))))
+    print("\nSchedule: {}".format(schedule_name))
