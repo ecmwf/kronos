@@ -147,7 +147,7 @@ def generate_timestep_workflow(args):
     for timestep_job in range(args.n_producer_timesteps):
         
         # files written by this job (one file per IO task)
-        job_files = produced_files(args.nhosts, timestep_job, args.tasks_per_job)
+        job_files = produced_files(nhosts, timestep_job, args.tasks_per_job)
 
         # prepare job template
         job_templ = copy.deepcopy(job_template)
@@ -187,7 +187,7 @@ def generate_timestep_workflow(args):
     for timestep_job in range(args.n_producer_timesteps):
         
         # files written by this time-step job (one file per IO task)
-        producer_job_files = produced_files(args.nhosts, timestep_job, args.tasks_per_job)
+        producer_job_files = produced_files(nhosts, timestep_job, args.tasks_per_job)
         
         # loop over consumer jobs
         for job_prod in range(args.n_consumers):
@@ -245,7 +245,6 @@ def generate_allwrite_workflow(args):
     io_dir_root = args.io_root_path
     nhosts = args.nhosts
 
-    file_uid = 0
     for jobid in range(args.njobs):
 
         # print "jobid ", jobid
@@ -257,7 +256,7 @@ def generate_allwrite_workflow(args):
         job_templ["metadata"]["workload_name"] = "workload-write"
         
         # files written by this job (one file per IO task)
-        job_files = produced_files(args.nhosts, jobid, args.tasks_per_job)
+        job_files = produced_files(nhosts, jobid, args.tasks_per_job)
 
         # loop over IO tasks
         for hid, fname, in job_files:
@@ -300,7 +299,6 @@ def generate_allread_workflow(args):
     io_dir_root = args.io_root_path
     nhosts = args.nhosts
 
-    file_uid = 0
     for jobid in range(args.njobs):
 
         # print "jobid ", jobid
@@ -312,7 +310,7 @@ def generate_allread_workflow(args):
         job_templ["metadata"]["workload_name"] = "workload-read"
         
         # files written by the corresponding job
-        job_files = produced_files(args.nhosts, jobid, args.tasks_per_job)
+        job_files = produced_files(nhosts, jobid, args.tasks_per_job)
 
         # loop over IO tasks
         for hid, fname, in job_files:

@@ -95,6 +95,10 @@ class SyntheticWorkloadGenerator(object):
                                                      wl_clusters['source-workload'],
                                                      metrics_hard_limits=self.config.get("metrics_hard_limits"))
 
+            generated_sa_from_all_wl.append(modelled_sa_jobs)
+
+        return generated_sa_from_all_wl
+
 
     @staticmethod
     def normalize_jobs(model_jobs, wl_clusters):

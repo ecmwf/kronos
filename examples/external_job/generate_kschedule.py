@@ -1,7 +1,6 @@
 
 from __future__ import print_function
 
-import copy
 import json
 import strict_rfc3339
 
