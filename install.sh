@@ -123,6 +123,10 @@ install_executor() {
         # install the conda dependencies first
         if [[ $isoffline == 1 ]]; then
 
+            # disable offline install for now
+            echo "offline install is disabled"
+            exit 1
+
             echo "installing executor dependencies (offline).."
 
             # create an empty environment
@@ -189,6 +193,10 @@ install_modeller() {
 
         # install the conda dependencies first
         if [[ $isoffline == 1 ]]; then
+
+            # disable offline install for now
+            echo "offline install is disabled"
+            exit 1
 
             echo "installing modeller dependencies (offline).."
 
@@ -370,12 +378,6 @@ while true ; do
         exit 1 ;;
     esac
 done
-
-# disable offline install for now
-if [[ $offline_flag == 1 ]]; then
-  echo "offline install is disabled"
-  exit 1
-fi
 
 
 # ==== check all the installation options =====
