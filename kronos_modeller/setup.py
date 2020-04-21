@@ -4,7 +4,7 @@
 from setuptools import setup, find_packages
 
 requirements = [
-    "kronos-executor==0.6.2"
+    "kronos-executor==0.7.0"
 ]
 
 test_requirements = [
@@ -13,7 +13,7 @@ test_requirements = [
 
 setup(
     name='kronos-modeller',
-    version='0.6.2',
+    version='0.7.0',
     description="Modelling of an HPC workload to be executed by the kronos-executor",
     long_description="Modelling of an HPC workload to be executed by the kronos-executor",
     author="Tiago Quintino, Antonino Bonanni, Simon Smart",
