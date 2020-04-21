@@ -27,14 +27,14 @@ class EventNotifyMetadata(EventBase):
                      ("type", self.type),
                      ("app", self.info["app"]),
                      ("job", self.info["job"]),
-                     tuple(tuple((k, v)) for k, v in sorted(self.metadata.iteritems()) ),
+                     tuple(tuple((k, v)) for k, v in sorted(self.metadata.items()) ),
                      )
                     )
 
-    def __unicode__(self):
+    def __str__(self):
         return "KRONOS-EVENT: type:{}; job:{}; metadata::{}".format(self.type,
                                                                    self.info.get("job"),
-                                                                   ", ".join(["{}:{}".format(k, v) for k, v in self.metadata.iteritems()])
+                                                                   ", ".join(["{}:{}".format(k, v) for k, v in self.metadata.items()])
                                                                    )
 
     def __eq__(self, other):

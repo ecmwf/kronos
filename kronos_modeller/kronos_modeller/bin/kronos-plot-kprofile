@@ -57,7 +57,7 @@ if __name__ == "__main__":
             model_job = ModelJob.from_json(job)
             labelled_jobs.setdefault(job["label"], [model_job]).append(model_job)
     else:
-        print "too many labels in KProfile data (>10). I'm not plotting.."
+        print("too many labels in KProfile data (>10). I'm not plotting..")
         sys.exit(1)
 
     wl_orig_group = WorkloadDataGroup.from_labelled_jobs(labelled_jobs)
@@ -90,7 +90,7 @@ if __name__ == "__main__":
     cum_model_vals = {}
     for ll, label in enumerate(wl_orig_group.tags):
 
-        print "label: {}".format(label)
+        print("label: {}".format(label))
 
         # ------- retrieve jobs fro the original workload.. ------
         kprofile_workload_orig = wl_orig_group.get_workload_by_name(label)

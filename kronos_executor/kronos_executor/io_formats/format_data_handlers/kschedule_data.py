@@ -64,7 +64,7 @@ class KScheduleData(ScheduleFormat):
                     for kernel_param in cls.kernel_name_keys_map[ker["name"]]:
                         job_series[kernel_param] += signal_types[kernel_param]["type"](ker[kernel_param])
 
-            for k,v in _series.iteritems():
+            for k,v in _series.items():
                 v.append(job_series[k])
 
         return _series[metric_name]
@@ -95,8 +95,8 @@ class KScheduleData(ScheduleFormat):
         # check for non-synthetic app jobs in the time_schedule (they won't be included for stats)
         external_jobs = [job for job in self.synapp_data if not job.get("frames")]
         if external_jobs:
-            print "[INFO]: The following jobs in kschedule are (external jobs) => not counted for statistics summary"
-            print "\n".join([job["metadata"]["job_name"] for job in external_jobs])
+            print("[INFO]: The following jobs in kschedule are (external jobs) => not counted for statistics summary")
+            print("\n".join([job["metadata"]["job_name"] for job in external_jobs]))
 
         if not re_expression:
             return [job for job in self.synapp_data if job.get("frames")]

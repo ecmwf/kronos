@@ -171,7 +171,7 @@ class HPCJob(BaseJob):
         # get the submission params
         subprocess_args = self.get_submission_arguments(depend_job_ids)
 
-        print "Submitting job {}".format(self.id)
+        print("Submitting job {}".format(self.id))
 
         # multi-threaded option
         if multi_threading:

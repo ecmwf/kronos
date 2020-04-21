@@ -52,12 +52,12 @@ class ClusterSpawnStrategy(WorkloadModellingStrategy):
         :return:
         """
 
-        print "applying {}".format(__name__)
+        print("applying {}".format(__name__))
         # configure and apply clustering (as per config)
         classifier = clustering_types[config["job_clustering"]["type"]](self.workloads)
         classifier.apply(config["job_clustering"])
         self.clusters = classifier.get_clusters()
-        print "clusters found!"
+        print("clusters found!")
 
         # generate the jobs according to the bove clusters and spawning strategy
         self.generate_synthetic_workload(self.clusters, config)
@@ -71,8 +71,8 @@ class ClusterSpawnStrategy(WorkloadModellingStrategy):
         schedule_key = self.generation_mapping[config["job_submission_strategy"]['type']][0]
         spawning_strategy = self.generation_mapping[config["job_submission_strategy"]['type']][1]
 
-        print "schedule_key ", schedule_key
-        print "spawning_strategy ", spawning_strategy
+        print("schedule_key ", schedule_key)
+        print("spawning_strategy ", spawning_strategy)
 
         n_bins_for_pdf = config["job_submission_strategy"]["n_bins_for_pdf"]
 
@@ -84,7 +84,7 @@ class ClusterSpawnStrategy(WorkloadModellingStrategy):
         submit_rate_factor = config["job_submission_strategy"]['submit_rate_factor']
         for wl_clusters in clusters:
             start_times = [j.time_start for j in wl_clusters['jobs_for_clustering']]
-            print "using cluster generated from workload {}".format(wl_clusters["source-workload"])
+            print("using cluster generated from workload {}".format(wl_clusters["source-workload"]))
 
             # invoke the required scheduling strategy
             jobs_schedule_strategy = job_schedule_factory[schedule_key](start_times,

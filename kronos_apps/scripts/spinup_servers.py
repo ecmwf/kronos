@@ -1,4 +1,4 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python3
 
 # (C) Copyright 1996-2018 ECMWF.
 #
@@ -36,19 +36,19 @@ if __name__ == "__main__":
 
     # check for file existence
     if not os.path.exists(args.host_file):
-        print "host file {} not found!".format(args.host_file)
+        print("host file {} not found!".format(args.host_file))
         exit(1)
 
     with open(args.host_file, "r") as f:
         json_data = json.load(f)
 
-    print "Spinning up servers..\n"
+    print("Spinning up servers..\n")
     for addr in json_data:
     
         ihost = addr["host"]
         iport = addr["port"]
 
-        print "spinning up server {} on port {}".format(ihost, iport)
+        print("spinning up server {} on port {}".format(ihost, iport))
 
         # if LOG_FILE is defined, pass it on to the server exe invocation
         log_file_export = ""

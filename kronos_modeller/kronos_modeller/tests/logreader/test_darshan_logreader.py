@@ -61,8 +61,8 @@ class DarshanIngestedJobFileTest(unittest.TestCase):
         expected_str = "DarshanFile(times: [{:.6f}, {:.6f}]: {} reads, {} bytes, {} writes, {} bytes)".format(
             f.open_time, f.close_time, f.read_count, f.bytes_read, f.write_count, f.bytes_written)
 
+        self.assertEqual(bytes(f), expected_str.encode('utf-8'))
         self.assertEqual(str(f), expected_str)
-        self.assertEqual(unicode(f), expected_str)
 
     def test_aggregate_same_name(self):
         """
@@ -199,8 +199,8 @@ class DarshanIngestedJobTest(unittest.TestCase):
 
         # Check defaults
         job = DarshanIngestedJob(file_details={"empty": "job"})
-        self.assertEquals(len(job.file_details), 1)
-        self.assertEquals(job.file_details['empty'], "job")
+        self.assertEqual(len(job.file_details), 1)
+        self.assertEqual(job.file_details['empty'], "job")
         self.assertEqual(job.uid, None)
         self.assertEqual(job.nprocs, None)
         self.assertEqual(job.jobid, None)
@@ -216,8 +216,8 @@ class DarshanIngestedJobTest(unittest.TestCase):
             log_version=99.7,
             label="a-label"
         )
-        self.assertEquals(len(job.file_details), 1)
-        self.assertEquals(job.file_details['another'], "attempt")
+        self.assertEqual(len(job.file_details), 1)
+        self.assertEqual(job.file_details['another'], "attempt")
         self.assertEqual(job.uid, 123)
         self.assertEqual(job.nprocs, 44)
         self.assertEqual(job.jobid, 56)

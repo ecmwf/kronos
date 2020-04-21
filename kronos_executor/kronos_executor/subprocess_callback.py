@@ -25,10 +25,10 @@ class SubprocessManager(object):
                 output = subprocess.check_output(args)
                 callback(output)
             except OSError:
-                print "Command not found {}".format(args[0])
+                print("Command not found {}".format(args[0]))
             except subprocess.CalledProcessError as e:
-                print "Error in process {}".format(args[0])
-                print "Output: {}".format(e.output)
+                print("Error in process {}".format(args[0]))
+                print("Output: {}".format(e.output))
 
             # Ensure that the thread is removed from the list.
             finally:
@@ -66,6 +66,6 @@ class SubprocessManager(object):
         """
         Wait until all of the threads (that have been started at this point) have returned
         """
-        print "Waiting for {} worker threads to complete".format(len(self.threads))
+        print("Waiting for {} worker threads to complete".format(len(self.threads)))
         self.wait_until(0)
 

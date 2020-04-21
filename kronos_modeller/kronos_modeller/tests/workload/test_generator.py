@@ -107,7 +107,7 @@ class GeneratorTests(unittest.TestCase):
         workload_set = workload_modeller.get_workload_set()
 
         # make sure that we are creating only one workload
-        self.assertEquals(len(workload_set.workloads), 1)
+        self.assertEqual(len(workload_set.workloads), 1)
 
         # ---- check that all the jobs are correctly formed.. ----
 

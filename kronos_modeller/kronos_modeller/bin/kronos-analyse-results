@@ -62,7 +62,7 @@ if __name__ == "__main__":
 
     # Retrieve job classes common for all the simulation in the set
     common_job_classes = sim_set.retrieve_common_job_classes(config.job_classes)
-    print "==== Job classes shared by all simulations: ====\n{}".format( "\n".join(common_job_classes.keys()) )
+    print("==== Job classes shared by all simulations: ====\n{}".format( "\n".join(list(common_job_classes.keys())) ))
 
     # calculate statistics on the common job classes
     sim_set.calculate_class_stats_sums(common_job_classes)

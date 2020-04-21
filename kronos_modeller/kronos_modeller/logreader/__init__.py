@@ -6,11 +6,13 @@
 # granted to it by virtue of its status as an intergovernmental organisation nor
 # does it submit to any jurisdiction.
 
-from darshan import DarshanDataSet, Darshan3DataSet
-from ipm import IPMDataSet
+import itertools
+
+from .darshan import DarshanDataSet, Darshan3DataSet
+from .ipm import IPMDataSet
 from kronos_modeller.logreader.stdout_ecmwf import StdoutECMWFDataSet
-from profiler_reader import ingest_allinea_profiles
-from scheduler_reader import ingest_accounting_logs, ingest_pbs_logs, ingest_epcc_csv_logs
+from .profiler_reader import ingest_allinea_profiles
+from .scheduler_reader import ingest_accounting_logs, ingest_pbs_logs, ingest_epcc_csv_logs
 
 simple_ingest_mapping = {
     'allinea': ingest_allinea_profiles,
@@ -26,14 +28,14 @@ class_ingest_mapping = {
     'stdout-ecmwf': StdoutECMWFDataSet
 }
 
-ingest_types = sorted(simple_ingest_mapping.keys() + class_ingest_mapping.keys())
+ingest_types = sorted(itertools.chain(simple_ingest_mapping.keys(), class_ingest_mapping.keys()))
 
 
 def ingest_data(ingest_type, ingest_path, ingest_config=None, global_config=None):
     """
     A factory for the types of data ingestion we are going to get!
     """
-    print "Ingesting data from {}, of type {}".format(ingest_path, ingest_type)
+    print("Ingesting data from {}, of type {}".format(ingest_path, ingest_type))
 
     try:
 

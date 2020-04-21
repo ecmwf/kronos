@@ -16,6 +16,6 @@ if __name__ == "__main__":
         return_cmd = subprocess.check_output(["sbatch"]+ sys.argv[1:])
         sys.stdout.write(return_cmd.split(" ")[-1])
     else:
-        print "provide submit command!"
+        print("provide submit command!")
 
 

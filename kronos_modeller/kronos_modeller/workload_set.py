@@ -17,7 +17,7 @@ class WorkloadSet(PickableObject):
 
     @classmethod
     def from_labelled_jobs(cls, wl_dict):
-        return cls([Workload(jobs=v, tag=k) for k, v in wl_dict.iteritems()])
+        return cls([Workload(jobs=v, tag=k) for k, v in wl_dict.items()])
 
     def max_timeseries(self, n_bins=None):
         """
@@ -87,7 +87,7 @@ class WorkloadSet(PickableObject):
         try:
             return next(wl for wl in self.workloads if wl.tag == wl_name)
         except StopIteration:
-            print "workload {} not found in the group!".format(wl_name)
+            print("workload {} not found in the group!".format(wl_name))
             return None
 
     @property

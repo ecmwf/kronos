@@ -66,7 +66,7 @@ class IPMTaskInfo(object):
         self.bytes_read = 0
         self.bytes_written = 0
 
-    def __unicode__(self):
+    def __str__(self):
         return "IPMTaskInfo({} MPI events, {} MPI bytes, {} IO events, {} IO bytes)".format(
             self.mpi_pairwise_count_send + self.mpi_pairwise_count_recv + self.mpi_collective_count,
             self.mpi_pairwise_bytes_send + self.mpi_pairwise_bytes_recv + self.mpi_collective_bytes,
@@ -74,8 +74,8 @@ class IPMTaskInfo(object):
             self.bytes_read + self.bytes_written
         )
 
-    def __str__(self):
-        return unicode(self).encode('utf-8')
+    def __bytes__(self):
+        return str(self).encode('utf-8')
 
 
 class IPMIngestedJob(IngestedJob):
@@ -133,6 +133,7 @@ class IPMIngestedJob(IngestedJob):
         # n.b. Essentially all of the interesting information is contained in the tasks.
         # TODO: It is possible that doing this will result in errors if there are IPM runs of different commands
         #       within a submit script, with differing MPI configurations.
+        assert self.label == rhs.label
         self.tasks += rhs.tasks
 
     def model_time_series(self):

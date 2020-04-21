@@ -53,13 +53,13 @@ if __name__ == "__main__":
 
     # check that the run path exists
     if not os.path.exists(args.job_dir):
-        print "Specified run path does not exist: {}".format(args.job_dir)
+        print("Specified run path does not exist: {}".format(args.job_dir))
         sys.exit(1)
 
     # check that the run path contains the job sub-folders
     job_dirs = [x for x in os.listdir(args.job_dir) if os.path.isdir(os.path.join(args.job_dir, x)) and "job-" in x]
     if not job_dirs:
-        print "Specified path does not contain any job folder (<job-ID>..)!"
+        print("Specified path does not contain any job folder (<job-ID>..)!")
         sys.exit(1)
 
     # read simulation data
@@ -71,14 +71,14 @@ if __name__ == "__main__":
     per_class_job_stats = sim_data.class_stats_sums(filter)
 
     # ///////////////////// print summary ////////////////////////
-    print "{:<52s}".format("\n\nPERFORMANCE SUMMARY:\n")
+    print("{:<52s}".format("\n\nPERFORMANCE SUMMARY:\n"))
 
     # overall runtime
-    print "Total Simulation Runtime [s]: {:20.2f} \n".format(sim_data.runtime())
+    print("Total Simulation Runtime [s]: {:20.2f} \n".format(sim_data.runtime()))
 
     if args.filter:
-        print "Statistics for jobs matching regex filter: {}".format(args.filter)
+        print("Statistics for jobs matching regex filter: {}".format(args.filter))
         print_formatted_class_stats("filtered_jobs", per_class_job_stats)
     else:
-        print "Statistics for all jobs"
+        print("Statistics for all jobs")
         print_formatted_class_stats("generic_class", per_class_job_stats)

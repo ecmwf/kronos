@@ -369,7 +369,7 @@ class Executor(object):
             logger.info("Executing script: {}".format(script_abs_path))
 
             if not os.path.isfile(script_abs_path):
-                print ("Executing epilogue task {}, but script {} not found!".format(tt, script_abs_path))
+                print("Executing epilogue task {}, but script {} not found!".format(tt, script_abs_path))
                 raise IOError
 
             _proc = subprocess.Popen([script_abs_path],
@@ -442,7 +442,7 @@ class Executor(object):
             logger.info("Executing script: {}".format(script_abs_path))
 
             if not os.path.isfile(script_abs_path):
-                print ("Executing prologue task {}, but script {} not found!".format(tt, script_abs_path))
+                print("Executing prologue task {}, but script {} not found!".format(tt, script_abs_path))
                 raise IOError
 
             _proc = subprocess.Popen([script_abs_path],

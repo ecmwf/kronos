@@ -22,7 +22,7 @@ kresults_ts_names_map = {
 }
 
 # map that translates KProfile metrics to Kresults
-kprofile2kresults_ts_names_map = {v[0]: k for k, v in kresults_ts_names_map.iteritems()}
+kprofile2kresults_ts_names_map = {v[0]: k for k, v in kresults_ts_names_map.items()}
 
 kresults_stats_info = OrderedDict((
     ("cpu", {"conv": 1.0/1000.0**3,
@@ -81,4 +81,4 @@ kresults_stats_info = OrderedDict((
 ))
 
 
-sorted_kresults_stats_names = kresults_stats_info.keys()
+sorted_kresults_stats_names = list(kresults_stats_info.keys())

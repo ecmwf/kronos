@@ -332,31 +332,31 @@ def read_epcc_csv_logs(filename_in):
             try:
                 i_job.time_queued = int(line_dict['ctime'])
             except:
-                print("I didn't recognize ctime {0} as a number".format(line_dict['ctime']))
+                print(("I didn't recognize ctime {0} as a number".format(line_dict['ctime'])))
                 i_job.time_queued = -1
 
             try:
                 i_job.time_end = int(line_dict['end'])
             except:
-                print("I didn't recognize end {0} as a number".format(line_dict['end']))
+                print(("I didn't recognize end {0} as a number".format(line_dict['end'])))
                 i_job.time_end = -1
 
             try:
                 i_job.time_start = int(line_dict['start'])
             except:
-                print("I didn't recognize start {0} as a number".format(line_dict['start']))
+                print(("I didn't recognize start {0} as a number".format(line_dict['start'])))
                 i_job.time_start = -1
 
             try:
                 i_job.ncpus = int(line_dict['ncpus'])
             except:
-                print("I didn't recognize start {0} as a number".format(line_dict['ncpus']))
+                print(("I didn't recognize start {0} as a number".format(line_dict['ncpus'])))
                 i_job.ncpus = -1
 
             try:
                 i_job.nnodes = int(line_dict['node_count'])
             except:
-                print("I didn't recognize start {0} as a number".format(line_dict['node_count']))
+                print(("I didn't recognize start {0} as a number".format(line_dict['node_count'])))
                 i_job.nnodes = -1
 
             # i_job.group = line_dict['group'].strip()

@@ -205,7 +205,7 @@ class FillingTests(unittest.TestCase):
 
         self.assertTrue(all([all(ys == yt
                                  for ys, yt in zip(job3.timesignals[ts_k].yvalues, ts_v.yvalues))
-                             for ts_k, ts_v in target_wl.jobs[1].timesignals.iteritems()]))
+                             for ts_k, ts_v in target_wl.jobs[1].timesignals.items()]))
 
 if __name__ == "__main__":
     unittest.main()
