@@ -24,7 +24,7 @@ export KRONOS_BIN_DIR_DEFAULT=${KRONOS_BUILD_DIR_DEFAULT}/bin
 export KRONOS_CONDA_DIR_DEFAULT=${KRONOS_INSTALLER_DIR_DEFAULT}/miniconda
 export KRONOS_CONDA_BIN_DIR_DEFAULT=${KRONOS_CONDA_DIR_DEFAULT}/bin
 export KRONOS_CONDA_CMD_DEFAULT=${KRONOS_CONDA_BIN_DIR_DEFAULT}/conda
-export KRONOS_CONDA_INSTALLER_EXE_DEFAULT=Miniconda2-latest-Linux-x86_64.sh
+export KRONOS_CONDA_INSTALLER_EXE_DEFAULT=Miniconda3-latest-Linux-x86_64.sh
 # =========================================================================
 
 
@@ -369,6 +369,12 @@ while true ; do
         exit 1 ;;
     esac
 done
+
+# disable offline install for now
+if [[ $offline_flag == 1 ]]; then
+  echo "offline install is disabled"
+  exit 1
+fi
 
 
 # ==== check all the installation options =====
