@@ -140,6 +140,8 @@ class ExecutorEventsPar(Executor):
         # first terminates the dispatcher process
         self.event_manager.stop_dispatcher()
 
+        self.job_submitter.close()
+
         if not error:
             self.print_summary()
 

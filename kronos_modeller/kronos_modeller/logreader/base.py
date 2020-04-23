@@ -151,17 +151,17 @@ class LogReader(object):
         #      between processes using the multiprocessing functionality, and (b) ensure that all of the transferred
         #      data can be pickled (which is required).
 
-        pool = ProcessingPool(
+        with ProcessingPool(
             self._read_log_wrapper, # Read the log. Note that "self" is passed to this as an argument
             self._progress_printer, # Callback called after each element is processed
             processes=self.pool_readers,
-            global_data=self)
+            global_data=self) as pool:
 
-        list_of_job_lists = pool.imap(self.logfiles())
+            list_of_job_lists = pool.imap(self.logfiles())
 
-        for job_list in list_of_job_lists:
-            for job in job_list:
-                yield job
+            for job_list in list_of_job_lists:
+                for job in job_list:
+                    yield job
 
         sys.stdout.write("\n")
 

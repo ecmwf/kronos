@@ -52,6 +52,13 @@ class JobSubmitter(object):
         # workers pool
         self.submitters_pool = multiprocessing.Pool(n_submitters)
 
+    def close(self):
+        """
+        Terminate the submitter properly
+        :return:
+        """
+        self.submitters_pool.close()
+
     def build_deps_to_job_tree(self):
         """
         Build a structure that allows getting jobs that depend on a particular event
