@@ -6,6 +6,7 @@
 # granted to it by virtue of its status as an intergovernmental organisation nor
 # does it submit to any jurisdiction.
 
+import itertools
 import os
 
 import numpy as np
@@ -55,7 +56,7 @@ class ExporterTimeSeries(ExporterBase):
         # ------------------  calculate all time-series ------------------------
         times_plot = np.asarray(times_plot)
         signals = {}
-        for cl_name, cl_regex in job_classes.items()+[("all-classes", None)]:
+        for cl_name, cl_regex in itertools.chain(job_classes.items(), [("all-classes", None)]):
 
             # time series of result metrics
             found_jobs_in_class, series_dict = sim.create_global_time_series(times_plot, job_class_regex=cl_regex)
