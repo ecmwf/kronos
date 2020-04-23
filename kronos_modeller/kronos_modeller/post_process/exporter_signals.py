@@ -39,7 +39,7 @@ class ExporterTimeSeries(ExporterBase):
         for sim in self.sim_set.sims:
 
             # time bins (default value is one per second)
-            times_plot = linspace(0, sim.runtime(), export_config.get("nbins", int(sim.runtime())))
+            times_plot = linspace(0, sim.runtime(), export_config.get("nbins", max(2, int(sim.runtime()))))
             self.do_export_single_sim(sim, times_plot, job_classes, export_config["format"], output_path)
 
     def do_export_single_sim(self, sim, times_plot, job_classes, export_format, output_path):
