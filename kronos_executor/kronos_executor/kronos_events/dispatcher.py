@@ -78,7 +78,7 @@ class EventDispatcher(object):
             connection, client_address = self.sock.accept()
 
             try:
-                msg = ""
+                msg = b""
 
                 # keep looping until there is data to be received..
                 while True:
