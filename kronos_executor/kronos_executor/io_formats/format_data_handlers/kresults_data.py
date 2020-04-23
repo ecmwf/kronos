@@ -173,7 +173,7 @@ class KResultsData(object):
                             _all_class_stats_dict[stat_metric][field] += val
 
             # Filter the fields for which aggregated time is still 0 (no operations have been summed up)
-            for stat_metric in _class_stats_dict.keys():
+            for stat_metric in list(_class_stats_dict.keys()):
                 if _class_stats_dict[stat_metric]["elapsed"] == 0.0:
                     _class_stats_dict.pop(stat_metric)
 
@@ -196,7 +196,7 @@ class KResultsData(object):
 
         # ------- clean-up the all-class data -------
         # Filter the fields for which aggregated time is still 0 (no operations have been summed up)
-        for stat_metric in _all_class_stats_dict.keys():
+        for stat_metric in list(_all_class_stats_dict.keys()):
             if _all_class_stats_dict[stat_metric]["elapsed"] == 0.0:
                 _all_class_stats_dict.pop(stat_metric)
 
