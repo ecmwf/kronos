@@ -53,7 +53,7 @@ def send_event(server_host, server_port, message):
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         server_address = (server_host, server_port)
         sock.connect(server_address)
-        _error = sock.sendall(message)
+        _error = sock.sendall(message.encode('ascii'))
 
         if not _error:
             eprint("message sent correctly: {}".format(message))
