@@ -115,6 +115,7 @@ class Executor(object):
         time_stamp_now = datetime.datetime.now().strftime('%Y%m%d%H%M%S')
 
         if os.path.exists(self.job_dir):
+            self.job_dir = self.job_dir.rstrip('/')
             time_stamped_output = self.job_dir+"."+time_stamp_now
             logger.warning("Path {} already exists, moving it into: {}".format(self.job_dir, time_stamped_output))
             os.rename(self.job_dir, time_stamped_output)
@@ -130,6 +131,7 @@ class Executor(object):
         logger.info("Shared output directory: {}".format(self.job_dir_shared))
 
         if os.path.exists(self.job_dir_shared):
+            self.job_dir_shared = self.job_dir_shared.rstrip('/')
             time_stamped_shared = self.job_dir_shared + "." + time_stamp_now
             logger.warning("Path {} already exists, moving it into: {}".format(self.job_dir_shared, time_stamped_shared))
             os.rename(self.job_dir_shared, time_stamped_shared)
