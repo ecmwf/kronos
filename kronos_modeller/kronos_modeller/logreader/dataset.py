@@ -144,7 +144,7 @@ class IngestedDataSet(object):
                 if dataset.ingest_config != ingest_config:
                     logger.info( "Log reader configuration doesn't match cache file")
                     logger.info( "Reader: {}".format(ingest_config))
-                    logger.info( "Cached: {}".format())
+                    logger.info( "Cached: {}".format(dataset.ingest_config))
                     logger.info( "Please modify configuration, or delete cache file and try again")
                     raise ConfigurationError("Log reader configuration doesn't match cache file")
 

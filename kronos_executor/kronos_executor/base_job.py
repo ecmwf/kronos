@@ -53,8 +53,8 @@ class BaseJob(object):
             elif all(isinstance(d, dict) for d in self.job_config['depends']):
                 _deps = [EventFactory.from_dictionary(d, validate_event=False) for d in self.job_config['depends']]
             else:
-                raise ValueError("Dependencies for job {} must be either " +
-                                 "all integers or all 'kronos-event' dictionaries".format(self._job_num))
+                raise ValueError(("Dependencies for job {} must be either " +
+                                  "all integers or all 'kronos-event' dictionaries").format(self._job_num))
 
         return _deps
 
