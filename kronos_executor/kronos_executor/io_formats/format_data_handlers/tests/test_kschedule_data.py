@@ -7,7 +7,7 @@
 # does it submit to any jurisdiction.
 import json
 import unittest
-from StringIO import StringIO
+from io import StringIO
 
 import jsonschema
 from kronos_executor.io_formats.format_data_handlers.kschedule_data import KScheduleData

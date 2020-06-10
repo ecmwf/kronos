@@ -115,6 +115,7 @@ class Executor(object):
         time_stamp_now = datetime.datetime.now().strftime('%Y%m%d%H%M%S')
 
         if os.path.exists(self.job_dir):
+            self.job_dir = self.job_dir.rstrip('/')
             time_stamped_output = self.job_dir+"."+time_stamp_now
             logger.warning("Path {} already exists, moving it into: {}".format(self.job_dir, time_stamped_output))
             os.rename(self.job_dir, time_stamped_output)
@@ -130,6 +131,7 @@ class Executor(object):
         logger.info("Shared output directory: {}".format(self.job_dir_shared))
 
         if os.path.exists(self.job_dir_shared):
+            self.job_dir_shared = self.job_dir_shared.rstrip('/')
             time_stamped_shared = self.job_dir_shared + "." + time_stamp_now
             logger.warning("Path {} already exists, moving it into: {}".format(self.job_dir_shared, time_stamped_shared))
             os.rename(self.job_dir_shared, time_stamped_shared)
@@ -183,33 +185,29 @@ class Executor(object):
         # check the EVENTS execution mode settings
         self.execution_mode = config.get('execution_mode', "events")
 
-        if config.get('execution_mode') == "events" and config.get('submission_workers'):
+        if self.execution_mode == "events" and config.get('submission_workers'):
             raise KeyError("parameter 'submission_workers' should only be set if execution_mode = scheduler")
 
-        if config.get('execution_mode') != "events" and config.get('notification_host'):
+        if self.execution_mode != "events" and config.get('notification_host'):
             raise KeyError("parameter 'notification_host' should only be set if execution_mode = events")
         else:
             self.notification_host = config.get('notification_host', socket.gethostname())
 
-        if config.get('execution_mode') != "events" and config.get('notification_port'):
+        if self.execution_mode != "events" and config.get('notification_port'):
             raise KeyError("parameter 'notification_port' should only be set if execution_mode = events")
         else:
             self.notification_port = config.get('notification_port', 7363)
 
-        if config.get('execution_mode') != "events" and config.get('time_event_cycles'):
+        if self.execution_mode != "events" and config.get('time_event_cycles'):
             raise KeyError("parameter 'time_event_cycles' should only be set if execution_mode = events")
         else:
             self.time_event_cycles = config.get('time_event_cycles', 1)
 
-        if config.get('execution_mode') != "events" and config.get('event_batch_size'):
+        if self.execution_mode != "events" and config.get('event_batch_size'):
             raise KeyError("parameter 'event_batch_size' should only be set if execution_mode = events")
-        else:
-            self.time_event_cycles = config.get('event_batch_size', 1)
 
-        if config.get('execution_mode') != "events" and config.get('n_submitters'):
+        if self.execution_mode != "events" and config.get('n_submitters'):
             raise KeyError("parameter 'n_submitters' should only be set if execution_mode = events")
-        else:
-            self.time_event_cycles = config.get('n_submitters', 1)
 
         # nvdimm path if present
         self.nvdimm_root_path = self.config.get("nvdimm_root_path")
@@ -369,7 +367,7 @@ class Executor(object):
             logger.info("Executing script: {}".format(script_abs_path))
 
             if not os.path.isfile(script_abs_path):
-                print ("Executing epilogue task {}, but script {} not found!".format(tt, script_abs_path))
+                print("Executing epilogue task {}, but script {} not found!".format(tt, script_abs_path))
                 raise IOError
 
             _proc = subprocess.Popen([script_abs_path],
@@ -442,7 +440,7 @@ class Executor(object):
             logger.info("Executing script: {}".format(script_abs_path))
 
             if not os.path.isfile(script_abs_path):
-                print ("Executing prologue task {}, but script {} not found!".format(tt, script_abs_path))
+                print("Executing prologue task {}, but script {} not found!".format(tt, script_abs_path))
                 raise IOError
 
             _proc = subprocess.Popen([script_abs_path],

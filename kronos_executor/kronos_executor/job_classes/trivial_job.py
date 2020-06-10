@@ -107,7 +107,7 @@ class Job(BaseJob):
             ii) Run it immediately
             iii) Set an async timer to run it in the future?
         """
-        print "Running {}".format(self.run_script)
+        print("Running {}".format(self.run_script))
 
         with open('output', 'w') as fout, open('error', 'w') as ferror :
             subprocess.call(self.run_script, stdout=fout, stderr=ferror, stdin=None, shell=True)

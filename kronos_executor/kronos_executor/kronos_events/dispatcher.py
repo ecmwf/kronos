@@ -5,7 +5,7 @@
 # In applying this licence, ECMWF does not waive the privileges and immunities 
 # granted to it by virtue of its status as an intergovernmental organisation nor
 # does it submit to any jurisdiction.
-import Queue
+import queue
 import logging
 import multiprocessing
 import socket
@@ -53,11 +53,11 @@ class EventDispatcher(object):
         # log of all events with timings taken upon msg reception
         self.timed_events = []
 
-    def __unicode__(self):
+    def __str__(self):
         return "KRONOS-DISPATCHER: host:{}, port:{} ".format(self.server_host, self.server_port)
 
-    def __str__(self):
-        return unicode(self).encode('utf-8')
+    def __bytes__(self):
+        return str(self).encode('utf-8')
 
     def start(self):
         """
@@ -78,7 +78,7 @@ class EventDispatcher(object):
             connection, client_address = self.sock.accept()
 
             try:
-                msg = ""
+                msg = b""
 
                 # keep looping until there is data to be received..
                 while True:
@@ -140,7 +140,7 @@ class EventDispatcher(object):
                         else:
                             logger.warning("TOKEN NOT found => message discarded: {}".format(msg))
 
-        except Queue.Empty:
+        except queue.Empty:
             queue_empty_reached = True
             pass
 

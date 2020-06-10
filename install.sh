@@ -24,7 +24,7 @@ export KRONOS_BIN_DIR_DEFAULT=${KRONOS_BUILD_DIR_DEFAULT}/bin
 export KRONOS_CONDA_DIR_DEFAULT=${KRONOS_INSTALLER_DIR_DEFAULT}/miniconda
 export KRONOS_CONDA_BIN_DIR_DEFAULT=${KRONOS_CONDA_DIR_DEFAULT}/bin
 export KRONOS_CONDA_CMD_DEFAULT=${KRONOS_CONDA_BIN_DIR_DEFAULT}/conda
-export KRONOS_CONDA_INSTALLER_EXE_DEFAULT=Miniconda2-latest-Linux-x86_64.sh
+export KRONOS_CONDA_INSTALLER_EXE_DEFAULT=Miniconda3-latest-Linux-x86_64.sh
 # =========================================================================
 
 
@@ -90,8 +90,8 @@ install_conda() {
     else
         # download miniconda from website (exit if errors)
         set -e
-        wget -c http://repo.continuum.io/miniconda/${KRONOS_CONDA_INSTALLER_EXE} -P ${KRONOS_CONDA_DIR}
-        sh ${KRONOS_CONDA_DIR}/${KRONOS_CONDA_INSTALLER_EXE} -b -p ${KRONOS_CONDA_DIR}
+        wget -c http://repo.continuum.io/miniconda/${KRONOS_CONDA_INSTALLER_EXE} -P ${KRONOS_INSTALLER_DIR}
+        sh ${KRONOS_INSTALLER_DIR}/${KRONOS_CONDA_INSTALLER_EXE} -b -p ${KRONOS_CONDA_DIR}
         set +e
     fi
 
@@ -122,6 +122,10 @@ install_executor() {
 
         # install the conda dependencies first
         if [[ $isoffline == 1 ]]; then
+
+            # disable offline install for now
+            echo "offline install is disabled"
+            exit 1
 
             echo "installing executor dependencies (offline).."
 
@@ -190,6 +194,10 @@ install_modeller() {
         # install the conda dependencies first
         if [[ $isoffline == 1 ]]; then
 
+            # disable offline install for now
+            echo "offline install is disabled"
+            exit 1
+
             echo "installing modeller dependencies (offline).."
 
             # create an empty environment
@@ -253,9 +261,6 @@ install_modeller() {
             # Special case for non-conda-package
             cp ${KRONOS_DEPENDS_DIR}/strict_rfc3339.py ${KRONOS_CONDA_DIR}/envs/kronos_modeller_env/lib/python2.7/site-packages/
 
-            # the executor is a dependency for the modeller
-            pip install -e ${KRONOS_SOURCES_TOP_DIR}/kronos_executor
-
         else # install online (will download dependencies)
 
             echo "installing modeller dependencies (online).."
@@ -266,6 +271,10 @@ install_modeller() {
 
         echo "installing modeller.."
         source activate kronos_modeller_env
+
+        # the executor is a dependency for the modeller
+        pip install -e ${KRONOS_SOURCES_TOP_DIR}/kronos_executor
+
         pip install -e ${KRONOS_SOURCES_TOP_DIR}/kronos_modeller
 
     fi

@@ -41,7 +41,7 @@ class ConverterKprofileKresults(object):
             # if user_runtime is set, rescale the job timestamps to be consistent to it..
             if self.user_runtime:
                 time_scaling = self.user_runtime / float(prof_job["duration"])
-                for tsk, tsv in prof_job["time_series"].iteritems():
+                for tsk, tsv in prof_job["time_series"].items():
                     tsv["times"] = [t * time_scaling for t in tsv["times"]]
 
             n_procs = prof_job['ncpus']
@@ -58,7 +58,7 @@ class ConverterKprofileKresults(object):
             kres_proc_ts["durations"] = []
 
             # main loop over kprofile metrics
-            for ts_name, ts_values in prof_job["time_series"].iteritems():
+            for ts_name, ts_values in prof_job["time_series"].items():
 
                 # each value has to be appended to every series (as defined in the kprofile format)
                 t_vals, v_vals = digitize_xyvalues(ts_values["times"], ts_values["values"], nbins=nbins, key="sum")
@@ -132,7 +132,7 @@ class ConverterKprofileKresults(object):
         }
 
         missing_time_series = {}
-        for ts_name, ts_values in kresults_perproc_timeseries.iteritems():
+        for ts_name, ts_values in kresults_perproc_timeseries.items():
             if ts_name in required_ts and not kresults_perproc_timeseries.get(required_ts[ts_name]["name"]):
 
                 ts_typ = required_ts[ts_name]["type"]
@@ -148,7 +148,7 @@ class ConverterKprofileKresults(object):
 
         stats_data = {}
 
-        for kres_ts_name, kres_ts_vals in kresults_perproc_timeseries.iteritems():
+        for kres_ts_name, kres_ts_vals in kresults_perproc_timeseries.items():
 
             if kres_ts_name == "flops":
                 _non_null_vals = [v for v in kres_ts_vals if v]

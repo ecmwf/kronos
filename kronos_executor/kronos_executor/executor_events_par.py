@@ -1,9 +1,7 @@
 #!/usr/bin/env python
 
-import os
 import logging
 from datetime import datetime
-from shutil import copy2
 
 from kronos_executor.executor import Executor
 from kronos_executor.job_submitter import JobSubmitter
@@ -141,6 +139,8 @@ class ExecutorEventsPar(Executor):
 
         # first terminates the dispatcher process
         self.event_manager.stop_dispatcher()
+
+        self.job_submitter.close()
 
         if not error:
             self.print_summary()

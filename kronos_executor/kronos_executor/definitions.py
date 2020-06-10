@@ -68,4 +68,4 @@ signal_types['kb_collective']["print_info"]["description"] = "KiB passed in coll
 signal_types['kb_mem']["print_info"]["description"] = "KiB of allocated memory"
 
 
-time_signal_names = signal_types.keys()
+time_signal_names = list(signal_types.keys())

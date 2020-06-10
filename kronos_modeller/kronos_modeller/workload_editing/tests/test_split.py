@@ -98,7 +98,7 @@ class SplitterTests(unittest.TestCase):
 
         # make sure that we have created a workload as expected
         self.assertTrue(wl_out is not None)
-        self.assertEquals(wl_out.tag, config_splitting["create_workload"])
+        self.assertEqual(wl_out.tag, config_splitting["create_workload"])
 
         # make sure that all the jobs have a label consistent with the filter
         for j in wl_out.jobs:

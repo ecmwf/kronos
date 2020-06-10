@@ -9,7 +9,7 @@ from kronos_executor import executor
 from kronos_executor.global_config import global_config
 from kronos_executor.io_formats.schedule_format import ScheduleFormat
 
-from testutils import scratch_tmpdir
+from .testutils import scratch_tmpdir
 
 
 class ExecutorTests(unittest.TestCase):

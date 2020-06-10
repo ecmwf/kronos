@@ -40,7 +40,7 @@ class LogReader(object):
     def __init__(self, path, recursive=None, file_pattern=None, label_method=None, pool_readers=None):
         self.path = path
 
-        print "Log reader ({})".format(self.log_type_name)
+        print("Log reader ({})".format(self.log_type_name))
 
         self.label_method = label_method if label_method is not None else self.label_method
         self.recursive = recursive if recursive is not None else self.recursive
@@ -54,11 +54,11 @@ class LogReader(object):
         if file_pattern:
             self.file_pattern = file_pattern
 
-    def __unicode__(self):
+    def __str__(self):
         return "LogReader({})[{}]".format(self.__class__.__name__, self.path)
 
-    def __str__(self):
-        return unicode(self).encode('utf-8')
+    def __bytes__(self):
+        return str(self).encode('utf-8')
 
     def logfiles(self):
         """
@@ -144,24 +144,24 @@ class LogReader(object):
 
         --> Returns a generator of job objects, depending on the list of files to parse from self.logfiles()
         """
-        print "Reading {} logs using {} workers".format(self.log_type_name, self.pool_readers)
+        print("Reading {} logs using {} workers".format(self.log_type_name, self.pool_readers))
 
         # n.b. There are constraints on what can be passed as arguments to this routine. The use of global data in
         #      the processing pool, and the use of static functions, is to (a) minimise the data being transferred
         #      between processes using the multiprocessing functionality, and (b) ensure that all of the transferred
         #      data can be pickled (which is required).
 
-        pool = ProcessingPool(
+        with ProcessingPool(
             self._read_log_wrapper, # Read the log. Note that "self" is passed to this as an argument
             self._progress_printer, # Callback called after each element is processed
             processes=self.pool_readers,
-            global_data=self)
+            global_data=self) as pool:
 
-        list_of_job_lists = pool.imap(self.logfiles())
+            list_of_job_lists = pool.imap(self.logfiles())
 
-        for job_list in list_of_job_lists:
-            for job in job_list:
-                yield job
+            for job_list in list_of_job_lists:
+                for job in job_list:
+                    yield job
 
         sys.stdout.write("\n")
 

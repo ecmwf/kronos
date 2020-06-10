@@ -1,4 +1,4 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python3
 
 # (C) Copyright 1996-2018 ECMWF.
 #
@@ -36,13 +36,13 @@ if __name__ == "__main__":
 
     # check for file existence
     if not os.path.exists(args.host_file):
-        print "host file {} not found!".format(args.host_file)
+        print("host file {} not found!".format(args.host_file))
         exit(1)
 
     with open(args.host_file, "r") as f:
         json_data = json.load(f)
 
-    print "Killing servers.."
+    print("Killing servers..")
     for addr in json_data:
     
         ihost = addr["host"]
@@ -52,6 +52,6 @@ if __name__ == "__main__":
                                  shell=False, stdout=subprocess.PIPE,
                                  stderr=subprocess.PIPE)
 
-        print "Sent signal to kill server {} on port {}".format(ihost, iport)
+        print("Sent signal to kill server {} on port {}".format(ihost, iport))
 
 

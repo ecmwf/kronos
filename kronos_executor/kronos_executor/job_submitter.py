@@ -24,29 +24,13 @@ def submit_job_from_args(submission_and_callback_params):
 
     jid = submission_and_callback_params["jid"]
     proc_args = submission_and_callback_params["submission_params"]
-    try:
-        output = subprocess.check_output(proc_args)
-        success = True
-    except subprocess.CalledProcessError as e:
-        # circumvent https://bugs.python.org/issue9400
-        output = (e.returncode, e.cmd, e.output)
-        success = False
-
-    submit_job_from_args.t_queue.put( (datetime.now(), jid) )
+    output = subprocess.check_output(proc_args)
+    t_finish = datetime.now()
 
     # TODO: callback not strictly needed anymore, but it would be nice to retain..
     # Job.submission_callback_static(output, submission_and_callback_params["callback_params"])
 
-    return jid, success, output
-
-
-def f_init(q):
-    """
-    just to initialise the submitting function time queue
-    :param q:
-    :return:
-    """
-    submit_job_from_args.t_queue = q
+    return t_finish, jid, output
 
 
 class JobSubmitter(object):
@@ -66,8 +50,14 @@ class JobSubmitter(object):
         self.deps_to_jobs_tree, self.job_to_deps = self.build_deps_to_job_tree()
 
         # workers pool
-        self.tsub_queue = multiprocessing.Queue()
-        self.submitters_pool = multiprocessing.Pool(n_submitters, f_init, [self.tsub_queue])
+        self.submitters_pool = multiprocessing.Pool(n_submitters)
+
+    def close(self):
+        """
+        Terminate the submitter properly
+        :return:
+        """
+        self.submitters_pool.close()
 
     def build_deps_to_job_tree(self):
         """
@@ -147,13 +137,9 @@ class JobSubmitter(object):
         submission_output = self.submitters_pool.map(submit_job_from_args, submission_and_callback_params)
 
         min_submission_time = None
-        for jid, success, output in submission_output:
-            if not success:
-                raise subprocess.CalledProcessError(*output)
-
-            tt_jj = self.tsub_queue.get()
-            t_ep = datetime2epochs(tt_jj[0])
-            logger.info("[Proc Time: {} (ep: {})] ---> Submitted job: {}".format(tt_jj[0], t_ep, tt_jj[1]))
+        for tt, jid, output in submission_output:
+            t_ep = datetime2epochs(tt)
+            logger.info("[Proc Time: {} (ep: {})] ---> Submitted job: {}".format(tt, t_ep, jid))
 
             min_submission_time = min( t_ep, min_submission_time ) if min_submission_time else t_ep
 

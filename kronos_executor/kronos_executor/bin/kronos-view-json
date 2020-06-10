@@ -36,4 +36,4 @@ if __name__ == '__main__':
     with open(args.path_json, "r") as f:
         json_data = json.load(f)
 
-    print json.dumps(json_data, sort_keys=True, indent=4, separators=(',', ': '))
+    print(json.dumps(json_data, sort_keys=True, indent=4, separators=(',', ': ')))

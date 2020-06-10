@@ -115,7 +115,7 @@ def bin_array(t, data, bins_in, mode="sum"):
 
         # just a check..
         if sum(data)-sum(bin_values) > 1e-10:
-            print "different sum! orig: {}, binned: {}".format(sum(data), sum(bin_values))
+            print("different sum! orig: {}, binned: {}".format(sum(data), sum(bin_values)))
 
     # method "mean"
     elif mode == "mean":
@@ -142,11 +142,11 @@ def calculate_signals_similarity(t1, v1, t2, v2):
     assert len(v1) == len(v2)
 
     if not np.linalg.norm(v1):
-        print "Warning: signal 1 has zero norm!"
+        print("Warning: signal 1 has zero norm!")
         return -1.0, -1.0
 
     if not np.linalg.norm(v2):
-        print "Warning: signal 2 has zero norm!"
+        print("Warning: signal 2 has zero norm!")
         return -1.0, -1.0
 
     v1_norm = v1/np.linalg.norm(v1)
@@ -163,13 +163,13 @@ def calculate_signals_similarity(t1, v1, t2, v2):
 
     # relative offset is a measure of how much a signal v1 is "shifted" in time WRT v2 (relative to total time length)
     if t1[-1]-t1[0] == 0:
-        print "time-signal has zero duration!!"
+        print("time-signal has zero duration!!")
 
     relative_time_err_pc = (t1[max_corr_idx] - t1[0])/(t1[-1]-t1[0]) * 100.0
 
     relative_corr_err_pc = (1.0-np.max(cross_corr)) * 100.0
     if np.isnan(np.max(cross_corr)):
-        print "NAN cross-corr"
+        print("NAN cross-corr")
 
     return relative_time_err_pc, relative_corr_err_pc
 
@@ -191,7 +191,7 @@ def lin_reg(x_in, y_in, alpha=1e-1, niter=10000, theta_0=0, theta_1=0):
         theta = theta - alpha * grad
 
         if not ii%int(niter/10):
-            print "Regression costs iter=[{}]: {}".format(ii, cost)
+            print("Regression costs iter=[{}]: {}".format(ii, cost))
 
     return cost, theta
 

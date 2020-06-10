@@ -1,4 +1,4 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python3
 
 # (C) Copyright 1996-2018 ECMWF.
 #
@@ -37,7 +37,6 @@ sending the executor dummy "job-id" values, the reception of the message
 should be shown on STDOUT and later in the kronos-executor.log.
 """
 
-from __future__ import print_function
 import socket
 import json
 import time
@@ -54,7 +53,7 @@ def send_event(server_host, server_port, message):
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         server_address = (server_host, server_port)
         sock.connect(server_address)
-        _error = sock.sendall(message)
+        _error = sock.sendall(message.encode('ascii'))
 
         if not _error:
             eprint("message sent correctly: {}".format(message))

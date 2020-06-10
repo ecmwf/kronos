@@ -66,7 +66,7 @@ class BaseLogReaderTest(unittest.TestCase):
         If the specified path does not exist, then an exception should be raised when trying to iterate
         through the available files.
         """
-        self.assertRaises(IOError, LogReader('fake-path').logfiles().next)
+        self.assertRaises(IOError, LogReader('fake-path').logfiles().__next__)
 
     def test_logfiles_single_file(self):
         """

@@ -92,9 +92,9 @@ class TimeSchedulePDFexact(TimeScheduleBase):
 
         else:
 
-            print "NOTE: the rate-of-submission algorithm is not used as the " \
+            print("NOTE: the rate-of-submission algorithm is not used as the " \
                   "original rate is too high (t0_min: {}, t0_max: {})".format(self.global_t0,
-                                                                              self.global_tend)
+                                                                              self.global_tend))
             output_times = np.zeros(len(self.start_times))
             output_times_pdf_actual = np.zeros(self.n_bins_for_pdf, dtype=int)
 

@@ -69,9 +69,9 @@ def print_formatted_class_stats(class_name, per_class_job_stats):
     if class_stats:
 
         # Header
-        print "{}".format("-" * (_fl + 1) * n_fields)
-        print "{:<{l}s}|{:^{l}s}|{:^{l}s}|".format("Name", "Total", "Total Time", l=_fl)
-        print "{}".format("-" * (_fl + 1) * n_fields)
+        print("{}".format("-" * (_fl + 1) * n_fields))
+        print("{:<{l}s}|{:^{l}s}|{:^{l}s}|".format("Name", "Total", "Total Time", l=_fl))
+        print("{}".format("-" * (_fl + 1) * n_fields))
 
         # Print the relevant metrics for each stats class
         for k, name in ordered_keys:
@@ -85,18 +85,18 @@ def print_formatted_class_stats(class_name, per_class_job_stats):
                 conv_fact = stats_metric_info["conv"]
                 elaps_time = v["elapsed"]
 
-                print "{:<{l}s}|{:>{lmu}.2f} {}|{:>{lmfour}.2f} [s]|".format(name,
+                print("{:<{l}s}|{:>{lmu}.2f} {}|{:>{lmfour}.2f} [s]|".format(name,
                                                                              counter_to_print * conv_fact,
                                                                              keys_units[k],
                                                                              elaps_time,
                                                                              l=_fl,
                                                                              lmfour=_fl-4,
-                                                                             lmu=_fl-len(keys_units[k])-1)
+                                                                             lmu=_fl-len(keys_units[k])-1))
 
         # h-line
-        print "{}".format("-" * (_fl + 1) * n_fields)
+        print("{}".format("-" * (_fl + 1) * n_fields))
     else:
-        print "\n\n*** Warning ***: no jobs found in class"
+        print("\n\n*** Warning ***: no jobs found in class")
 
 
 def add_value_to_sublist(_list, idx1, idx2, val):

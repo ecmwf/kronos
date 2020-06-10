@@ -52,7 +52,7 @@ def kresults_to_profiled_job_json(kresults_json, input_json):
             # in case the durations are empty!
             return None
 
-        for ts_name, ts_vals in rank_data["time_series"].iteritems():
+        for ts_name, ts_vals in rank_data["time_series"].items():
 
             if ts_name != "durations":
                 time_series_json.setdefault(ts_name, []).extend(zip(tends, ts_vals))
@@ -79,7 +79,7 @@ def kresults_to_profiled_job_json(kresults_json, input_json):
 
     # Append any time series data that is present
     time_series = {}
-    for name, values in time_series_json.iteritems():
+    for name, values in time_series_json.items():
 
         # assert name in time_signal.signal_types
         assert name in kresults_ts_names_map.keys()
@@ -118,11 +118,11 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     if not os.path.exists(args.path_run):
-        print "Specified run path does not exist: {}".format(args.path_run)
+        print("Specified run path does not exist: {}".format(args.path_run))
         sys.exit(1)
 
     if os.path.exists(args.kprofile_file):
-        print "Output KProfile file {} already exists!".format(args.kprofile_file)
+        print("Output KProfile file {} already exists!".format(args.kprofile_file))
         sys.exit(1)
 
     # path of the output kprofile file
@@ -131,7 +131,7 @@ if __name__ == "__main__":
         os.mkdir(path_kprofile)
 
     # ---------- Process the run jsons ----------
-    print "writing output kprofile file: {}".format(args.kprofile_file)
+    print("writing output kprofile file: {}".format(args.kprofile_file))
     job_dirs = [x for x in os.listdir(args.path_run)
                 if os.path.isdir(os.path.join(args.path_run, x)) and "job-" in x]
 
@@ -142,14 +142,14 @@ if __name__ == "__main__":
         sub_dir_files = os.listdir(sub_dir_path_abs)
         kresults_file = [f for f in sub_dir_files if f.endswith('.kresults')]
 
-        print kresults_file
+        print(kresults_file)
 
         if kresults_file:
 
             kresults_file_name = kresults_file[0]
             kresults_file_full = os.path.join(sub_dir_path_abs, kresults_file_name)
             kresults_base_abs = os.path.splitext(kresults_file_full)[0]
-            print "processing KResults file: {}".format(kresults_file_full)
+            print("processing KResults file: {}".format(kresults_file_full))
 
             input_file_path_abs = os.path.join(sub_dir_path_abs, 'input.json')
 

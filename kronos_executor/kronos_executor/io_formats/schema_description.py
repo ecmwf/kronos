@@ -40,10 +40,10 @@ class SchemaDescription(object):
         self.required = schema.get("required_flag", False)
         self.depth = depth
 
-    def __str__(self):
-        return unicode(self).encode('utf-8')
+    def __bytes__(self):
+        return str(self).encode('utf-8')
 
-    def __unicode__(self):
+    def __str__(self):
         s = ""
         if self.title:
             s += "{}\n{}\n".format(self.title, ("-" * len(self.title)))
@@ -89,11 +89,11 @@ class ObjectSchemaDescription(SchemaDescription):
 
         self.properties = {
             k: SchemaDescription.from_schema(v, depth+1)
-            for k, v in schema.get('properties', {}).iteritems()
+            for k, v in schema.get('properties', {}).items()
         }
         self.properties.update({
             k: SchemaDescription.from_schema(v, depth+1)
-            for k, v in schema.get('patternProperties', {}).iteritems()
+            for k, v in schema.get('patternProperties', {}).items()
         })
 
     def details_string(self):
@@ -105,7 +105,7 @@ class ObjectSchemaDescription(SchemaDescription):
                 '    # {}{}    {}: {}'.format(
                     "{}    # ".format(self.newline).join(prop_schema.description.split('\n')),
                     self.newline, prop, prop_schema.details_string())
-                for prop, prop_schema in self.properties.iteritems())
+                for prop, prop_schema in self.properties.items())
             properties += self.newline
 
         return "{{{}}}".format(properties)
@@ -171,7 +171,7 @@ class EnumSchemaDescription(SchemaDescription):
 
     @staticmethod
     def value_string(v):
-        if isinstance(v, str) or isinstance(v, unicode):
+        if isinstance(v, str):
             return '"{}"'.format(v)
         else:
             return "{}".format(v)
@@ -199,7 +199,7 @@ class OneOfSchemaDescription(SchemaDescription):
 
     @staticmethod
     def value_string(v):
-        if isinstance(v, str) or isinstance(v, unicode):
+        if isinstance(v, str):
             return '"{}"'.format(v)
         else:
             return "{}".format(v)
@@ -227,7 +227,7 @@ class MultiTypeSchemaDescription(SchemaDescription):
 
     @staticmethod
     def value_string(v):
-        if isinstance(v, str) or isinstance(v, unicode):
+        if isinstance(v, str):
             return '"{}"'.format(v)
         else:
             return "{}".format(v)

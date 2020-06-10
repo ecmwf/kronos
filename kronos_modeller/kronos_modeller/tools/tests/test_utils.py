@@ -39,7 +39,7 @@ class ProfileFormatTest(unittest.TestCase):
     def test_calc_histogram(self):
 
         # number 0 to 9 in 2 intervals
-        self.assertEqual(calc_histogram(range(10), 2), ([0.0, 4.5, 9.0], [5, 5]))
+        self.assertEqual(calc_histogram(list(range(10)), 2), ([0.0, 4.5, 9.0], [5, 5]))
 
         # some numbers from 0 to 10 in 5 intervals
         self.assertEqual(calc_histogram([10, 0, 5.5, 8, 2.1], 5), ([0., 2., 4., 6., 8., 10], [1, 1, 1, 0, 2]))

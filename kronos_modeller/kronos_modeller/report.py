@@ -49,5 +49,5 @@ class Report(object):
 
                 logger.info("\n{}: (calculated in {})".format(m.name, m.source_function))
 
-                for k, v in m.value.iteritems():
+                for k, v in m.value.items():
                     logger.info("{}: {}".format(k, v))

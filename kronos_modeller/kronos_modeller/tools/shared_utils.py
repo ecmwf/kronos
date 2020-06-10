@@ -20,7 +20,7 @@ def progress_percentage(idx, len_list, percent_out):
     print_delta = max(1, int(np.ceil(percent_out / 100. * len_list)))
 
     if not idx % print_delta or idx == len_list - 1:
-        pc_past = (idx + 1) / print_delta * percent_out if idx != len_list - 1 else 100
+        pc_past = (idx + 1) // print_delta * percent_out if idx != len_list - 1 else 100
         return pc_past
     else:
         return -1

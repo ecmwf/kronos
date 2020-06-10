@@ -9,7 +9,7 @@
 
 import json
 import unittest
-from StringIO import StringIO
+from io import StringIO
 
 from kronos_executor.io_formats.profile_format import ProfileFormat
 from kronos_executor.definitions import signal_types, time_signal_names
@@ -211,7 +211,7 @@ class ModelJobTest(unittest.TestCase):
         pf = ProfileFormat.from_file(StringIO(json.dumps(valid)))
 
         jobs = [ModelJob.from_json(j) for j in pf.profiled_jobs]
-        self.assertEquals(len(jobs), 1)
+        self.assertEqual(len(jobs), 1)
         self.assertIsInstance(jobs[0], ModelJob)
 
         self.assertEqual(jobs[0].time_start, 537700)
@@ -220,9 +220,9 @@ class ModelJobTest(unittest.TestCase):
         self.assertEqual(jobs[0].ncpus, 72)
         self.assertEqual(jobs[0].nnodes, 2)
 
-        self.assertEquals(len(jobs[0].timesignals), len(signal_types))
+        self.assertEqual(len(jobs[0].timesignals), len(signal_types))
         self.assertIn('kb_read', jobs[0].timesignals)
-        for name, signal in jobs[0].timesignals.iteritems():
+        for name, signal in jobs[0].timesignals.items():
             if name == 'kb_read':
                 self.assertIsInstance(signal, TimeSignal)
                 self.assertTrue(all(x1 == x2 for x1, x2 in zip(signal.xvalues, [0.01, 0.02, 0.03, 0.04])))

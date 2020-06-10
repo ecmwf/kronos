@@ -1,7 +1,5 @@
-
-
 #!/bin/bash
-# (C) Copyright 1996-2018 ECMWF.
+# (C) Copyright 1996-2020 ECMWF.
 # 
 # This software is licensed under the terms of the Apache Licence Version 2.0
 # which can be obtained at http://www.apache.org/licenses/LICENSE-2.0. 
@@ -19,8 +17,8 @@ unset PYTHONPATH
 
 # Get conda, and install it (very) locally
 
-wget https://repo.continuum.io/miniconda/Miniconda2-latest-Linux-x86_64.sh
-sh Miniconda2-latest-Linux-x86_64.sh -b -p ${bamboo_working_directory}/miniconda
+wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh
+sh Miniconda3-latest-Linux-x86_64.sh -b -p ${bamboo_working_directory}/miniconda
 export PATH=${bamboo_working_directory}/miniconda/bin:${PATH}
 
 # Work around ~/.conda being incorrectly (hard)-used in cond a create.
@@ -44,6 +42,7 @@ fi
 # install the executor+modeller
 cd $HOME
 source activate test_env
+conda install -y pyflakes pytest
 pip install -e kronos_executor
 pip install -e kronos_modeller
 
@@ -57,5 +56,6 @@ fi
 # install the executor
 cd $HOME
 source activate test_env_exe
+conda install -y pytest
 pip install -e kronos_executor
 

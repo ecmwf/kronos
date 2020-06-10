@@ -20,4 +20,4 @@ class PlotHandler(object):
 
     @staticmethod
     def print_fig_handle_ID():
-        print "PlotHandler.fig_handle_ID: ", PlotHandler.fig_handle_ID
+        print("PlotHandler.fig_handle_ID: ", PlotHandler.fig_handle_ID)

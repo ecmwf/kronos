@@ -185,10 +185,10 @@ class FileReadKernel(KernelBase):
         for d in data:
 
             if d['kb_read'] < 0.:
-                raise ValueError('kb_read is < 0!'.format(d['kb_read']))
+                raise ValueError('kb_read is {} < 0!'.format(d['kb_read']))
 
             if d['n_read'] < 0.:
-                raise ValueError('n_read is < 0!'.format(d['n_read']))
+                raise ValueError('n_read is {} < 0!'.format(d['n_read']))
 
             if d['kb_read'] > 0:
                 d['n_read'] = max(1, int(d['n_read']))

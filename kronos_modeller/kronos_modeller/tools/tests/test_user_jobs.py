@@ -16,11 +16,11 @@ from kronos_modeller.tools.user_generated_jobs import UserGeneratedJob
 
 class UserJobTests(unittest.TestCase):
 
-    xvals = range(10)
+    xvals = list(range(10))
     yvals = [y ** 2 for y in range(10)]
 
     dummy_time_signals = {tsname: TimeSignal.from_values(tsname,
-                                                         xvals=range(10),
+                                                         xvals=list(range(10)),
                                                          yvals=[y ** 2 for y in range(10)],
                                                          priority=10
                                                          ) for tsname in time_signal_names}
@@ -40,10 +40,10 @@ class UserJobTests(unittest.TestCase):
         # from its proto-signals
         job = UserGeneratedJob.from_random_proto_signals("from_proto_signals_job", ts_len=25)
 
-        self.assertEquals(job.name, "from_proto_signals_job")
+        self.assertEqual(job.name, "from_proto_signals_job")
 
-        first_ts_len = len(job.timesignals.values()[0].xvalues)
-        self.assertEquals(first_ts_len, 25)
+        first_ts_len = len(next(iter(job.timesignals.values())).xvalues)
+        self.assertEqual(first_ts_len, 25)
 
     def test_timesignal_probability(self):
 
@@ -51,12 +51,12 @@ class UserJobTests(unittest.TestCase):
         job = UserGeneratedJob.from_random_proto_signals("from_proto_signals_job", ts_len=25)
 
         # check length of all the ts..
-        first_ts_len = len(job.timesignals.values()[0].xvalues)
-        self.assertEquals(first_ts_len, 25)
+        first_ts_len = len(next(iter(job.timesignals.values())).xvalues)
+        self.assertEqual(first_ts_len, 25)
 
         # check that all the lengths
         for tsv in job.timesignals.values():
-            self.assertEquals(len(tsv.xvalues), first_ts_len)
+            self.assertEqual(len(tsv.xvalues), first_ts_len)
 
         # probability 0 meant that all the signals will be removed
         job_no_ts = copy.deepcopy(job)
