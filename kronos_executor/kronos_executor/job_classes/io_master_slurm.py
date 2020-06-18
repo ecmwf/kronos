@@ -57,6 +57,7 @@ class Job(SLURMMixin, UserAppJob):
         """
         Function used to define an environment variable generated from configuration parameters
         """
+        super().customised_generated_internals(script_format)
 
         script_format['ioserver_hosts_file'] = self.executor.ioserver_hosts_file
 

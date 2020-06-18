@@ -3,7 +3,7 @@ import os
 import stat
 import subprocess
 
-from kronos_executor.base_job import BaseJob
+from kronos_executor.synapp_job import SyntheticAppJob
 
 # Very basic job submit template for running Kronos on a workstation
 # without job scheduling system. The job will run on a subprocess.
@@ -34,66 +34,22 @@ export LD_LIBRARY_PATH={allinea_ld_library_path}:${{LD_LIBRARY_PATH}}
 """
 
 
-class Job(BaseJob):
+class Job(SyntheticAppJob):
+
+    submit_script_template = job_template
+    allinea_template = allinea_template
+    launcher_command = "mpirun"
+    allinea_launcher_command = "map --profile mpirun"
 
     def __init__(self, job_config, executor, path):
         super(Job, self).__init__(job_config, executor, path)
 
-        # print "Trivial JOBS..."
-        # print "Inside class {}".format(job_config)
-        # print "Job dir: {}".format(path)
-
-        self.run_script = os.path.join(self.path, "submit_script")
-        self.allinea_launcher_command = "map --profile mpirun"
-        self.allinea_template = allinea_template
-
-    def get_submission_and_callback_params(self, depend_job_ids=None):
-        """
-        Get all the necessary params to call the static version of the callback
-        (needed to use of the static callback function without job instance..)
-        :return:
-        """
-
-        depend_job_ids = depend_job_ids if depend_job_ids else []
-
-        return {
-            "jid": self.id,
-            "submission_params": self.get_submission_arguments(depend_job_ids),
-            "callback_params": {}
-        }
-
-    def generate_internal(self):
-
-        nprocs = self.job_config.get('num_procs', 1)
-        nnodes = int(math.ceil(float(nprocs) / self.executor.procs_per_node))
-        assert nnodes == 1
-
-        script_format = {
-            'write_dir': self.path,
-            'read_dir': self.executor.read_cache_path,
-            'shared_dir': self.executor.job_dir_shared,
-            'coordinator_binary': self.executor.coordinator_binary,
-            'num_procs': nprocs,
-            'launcher_command': "mpirun",
-            'input_file': self.input_file,
-            'profiling_code': "",
-            'job_num': self.id,
-            'simulation_token': self.executor.simulation_token
-        }
-               
-        if self.executor.allinea_path is not None and self.executor.allinea_ld_library_path is not None:
-            script_format['allinea_path'] = self.executor.allinea_path
-            script_format['allinea_ld_library_path'] = self.executor.allinea_ld_library_path
-            script_format['launcher_command'] = self.allinea_launcher_command
-            script_format['profiling_code'] += self.allinea_template.format(**script_format)                
-
-        with open(self.run_script, 'w') as f:
-            f.write(job_template.format(**script_format))
-
-        os.chmod(self.run_script, stat.S_IRWXU | stat.S_IROTH | stat.S_IXOTH | stat.S_IRGRP | stat.S_IXGRP)
+    def customised_generated_internals(self, script_format):
+        super(Job, self).customised_generated_internals(script_format)
+        assert script_format['num_nodes'] == 1
 
     def get_submission_arguments(self, depend_job_ids):
-        return ["bash", self.run_script]
+        return ["bash", self.submit_script]
 
     def run(self, depend_jobs_ids):
         """
@@ -107,9 +63,9 @@ class Job(BaseJob):
             ii) Run it immediately
             iii) Set an async timer to run it in the future?
         """
-        print("Running {}".format(self.run_script))
+        print("Running {}".format(self.submit_script))
 
         with open('output', 'w') as fout, open('error', 'w') as ferror :
-            subprocess.call(self.run_script, stdout=fout, stderr=ferror, stdin=None, shell=True)
+            subprocess.call(self.submit_script, stdout=fout, stderr=ferror, stdin=None, shell=True)
 
         self.executor.set_job_submitted(self.id, [])

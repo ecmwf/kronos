@@ -1,4 +1,4 @@
-from kronos_executor.hpc import HPCJob
+from kronos_executor.synapp_job import SyntheticAppJob
 
 #####################################################################################################
 # This file is an example of a job submit template needed to run the kronos_executor on a HPC system. This template is
@@ -156,6 +156,6 @@ class SLURMMixin(object):
     cancel_file_line = cancel_file_line
 
 
-class Job(SLURMMixin, HPCJob):
+class Job(SLURMMixin, SyntheticAppJob):
     pass
 

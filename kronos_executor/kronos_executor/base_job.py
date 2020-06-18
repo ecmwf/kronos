@@ -6,7 +6,7 @@ from kronos_executor.kronos_events import EventFactory
 
 class BaseJob(object):
 
-    needs_read_cache = True
+    needs_read_cache = False
 
     def __init__(self, job_config, executor, path):
         self.job_config = job_config

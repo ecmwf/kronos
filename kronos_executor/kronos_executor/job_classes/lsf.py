@@ -1,4 +1,4 @@
-from kronos_executor.hpc import HPCJob
+from kronos_executor.synapp_job import SyntheticAppJob
 
 
 job_template = """#!/bin/bash
@@ -76,6 +76,6 @@ class LSFMixin(object):
     cancel_file_line = cancel_file_line
 
 
-class Job(LSFMixin, HPCJob):
+class Job(LSFMixin, SyntheticAppJob):
     pass
 

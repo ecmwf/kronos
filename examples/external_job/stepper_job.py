@@ -132,6 +132,7 @@ class Job(TrivialMixin, UserAppJob):
         """
         Function used to define an environment variable generated from configuration parameters
         """
+        super().customised_generated_internals(script_format)
 
         here = os.path.dirname(__file__)
 

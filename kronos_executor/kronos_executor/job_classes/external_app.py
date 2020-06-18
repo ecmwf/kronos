@@ -51,6 +51,8 @@ class Job(SLURMMixin, UserAppJob):
         """
         Function used to define an environment variable generated from configuration parameters
         """
+        super().customised_generated_internals(script_format)
+
         # ===== SETUP to send TCP message to kronos at the end of job ======
         inst_dir = "{}".format(os.path.join(self.executor.executor_file_dir, "../../../"))
         script_format['source_kronos_env'] = "set +u; source {}; set -u".format(os.path.join(inst_dir, "environment.sh"))

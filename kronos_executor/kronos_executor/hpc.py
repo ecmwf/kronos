@@ -1,4 +1,3 @@
-import math
 import os
 import stat
 import subprocess
@@ -27,25 +26,27 @@ class HPCJob(BaseJob):
 
         self.submit_script = os.path.join(self.path, "submit_script")
 
-    def generate_internal(self):
+    def customised_generated_internals(self, script_format):
+        """
+        Place-holder for user-defined generation of parts of the submit script.
+        For instance, can be used for composing an environment variable to be passed to the
+        user-defined-application prior to the run. It can easily combine kschedule config
+        parameters and kronos kronos_executor configuration parameters.
+        :param script_format:
+        :return:
+        """
+        pass
 
-        nprocs = self.job_config.get('num_procs', 1)
-        nnodes = int(math.ceil(float(nprocs) / self.executor.procs_per_node))
+    def generate_internal(self):
 
         script_format = {
             'write_dir': self.path,
             'read_dir': self.executor.read_cache_path,
             'shared_dir': self.executor.job_dir_shared,
-            'procs_per_node': min(self.executor.procs_per_node, nprocs),
-            'coordinator_binary': self.executor.coordinator_binary,
-            'coordinator_library_path': os.path.join( os.path.dirname(self.executor.coordinator_binary),"../lib"),
-            'num_procs': nprocs,
-            'num_nodes': nnodes,
-            'num_hyperthreads': 1,
             'input_file': self.input_file,
-            'job_dir': self.path,
             'profiling_code': "",
-            'job_name': 'synthApp_{}_{}_{}'.format(nprocs, nnodes, self.id),
+            'job_dir': self.path,
+            'job_name': 'kron-{}'.format(self.id),
             'job_num': self.id,
             'job_output_file': os.path.join(self.path, "output"),
             'job_error_file': os.path.join(self.path, "error"),
@@ -73,6 +74,10 @@ class HPCJob(BaseJob):
                 script_format['allinea_licence_file'] = self.executor.allinea_licence_file
                 self.allinea_template += self.allinea_lic_file_template
             script_format['profiling_code'] += self.allinea_template.format(**script_format)
+
+        self.customised_generated_internals(script_format)
+
+        assert self.submit_script_template is not None
 
         with open(self.submit_script, 'w') as f:
             f.write(self.submit_script_template.format(**script_format))
@@ -141,6 +146,7 @@ class HPCJob(BaseJob):
     def get_submission_arguments(self, depend_job_ids):
 
         subprocess_args = []
+        assert self.submit_command is not None
         subprocess_args.append(self.submit_command)
 
         if depend_job_ids:
