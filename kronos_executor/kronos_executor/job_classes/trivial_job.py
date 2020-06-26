@@ -5,39 +5,12 @@ import subprocess
 
 from kronos_executor.synapp_job import SyntheticAppJob
 
-# Very basic job submit template for running Kronos on a workstation
-# without job scheduling system. The job will run on a subprocess.
-
-
-job_template = """
-#!/bin/sh
-
-module load openmpi
-
-export KRONOS_WRITE_DIR="{write_dir}"
-export KRONOS_READ_DIR="{read_dir}"
-export KRONOS_SHARED_DIR="{shared_dir}"
-export KRONOS_TOKEN="{simulation_token}"
-
-{profiling_code}
-
-cd {write_dir}
-
-{launcher_command} -np {num_procs} {coordinator_binary} {input_file}
-
-"""
-
-allinea_template = """
-# Configure Allinea Map
-export PATH={allinea_path}:${{PATH}}
-export LD_LIBRARY_PATH={allinea_ld_library_path}:${{LD_LIBRARY_PATH}}
-"""
+# Very basic job class for running Kronos on a workstation without job
+# scheduling system. The job will run on a subprocess.
 
 
 class Job(SyntheticAppJob):
 
-    submit_script_template = job_template
-    allinea_template = allinea_template
     launcher_command = "mpirun"
     allinea_launcher_command = "map --profile mpirun"
 
@@ -47,6 +20,10 @@ class Job(SyntheticAppJob):
     def customised_generated_internals(self, script_format):
         super(Job, self).customised_generated_internals(script_format)
         assert script_format['num_nodes'] == 1
+
+        script_format['scheduler_params'] = ""
+        script_format['env_setup'] = "module load openmpi"
+        script_format['launch_command'] = "{launcher_command} -np {num_procs}".format(**script_format)
 
     def get_submission_arguments(self, depend_job_ids):
         return ["bash", self.submit_script]

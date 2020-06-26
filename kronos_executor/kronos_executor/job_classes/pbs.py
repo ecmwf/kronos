@@ -86,7 +86,27 @@ from kronos_executor.synapp_job import SyntheticAppJob
 #####################################################################################################
 
 
-job_template = """#!/bin/sh
+cancel_file_head = "#!/bin/sh\nqdel "
+cancel_file_line = "{sequence_id} "
+
+
+class PBSMixin:
+    """
+    Define the templates for PBS
+    """
+
+    submit_command = "qsub"
+    depend_parameter = "-W depend=afterany:"
+    depend_separator = ":"
+    launcher_command = 'aprun'
+    allinea_launcher_command = "map --profile aprun"
+    cancel_file_head = cancel_file_head
+    cancel_file_line = cancel_file_line
+
+    def customised_generated_internals(self, script_format):
+        super(PBSMixin, self).customised_generated_internals(script_format)
+
+        script_format['scheduler_params'] = """\
 #PBS -N {job_name}
 #PBS -q np
 #PBS -l EC_nodes={num_nodes}
@@ -94,71 +114,17 @@ job_template = """#!/bin/sh
 #PBS -l EC_threads_per_task=1
 #PBS -l EC_hyperthreads={num_hyperthreads}
 #PBS -o {job_output_file}
-#PBS -e {job_error_file}
-
-# Configure the locations for the synthetic app to dump/load files in the i/o kernels
-export KRONOS_WRITE_DIR="{write_dir}"
-export KRONOS_READ_DIR="{read_dir}"
-export KRONOS_SHARED_DIR="{shared_dir}"
-export KRONOS_TOKEN="{simulation_token}"
-
+#PBS -e {job_error_file}\
+""".format(**script_format)
+        script_format['env_setup'] = """\
 export LD_LIBRARY_PATH={coordinator_library_path}:${{LD_LIBRARY_PATH}}
 
-# Change to the original directory for submission
-cd {job_dir}
-
 # Export an EC simulation ID (to assist identifying the job in darshan logs)
-export EC_simulation_id="{job_name}"
-
-{profiling_code}
-
-{launcher_command} -e LD_LIBRARY_PATH="${{LD_LIBRARY_PATH}}" -N {procs_per_node} -n {num_procs} {coordinator_binary} {input_file}
-"""
-
-
-ipm_template = """
-# Configure IPM
-module load ipm
-export IPM_LOGDIR={job_dir}/ipm-logs
-export IPM_HPM=PAPI_FP_OPS,PAPI_TOT_INS,PAPI_L1_DCM,PAPI_L2_DCM,PAPI_L3_DCM,PAPI_L1_DCA,PAPI_L1_TCM,PAPI_L2_TCM,PAPI_L3_TCM
-"""
-
-darshan_template = """
-export DARSHAN_LOG_PATH={job_dir}
-export LD_PRELOAD={darshan_lib_path}
-"""
-
-allinea_template = """
-# Configure Allinea Map
-export PATH={allinea_path}:${{PATH}}
-export LD_LIBRARY_PATH={allinea_ld_library_path}:${{LD_LIBRARY_PATH}}
-"""
-
-allinea_lic_file_template = """
-export ALLINEA_LICENCE_FILE={allinea_licence_file}
-"""
-
-cancel_file_head = "#!/bin/sh\nqdel "
-cancel_file_line = "{sequence_id} "
-
-
-class PBSMixin(object):
-    """
-    Define the templates for PBS
-    """
-
-    submit_script_template = job_template
-    ipm_template = ipm_template
-    darshan_template = darshan_template
-    allinea_template = allinea_template
-    submit_command = "qsub"
-    depend_parameter = "-W depend=afterany:"
-    depend_separator = ":"
-    launcher_command = 'aprun'
-    allinea_launcher_command = "map --profile aprun"
-    allinea_lic_file_template = allinea_lic_file_template
-    cancel_file_head = cancel_file_head
-    cancel_file_line = cancel_file_line
+export EC_simulation_id="{job_name}"\
+""".format(**script_format)
+        script_format['launch_command'] = """\
+{launcher_command} -e LD_LIBRARY_PATH="${{LD_LIBRARY_PATH}}" -N {procs_per_node} -n {num_procs}\
+""".format(**script_format)
 
 
 class Job(PBSMixin, SyntheticAppJob):
