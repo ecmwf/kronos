@@ -257,27 +257,27 @@ class Executor(object):
             job_config['job_num'] = job_num
 
             # get job template name (either from the job config or from the global config, if present)
-            job_template_name = job_config.get("job_class", self.config.get("job_class", "trivial_job"))
+            job_class_name = job_config.setdefault("job_class", self.config.get("job_class", "trivial_job"))
             job_classes_dir = os.path.join(os.path.dirname(__file__), "job_classes")
 
             # now search for the template file in the cwd first..
-            if os.path.isfile( "{}.py".format(os.path.join(os.getcwd(), job_template_name)) ):
+            if os.path.isfile( "{}.py".format(os.path.join(os.getcwd(), job_class_name)) ):
 
-                job_class_module_file = "{}.py".format(os.path.join(os.getcwd(), job_template_name))
+                job_class_module_file = "{}.py".format(os.path.join(os.getcwd(), job_class_name))
 
-            elif os.path.isfile( os.path.join(job_classes_dir, "{}.py".format(job_template_name)) ):
+            elif os.path.isfile( os.path.join(job_classes_dir, "{}.py".format(job_class_name)) ):
 
-                job_class_module_file = os.path.join(os.path.dirname(__file__), "job_classes/{}.py".format(job_template_name))
+                job_class_module_file = os.path.join(os.path.dirname(__file__), "job_classes/{}.py".format(job_class_name))
 
             else:
 
-                logger.error("template file {}.py not found neither in {} nor in {}".format(job_template_name,
+                logger.error("template file {}.py not found neither in {} nor in {}".format(job_class_name,
                                                                                             os.getcwd(),
                                                                                             job_classes_dir))
                 raise IOError
 
             # now load the module
-            job_module_name = "kronos_job_class_{}".format(job_template_name)
+            job_module_name = "kronos_job_class_{}".format(job_class_name)
             if job_module_name in sys.modules:
                 job_class_module = sys.modules[job_module_name]
             else:
