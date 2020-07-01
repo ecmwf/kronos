@@ -2,27 +2,7 @@ import math
 import os
 
 from kronos_executor.hpc import HPCJob
-
-
-job_template = """\
-#!/bin/bash
-{scheduler_params}
-
-# Configure the locations for the synthetic app to dump/load files in the i/o kernels
-export KRONOS_WRITE_DIR="{write_dir}"
-export KRONOS_READ_DIR="{read_dir}"
-export KRONOS_SHARED_DIR="{shared_dir}"
-export KRONOS_TOKEN="{simulation_token}"
-
-{env_setup}
-
-{profiling_code}
-
-# Change to the original directory for submission
-cd {job_dir}
-
-{launch_command} {coordinator_binary} {input_file}
-"""
+from kronos_executor.template_job import TemplateMixin
 
 ipm_template = """
 # Configure IPM
@@ -47,11 +27,12 @@ export ALLINEA_LICENCE_FILE={allinea_licence_file}
 """
 
 
-class SyntheticAppJob(HPCJob):
+class SyntheticAppJob(TemplateMixin, HPCJob):
+
+    default_template = "synapp.sh"
 
     needs_read_cache = True
 
-    submit_script_template = job_template
     ipm_template = ipm_template
     darshan_template = darshan_template
     allinea_template = allinea_template
