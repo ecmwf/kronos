@@ -32,6 +32,7 @@ class Executor(object):
         'coordinator_binary',
         'enable_ipm',
         'job_class',
+        'job_template',
         'job_dir',
         'job_dir_shared',
         'procs_per_node',

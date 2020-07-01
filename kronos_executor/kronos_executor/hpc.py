@@ -77,12 +77,15 @@ class HPCJob(BaseJob):
 
         self.customised_generated_internals(script_format)
 
+        self.generate_script(script_format)
+
+        os.chmod(self.submit_script, stat.S_IRWXU | stat.S_IROTH | stat.S_IXOTH | stat.S_IRGRP | stat.S_IXGRP)
+
+    def generate_script(self, script_format):
         assert self.submit_script_template is not None
 
         with open(self.submit_script, 'w') as f:
             f.write(self.submit_script_template.format(**script_format))
-
-        os.chmod(self.submit_script, stat.S_IRWXU | stat.S_IROTH | stat.S_IXOTH | stat.S_IRGRP | stat.S_IXGRP)
 
     def submission_callback(self, output):
         """
