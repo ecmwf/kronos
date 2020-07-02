@@ -1,6 +1,3 @@
-import math
-import os
-import stat
 import subprocess
 
 from kronos_executor.synapp_job import SyntheticAppJob
