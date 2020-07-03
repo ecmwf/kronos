@@ -89,16 +89,16 @@ add_custom_command(
         TARGET remote_io_worker POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy
                 ${PROJECT_SOURCE_DIR}/kronos_apps/scripts/spinup_servers.py
-                ${PROJECT_BINARY_DIR}/bin)
+                ${CMAKE_BINARY_DIR}/bin)
 
 add_custom_command(
         TARGET remote_io_worker POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy
                 ${PROJECT_SOURCE_DIR}/kronos_apps/scripts/spindown_servers.py
-                ${PROJECT_BINARY_DIR}/bin)
+                ${CMAKE_BINARY_DIR}/bin)
 
 add_custom_command(
         TARGET remote_io_worker POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy
                 ${PROJECT_SOURCE_DIR}/kronos_apps/scripts/generate_ioserver_schedule.py
-                ${PROJECT_BINARY_DIR}/bin)
+                ${CMAKE_BINARY_DIR}/bin)
