@@ -77,7 +77,7 @@ class Executor(object):
         root_logger = logging.getLogger()
         fh = logging.FileHandler(self.logfile_path, mode='w')
         fh.setFormatter(logging.Formatter(log_msg_format))
-        fh.setLevel(logging.DEBUG)
+        fh.setLevel(logging.INFO)
         root_logger.addHandler(fh)
 
         # Test for invalid parameters:
