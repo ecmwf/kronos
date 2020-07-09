@@ -77,6 +77,14 @@ class HPCJob(BaseJob):
 
         self.customised_generated_internals(script_format)
 
+        if self.executor.execution_context is not None:
+            script_format.setdefault('launcher_command', self.executor.execution_context.launcher_command)
+            script_format.setdefault('scheduler_params', self.executor.execution_context.scheduler_params(script_format))
+            script_format.setdefault('env_setup', self.executor.execution_context.env_setup(script_format))
+            script_format.setdefault('launch_command', self.executor.execution_context.launch_command(script_format))
+        else:
+            script_format.setdefault('launcher_command', self.launcher_command)
+
         self.generate_script(script_format)
 
         os.chmod(self.submit_script, stat.S_IRWXU | stat.S_IROTH | stat.S_IXOTH | stat.S_IRGRP | stat.S_IXGRP)
@@ -147,6 +155,10 @@ class HPCJob(BaseJob):
         cancel_file.flush()
 
     def get_submission_arguments(self, depend_job_ids):
+
+        if self.executor.execution_context is not None:
+            return self.executor.execution_context.submit_command(
+                self.job_config, self.submit_script, depend_job_ids)
 
         subprocess_args = []
         assert self.submit_command is not None

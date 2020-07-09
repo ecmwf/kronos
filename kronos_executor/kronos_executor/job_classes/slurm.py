@@ -101,6 +101,9 @@ class SLURMMixin:
     def customised_generated_internals(self, script_format):
         super(SLURMMixin, self).customised_generated_internals(script_format)
 
+        if self.executor.execution_context is not None:
+            return
+
         script_format['scheduler_params'] = """\
 #SBATCH --job-name={job_name}
 #SBATCH -N {num_nodes}

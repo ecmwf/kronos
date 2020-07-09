@@ -55,6 +55,7 @@ class SyntheticAppJob(TemplateMixin, HPCJob):
             'coordinator_library_path': os.path.join( os.path.dirname(self.executor.coordinator_binary),"../lib"),
             'num_procs': nprocs,
             'num_nodes': nnodes,
+            'cpus_per_task': 1,
             'num_hyperthreads': 1,
             'job_name': 'synthApp_{}_{}_{}'.format(nprocs, nnodes, self.id)
         })

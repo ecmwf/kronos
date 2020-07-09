@@ -21,6 +21,9 @@ class LSFMixin:
     def customised_generated_internals(self, script_format):
         super(LSFMixin, self).customised_generated_internals(script_format)
 
+        if self.executor.execution_context is not None:
+            return
+
         script_format['scheduler_params'] = """\
 #BSUB -L /bin/bash
 #BSUB -J {job_name}

@@ -106,6 +106,9 @@ class PBSMixin:
     def customised_generated_internals(self, script_format):
         super(PBSMixin, self).customised_generated_internals(script_format)
 
+        if self.executor.execution_context is not None:
+            return
+
         script_format['scheduler_params'] = """\
 #PBS -N {job_name}
 #PBS -q np

@@ -18,6 +18,9 @@ class Job(SyntheticAppJob):
         super(Job, self).customised_generated_internals(script_format)
         assert script_format['num_nodes'] == 1
 
+        if self.executor.execution_context is not None:
+            return
+
         script_format['scheduler_params'] = ""
         script_format['env_setup'] = "module load openmpi"
         script_format['launch_command'] = "{launcher_command} -np {num_procs}".format(**script_format)

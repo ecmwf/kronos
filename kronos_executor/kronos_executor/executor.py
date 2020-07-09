@@ -14,6 +14,7 @@ import subprocess
 from kronos_executor import log_msg_format
 from kronos_executor.global_config import global_config
 from kronos_executor import generate_read_files
+from kronos_executor.execution_context import load_context
 from kronos_executor.subprocess_callback import SubprocessManager
 
 logger = logging.getLogger(__name__)
@@ -31,6 +32,7 @@ class Executor(object):
     available_parameters = [
         'coordinator_binary',
         'enable_ipm',
+        'execution_context',
         'job_class',
         'job_template',
         'job_dir',
@@ -148,6 +150,14 @@ class Executor(object):
         self.procs_per_node = config['procs_per_node']
 
         self.initial_time = None
+
+        self.execution_context = None
+        if 'execution_context' in config:
+            search_paths = [
+                os.getcwd(),
+                os.path.join(os.path.dirname(__file__), "execution_contexts")
+            ]
+            self.execution_context = load_context(config['execution_context'], search_paths, config)
 
         # Do we want to use IPM monitoring?
         self.enable_ipm = config.get('enable_ipm', False)
