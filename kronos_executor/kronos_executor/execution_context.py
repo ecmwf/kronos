@@ -31,7 +31,7 @@ class ExecutionContext:
     launcher_use_params = []
 
     def __init__(self, config):
-        pass
+        self.config = config.copy()
 
     def scheduler_params(self, job_config):
         """Format the appropriate scheduler directives for the given job"""
@@ -42,8 +42,12 @@ class ExecutionContext:
         for pname in self.scheduler_use_params:
             param = self.scheduler_directive_params.get(pname)
             if param is not None:
-                lines.append(self.scheduler_directive_start + param
-                    + str(job_config[pname]))
+                pval = None
+                if pname in job_config:
+                    pval = job_config[pname]
+                else:
+                    pval = self.config[pname]
+                lines.append(self.scheduler_directive_start + param + str(pval))
 
         return "\n".join(lines)
 
@@ -60,7 +64,12 @@ class ExecutionContext:
         for pname in self.launcher_use_params:
             param = self.launcher_params.get(pname)
             if param is not None:
-                command.append(param + str(job_config[pname]))
+                pval = None
+                if pname in job_config:
+                    pval = job_config[pname]
+                else:
+                    pval = self.config[pname]
+                command.append(param + str(pval))
 
         return " ".join(command)
 
