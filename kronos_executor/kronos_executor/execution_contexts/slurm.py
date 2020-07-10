@@ -15,6 +15,9 @@ class SlurmExecutionContext(ExecutionContext):
     scheduler_use_params = [
         'job_name', 'num_nodes', 'num_procs', 'cpus_per_task', 'job_output_file', 'job_error_file']
 
+    scheduler_cancel_head = "#!/bin/sh\nscancel "
+    scheduler_cancel_entry = "{sequence_id} "
+
     submit_command_ = "sbatch"
     submit_job_dependency = "--dependency=afterany:"
     submit_dependency_separator = ":"

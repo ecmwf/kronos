@@ -6,6 +6,8 @@ class TrivialExecutionContext(ExecutionContext):
     scheduler_directive_start = ""
     scheduler_directive_params = {}
     scheduler_use_params = []
+    scheduler_cancel_head = ""
+    scheduler_cancel_entry = ""
 
     launcher_command = "mpirun"
     launcher_params = {"num_procs": "-np "}

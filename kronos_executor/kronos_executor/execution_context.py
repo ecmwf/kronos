@@ -13,6 +13,10 @@ class ExecutionContext:
     # Parameters to use, in the dictionary above
     scheduler_use_params = [
         'job_name', 'num_procs', 'num_nodes', 'job_output_file', 'job_error_file']
+    # Script to cancel all submitted jobs: start of file
+    scheduler_cancel_head = None
+    # format() string for an entry in the cancel script, job id passed as sequence_id
+    scheduler_cancel_entry = None
 
     # Command to submit a job, e.g. "sbatch"
     submit_command_ = None
@@ -88,6 +92,13 @@ class ExecutionContext:
 
         command.append(job_script_path)
         return command
+
+    def cancel_entry(self, sequence_id, first):
+        """Generate a new entry to append to the cancel file"""
+        entry = ""
+        if first:
+            entry += self.scheduler_cancel_head
+        entry += self.scheduler_cancel_entry.format(sequence_id=sequence_id)
 
 
 def load_context(name, path, config):

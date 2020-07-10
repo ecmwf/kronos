@@ -99,16 +99,18 @@ class HPCJob(BaseJob):
         """
         This is the callback function
         """
-        if HPCJob.cancel_file is None:
-            cancel_file_path = os.path.join(self.executor.job_dir, "killjobs")
-            HPCJob.cancel_file = open(cancel_file_path, 'w')
-            HPCJob.cancel_file.write(self.cancel_file_head)
-            os.chmod(cancel_file_path, stat.S_IRWXU | stat.S_IROTH | stat.S_IXOTH | stat.S_IRGRP | stat.S_IXGRP)
 
-        # Sequence_id_job = filter(str.isdigit, output)
-        sequence_id_job = output.strip()
-        HPCJob.cancel_file.write(self.cancel_file_line.format(sequence_id=sequence_id_job))
-        HPCJob.cancel_file.flush()
+        if self.executor.execution_context is None:
+            if HPCJob.cancel_file is None:
+                cancel_file_path = os.path.join(self.executor.job_dir, "killjobs")
+                HPCJob.cancel_file = open(cancel_file_path, 'w')
+                HPCJob.cancel_file.write(self.cancel_file_head)
+                os.chmod(cancel_file_path, stat.S_IRWXU | stat.S_IROTH | stat.S_IXOTH | stat.S_IRGRP | stat.S_IXGRP)
+
+            # Sequence_id_job = filter(str.isdigit, output)
+            sequence_id_job = output.strip()
+            HPCJob.cancel_file.write(self.cancel_file_line.format(sequence_id=sequence_id_job))
+            HPCJob.cancel_file.flush()
 
         self.executor.set_job_submitted(self.id, sequence_id_job)
 

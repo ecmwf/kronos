@@ -5,6 +5,7 @@ import imp
 import logging
 import os
 import socket
+import stat
 import sys
 import time
 import uuid
@@ -152,12 +153,15 @@ class Executor(object):
         self.initial_time = None
 
         self.execution_context = None
+        self.cancel_file = None
         if 'execution_context' in config:
             search_paths = [
                 os.getcwd(),
                 os.path.join(os.path.dirname(__file__), "execution_contexts")
             ]
             self.execution_context = load_context(config['execution_context'], search_paths, config)
+
+            self.cancel_file_path = os.path.join(self.job_dir, "killjobs")
 
         # Do we want to use IPM monitoring?
         self.enable_ipm = config.get('enable_ipm', False)
@@ -225,6 +229,15 @@ class Executor(object):
 
     def set_job_submitted(self, job_num, submitted_id):
         self._submitted_jobs[job_num] = submitted_id
+
+        if self.execution_context is not None and submitted_id:
+            first = self.cancel_file is None
+            if first:
+                self.cancel_file = open(self.cancel_file_path, 'w')
+                os.chmod(self.cancel_file_path, stat.S_IRWXU | stat.S_IROTH | stat.S_IXOTH | stat.S_IRGRP | stat.S_IXGRP)
+
+            self.cancel_file.write(self.execution_context.cancel_entry(submitted_id, first))
+            self.cancel_file.flush()
 
     def wait_until(self, seconds):
         """
@@ -472,6 +485,9 @@ class Executor(object):
         (e.g. clean-up files, etc..).
         :return:
         """
+
+        if self.cancel_file is not None:
+            self.cancel_file.close()
 
         # Copy the log file into the output directory
         if os.path.exists(self.logfile_path):

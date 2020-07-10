@@ -18,6 +18,9 @@ class LSFExecutionContext(ExecutionContext):
         'login_shell', 'job_name', 'scheduler_queue', 'num_procs',
         'scheduler_resources', 'job_output_file', 'job_error_file', 'hold_job']
 
+    scheduler_cancel_head = "#!/bin/sh\nbkill "
+    scheduler_cancel_entry = "{sequence_id} "
+
     submit_command_ = "lsf_filter.sh"
     submit_job_dependency = "-w "
     submit_dependency_separator = ":"

@@ -19,6 +19,9 @@ class PBSExecutionContext(ExecutionContext):
         'cpus_per_task', 'num_hyperthreads', 'job_output_file',
         'job_error_file']
 
+    scheduler_cancel_head = "#!/bin/sh\nqdel "
+    scheduler_cancel_entry = "{sequence_id} "
+
     submit_command_ = "qsub"
     submit_job_dependency = "-W dependency=afterany:"
     submit_dependency_separator = ":"
