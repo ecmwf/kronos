@@ -8,25 +8,11 @@ from kronos_executor.synapp_job import SyntheticAppJob
 
 class Job(SyntheticAppJob):
 
-    launcher_command = "mpirun"
     allinea_launcher_command = "map --profile mpirun"
-
-    def __init__(self, job_config, executor, path):
-        super(Job, self).__init__(job_config, executor, path)
 
     def customised_generated_internals(self, script_format):
         super(Job, self).customised_generated_internals(script_format)
         assert script_format['num_nodes'] == 1
-
-        if self.executor.execution_context is not None:
-            return
-
-        script_format['scheduler_params'] = ""
-        script_format['env_setup'] = "module load openmpi"
-        script_format['launch_command'] = "{launcher_command} -np {num_procs}".format(**script_format)
-
-    def get_submission_arguments(self, depend_job_ids):
-        return ["bash", self.submit_script]
 
     def run(self, depend_jobs_ids):
         """

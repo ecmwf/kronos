@@ -17,6 +17,6 @@ class TrivialExecutionContext(ExecutionContext):
         return "module load openmpi"
 
     def submit_command(self, job_config, job_script_path, deps=[]):
-        return ["bash", self.submit_script]
+        return ["bash", job_script_path]
 
 Context = TrivialExecutionContext

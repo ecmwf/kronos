@@ -80,40 +80,12 @@ from kronos_executor.synapp_job import SyntheticAppJob
 #####################################################################################################
 
 
-cancel_file_head = "#!/bin/sh\nscancel "
-cancel_file_line = "{sequence_id} "
-
-
 class SLURMMixin:
     """
     Define the templates for PBS
     """
 
-    submit_command = "sbatch"
-    depend_parameter = "--dependency=afterany:"
-    depend_separator = ":"
-    launcher_command = 'mpirun'
     allinea_launcher_command = "map --profile mpirun"
-
-    cancel_file_head = cancel_file_head
-    cancel_file_line = cancel_file_line
-
-    def customised_generated_internals(self, script_format):
-        super(SLURMMixin, self).customised_generated_internals(script_format)
-
-        if self.executor.execution_context is not None:
-            return
-
-        script_format['scheduler_params'] = """\
-#SBATCH --job-name={job_name}
-#SBATCH -N {num_nodes}
-#SBATCH --ntasks={num_procs}
-#SBATCH --cpus-per-task=1
-#SBATCH --output={job_output_file}
-#SBATCH --error={job_error_file}\
-""".format(**script_format)
-        script_format['env_setup'] = "module load openmpi"
-        script_format['launch_command'] = "{launcher_command} -np {num_procs}".format(**script_format)
 
 
 class Job(SLURMMixin, SyntheticAppJob):
