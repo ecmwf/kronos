@@ -79,15 +79,6 @@ from kronos_executor.synapp_job import SyntheticAppJob
 #
 #####################################################################################################
 
-
-class SLURMMixin:
-    """
-    Define the templates for PBS
-    """
-
-    allinea_launcher_command = "map --profile mpirun"
-
-
-class Job(SLURMMixin, SyntheticAppJob):
+class Job(SyntheticAppJob):
     pass
 

@@ -8,8 +8,6 @@ from kronos_executor.synapp_job import SyntheticAppJob
 
 class Job(SyntheticAppJob):
 
-    allinea_launcher_command = "map --profile mpirun"
-
     def customised_generated_internals(self, script_format):
         super(Job, self).customised_generated_internals(script_format)
         assert script_format['num_nodes'] == 1

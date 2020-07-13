@@ -8,14 +8,10 @@ from kronos_executor.base_job import BaseJob
 class HPCJob(BaseJob):
 
     submit_script_template = None
-    ipm_template = None
-    darshan_template = None
-    allinea_template = None
     submit_command = None
     depend_parameter = None
     depend_separator = None
     launcher_command = None
-    allinea_launcher_command = None
 
     cancel_file = None
     cancel_file_head = None
@@ -44,7 +40,6 @@ class HPCJob(BaseJob):
             'read_dir': self.executor.read_cache_path,
             'shared_dir': self.executor.job_dir_shared,
             'input_file': self.input_file,
-            'profiling_code': "",
             'job_dir': self.path,
             'job_name': 'kron-{}'.format(self.id),
             'job_num': self.id,
@@ -53,27 +48,6 @@ class HPCJob(BaseJob):
             'launcher_command': self.launcher_command,
             'simulation_token': self.executor.simulation_token
         }
-
-        # Enable IPM logging if desired
-        if self.executor.enable_ipm:
-            script_format['profiling_code'] += self.ipm_template.format(**script_format)
-
-        # Enable Darshan logging if desired
-        if self.executor.enable_darshan:
-            script_format['darshan_lib_path'] = self.executor.darshan_lib_path
-            script_format['profiling_code'] += self.darshan_template.format(**script_format)
-
-        # Enable Allinea map if desired
-        if self.executor.allinea_path is not None and self.executor.allinea_ld_library_path is not None:
-            script_format['allinea_path'] = self.executor.allinea_path
-            script_format['allinea_ld_library_path'] = self.executor.allinea_ld_library_path
-            script_format['launcher_command'] = self.allinea_launcher_command
-            
-            # append allinea licence file if specified..
-            if self.executor.allinea_licence_file:
-                script_format['allinea_licence_file'] = self.executor.allinea_licence_file
-                self.allinea_template += self.allinea_lic_file_template
-            script_format['profiling_code'] += self.allinea_template.format(**script_format)
 
         self.customised_generated_internals(script_format)
 

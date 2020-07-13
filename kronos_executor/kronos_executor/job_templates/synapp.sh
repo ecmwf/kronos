@@ -8,8 +8,6 @@ export KRONOS_TOKEN="{{ simulation_token }}"
 
 {{ env_setup }}
 
-{{ profiling_code }}
-
 # Change to the original directory for submission
 cd {{ job_dir }}
 

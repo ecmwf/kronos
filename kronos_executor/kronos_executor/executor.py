@@ -32,7 +32,6 @@ class Executor(object):
 
     available_parameters = [
         'coordinator_binary',
-        'enable_ipm',
         'execution_context',
         'job_class',
         'job_template',
@@ -40,13 +39,8 @@ class Executor(object):
         'job_dir_shared',
         'procs_per_node',
         'read_cache',
-        'allinea_path',
-        'allinea_ld_library_path',
-        'allinea_licence_file',
         'local_tmpdir',
         'submission_workers',
-        'enable_darshan',
-        'darshan_lib_path',
         'file_read_multiplicity',
         'file_read_size_min_pow',
         'file_read_size_max_pow',
@@ -162,18 +156,6 @@ class Executor(object):
             self.execution_context = load_context(config['execution_context'], search_paths, config)
 
             self.cancel_file_path = os.path.join(self.job_dir, "killjobs")
-
-        # Do we want to use IPM monitoring?
-        self.enable_ipm = config.get('enable_ipm', False)
-
-        # Do we want to use Darshan monitoring?
-        self.enable_darshan = config.get('enable_darshan', False)
-        self.darshan_lib_path = config.get('darshan_lib_path', None)
-
-        # Do we want to use Allinea monitoring?
-        self.allinea_path = config.get('allinea_path', None)
-        self.allinea_licence_file = config.get('allinea_licence_file', None)
-        self.allinea_ld_library_path = config.get('allinea_ld_library_path', None)
 
         self.read_cache_path = config.get("read_cache", None)
         if self.read_cache_path is None:

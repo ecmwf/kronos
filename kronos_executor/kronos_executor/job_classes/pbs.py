@@ -86,14 +86,6 @@ from kronos_executor.synapp_job import SyntheticAppJob
 #####################################################################################################
 
 
-class PBSMixin:
-    """
-    Define the templates for PBS
-    """
-
-    allinea_launcher_command = "map --profile aprun"
-
-
-class Job(PBSMixin, SyntheticAppJob):
+class Job(SyntheticAppJob):
     pass
 
