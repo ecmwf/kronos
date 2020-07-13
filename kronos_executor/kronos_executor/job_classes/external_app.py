@@ -29,10 +29,6 @@ class Job(UserAppJob):
         "name_foo_2"
      ]
 
-    def __init__(self, job_config, executor, path):
-        super(Job, self).__init__(job_config, executor, path)
-        assert self.executor.execution_context is not None
-
     def customised_generated_internals(self, script_format):
         """
         Function used to define an environment variable generated from configuration parameters

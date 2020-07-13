@@ -10,10 +10,6 @@ class SyntheticAppJob(TemplateMixin, HPCJob):
 
     needs_read_cache = True
 
-    def __init__(self, job_config, executor, path):
-        super(SyntheticAppJob, self).__init__(job_config, executor, path)
-        assert self.executor.execution_context is not None
-
     def customised_generated_internals(self, script_format):
         """
         User-defined generation of parts of the submit script.

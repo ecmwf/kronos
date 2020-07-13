@@ -8,10 +8,6 @@ from kronos_executor.base_job import BaseJob
 class HPCJob(BaseJob):
 
     submit_script_template = None
-    submit_command = None
-    depend_parameter = None
-    depend_separator = None
-    launcher_command = None
 
     cancel_file = None
     cancel_file_head = None
@@ -45,19 +41,15 @@ class HPCJob(BaseJob):
             'job_num': self.id,
             'job_output_file': os.path.join(self.path, "output"),
             'job_error_file': os.path.join(self.path, "error"),
-            'launcher_command': self.launcher_command,
             'simulation_token': self.executor.simulation_token
         }
 
         self.customised_generated_internals(script_format)
 
-        if self.executor.execution_context is not None:
-            script_format.setdefault('launcher_command', self.executor.execution_context.launcher_command)
-            script_format.setdefault('scheduler_params', self.executor.execution_context.scheduler_params(script_format))
-            script_format.setdefault('env_setup', self.executor.execution_context.env_setup(script_format))
-            script_format.setdefault('launch_command', self.executor.execution_context.launch_command(script_format))
-        else:
-            script_format.setdefault('launcher_command', self.launcher_command)
+        script_format.setdefault('launcher_command', self.executor.execution_context.launcher_command)
+        script_format.setdefault('scheduler_params', self.executor.execution_context.scheduler_params(script_format))
+        script_format.setdefault('env_setup', self.executor.execution_context.env_setup(script_format))
+        script_format.setdefault('launch_command', self.executor.execution_context.launch_command(script_format))
 
         self.generate_script(script_format)
 
@@ -73,19 +65,6 @@ class HPCJob(BaseJob):
         """
         This is the callback function
         """
-
-        if self.executor.execution_context is None:
-            if HPCJob.cancel_file is None:
-                cancel_file_path = os.path.join(self.executor.job_dir, "killjobs")
-                HPCJob.cancel_file = open(cancel_file_path, 'w')
-                HPCJob.cancel_file.write(self.cancel_file_head)
-                os.chmod(cancel_file_path, stat.S_IRWXU | stat.S_IROTH | stat.S_IXOTH | stat.S_IRGRP | stat.S_IXGRP)
-
-            # Sequence_id_job = filter(str.isdigit, output)
-            sequence_id_job = output.strip()
-            HPCJob.cancel_file.write(self.cancel_file_line.format(sequence_id=sequence_id_job))
-            HPCJob.cancel_file.flush()
-
         self.executor.set_job_submitted(self.id, sequence_id_job)
 
     def get_submission_and_callback_params(self, depend_job_ids=None):
@@ -131,26 +110,8 @@ class HPCJob(BaseJob):
         cancel_file.flush()
 
     def get_submission_arguments(self, depend_job_ids):
-
-        if self.executor.execution_context is not None:
-            return self.executor.execution_context.submit_command(
-                self.job_config, self.submit_script, depend_job_ids)
-
-        subprocess_args = []
-        assert self.submit_command is not None
-        subprocess_args.append(self.submit_command)
-
-        if depend_job_ids:
-            assert isinstance(depend_job_ids, list)
-            depend_string = "{}{}".format(self.depend_parameter, self.depend_separator.join(depend_job_ids))
-            subprocess_args.append(depend_string)
-
-        subprocess_args.append(self.submit_script)
-
-        # Ensure that any spaces in the depend_string are handled correctly
-        subprocess_args = ' '.join(subprocess_args).split(' ')
-
-        return subprocess_args
+        return self.executor.execution_context.submit_command(
+            self.job_config, self.submit_script, depend_job_ids)
 
     def run(self, depend_job_ids, multi_threading=True):
         """

@@ -146,16 +146,14 @@ class Executor(object):
 
         self.initial_time = None
 
-        self.execution_context = None
-        self.cancel_file = None
-        if 'execution_context' in config:
-            search_paths = [
-                os.getcwd(),
-                os.path.join(os.path.dirname(__file__), "execution_contexts")
-            ]
-            self.execution_context = load_context(config['execution_context'], search_paths, config)
+        search_paths = [
+            os.getcwd(),
+            os.path.join(os.path.dirname(__file__), "execution_contexts")
+        ]
+        self.execution_context = load_context(config.get('execution_context', 'trivial'), search_paths, config)
 
-            self.cancel_file_path = os.path.join(self.job_dir, "killjobs")
+        self.cancel_file_path = os.path.join(self.job_dir, "killjobs")
+        self.cancel_file = None
 
         self.read_cache_path = config.get("read_cache", None)
         if self.read_cache_path is None:
@@ -212,7 +210,7 @@ class Executor(object):
     def set_job_submitted(self, job_num, submitted_id):
         self._submitted_jobs[job_num] = submitted_id
 
-        if self.execution_context is not None and submitted_id:
+        if submitted_id:
             first = self.cancel_file is None
             if first:
                 self.cancel_file = open(self.cancel_file_path, 'w')
