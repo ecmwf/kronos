@@ -4,8 +4,9 @@ import os
 from kronos_executor.external_job import UserAppJob
 
 
-job_template_trivial = """
+job_template = """\
 #!/bin/bash
+{scheduler_params}
 
 wdir="{write_dir}"
 cd $wdir
@@ -31,7 +32,6 @@ done
 
 class TrivialMixin(object):
     submit_command = os.path.join(os.path.dirname(__file__), "run.sh")
-    submit_script_template = job_template_trivial
     load_env = False
 
     def get_submission_arguments(self, depend_job_ids):
@@ -43,90 +43,26 @@ class TrivialMixin(object):
         return subprocess_args
 
 
-job_template_pbs = """
-#!/bin/bash
-#PBS -N {job_name}
-#PBS -q ns
-#PBS -l walltime=00:30:00
-#PBS -o {job_output_file}
-#PBS -e {job_error_file}
-
-wdir="{write_dir}"
-cd $wdir
-
-# kronos simulation token
-export KRONOS_TOKEN="{simulation_token}"
-
-{source_kronos_env}
-
-nsteps={nsteps}
-
-for step in $(seq 1 $nsteps) ; do
-    echo "Running step $step"
-    {stepper} $step {size_kb} "{shared_dir}"
-    sleep 10
-    {notify_script} --type="NotifyMetadata" stepper "{{\\"step\\": $step}}"
-done
-
-# send end-of-job msg
-{notify_script} --type="Complete" stepper
-"""
-
-
 class PBSMixin(object):
-    submit_script_template = job_template_pbs
-    submit_command = "qsub"
-    depend_parameter = "-W depend=afterany:"
-    depend_separator = ":"
-    launcher_command = 'aprun'
     load_env = True
 
 
-job_template_slurm = """\
-#!/bin/bash
-#SBATCH --job-name={job_name}
-#SBATCH --ntasks=1
-#SBATCH --cpus-per-task=1
-#SBATCH --output={job_output_file}
-#SBATCH --error={job_error_file}
-
-wdir="{write_dir}"
-cd $wdir
-
-# kronos simulation token
-export KRONOS_TOKEN="{simulation_token}"
-
-{source_kronos_env}
-
-nsteps={nsteps}
-
-for step in $(seq 1 $nsteps) ; do
-    echo "Running step $step"
-    {stepper} $step {size_kb} "{shared_dir}"
-    sleep 10
-    {notify_script} --type="NotifyMetadata" stepper "{{\\"step\\": $step}}"
-done
-
-# send end-of-job msg
-{notify_script} --type="Complete" stepper
-"""
-
-
 class SlurmMixin(object):
-    submit_script_template = job_template_slurm
-    submit_command = "sbatch"
-    depend_parameter = "--dependency=afterany:"
-    depend_separator = ":"
-    launcher_command = 'mpirun'
     load_env = True
 
 
 class Job(TrivialMixin, UserAppJob):
 
+    submit_script_template = job_template
+
     needed_config_params = [
         "nsteps",
         "size_kb",
     ]
+
+    def __init__(self, job_config, executor, path):
+        super(Job, self).__init__(job_config, executor, path)
+        assert self.executor.execution_context is not None
 
     def customised_generated_internals(self, script_format):
         """

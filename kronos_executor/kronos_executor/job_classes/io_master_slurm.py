@@ -6,19 +6,14 @@ from kronos_executor.job_classes.external_app import UserAppJob
 # ==================================================================
 
 job_template = """#!/bin/sh
-
-# ---------- SLURM -------------
-#SBATCH --job-name={job_name}
-#SBATCH -N 1
-#SBATCH --ntasks=1
-#SBATCH --cpus-per-task=1
-#SBATCH --output={job_output_file}
-#SBATCH --error={job_error_file}
+{scheduler_params}
 
 export KRONOS_WRITE_DIR="{write_dir}"
 export KRONOS_READ_DIR="{read_dir}"
 export KRONOS_SHARED_DIR="{shared_dir}"
 export KRONOS_TOKEN="{simulation_token}"
+
+{env_setup}
 
 # Call the io master and configure it with the appropriate I/O tasks in the time_schedule
 {kronos_bin_dir}/remote_io_master {ioserver_hosts_file} {input_file}
@@ -29,29 +24,17 @@ sleep 5
 
 """
 
-cancel_file_head = "#!/bin/sh\nscancel "
-cancel_file_line = "{sequence_id} "
-
-
-class SLURMMixin(object):
-    """
-    Define the templates for PBS
-    """
+class Job(UserAppJob):
 
     submit_script_template = job_template
-    submit_command = "sbatch"
-    depend_parameter = "--dependency=afterany:"
-    depend_separator = ":"
-    launcher_command = 'mpirun'
-    cancel_file_head = cancel_file_head
-    cancel_file_line = cancel_file_line
 
     needed_config_params = [
         "tasks"
-     ]
+    ]
 
-
-class Job(SLURMMixin, UserAppJob):
+    def __init__(self, job_config, executor, path):
+        super(Job, self).__init__(job_config, executor, path)
+        assert self.executor.execution_context is not None
 
     def customised_generated_internals(self, script_format):
         """

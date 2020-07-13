@@ -4,15 +4,12 @@ import os
 from kronos_executor.external_job import UserAppJob
 
 job_template = """#!/bin/sh
-#SBATCH --job-name={job_name}
-#SBATCH -N 1
-#SBATCH --ntasks=1
-#SBATCH --cpus-per-task=1
-#SBATCH --output={job_output_file}
-#SBATCH --error={job_error_file}
+{scheduler_params}
 
 # kronos simulation token (automatically set by Kronos - do not edit)
 export KRONOS_TOKEN="{simulation_token}"
+
+{env_setup}
 
 echo {name_foo_1} {name_foo_2}
 
@@ -22,30 +19,19 @@ echo {name_foo_1} {name_foo_2}
 
 """
 
-cancel_file_head = "#!/bin/sh\nscancel "
-cancel_file_line = "{sequence_id} "
 
-
-class SLURMMixin(object):
-    """
-    Define the templates for PBS
-    """
+class Job(UserAppJob):
 
     submit_script_template = job_template
-    submit_command = "sbatch"
-    depend_parameter = ""
-    depend_separator = ":"
-    launcher_command = 'aprun'
-    cancel_file_head = cancel_file_head
-    cancel_file_line = cancel_file_line
 
     needed_config_params = [
         "name_foo_1",
         "name_foo_2"
      ]
 
-
-class Job(SLURMMixin, UserAppJob):
+    def __init__(self, job_config, executor, path):
+        super(Job, self).__init__(job_config, executor, path)
+        assert self.executor.execution_context is not None
 
     def customised_generated_internals(self, script_format):
         """
