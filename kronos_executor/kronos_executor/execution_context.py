@@ -99,6 +99,7 @@ class ExecutionContext:
         if first:
             entry += self.scheduler_cancel_head
         entry += self.scheduler_cancel_entry.format(sequence_id=sequence_id)
+        return entry
 
 
 def load_context(name, path, config):

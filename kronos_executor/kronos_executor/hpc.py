@@ -67,7 +67,7 @@ class HPCJob(BaseJob):
         """
         This is the callback function
         """
-        sequence_id_job = output.strip()
+        sequence_id_job = output.decode("utf-8").strip()
         self.executor.set_job_submitted(self.id, sequence_id_job)
 
     def get_submission_arguments(self, depend_job_ids):

@@ -204,7 +204,6 @@ class Executor(object):
         self.submitted_job_ids[job_num] = submitted_id
 
         if submitted_id:
-            print("SET JOB SUBMITTED {!r}".format(submitted_id))
             first = self.cancel_file is None
             if first:
                 self.cancel_file = open(self.cancel_file_path, 'w')
