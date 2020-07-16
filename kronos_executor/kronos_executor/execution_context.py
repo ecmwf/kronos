@@ -4,34 +4,35 @@ import pathlib
 import sys
 
 class ExecutionContext:
+    """Handles the interaction between jobs and the system"""
 
-    # Prefix for scheduler directives (e.g. "#SBATCH ")
+    #: Prefix for scheduler directives (e.g. ``"#SBATCH "``)
     scheduler_directive_start = None
-    # Directive parameter identifiers, keys should match the job config passed
-    # to `scheduler_params`, e.g. "job_name": "--job-name="
+    #: Directive parameter identifiers, keys should match the job config passed
+    #: to `scheduler_params`, e.g. ``"job_name": "--job-name="``
     scheduler_directive_params = {}
-    # Parameters to use, in the dictionary above
+    #: Parameters to use, from `scheduler_directive_params`
     scheduler_use_params = [
         'job_name', 'num_procs', 'num_nodes', 'job_output_file', 'job_error_file']
-    # Script to cancel all submitted jobs: start of file
+    #: Script to cancel all submitted jobs: start of file
     scheduler_cancel_head = None
-    # format() string for an entry in the cancel script, job id passed as sequence_id
+    #: ``format()`` string for an entry in the cancel script, job id passed as sequence_id
     scheduler_cancel_entry = None
 
-    # Command to submit a job, e.g. "sbatch"
+    #: Command to submit a job, e.g. ``"sbatch"``
     submit_command_ = None
-    # Parameter to specify dependencies between_jobs
-    # (e.g. "--dependency=afterany:")
+    #: Parameter to specify dependencies between_jobs
+    #: (e.g. ``"--dependency=afterany:"``)
     submit_job_dependency = None
-    # Separator for a list of dependencies (e.g. ":")
+    #: Separator for a list of dependencies (e.g. ``":"``)
     submit_dependency_separator = None
 
-    # Parallel launcher command (e.g. "mpirun", "srun")
+    #: Parallel launcher command (e.g. ``"mpirun"``, ``"srun"``)
     launcher_command = None
-    # Launcher parameter identifiers, keys should match the job config passed
-    # to `launch_command`, e.g. "num_procs": "-np "
+    #: Launcher parameter identifiers, keys should match the job config passed
+    #: to `launch_command`, e.g. ``"num_procs": "-np "``
     launcher_params = {}
-    # Parameters to use, in the dictionary above
+    #: Parameters to use, from `launcher_params`
     launcher_use_params = []
 
     def __init__(self, config):
@@ -103,8 +104,8 @@ class ExecutionContext:
 
 
 def load_context(name, path, config):
-    """Load the Context object from a module named `name` to be found in one
-    of the directories in `path`"""
+    """Load the Context object from a module named ``name`` to be found in one
+    of the directories in ``path``"""
 
     mod_name = "kronos_execution_context_{}".format(name)
 

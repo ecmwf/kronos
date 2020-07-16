@@ -13,10 +13,21 @@ KSchedule.
 Running the executor
 ====================
 
-In order for Kronos to submit jobs to the scheduler, the job classes may need to be tailored. See
-the ``kronos_executor/kronos_executor/job_classes`` directory. Additionally, a configuration file
-need to be provided. A template is available in ``config/config.json.template``. Once the
-configuration is ready, the executor can be run as follows::
+Execution contexts
+------------------
+
+Kronos relies on execution contexts to run its jobs. See :py:mod:`kronos_executor.execution_context`
+for a parameter reference and samples in the ``kronos_executor/kronos_executor/execution_contexts``
+directory. Execution contexts are searched for by name, first in the current working directory, and
+then in Kronos' ``execution_contexts`` directory. Therefore, defining a custom execution context is
+done by writing a Python script similar to the existing ones, providing a ``Context`` class.
+
+General configuration
+---------------------
+
+Additionally, a configuration file needs to be provided. A template is available in
+``config/config.json.template``.  Once the configuration is ready, the executor can be run as
+follows::
 
    kronos-executor -c <config-file> <kschedule>
 
