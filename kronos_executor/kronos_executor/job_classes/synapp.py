@@ -28,3 +28,5 @@ class SyntheticAppJob(TemplateMixin, HPCJob):
             'num_hyperthreads': 1,
             'job_name': 'synthApp_{}_{}_{}'.format(nprocs, nnodes, self.id)
         })
+
+Job = SyntheticAppJob

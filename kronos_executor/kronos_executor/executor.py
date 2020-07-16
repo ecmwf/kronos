@@ -255,7 +255,7 @@ class Executor(object):
             job_config['job_num'] = job_num
 
             # get job template name (either from the job config or from the global config, if present)
-            job_class_name = job_config.setdefault("job_class", self.config.get("job_class", "trivial_job"))
+            job_class_name = job_config.setdefault("job_class", self.config.get("job_class", "synapp"))
             job_classes_dir = os.path.join(os.path.dirname(__file__), "job_classes")
 
             # now search for the template file in the cwd first..
