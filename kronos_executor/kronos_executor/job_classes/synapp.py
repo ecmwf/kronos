@@ -2,9 +2,8 @@ import math
 import os
 
 from kronos_executor.hpc import HPCJob
-from kronos_executor.template_job import TemplateMixin
 
-class SyntheticAppJob(TemplateMixin, HPCJob):
+class SyntheticAppJob(HPCJob):
 
     default_template = "synapp.sh"
 

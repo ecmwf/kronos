@@ -1,3 +1,4 @@
+import jinja2
 import os
 import stat
 import subprocess
@@ -7,7 +8,7 @@ from kronos_executor.base_job import BaseJob
 
 class HPCJob(BaseJob):
 
-    submit_script_template = None
+    default_template = None
 
     cancel_file = None
     cancel_file_head = None
@@ -19,6 +20,17 @@ class HPCJob(BaseJob):
         self.submit_script = os.path.join(self.path, "submit_script")
         self.output_file = os.path.join(self.path, "output")
         self.error_file = os.path.join(self.path, "error")
+
+        template_loader = jinja2.ChoiceLoader([
+            jinja2.FileSystemLoader(os.getcwd()),
+            jinja2.PackageLoader('kronos_executor', 'job_templates')
+        ])
+        self.template_env = jinja2.Environment(loader=template_loader)
+
+        self.job_template_name = job_config.get("job_template", self.default_template)
+        if self.job_template_name is None:
+            raise ValueError(
+                "No default template for job class {} and no 'job_template' specified".format(job_config['job_class']))
 
     def customised_generated_internals(self, script_format):
         """
@@ -43,6 +55,8 @@ class HPCJob(BaseJob):
             'job_num': self.id,
             'job_output_file': self.output_file,
             'job_error_file': self.error_file,
+            'num_procs': 1,
+            'num_nodes': 1,
             'simulation_token': self.executor.simulation_token
         }
 
@@ -53,15 +67,12 @@ class HPCJob(BaseJob):
         script_format.setdefault('env_setup', self.executor.execution_context.env_setup(script_format))
         script_format.setdefault('launch_command', self.executor.execution_context.launch_command(script_format))
 
-        self.generate_script(script_format)
+        template = self.template_env.get_template(self.job_template_name)
+        stream = template.stream(script_format)
+        with open(self.submit_script, 'w') as f:
+            stream.dump(f)
 
         os.chmod(self.submit_script, stat.S_IRWXU | stat.S_IROTH | stat.S_IXOTH | stat.S_IRGRP | stat.S_IXGRP)
-
-    def generate_script(self, script_format):
-        assert self.submit_script_template is not None
-
-        with open(self.submit_script, 'w') as f:
-            f.write(self.submit_script_template.format(**script_format))
 
     def submission_callback(self, output):
         """
