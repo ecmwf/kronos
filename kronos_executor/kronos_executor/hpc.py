@@ -17,6 +17,8 @@ class HPCJob(BaseJob):
         super(HPCJob, self).__init__(job_config, executor, path)
 
         self.submit_script = os.path.join(self.path, "submit_script")
+        self.output_file = os.path.join(self.path, "output")
+        self.error_file = os.path.join(self.path, "error")
 
     def customised_generated_internals(self, script_format):
         """
@@ -39,8 +41,8 @@ class HPCJob(BaseJob):
             'job_dir': self.path,
             'job_name': 'kron-{}'.format(self.id),
             'job_num': self.id,
-            'job_output_file': os.path.join(self.path, "output"),
-            'job_error_file': os.path.join(self.path, "error"),
+            'job_output_file': self.output_file,
+            'job_error_file': self.error_file,
             'simulation_token': self.executor.simulation_token
         }
 
@@ -69,5 +71,8 @@ class HPCJob(BaseJob):
         self.executor.set_job_submitted(self.id, sequence_id_job)
 
     def get_submission_arguments(self, depend_job_ids):
+        config = self.job_config.copy()
+        config['job_output_file'] = self.output_file
+        config['job_error_file'] = self.error_file
         return self.executor.execution_context.submit_command(
             config, self.submit_script, depend_job_ids)
