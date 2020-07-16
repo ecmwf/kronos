@@ -75,19 +75,3 @@ class BaseJob(object):
 
     def generate_internal(self):
         raise NotImplementedError
-
-    def run(self, depend_job_ids):
-        """
-        'Run' this job
-
-        depend_jobs_ids: The job ids of jobs this depends on.
-
-        n.b. This class is responsible for calling set_job_submitted on the kronos_executor.
-
-        This has a flexible meaning, depending on the setup. There can be many strategies here.
-
-            i) Add to list to run
-            ii) Run it immediately
-            iii) Set an async timer to run it in the future?
-        """
-        raise NotImplementedError

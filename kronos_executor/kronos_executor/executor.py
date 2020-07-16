@@ -16,7 +16,7 @@ from kronos_executor import log_msg_format
 from kronos_executor.global_config import global_config
 from kronos_executor import generate_read_files
 from kronos_executor.execution_context import load_context
-from kronos_executor.subprocess_callback import SubprocessManager
+from kronos_executor.job_submitter import JobSubmitter
 
 logger = logging.getLogger(__name__)
 
@@ -40,7 +40,7 @@ class Executor(object):
         'procs_per_node',
         'read_cache',
         'local_tmpdir',
-        'submission_workers',
+        'n_submitters',
         'file_read_multiplicity',
         'file_read_size_min_pow',
         'file_read_size_max_pow',
@@ -54,7 +54,6 @@ class Executor(object):
         'notification_port',
         'time_event_cycles',
         'event_batch_size',
-        'n_submitters',
 
         # if NVRAM is to be used
         'nvdimm_root_path'
@@ -159,9 +158,9 @@ class Executor(object):
         if self.read_cache_path is None:
             raise KeyError("read_cache not provided in time_schedule config")
 
-        self.thread_manager = SubprocessManager(config.get('submission_workers', 5))
+        self.job_submitter = JobSubmitter(config.get('n_submitters', 4))
 
-        self._submitted_jobs = {}
+        self.submitted_job_ids = {}
 
         # n.b.
         self._file_read_multiplicity = config.get('file_read_multiplicity', None)
@@ -179,9 +178,6 @@ class Executor(object):
 
         # check the EVENTS execution mode settings
         self.execution_mode = config.get('execution_mode', "events")
-
-        if self.execution_mode == "events" and config.get('submission_workers'):
-            raise KeyError("parameter 'submission_workers' should only be set if execution_mode = scheduler")
 
         if self.execution_mode != "events" and config.get('notification_host'):
             raise KeyError("parameter 'notification_host' should only be set if execution_mode = events")
@@ -201,16 +197,14 @@ class Executor(object):
         if self.execution_mode != "events" and config.get('event_batch_size'):
             raise KeyError("parameter 'event_batch_size' should only be set if execution_mode = events")
 
-        if self.execution_mode != "events" and config.get('n_submitters'):
-            raise KeyError("parameter 'n_submitters' should only be set if execution_mode = events")
-
         # nvdimm path if present
         self.nvdimm_root_path = self.config.get("nvdimm_root_path")
 
     def set_job_submitted(self, job_num, submitted_id):
-        self._submitted_jobs[job_num] = submitted_id
+        self.submitted_job_ids[job_num] = submitted_id
 
         if submitted_id:
+            print("SET JOB SUBMITTED {!r}".format(submitted_id))
             first = self.cancel_file is None
             if first:
                 self.cancel_file = open(self.cancel_file_path, 'w')
@@ -468,6 +462,8 @@ class Executor(object):
 
         if self.cancel_file is not None:
             self.cancel_file.close()
+
+        self.job_submitter.close()
 
         # Copy the log file into the output directory
         if os.path.exists(self.logfile_path):
