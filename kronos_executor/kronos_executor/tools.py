@@ -14,10 +14,6 @@ import numpy as np
 from kronos_executor.io_formats.definitions import kresults_stats_info
 
 
-def datetime2epochs(t_in):
-    return (t_in - datetime.datetime(1970, 1, 1)).total_seconds()
-
-
 log_level_map = {
     "debug": (logging.debug, 0),
     "info": (logging.info, 1),

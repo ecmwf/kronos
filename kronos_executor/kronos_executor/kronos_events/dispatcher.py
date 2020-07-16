@@ -11,8 +11,6 @@ import multiprocessing
 import socket
 from datetime import datetime
 
-from kronos_executor.tools import datetime2epochs
-
 from kronos_executor.kronos_events import EventFactory
 
 logger = logging.getLogger(__name__)
@@ -88,7 +86,7 @@ class EventDispatcher(object):
                     else:
 
                         # store event and timestamp in the queue (and wait until there is space in the queue)
-                        self.listener_queue.put((msg, datetime2epochs(datetime.now())), block=True)
+                        self.listener_queue.put((msg, datetime.now().timestamp()), block=True)
 
                         break
 
