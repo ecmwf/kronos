@@ -1,7 +1,6 @@
 import jinja2
 import os
 import stat
-import subprocess
 
 from kronos_executor.base_job import BaseJob
 

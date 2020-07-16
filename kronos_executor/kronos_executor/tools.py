@@ -7,7 +7,6 @@
 # does it submit to any jurisdiction.
 import math
 import sys
-import datetime
 import logging
 
 import numpy as np

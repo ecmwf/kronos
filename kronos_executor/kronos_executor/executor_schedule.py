@@ -39,6 +39,6 @@ class ExecutorDepsScheduler(Executor):
                     # Go on to the next job in the list
                     pass
 
-            submission_output = self.job_submitter.submit(submittable, job_deps)
+            self.job_submitter.submit(submittable, job_deps)
             for job in submittable:
                 self.jobs.remove(job)
