@@ -53,11 +53,6 @@ Run the executor
 
       kronos-format-config-exe -s
 
-- Setup the submit job template
-  - Examples of job submit templates (e.g. slurm.py and pbs.py) can be found in::
-
-      <src-dir>/kronos/executor/job_classes
-
 - run the executor::
 
     kronos-executor --config <executor-config-file> <path-to-kschedule-file>

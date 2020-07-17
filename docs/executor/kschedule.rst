@@ -77,11 +77,10 @@ num_procs  integer  Yes       Number of processes that the job will run on
 External jobs
 -------------
 
-An external job is identified by the presence of a ``job_class`` property. Similarly to the
-``job_class`` config parameter, this should point to a Python module, either in
-``kronos_executor/kronos_executor/job_classes``, or in the Kronos executor current working
-directory. This job class should generate a job script running the external job given the input
-parameters.
+An external job is identified by the presence of a ``job_class`` property. This should point to a
+Python module, either in ``kronos_executor/kronos_executor/job_classes``, or in the Kronos executor
+current working directory. This job class should generate a job script running the external job
+given the input parameters.
 
 In addition to the parameters provided by the executor, the required ``config_params`` property may
 contain additional user parameters to be sent along to the job class.

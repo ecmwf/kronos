@@ -19,7 +19,6 @@ class ExecutorTests(unittest.TestCase):
         job = BaseJob({}, ExecutorStub(), "fake-path")
 
         self.assertRaises(NotImplementedError, job.generate_internal)
-        self.assertRaises(NotImplementedError, job.run, [])
 
     def test_start_delay(self):
 

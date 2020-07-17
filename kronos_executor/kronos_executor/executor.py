@@ -5,6 +5,7 @@ import imp
 import logging
 import os
 import socket
+import stat
 import sys
 import time
 import uuid
@@ -14,7 +15,8 @@ import subprocess
 from kronos_executor import log_msg_format
 from kronos_executor.global_config import global_config
 from kronos_executor import generate_read_files
-from kronos_executor.subprocess_callback import SubprocessManager
+from kronos_executor.execution_context import load_context
+from kronos_executor.job_submitter import JobSubmitter
 
 logger = logging.getLogger(__name__)
 
@@ -30,19 +32,13 @@ class Executor(object):
 
     available_parameters = [
         'coordinator_binary',
-        'enable_ipm',
-        'job_class',
+        'execution_context',
         'job_dir',
         'job_dir_shared',
         'procs_per_node',
         'read_cache',
-        'allinea_path',
-        'allinea_ld_library_path',
-        'allinea_licence_file',
         'local_tmpdir',
-        'submission_workers',
-        'enable_darshan',
-        'darshan_lib_path',
+        'n_submitters',
         'file_read_multiplicity',
         'file_read_size_min_pow',
         'file_read_size_max_pow',
@@ -56,7 +52,6 @@ class Executor(object):
         'notification_port',
         'time_event_cycles',
         'event_batch_size',
-        'n_submitters',
 
         # if NVRAM is to be used
         'nvdimm_root_path'
@@ -148,25 +143,22 @@ class Executor(object):
 
         self.initial_time = None
 
-        # Do we want to use IPM monitoring?
-        self.enable_ipm = config.get('enable_ipm', False)
+        search_paths = [
+            os.getcwd(),
+            os.path.join(os.path.dirname(__file__), "execution_contexts")
+        ]
+        self.execution_context = load_context(config.get('execution_context', 'trivial'), search_paths, config)
 
-        # Do we want to use Darshan monitoring?
-        self.enable_darshan = config.get('enable_darshan', False)
-        self.darshan_lib_path = config.get('darshan_lib_path', None)
-
-        # Do we want to use Allinea monitoring?
-        self.allinea_path = config.get('allinea_path', None)
-        self.allinea_licence_file = config.get('allinea_licence_file', None)
-        self.allinea_ld_library_path = config.get('allinea_ld_library_path', None)
+        self.cancel_file_path = os.path.join(self.job_dir, "killjobs")
+        self.cancel_file = None
 
         self.read_cache_path = config.get("read_cache", None)
         if self.read_cache_path is None:
             raise KeyError("read_cache not provided in time_schedule config")
 
-        self.thread_manager = SubprocessManager(config.get('submission_workers', 5))
+        self.job_submitter = JobSubmitter(config.get('n_submitters', 4))
 
-        self._submitted_jobs = {}
+        self.submitted_job_ids = {}
 
         # n.b.
         self._file_read_multiplicity = config.get('file_read_multiplicity', None)
@@ -184,9 +176,6 @@ class Executor(object):
 
         # check the EVENTS execution mode settings
         self.execution_mode = config.get('execution_mode', "events")
-
-        if self.execution_mode == "events" and config.get('submission_workers'):
-            raise KeyError("parameter 'submission_workers' should only be set if execution_mode = scheduler")
 
         if self.execution_mode != "events" and config.get('notification_host'):
             raise KeyError("parameter 'notification_host' should only be set if execution_mode = events")
@@ -206,14 +195,20 @@ class Executor(object):
         if self.execution_mode != "events" and config.get('event_batch_size'):
             raise KeyError("parameter 'event_batch_size' should only be set if execution_mode = events")
 
-        if self.execution_mode != "events" and config.get('n_submitters'):
-            raise KeyError("parameter 'n_submitters' should only be set if execution_mode = events")
-
         # nvdimm path if present
         self.nvdimm_root_path = self.config.get("nvdimm_root_path")
 
     def set_job_submitted(self, job_num, submitted_id):
-        self._submitted_jobs[job_num] = submitted_id
+        self.submitted_job_ids[job_num] = submitted_id
+
+        if submitted_id:
+            first = self.cancel_file is None
+            if first:
+                self.cancel_file = open(self.cancel_file_path, 'w')
+                os.chmod(self.cancel_file_path, stat.S_IRWXU | stat.S_IROTH | stat.S_IXOTH | stat.S_IRGRP | stat.S_IXGRP)
+
+            self.cancel_file.write(self.execution_context.cancel_entry(submitted_id, first))
+            self.cancel_file.flush()
 
     def wait_until(self, seconds):
         """
@@ -257,27 +252,27 @@ class Executor(object):
             job_config['job_num'] = job_num
 
             # get job template name (either from the job config or from the global config, if present)
-            job_template_name = job_config.get("job_class", self.config.get("job_class", "trivial_job"))
+            job_class_name = job_config.setdefault("job_class", "synapp")
             job_classes_dir = os.path.join(os.path.dirname(__file__), "job_classes")
 
             # now search for the template file in the cwd first..
-            if os.path.isfile( "{}.py".format(os.path.join(os.getcwd(), job_template_name)) ):
+            if os.path.isfile( "{}.py".format(os.path.join(os.getcwd(), job_class_name)) ):
 
-                job_class_module_file = "{}.py".format(os.path.join(os.getcwd(), job_template_name))
+                job_class_module_file = "{}.py".format(os.path.join(os.getcwd(), job_class_name))
 
-            elif os.path.isfile( os.path.join(job_classes_dir, "{}.py".format(job_template_name)) ):
+            elif os.path.isfile( os.path.join(job_classes_dir, "{}.py".format(job_class_name)) ):
 
-                job_class_module_file = os.path.join(os.path.dirname(__file__), "job_classes/{}.py".format(job_template_name))
+                job_class_module_file = os.path.join(os.path.dirname(__file__), "job_classes/{}.py".format(job_class_name))
 
             else:
 
-                logger.error("template file {}.py not found neither in {} nor in {}".format(job_template_name,
+                logger.error("template file {}.py not found neither in {} nor in {}".format(job_class_name,
                                                                                             os.getcwd(),
                                                                                             job_classes_dir))
                 raise IOError
 
             # now load the module
-            job_module_name = "kronos_job_class_{}".format(job_template_name)
+            job_module_name = "kronos_job_class_{}".format(job_class_name)
             if job_module_name in sys.modules:
                 job_class_module = sys.modules[job_module_name]
             else:
@@ -461,6 +456,11 @@ class Executor(object):
         (e.g. clean-up files, etc..).
         :return:
         """
+
+        if self.cancel_file is not None:
+            self.cancel_file.close()
+
+        self.job_submitter.close()
 
         # Copy the log file into the output directory
         if os.path.exists(self.logfile_path):

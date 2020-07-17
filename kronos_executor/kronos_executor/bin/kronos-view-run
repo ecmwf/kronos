@@ -26,7 +26,6 @@ import argparse
 from datetime import datetime
 
 from kronos_executor.io_formats.format_data_handlers.kschedule_data import KScheduleData
-from kronos_executor.tools import datetime2epochs
 
 
 class LoggedJob(object):
@@ -46,7 +45,7 @@ class LoggedJob(object):
 
     @property
     def get_time_diff_end_sub(self):
-        return datetime2epochs(self.t_end) - datetime2epochs(self.t_sub)
+        return (self.t_end - self.t_sub).total_seconds()
 
 
 def parse_kronos_logs(raw_lines):

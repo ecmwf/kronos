@@ -11,7 +11,7 @@ from datetime import datetime
 from kronos_executor.io_formats.results_format import ResultsFormat
 from kronos_executor.io_formats.definitions import kresults_ts_names_map
 
-from kronos_executor.tools import datetime2epochs, cumsum
+from kronos_executor.tools import cumsum
 
 
 class KResultsJob(object):
@@ -160,7 +160,7 @@ class KResultsJob(object):
             else:
                 created_datetime = datetime.strptime(self._json_data["created"], '%Y-%m-%dT%H:%M:%S+00:00')
 
-            _ts = datetime2epochs(created_datetime)
+            _ts = created_datetime.timestamp()
         return _ts
 
     def is_in_class(self, class_regex=None):

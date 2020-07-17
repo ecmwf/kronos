@@ -158,7 +158,6 @@ class ExecutorTests(unittest.TestCase):
 
             self.assertEqual(e.procs_per_node, 123)
             self.assertIsNone(e.initial_time)
-            self.assertFalse(e.enable_ipm)
             self.assertEqual(e.read_cache_path, self.base_config['read_cache'])
 
         finally:
@@ -184,10 +183,9 @@ class ExecutorTests(unittest.TestCase):
             config_minimal = {
                 'procs_per_node': 666,
                 'read_cache': self.base_config['read_cache'],
-                'job_class': 'slurm',
+                'execution_context': 'slurm',
                 'job_dir': tmpdir2,
-                'coordinator_binary': 'a-binary',
-                'enable_ipm': True
+                'coordinator_binary': 'a-binary'
             }
 
             # And initialise an kronos_executor. See what happens!
@@ -199,7 +197,6 @@ class ExecutorTests(unittest.TestCase):
             self.assertEqual(e.coordinator_binary, 'a-binary')
             self.assertEqual(e.procs_per_node, 666)
             self.assertIsNone(e.initial_time)  # Not configurable
-            self.assertTrue(e.enable_ipm)
             self.assertEqual(e.read_cache_path, self.base_config['read_cache'])
 
         finally:

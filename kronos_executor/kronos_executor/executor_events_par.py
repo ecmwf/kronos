@@ -4,7 +4,6 @@ import logging
 from datetime import datetime
 
 from kronos_executor.executor import Executor
-from kronos_executor.job_submitter import JobSubmitter
 from kronos_executor.kronos_events import EventComplete
 from kronos_executor.kronos_events.manager import Manager
 from kronos_executor.kronos_events.time_ticker import TimeTicker
@@ -29,8 +28,11 @@ class ExecutorEventsPar(Executor):
         self.n_submitters = config.get("n_submitters", 4)
 
         self.event_manager = None
-        self.job_submitter = None
-        self.jobs = None
+
+        self.submitted_jobs = set()
+        self.initial_submission_time = None
+        self.deps_to_jobs_tree = None
+        self.job_to_deps = None
 
         logger.info("======= Executor multiproc config: =======")
         logger.info("events notification host: {}".format(self.notification_host))
@@ -52,10 +54,27 @@ class ExecutorEventsPar(Executor):
                                      server_port=self.notification_port,
                                      sim_token=self.simulation_token)
 
-        # init the job submitter
-        self.job_submitter = JobSubmitter(self.jobs,
-                                          self.event_manager,
-                                          n_submitters=self.n_submitters)
+        # generate the dependency tree structure
+        self.deps_to_jobs_tree, self.job_to_deps = self.build_deps_to_job_tree()
+
+    def build_deps_to_job_tree(self):
+        """
+        Build a structure that allows getting jobs that depend on a particular event
+        :return:
+        """
+
+        # structure dependency->jobs
+        _deps_2_jobs = {}
+        for j in self.jobs:
+            for d in j.depends:
+                _deps_2_jobs.setdefault(d.get_hashed(), []).append(j)
+
+        # structure j.id->dependency
+        job_2_deps = {}
+        for j in self.jobs:
+            job_2_deps[j.id] = [d.get_hashed() for d in j.depends]
+
+        return _deps_2_jobs, job_2_deps
 
     def do_run(self):
         """
@@ -83,7 +102,7 @@ class ExecutorEventsPar(Executor):
                 logger.debug("added second {}".format(i_sec))
 
             # submit jobs
-            self.job_submitter.submit_eligible_jobs(new_events=new_events)
+            self.submit_eligible_jobs(new_events=new_events)
 
             # Get next message from manager
             if not all(j.id in completed_jobs for j in self.jobs):
@@ -101,13 +120,54 @@ class ExecutorEventsPar(Executor):
         # Finally stop the event dispatcher
         logger.info("Total #events received: {}".format(self.event_manager.get_total_n_events()))
 
+    def submit_eligible_jobs(self, new_events=None):
+        """
+        Submit the jobs eligible for submission
+        :param new_events:
+        :return:
+        """
+
+        submittable_jobs = []
+
+        if not new_events:
+            submittable_jobs = [j for j in self.jobs if not j.depends and j.id not in self.submitted_jobs]
+            self.submitted_jobs.update(j.id for j in submittable_jobs)
+
+        else:
+            for new_event in new_events:
+
+                triggered = self.deps_to_jobs_tree.get(new_event.get_hashed(), [])
+                for j in triggered:
+
+                    if new_event.get_hashed() in self.job_to_deps[j.id]:
+                        self.job_to_deps[j.id].remove(new_event.get_hashed())
+
+                    if not self.job_to_deps[j.id] and j.id not in self.submitted_jobs:
+                        submittable_jobs.append(j)
+                        self.submitted_jobs.add(j.id)
+
+        if not submittable_jobs:
+            return
+
+        # submit the jobs
+        submission_output = self.job_submitter.submit(submittable_jobs)
+
+        min_submission_time = None
+        for tt, jid, output in submission_output:
+            t_ep = tt.timestamp()
+            min_submission_time = min( t_ep, min_submission_time ) if min_submission_time else t_ep
+
+        # start the timer if any of the submitted jobs was a "timed" job
+        if any([j.is_job_timed for j in submittable_jobs]) and not self.initial_submission_time:
+            self.initial_submission_time = min_submission_time
+
     def print_summary(self):
         """
         Print a simulation summary
         """
 
         # print TOTAL TIMED simulation time (= T_end_last_timed_job - T_start_first_timed_job)
-        if self.job_submitter.initial_submission_time:
+        if self.initial_submission_time:
 
             jobid_to_timed_flag = {j.id: j.is_job_timed for j in self.jobs}
             completed_jobs_and_timings = [(ev, time) for (ev, time) in self.event_manager.get_timed_events()
@@ -118,11 +178,11 @@ class ExecutorEventsPar(Executor):
 
             if times_of_timed_jobs:
                 last_timed_msg_timestamp = max(times_of_timed_jobs)
-                timed_simulation_time = last_timed_msg_timestamp - self.job_submitter.initial_submission_time
+                timed_simulation_time = last_timed_msg_timestamp - self.initial_submission_time
 
                 logger.info("=" * 37)
                 logger.info("SIMULATION TIME: {:20.2f}".format(timed_simulation_time))
-                logger.info("SIMULATION  T_0: {:20.2f}".format(self.job_submitter.initial_submission_time))
+                logger.info("SIMULATION  T_0: {:20.2f}".format(self.initial_submission_time))
                 logger.info("SIMULATION  T_1: {:20.2f}".format(last_timed_msg_timestamp))
                 logger.info("=" * 37)
             else:
@@ -139,8 +199,6 @@ class ExecutorEventsPar(Executor):
 
         # first terminates the dispatcher process
         self.event_manager.stop_dispatcher()
-
-        self.job_submitter.close()
 
         if not error:
             self.print_summary()
