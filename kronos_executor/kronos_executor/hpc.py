@@ -1,4 +1,5 @@
 import jinja2
+import math
 import os
 import stat
 
@@ -44,18 +45,23 @@ class HPCJob(BaseJob):
 
     def generate_internal(self):
 
+        default_nprocs = self.job_config.get('num_procs', 1)
+        default_nnodes = int(math.ceil(float(default_nprocs) / self.executor.procs_per_node))
+
         script_format = {
             'write_dir': self.path,
             'read_dir': self.executor.read_cache_path,
             'shared_dir': self.executor.job_dir_shared,
             'input_file': self.input_file,
             'job_dir': self.path,
-            'job_name': 'kron-{}'.format(self.id),
+            'job_name': self.job_config.get('job_name', 'kron-{}'.format(self.id)),
             'job_num': self.id,
             'job_output_file': self.output_file,
             'job_error_file': self.error_file,
-            'num_procs': 1,
-            'num_nodes': 1,
+            'num_procs': default_nprocs,
+            'num_nodes': default_nnodes,
+            'cpus_per_task': 1,
+            'num_hyperthreads': 1,
             'simulation_token': self.executor.simulation_token
         }
 

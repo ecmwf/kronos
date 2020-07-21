@@ -30,7 +30,7 @@ class UserAppJob(HPCJob):
         for param_name, param_val in self.job_config["config_params"].items():
 
             if isinstance(param_val, (int, bool, str, float)):
-                script_format[param_name] = self.job_config["config_params"][param_name]
+                script_format[param_name] = param_val
 
             else:  # any other composed structures are serialised as json like string
 
