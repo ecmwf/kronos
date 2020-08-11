@@ -24,6 +24,14 @@ kronos_executor.base_job module
     :undoc-members:
     :show-inheritance:
 
+kronos_executor.execution_context module
+----------------------------------------
+
+.. automodule:: kronos_executor.execution_context
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 kronos_executor.executor module
 -------------------------------
 
@@ -84,22 +92,6 @@ kronos_executor.job_submitter module
 ------------------------------------
 
 .. automodule:: kronos_executor.job_submitter
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-kronos_executor.setup module
-----------------------------
-
-.. automodule:: kronos_executor.setup
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-kronos_executor.subprocess_callback module
-------------------------------------------
-
-.. automodule:: kronos_executor.subprocess_callback
     :members:
     :undoc-members:
     :show-inheritance:
