@@ -53,10 +53,10 @@ class KResultsData(object):
                         if not os.path.isfile(os.path.join(sim_path, job_dir, cls.res_file_root+"."+cls.res_file_ext))]
 
         if failing_jobs:
-            print "ERROR: The following jobs have failed (jobs for which " \
-                  "'statistics.kresults' is not found in job folder):"
-            print "{}".format("\n".join(failing_jobs))
-            print "Kronos Post-processing stops here!"
+            print("ERROR: The following jobs have failed (jobs for which " \
+                  "'statistics.kresults' is not found in job folder):")
+            print("{}".format("\n".join(failing_jobs)))
+            print("Kronos Post-processing stops here!")
             sys.exit(1)
 
     @classmethod
@@ -71,13 +71,13 @@ class KResultsData(object):
 
         # and check that the collection was successful..
         if not job_dirs:
-            print "Specified path does not contain any job folder (<job-ID>..)!"
+            print("Specified path does not contain any job folder (<job-ID>..)!")
             sys.exit(1)
 
         jobs_data = []
         for job_dir in job_dirs:
 
-            print "reading data from {}..".format(job_dir)
+            print("reading data from {}..".format(job_dir))
 
             sub_dir_path_abs = os.path.join(sim_path, job_dir)
             sub_dir_files = os.listdir(sub_dir_path_abs)
@@ -148,7 +148,7 @@ class KResultsData(object):
         per_class_stats = self.class_stats(job_classes)
 
         # loop over statistics per class
-        for class_name, stats_list in per_class_stats.iteritems():
+        for class_name, stats_list in per_class_stats.items():
 
             # initialize all the requested sums..
             _class_stats_dict = {stat_metric: {field: 0.0 for field in kresults_stats_info[stat_metric]["to_sum"]}
@@ -173,7 +173,7 @@ class KResultsData(object):
                             _all_class_stats_dict[stat_metric][field] += val
 
             # Filter the fields for which aggregated time is still 0 (no operations have been summed up)
-            for stat_metric in _class_stats_dict.keys():
+            for stat_metric in list(_class_stats_dict.keys()):
                 if _class_stats_dict[stat_metric]["elapsed"] == 0.0:
                     _class_stats_dict.pop(stat_metric)
 
@@ -196,7 +196,7 @@ class KResultsData(object):
 
         # ------- clean-up the all-class data -------
         # Filter the fields for which aggregated time is still 0 (no operations have been summed up)
-        for stat_metric in _all_class_stats_dict.keys():
+        for stat_metric in list(_all_class_stats_dict.keys()):
             if _all_class_stats_dict[stat_metric]["elapsed"] == 0.0:
                 _all_class_stats_dict.pop(stat_metric)
 
@@ -264,8 +264,8 @@ class KResultsData(object):
                 if self.n_procs_node:
 
                     # #nodes
-                    n_nodes = job.n_cpu/int(self.n_procs_node) if not job.n_cpu % int(self.n_procs_node) else \
-                        job.n_cpu/int(self.n_procs_node)+1
+                    n_nodes = job.n_cpu//int(self.n_procs_node) if not job.n_cpu % int(self.n_procs_node) else \
+                        job.n_cpu//int(self.n_procs_node)+1
 
                     running_jpn["nodes"] = add_value_to_sublist(running_jpn["nodes"], first, last, n_nodes)
 
@@ -336,7 +336,7 @@ class KResultsData(object):
         _metric_perproc_map = {v[0]: v[2] for v in kresults_ts_names_map.values()}
 
         for job in self.jobs:
-            for k,v in job.calc_metrics_sums().iteritems():
+            for k,v in job.calc_metrics_sums().items():
 
                 # take the sums (taking int account whether he metric is interpreted "per-process" or not)
                 _sums[k] += v if not _metric_perproc_map[k] else v/float(job.n_cpu)
@@ -355,21 +355,21 @@ class KResultsData(object):
 
             # print job-class info only if
             if show_jobs_flag:
-                print "job name: {}".format(job.label)
-                print "-----> belongs to classes: {}".format(classes_job_belongs_to)
+                print("job name: {}".format(job.label))
+                print("-----> belongs to classes: {}".format(classes_job_belongs_to))
 
             for job_class_name in classes_job_belongs_to:
                 job_classes_dict.setdefault(job_class_name, []).append(job)
 
-        print "============ SIM: {} ===============".format(self.name)
+        print("============ SIM: {} ===============".format(self.name))
 
         total_jobs_in_classes = 0
-        for k,v in job_classes_dict.iteritems():
-            print "CLASS: {}, contains {} jobs".format(k, len(v))
+        for k,v in job_classes_dict.items():
+            print("CLASS: {}, contains {} jobs".format(k, len(v)))
             total_jobs_in_classes += len(v)
 
-        print "total n jobs {}".format(len(self.jobs))
-        print "total n in classes {}".format(total_jobs_in_classes)
+        print("total n jobs {}".format(len(self.jobs)))
+        print("total n in classes {}".format(total_jobs_in_classes))
 
 
 
@@ -413,9 +413,9 @@ class KResultsDataSet(object):
         """
 
         class_common_dict = {}
-        for class_name, class_regex in class_dict.iteritems():
+        for class_name, class_regex in class_dict.items():
 
-            print "checking job class {}".format(class_name)
+            print("checking job class {}".format(class_name))
             found_in_all_sims = True
             for sim in self.sims:
                 found_in_sim = False

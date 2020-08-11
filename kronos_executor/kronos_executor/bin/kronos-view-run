@@ -26,7 +26,6 @@ import argparse
 from datetime import datetime
 
 from kronos_executor.io_formats.format_data_handlers.kschedule_data import KScheduleData
-from kronos_executor.tools import datetime2epochs
 
 
 class LoggedJob(object):
@@ -46,7 +45,7 @@ class LoggedJob(object):
 
     @property
     def get_time_diff_end_sub(self):
-        return datetime2epochs(self.t_end) - datetime2epochs(self.t_sub)
+        return (self.t_end - self.t_sub).total_seconds()
 
 
 def parse_kronos_logs(raw_lines):
@@ -87,21 +86,21 @@ def parse_kronos_logs(raw_lines):
 def print_all_logged_jobs(_jobs):
 
     # print all job-wise info to stdout (CSV format)
-    print "{}, {}, {}, {}, {}, {}".format("jid",
+    print("{}, {}, {}, {}, {}, {}".format("jid",
                                           "name",
                                           "dep's",
                                           "t_sub",
                                           "t_end",
-                                          "t_end - t_sub [sec]")
+                                          "t_end - t_sub [sec]"))
 
     for j in sorted(_jobs, key=lambda j: j.jid):
-        print "{:5}, {:15}, {:10}, {:25}, {:25}, {:10.2f}".format(j.jid,
+        print("{:5}, {:15}, {:10}, {:25}, {:25}, {:10.2f}".format(j.jid,
                                                                   j.wlname,
                                                                   "; ".join([str(d) for d in j.depends]),
                                                                   str(j.t_sub),
                                                                   str(j.t_end),
                                                                   j.get_time_diff_end_sub
-                                                                  )
+                                                                  ))
 
 
 if __name__ == "__main__":
@@ -121,11 +120,11 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     if not os.path.isfile(args.kschedule):
-        print "Specified kschedule file does not exist: {}".format(args.kschedule)
+        print("Specified kschedule file does not exist: {}".format(args.kschedule))
         sys.exit(1)
 
     if not os.path.isfile(args.executor_log):
-        print "Specified executor log file does not exist: {}".format(args.executor_log)
+        print("Specified executor log file does not exist: {}".format(args.executor_log))
         sys.exit(1)
 
     # Get the data from the schedule..

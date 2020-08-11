@@ -12,8 +12,8 @@ import pickle
 import logging
 from collections import Counter
 
-from kronos_exceptions import ConfigurationError
-from jobs import ModelJob
+from .kronos_exceptions import ConfigurationError
+from .jobs import ModelJob
 from kronos_executor import app_kernels
 from kronos_executor.io_formats.schedule_format import ScheduleFormat
 from kronos_executor.definitions import time_signal_names
@@ -36,11 +36,11 @@ class SyntheticWorkload(object):
         # glob scaling factor applied to TS and ncpus
         self._glob_scaling_factor = None
 
-    def __unicode__(self):
+    def __str__(self):
         return "SyntheticWorkload - {} jobs".format(len(self.app_list))
 
-    def __str__(self):
-        return unicode(self).encode('utf-8')
+    def __bytes__(self):
+        return str(self).encode('utf-8')
 
     def verbose_description(self):
         """
@@ -59,7 +59,7 @@ class SyntheticWorkload(object):
     def total_metrics_dict(self, include_scaling_factors=False):
 
         if not self._scaling_factors:
-            print "scaling factors not set!, defaulting to 1.0"
+            print("scaling factors not set!, defaulting to 1.0")
             self._scaling_factors = {k: 1.0 for k in time_signal_names}
 
         tot = {}

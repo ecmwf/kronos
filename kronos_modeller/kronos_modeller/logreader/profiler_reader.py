@@ -81,7 +81,7 @@ def read_allinea_log(filename, jobs_n_bins=None, cfg=None):
         io_key_read = "bytes_read"
 
     else:
-        print "The allinea map file does not seem to contain IO traces: i.e. [lustre_]bytes_[written|read]"
+        print("The allinea map file does not seem to contain IO traces: i.e. [lustre_]bytes_[written|read]")
         sys.exit(1)
 
     allinea_time_signal_map = {
@@ -158,7 +158,7 @@ def read_allinea_log(filename, jobs_n_bins=None, cfg=None):
     sample_times = np.array(json_data['profile']['sample_times']) / 1000.
     sample_interval = json_data['profile']['sample_interval'] / 1000.
 
-    for ts_name_allinea, ts_config in allinea_time_signal_map.iteritems():
+    for ts_name_allinea, ts_config in allinea_time_signal_map.items():
 
         scale_factor = ts_config.get('scale_factor', 1.0)
 

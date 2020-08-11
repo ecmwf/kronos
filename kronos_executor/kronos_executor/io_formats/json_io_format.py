@@ -6,7 +6,7 @@
 # granted to it by virtue of its status as an intergovernmental organisation nor
 # does it submit to any jurisdiction.
 
-from schema_description import SchemaDescription
+from .schema_description import SchemaDescription
 
 import os
 import json
@@ -27,11 +27,11 @@ class JSONIoFormat(object):
         self.created = created
         self.uid = uid
 
-    def __unicode__(self):
+    def __str__(self):
         return "{}(njobs={})".format(self.__class__, len(self.profiled_jobs))
 
-    def __str__(self):
-        return unicode(self).encode('utf-8')
+    def __bytes__(self):
+        return str(self).encode('utf-8')
 
     @classmethod
     def schema(cls):

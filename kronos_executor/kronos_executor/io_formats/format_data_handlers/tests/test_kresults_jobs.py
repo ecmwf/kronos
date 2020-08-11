@@ -9,7 +9,6 @@ import unittest
 from datetime import datetime
 
 from kronos_executor.io_formats.format_data_handlers.tests.local_test_utils import create_kresults
-from kronos_executor.tools import datetime2epochs
 from kronos_executor.io_formats.format_data_handlers.kresults_decorator import KResultsDecorator
 from kronos_executor.io_formats.format_data_handlers.kresults_job import KResultsJob
 
@@ -175,7 +174,7 @@ class KResultsJobsTest(unittest.TestCase):
 
         # serial job
         job0 = KResultsJob(self.kresult_job_0)
-        end_datetime_job1 = datetime2epochs(datetime.strptime(job0._json_data["created"], '%Y-%m-%dT%H:%M:%S+00:00'))
+        end_datetime_job1 = datetime.strptime(job0._json_data["created"], '%Y-%m-%dT%H:%M:%S+00:00').timestamp()
         self.assertEqual(job0.t_end, end_datetime_job1)
         self.assertEqual(job0.duration, 25.75281+0.007616043)
         self.assertEqual(job0.t_start, end_datetime_job1-(25.75281+0.007616043))
@@ -184,7 +183,7 @@ class KResultsJobsTest(unittest.TestCase):
 
         # parallel job
         job1 = KResultsJob(self.kresult_job_1)
-        end_datetime_job1 = datetime2epochs(datetime.strptime(job1._json_data["created"], '%Y-%m-%dT%H:%M:%S+00:00'))
+        end_datetime_job1 = datetime.strptime(job1._json_data["created"], '%Y-%m-%dT%H:%M:%S+00:00').timestamp()
         self.assertEqual(job1.t_end, end_datetime_job1)
         self.assertEqual(job1.duration, 0.03*333+0.03*666)
         self.assertEqual(job1.t_start, end_datetime_job1-(0.03*333+0.03*666))
@@ -235,7 +234,7 @@ class KResultsJobsTest(unittest.TestCase):
         kresults_data = KResultsJob(kresults_json_data, decorator_data=decor_data)
 
         # time start
-        self.assertEqual(datetime2epochs( datetime.strptime(kresults_json_data["created"], '%Y-%m-%dT%H:%M:%S+00:00') ), kresults_data.t_end)
+        self.assertEqual(datetime.strptime(kresults_json_data["created"], '%Y-%m-%dT%H:%M:%S+00:00').timestamp(), kresults_data.t_end)
 
         # assert time end
         self.assertEqual(kresults_data.t_start + max([sum(ts["durations"]) for ts in self.time_series_2proc]), kresults_data.t_end)

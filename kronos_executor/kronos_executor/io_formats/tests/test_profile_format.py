@@ -3,7 +3,7 @@
 import copy
 import json
 import unittest
-from StringIO import StringIO
+from io import StringIO
 from datetime import datetime
 
 import jsonschema
@@ -182,17 +182,17 @@ class ProfileFormatTest(unittest.TestCase):
                            created=datetime(2016, 12, 14, 9, 57, 35),
                            uid=valid['uid'])
 
-        self.assertEquals(pf.uid, 1234)
-        self.assertEquals(pf.created, datetime(2016, 12, 14, 9, 57, 35))
-        self.assertEquals(len(pf.profiled_jobs), 1)
-        self.assertEquals(pf.profiled_jobs[0]["time_start"], 537700)
-        self.assertEquals(pf.profiled_jobs[0]["time_queued"], 99)
-        self.assertEquals(pf.profiled_jobs[0]["duration"], 147)
-        self.assertEquals(pf.profiled_jobs[0]["ncpus"], 72)
-        self.assertEquals(pf.profiled_jobs[0]["nnodes"], 2)
-        self.assertEquals(len(pf.profiled_jobs[0]["time_series"]), 1)
-        self.assertEquals(pf.profiled_jobs[0]["time_series"]["kb_read"]["times"][2], 0.03)
-        self.assertEquals(pf.profiled_jobs[0]["time_series"]["kb_read"]["values"][2], 17)
+        self.assertEqual(pf.uid, 1234)
+        self.assertEqual(pf.created, datetime(2016, 12, 14, 9, 57, 35))
+        self.assertEqual(len(pf.profiled_jobs), 1)
+        self.assertEqual(pf.profiled_jobs[0]["time_start"], 537700)
+        self.assertEqual(pf.profiled_jobs[0]["time_queued"], 99)
+        self.assertEqual(pf.profiled_jobs[0]["duration"], 147)
+        self.assertEqual(pf.profiled_jobs[0]["ncpus"], 72)
+        self.assertEqual(pf.profiled_jobs[0]["nnodes"], 2)
+        self.assertEqual(len(pf.profiled_jobs[0]["time_series"]), 1)
+        self.assertEqual(pf.profiled_jobs[0]["time_series"]["kb_read"]["times"][2], 0.03)
+        self.assertEqual(pf.profiled_jobs[0]["time_series"]["kb_read"]["values"][2], 17)
 
     def test_from_file(self):
         """
@@ -241,17 +241,17 @@ class ProfileFormatTest(unittest.TestCase):
 
         # Check that things are read correctly
 
-        self.assertEquals(pf.uid, 1234)
-        self.assertEquals(pf.created, datetime(2016, 12, 14, 9, 57, 35))
-        self.assertEquals(len(pf.profiled_jobs), 1)
-        self.assertEquals(pf.profiled_jobs[0]["time_start"], 537700)
-        self.assertEquals(pf.profiled_jobs[0]["time_queued"], 99)
-        self.assertEquals(pf.profiled_jobs[0]["duration"], 147)
-        self.assertEquals(pf.profiled_jobs[0]["ncpus"], 72)
-        self.assertEquals(pf.profiled_jobs[0]["nnodes"], 2)
-        self.assertEquals(len(pf.profiled_jobs[0]["time_series"]), 1)
-        self.assertEquals(pf.profiled_jobs[0]["time_series"]["kb_read"]["times"][2], 0.03)
-        self.assertEquals(pf.profiled_jobs[0]["time_series"]["kb_read"]["values"][2], 17)
+        self.assertEqual(pf.uid, 1234)
+        self.assertEqual(pf.created, datetime(2016, 12, 14, 9, 57, 35))
+        self.assertEqual(len(pf.profiled_jobs), 1)
+        self.assertEqual(pf.profiled_jobs[0]["time_start"], 537700)
+        self.assertEqual(pf.profiled_jobs[0]["time_queued"], 99)
+        self.assertEqual(pf.profiled_jobs[0]["duration"], 147)
+        self.assertEqual(pf.profiled_jobs[0]["ncpus"], 72)
+        self.assertEqual(pf.profiled_jobs[0]["nnodes"], 2)
+        self.assertEqual(len(pf.profiled_jobs[0]["time_series"]), 1)
+        self.assertEqual(pf.profiled_jobs[0]["time_series"]["kb_read"]["times"][2], 0.03)
+        self.assertEqual(pf.profiled_jobs[0]["time_series"]["kb_read"]["values"][2], 17)
 
     def test_profile_format_equality(self):
         """
@@ -281,7 +281,7 @@ class ProfileFormatTest(unittest.TestCase):
         pf_valid = ProfileFormat.from_file(StringIO(json.dumps(valid)))
 
         pf_valid2 = ProfileFormat.from_file(StringIO(json.dumps(valid)))
-        self.assertEquals(pf_valid, pf_valid2)
+        self.assertEqual(pf_valid, pf_valid2)
 
         # Modifying the created/uid attributes doesn't make these differ.
 
@@ -322,10 +322,10 @@ class ProfileFormatTest(unittest.TestCase):
     def test_default_workload_tag(self):
 
         pf = ProfileFormat(model_jobs=[])
-        self.assertEquals(pf.workload_tag, "unknown")
+        self.assertEqual(pf.workload_tag, "unknown")
 
         pf = ProfileFormat(model_jobs=[], workload_tag="my-tag")
-        self.assertEquals(pf.workload_tag, "my-tag")
+        self.assertEqual(pf.workload_tag, "my-tag")
 
 
 if __name__ == "__main__":

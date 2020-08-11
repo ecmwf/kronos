@@ -6,7 +6,7 @@ from kronos_executor.kronos_events import EventFactory
 
 class BaseJob(object):
 
-    needs_read_cache = True
+    needs_read_cache = False
 
     def __init__(self, job_config, executor, path):
         self.job_config = job_config
@@ -53,8 +53,8 @@ class BaseJob(object):
             elif all(isinstance(d, dict) for d in self.job_config['depends']):
                 _deps = [EventFactory.from_dictionary(d, validate_event=False) for d in self.job_config['depends']]
             else:
-                raise ValueError("Dependencies for job {} must be either " +
-                                 "all integers or all 'kronos-event' dictionaries".format(self._job_num))
+                raise ValueError(("Dependencies for job {} must be either " +
+                                  "all integers or all 'kronos-event' dictionaries").format(self._job_num))
 
         return _deps
 
@@ -74,20 +74,4 @@ class BaseJob(object):
             json.dump(self.job_config, f)
 
     def generate_internal(self):
-        raise NotImplementedError
-
-    def run(self, depend_job_ids):
-        """
-        'Run' this job
-
-        depend_jobs_ids: The job ids of jobs this depends on.
-
-        n.b. This class is responsible for calling set_job_submitted on the kronos_executor.
-
-        This has a flexible meaning, depending on the setup. There can be many strategies here.
-
-            i) Add to list to run
-            ii) Run it immediately
-            iii) Set an async timer to run it in the future?
-        """
         raise NotImplementedError

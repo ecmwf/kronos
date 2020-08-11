@@ -2,6 +2,14 @@
 Kronos version history
 ======================
 
+0.7.0 (11-08-2020)
+------------------
+
+- port to python 3
+- executor: use jinja templates
+- executor: add execution contexts
+- executor: simplify job submission
+
 0.6.2 (21-10-2019)
 ------------------
 

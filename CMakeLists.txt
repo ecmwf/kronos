@@ -12,7 +12,7 @@ set( CMAKE_MODULE_PATH
 
 include( ecbuild_system NO_POLICY_SCOPE )
 
-ecbuild_requires_macro_version( 2.0 )
+ecbuild_requires_macro_version( 3.0 )
 
 # Dependencies and option
 

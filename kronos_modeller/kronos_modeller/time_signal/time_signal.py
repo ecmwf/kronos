@@ -51,11 +51,11 @@ class TimeSignal(object):
         for k in kwargs:
             assert hasattr(self, k)
 
-    def __unicode__(self):
+    def __str__(self):
         return "TimeSignal({})".format(self.name if self.name else "???")
 
-    def __str__(self):
-        return unicode(self).encode('utf-8')
+    def __bytes__(self):
+        return str(self).encode('utf-8')
 
     @property
     def ts_group(self):

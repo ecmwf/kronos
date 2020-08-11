@@ -68,11 +68,11 @@ if __name__ == "__main__":
 
             # print header only at the beginning
             if not jj:
-                print _h
+                print(_h)
 
             # print fields
-            print _f
+            print(_f)
 
     # "time_series" means asking for the series of the specified param for the whole dataset
     elif args.mode == "time_series":
-        print "\n".join(["[ts]: {}: {}".format(t, v) for t, v in dataset.export_time_series(args.param)])
+        print("\n".join(["[ts]: {}: {}".format(t, v) for t, v in dataset.export_time_series(args.param)]))

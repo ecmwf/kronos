@@ -94,7 +94,7 @@ if __name__ == "__main__":
 
     parser_group.add_argument('-s', "--summary",
                               help="Show summary information",
-                              choices=kschedule_summary_handlers.keys(),
+                              choices=list(kschedule_summary_handlers.keys()),
                               type=str)
 
     parser.add_argument("-m", "--metrics",
@@ -116,10 +116,10 @@ if __name__ == "__main__":
 
     # Some checks:
     if args.list and args.metrics:
-        print "'--metrics' option ignored (only valid with '--summary')"
+        print("'--metrics' option ignored (only valid with '--summary')")
 
     if args.list and args.nbins:
-        print "'--nbins' option ignored (only valid with '--summary')"
+        print("'--nbins' option ignored (only valid with '--summary')")
 
     if args.summary and not args.metrics:
         args.metrics = ["all"]  # set the default here..
@@ -130,7 +130,7 @@ if __name__ == "__main__":
     if args.list:
 
         job_names = kschedule_data.list_job_names(regex=args.filter)
-        print "\n".join(job_names)
+        print("\n".join(job_names))
 
     elif args.summary:
 
@@ -140,7 +140,7 @@ if __name__ == "__main__":
             metrics_to_test += metric_keys
 
         filtered_jobs = kschedule_data.filter_jobs(args.filter)
-        print "\n{} jobs match the filter: {}\n".format(len(filtered_jobs), args.filter if args.filter else "ALL")
+        print("\n{} jobs match the filter: {}\n".format(len(filtered_jobs), args.filter if args.filter else "ALL"))
 
         for i_param in metrics_to_test:
             kschedule_summary_handlers[args.summary](kschedule_data,

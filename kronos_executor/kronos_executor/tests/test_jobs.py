@@ -5,7 +5,7 @@ import shutil
 import unittest
 
 from kronos_executor.base_job import BaseJob
-from testutils import scratch_tmpdir
+from .testutils import scratch_tmpdir
 
 
 class ExecutorStub(object):
@@ -19,7 +19,6 @@ class ExecutorTests(unittest.TestCase):
         job = BaseJob({}, ExecutorStub(), "fake-path")
 
         self.assertRaises(NotImplementedError, job.generate_internal)
-        self.assertRaises(NotImplementedError, job.run, [])
 
     def test_start_delay(self):
 

@@ -46,7 +46,7 @@ class ExporterBase(object):
             if not all(k in self.optional_configs for k in kwargs.keys()):
                 for k in kwargs.keys():
                     if k not in self.optional_configs:
-                        print "Class: {} incompatible with config {}".format(self.__class__.__name__, k)
+                        print("Class: {} incompatible with config {}".format(self.__class__.__name__, k))
                 raise ConfigurationError
 
     def do_export(self, export_config, output_path, job_classes, **kwargs):

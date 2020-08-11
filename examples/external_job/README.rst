@@ -17,12 +17,8 @@ Setup
 In order to make this example work, some setup is needed:
 
 1. Configure Kronos the usual way
-2. Update the job class in ``stepper_job.py``
-   a) Choose a template and associated mixin depending on your scheduling system
-      (or create one if needed)
-   b) Make sure the Job class inherits from the appropriate mixin
-3. Provide a script to load the Kronos conda environment, ``environment.sh``
-4. Generate a KSchedule using the helper script::
+2. Provide a script to load the Kronos conda environment, ``environment.sh``
+3. Generate a KSchedule using the helper script::
 
       python generate_kschedule.py <number of steps>
 

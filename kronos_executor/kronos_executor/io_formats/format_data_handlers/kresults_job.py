@@ -11,7 +11,7 @@ from datetime import datetime
 from kronos_executor.io_formats.results_format import ResultsFormat
 from kronos_executor.io_formats.definitions import kresults_ts_names_map
 
-from kronos_executor.tools import datetime2epochs, cumsum
+from kronos_executor.tools import cumsum
 
 
 class KResultsJob(object):
@@ -40,7 +40,7 @@ class KResultsJob(object):
             delta_t = rank_data["time_series"]['durations']
             tends = cumsum(delta_t)
 
-            for ts_name, ts_vals in rank_data["time_series"].iteritems():
+            for ts_name, ts_vals in rank_data["time_series"].items():
 
                 if ts_name != "durations":
                     ts_all = [(t, v, v / dt, dt) for t, dt, v in zip(tends, delta_t, ts_vals) if (v != 0 and dt != 0)]
@@ -52,7 +52,7 @@ class KResultsJob(object):
 
         # Append any time series data that is present
         time_series = {}
-        for name, values in _series_tvr.iteritems():
+        for name, values in _series_tvr.items():
 
             # assert name in time_signal.signal_types
             assert name in kresults_ts_names_map.keys()
@@ -74,7 +74,7 @@ class KResultsJob(object):
         :return:
         """
         _series = self.calc_time_series()
-        return {k: sum(v["values"]) for k, v in _series.iteritems()}
+        return {k: sum(v["values"]) for k, v in _series.items()}
 
     @classmethod
     def from_kresults_file(cls, kresults_filename, decorator=None):
@@ -160,7 +160,7 @@ class KResultsJob(object):
             else:
                 created_datetime = datetime.strptime(self._json_data["created"], '%Y-%m-%dT%H:%M:%S+00:00')
 
-            _ts = datetime2epochs(created_datetime)
+            _ts = created_datetime.timestamp()
         return _ts
 
     def is_in_class(self, class_regex=None):
@@ -186,7 +186,7 @@ class KResultsJob(object):
         """
 
         # NOTE: a job can be in multiple classes
-        job_classes = [cl_name for cl_name, cl_regex in class_list.iteritems() if self.is_in_class(cl_regex)]
+        job_classes = [cl_name for cl_name, cl_regex in class_list.items() if self.is_in_class(cl_regex)]
 
         if job_classes:
 

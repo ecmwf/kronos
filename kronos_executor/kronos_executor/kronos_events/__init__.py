@@ -77,7 +77,7 @@ class EventFactory(object):
                 logger.warning("Event decoding FAILED => message discarded {}".format(event_string))
                 return None
 
-        if isinstance(event_json, unicode):
+        if isinstance(event_json, str):
             logger.warning("Event decoding FAILED => message discarded {}".format(event_string))
             return None
 

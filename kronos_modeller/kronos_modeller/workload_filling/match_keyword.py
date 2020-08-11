@@ -85,7 +85,7 @@ class StrategyMatchKeyword(FillingStrategy):
 
                 pc_scanned = progress_percentage(jj, len(wl_dest.jobs), n_print)
                 if pc_scanned > 0:
-                    print "Scanned {}% of source jobs".format(pc_scanned)
+                    print("Scanned {}% of source jobs".format(pc_scanned))
 
                 for lu_job in look_up_wl.jobs:
 
@@ -127,7 +127,7 @@ class StrategyMatchKeyword(FillingStrategy):
 
                 pc_scanned = progress_percentage(jj, len(wl_dest.jobs), n_print)
                 if pc_scanned > 0:
-                    print "Scanned {}% of source jobs".format(pc_scanned)
+                    print("Scanned {}% of source jobs".format(pc_scanned))
 
                 for lu_job in look_up_wl.jobs:
 

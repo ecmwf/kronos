@@ -30,11 +30,11 @@ class KScheduleDataSummary(object):
 
     def get_summary(self):
 
-        print "\n==== SUMMARY OF {} [{}]: ({}) ====\n".format(self.metric_name.upper(),
+        print("\n==== SUMMARY OF {} [{}]: ({}) ====\n".format(self.metric_name.upper(),
                                                               signal_types[self.metric_name]["print_info"]["raw_units"],
-                                                              signal_types[self.metric_name]["print_info"]["description"].upper())
+                                                              signal_types[self.metric_name]["print_info"]["description"].upper()))
 
-        print self.distribution_summary()
+        print(self.distribution_summary())
 
     def distribution_summary(self):
 

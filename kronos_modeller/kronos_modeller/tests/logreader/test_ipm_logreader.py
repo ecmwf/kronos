@@ -100,8 +100,8 @@ class IPMTaskInfoTest(unittest.TestCase):
         task.bytes_read = 10
         task.bytes_written = 11
 
+        self.assertEqual(bytes(task), b"IPMTaskInfo(9 MPI events, 12 MPI bytes, 24 IO events, 21 IO bytes)")
         self.assertEqual(str(task), "IPMTaskInfo(9 MPI events, 12 MPI bytes, 24 IO events, 21 IO bytes)")
-        self.assertEqual(unicode(task), "IPMTaskInfo(9 MPI events, 12 MPI bytes, 24 IO events, 21 IO bytes)")
 
 class IPMIngestedJobTest(unittest.TestCase):
     """
@@ -149,7 +149,7 @@ class IPMIngestedJobTest(unittest.TestCase):
             label='label2'
         )
 
-        self.assertRaises(AssertionError, job1.aggregate(job2))
+        self.assertRaises(AssertionError, job1.aggregate, job2)
 
     def test_aggregation(self):
         """
@@ -285,7 +285,7 @@ class IPMIngestedJobTest(unittest.TestCase):
         }
 
         self.assertEqual(set(self.expected_series), set(series.keys()))
-        for nm, s in series.iteritems():
+        for nm, s in series.items():
             self.assertEqual(s.sum, totals[nm])
             self.assertEqual(len(s.xvalues), 1)
             self.assertEqual(len(s.yvalues), 1)

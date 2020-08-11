@@ -22,7 +22,7 @@ class ExporterSummaryRates(ExporterBase):
 
     def do_export(self, export_config, output_path, job_classes, **kwargs):
 
-        print "Exporting summary rates data to {}".format(output_path)
+        print("Exporting summary rates data to {}".format(output_path))
 
         # ------------ find max and min rates for scaling all the plots accordingly ------------
         max_norm_value = None
@@ -41,7 +41,7 @@ class ExporterSummaryRates(ExporterBase):
                     try:
                         normalized_rates = [v/float(metric_rate_list[0]) for v in metric_rate_list if metric_rate_list[0]]
                     except ZeroDivisionError:
-                        print "zero value encountered for metric: {} of class: {}".format(stat_name, class_name)
+                        print("zero value encountered for metric: {} of class: {}".format(stat_name, class_name))
                     max_norm_value = max(max_norm_value, max(normalized_rates)) if max_norm_value else max(normalized_rates)
                     min_norm_value = min(min_norm_value, min(normalized_rates)) if min_norm_value else min(normalized_rates)
 
@@ -57,7 +57,7 @@ class ExporterSummaryRates(ExporterBase):
             # write the metrics only if actually present for this class..
             if all(metric_rate_list):
                 # NB: values are normalized against 1st simulation (of the ordered list of sims)
-                _times = range(len(metric_rate_list))
+                _times = list(range(len(metric_rate_list)))
                 _values = [v / float(metric_rate_list[0]) for v in metric_rate_list]
                 label = kresults_stats_info[stat_name]["label_sum"]
                 group_signals.append(ResultSignal(label, _times, _values).get_exportable(metadata={"norm_factor": float(metric_rate_list[0])}))
@@ -75,8 +75,8 @@ class ExporterSummaryRates(ExporterBase):
                                             name="Normalized Rates",
                                             ylims=ylims,
                                             y_label="Normalized Rates",
-                                            x_ticks=range(len(self.sim_set.ordered_sims())),
-                                            x_tick_labels=self.sim_set.ordered_sims().keys(),
+                                            x_ticks=list(range(len(self.sim_set.ordered_sims()))),
+                                            x_tick_labels=list(self.sim_set.ordered_sims().keys()),
                                             legend=True)]
 
         # Aggregate all the groups in the Exportable data structure

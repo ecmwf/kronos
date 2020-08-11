@@ -1,4 +1,4 @@
-#!/usr/bin/env python2.7
+#!/usr/bin/env python3
 
 # (C) Copyright 1996-2018 ECMWF.
 #
@@ -38,6 +38,6 @@ if __name__ == "__main__":
     if not os.path.exists(args.read_files_path):
         raise ValueError("directory {} does not exist!".format(args.read_files_path))
 
-    print "Read cache files are being created in: {}".format(args.read_files_path)
+    print("Read cache files are being created in: {}".format(args.read_files_path))
     generate_read_cache(args.read_files_path)
 
