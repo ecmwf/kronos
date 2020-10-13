@@ -115,6 +115,7 @@ install_executor() {
         export PATH=${KRONOS_CONDA_BIN_DIR}/:${PATH}
         source activate kronos_executor_env
         pip install -e ${KRONOS_SOURCES_TOP_DIR}/kronos_executor
+        conda deactivate
     else
 
         # export conda command
@@ -148,6 +149,8 @@ install_executor() {
                 fi
             done < ${KRONOS_DEPENDS_DIR}/kronos_executor.deps
 
+            conda deactivate
+
         else # install online (will download dependencies)
 
             echo "installing executor dependencies (online).."
@@ -159,6 +162,7 @@ install_executor() {
         echo "installing executor.."
         source activate kronos_executor_env
         pip install -e ${KRONOS_SOURCES_TOP_DIR}/kronos_executor
+        conda deactivate
 
         set +e
 
@@ -185,6 +189,7 @@ install_modeller() {
         export PATH=${KRONOS_CONDA_BIN_DIR}/:${PATH}
         source activate kronos_modeller_env
         pip install -e ${KRONOS_SOURCES_TOP_DIR}/kronos_modeller
+        conda deactivate
     else
 
         # export conda command
@@ -218,6 +223,8 @@ install_modeller() {
                 fi
             done < ${KRONOS_DEPENDS_DIR}/kronos_modeller.deps
 
+            conda deactivate
+
         else # install online (will download dependencies)
 
             echo "installing modeller dependencies (online).."
@@ -233,6 +240,8 @@ install_modeller() {
         pip install -e ${KRONOS_SOURCES_TOP_DIR}/kronos_executor
 
         pip install -e ${KRONOS_SOURCES_TOP_DIR}/kronos_modeller
+
+        conda deactivate
 
         set +e
 
