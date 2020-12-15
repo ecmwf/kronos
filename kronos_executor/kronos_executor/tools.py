@@ -5,9 +5,10 @@
 # In applying this licence, ECMWF does not waive the privileges and immunities 
 # granted to it by virtue of its status as an intergovernmental organisation nor
 # does it submit to any jurisdiction.
-import math
-import sys
 import logging
+import math
+import pathlib
+import sys
 
 import numpy as np
 from kronos_executor.io_formats.definitions import kresults_stats_info
@@ -174,3 +175,11 @@ def calc_histogram(values, n_bins):
                 raise IndexError
 
         return bins, binned_vals
+
+
+def find_file_in_paths(name, paths):
+    for p in paths:
+        c = pathlib.Path(p) / name
+        if c.is_file():
+            return c
+    raise RuntimeError("File {!r} not found in paths {}".format(name, ", ".join(paths)))

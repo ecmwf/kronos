@@ -17,6 +17,7 @@ from kronos_executor.global_config import global_config
 from kronos_executor import generate_read_files
 from kronos_executor.execution_context import load_context
 from kronos_executor.job_submitter import JobSubmitter
+from kronos_executor.tools import find_file_in_paths
 
 logger = logging.getLogger(__name__)
 
@@ -256,20 +257,15 @@ class Executor(object):
             job_classes_dir = os.path.join(os.path.dirname(__file__), "job_classes")
 
             # now search for the template file in the cwd first..
-            if os.path.isfile( "{}.py".format(os.path.join(os.getcwd(), job_class_name)) ):
+            paths = [os.getcwd(), job_classes_dir]
+            name = "{}.py".format(job_class_name)
 
-                job_class_module_file = "{}.py".format(os.path.join(os.getcwd(), job_class_name))
+            try:
+                job_class_module_file = find_file_in_paths(name, paths)
 
-            elif os.path.isfile( os.path.join(job_classes_dir, "{}.py".format(job_class_name)) ):
-
-                job_class_module_file = os.path.join(os.path.dirname(__file__), "job_classes/{}.py".format(job_class_name))
-
-            else:
-
-                logger.error("template file {}.py not found neither in {} nor in {}".format(job_class_name,
-                                                                                            os.getcwd(),
-                                                                                            job_classes_dir))
-                raise IOError
+            except RuntimeError:
+                logger.error("template file {} not found in {}".format(name, ", ".join(paths)))
+                raise
 
             # now load the module
             job_module_name = "kronos_job_class_{}".format(job_class_name)
