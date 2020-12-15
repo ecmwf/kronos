@@ -43,6 +43,9 @@ class Executor(object):
         'file_read_multiplicity',
         'file_read_size_min_pow',
         'file_read_size_max_pow',
+        'execution_contexts_path',
+        'job_classes_path',
+        'job_templates_path',
 
         # ioserver options
         'ioserver_hosts_file',
@@ -144,11 +147,14 @@ class Executor(object):
 
         self.initial_time = None
 
-        search_paths = [
-            os.getcwd(),
-            os.path.join(os.path.dirname(__file__), "execution_contexts")
-        ]
+        search_paths = [os.getcwd()]
+        search_paths.extend(config.get('execution_contexts_path', []))
+        search_paths.append(os.path.join(os.path.dirname(__file__), "execution_contexts"))
         self.execution_context = load_context(config.get('execution_context', 'trivial'), search_paths, config)
+
+        self.job_classes_path = [os.getcwd()]
+        self.job_classes_path.extend(config.get('job_classes_path', []))
+        self.job_classes_path.append(os.path.join(os.path.dirname(__file__), "job_classes"))
 
         self.cancel_file_path = os.path.join(self.job_dir, "killjobs")
         self.cancel_file = None
@@ -254,17 +260,14 @@ class Executor(object):
 
             # get job template name (either from the job config or from the global config, if present)
             job_class_name = job_config.setdefault("job_class", "synapp")
-            job_classes_dir = os.path.join(os.path.dirname(__file__), "job_classes")
 
-            # now search for the template file in the cwd first..
-            paths = [os.getcwd(), job_classes_dir]
+            # now search for the template file
             name = "{}.py".format(job_class_name)
-
             try:
-                job_class_module_file = find_file_in_paths(name, paths)
+                job_class_module_file = find_file_in_paths(name, self.job_classes_path)
 
             except RuntimeError:
-                logger.error("template file {} not found in {}".format(name, ", ".join(paths)))
+                logger.error("template file {} not found in {}".format(name, ", ".join(self.job_classes_path)))
                 raise
 
             # now load the module

@@ -23,6 +23,7 @@ class HPCJob(BaseJob):
 
         template_loader = jinja2.ChoiceLoader([
             jinja2.FileSystemLoader(os.getcwd()),
+            jinja2.FileSystemLoader(executor.config.get('job_templates_path', [])),
             jinja2.PackageLoader('kronos_executor', 'job_templates')
         ])
         self.template_env = jinja2.Environment(loader=template_loader)

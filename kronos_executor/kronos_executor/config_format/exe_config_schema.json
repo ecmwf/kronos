@@ -49,6 +49,21 @@
       "type": "integer",
       "description": "Number of files (for each file size) used to randomize the read calls of the synthetic apps"
     },
+    "execution_contexts_path": {
+      "type": "array",
+      "description": "Extra search paths for execution contexts",
+      "items": {"type": "string"}
+    },
+    "job_classes_path": {
+      "type": "array",
+      "description": "Extra search paths for job classes",
+      "items": {"type": "string"}
+    },
+    "job_templates_path": {
+      "type": "array",
+      "description": "Extra search paths for job templates",
+      "items": {"type": "string"}
+    },
 
     "execution_mode": {
       "type": "string",
