@@ -116,8 +116,9 @@ def load_context(name, path, config):
     else:
         src = None
         for p in path:
-            src = pathlib.Path(p) / "{}.py".format(name)
-            if src.is_file():
+            c = pathlib.Path(p) / "{}.py".format(name)
+            if c.is_file():
+                src = c
                 break
 
         if src is None:
