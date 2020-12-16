@@ -1,9 +1,7 @@
 
-import importlib.util
-import pathlib
 import sys
 
-from kronos_executor.tools import find_file_in_paths
+from kronos_executor.tools import load_module
 
 class ExecutionContext:
     """Handles the interaction between jobs and the system"""
@@ -109,22 +107,10 @@ def load_context(name, path, config):
     """Load the Context object from a module named ``name`` to be found in one
     of the directories in ``path``"""
 
-    mod_name = "kronos_execution_context_{}".format(name)
-
-    mod = None
-    if mod_name in sys.modules:
-        mod = sys.modules[mod_name]
-
-    else:
-        try:
-            src = find_file_in_paths("{}.py".format(name), path)
-        except RuntimeError:
-            raise ValueError("Execution context {!r} not found in paths {}".format(name, ", ".join(path)))
-
-        spec = importlib.util.spec_from_file_location(mod_name, src)
-        mod = importlib.util.module_from_spec(spec)
-        sys.modules[mod_name] = mod
-        spec.loader.exec_module(mod)
+    try:
+        mod = load_module(name, path, prefix="kronos_execution_context_")
+    except RuntimeError:
+        raise ValueError("Execution context {!r} not found in paths {}".format(name, ", ".join(path)))
 
     if not hasattr(mod, 'Context'):
         raise RuntimeError(

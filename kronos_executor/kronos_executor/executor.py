@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 
 import datetime
-import imp
 import logging
 import os
 import socket
@@ -17,7 +16,7 @@ from kronos_executor.global_config import global_config
 from kronos_executor import generate_read_files
 from kronos_executor.execution_context import load_context
 from kronos_executor.job_submitter import JobSubmitter
-from kronos_executor.tools import find_file_in_paths
+from kronos_executor.tools import load_module
 
 logger = logging.getLogger(__name__)
 
@@ -261,21 +260,12 @@ class Executor(object):
             # get job template name (either from the job config or from the global config, if present)
             job_class_name = job_config.setdefault("job_class", "synapp")
 
-            # now search for the template file
-            name = "{}.py".format(job_class_name)
-            try:
-                job_class_module_file = find_file_in_paths(name, self.job_classes_path)
-
-            except RuntimeError:
-                logger.error("template file {} not found in {}".format(name, ", ".join(self.job_classes_path)))
-                raise
-
             # now load the module
-            job_module_name = "kronos_job_class_{}".format(job_class_name)
-            if job_module_name in sys.modules:
-                job_class_module = sys.modules[job_module_name]
-            else:
-                job_class_module = imp.load_source(job_module_name, job_class_module_file)
+            try:
+                job_class_module = load_module(job_class_name, self.job_classes_path, prefix="kronos_job_class_")
+            except RuntimeError:
+                logger.error("job class {} not found in {}".format(job_class_name, ", ".join(self.job_classes_path)))
+                raise
 
             job_class = job_class_module.Job
             need_cache = need_cache or job_class.needs_read_cache
