@@ -247,6 +247,40 @@ class Executor(object):
             for i in range(job_repeats):
                 yield job
 
+    def load_job(self, name, config, job_dir):
+        """Load the Job object from a module named ``name`` to be found in one of
+        the directories in the job class path"""
+
+        # Enrich the job configuration with the necessary global configurations
+        # coming from the configuration file
+        if self._file_read_multiplicity:
+            config['file_read_multiplicity'] = self._file_read_multiplicity
+
+        if self._file_read_size_min_pow:
+            config['file_read_size_min_pow'] = self._file_read_size_min_pow
+
+        if self._file_read_size_max_pow:
+            config['file_read_size_max_pow'] = self._file_read_size_max_pow
+
+        if self.execution_mode == "events":
+            config['notification_host'] = self.notification_host
+            config['notification_port'] = self.notification_port
+
+        if self.config.get("nvdimm_root_path"):
+            config['nvdimm_root_path'] = self.nvdimm_root_path
+
+        try:
+            mod = load_module(name, self.job_classes_path, prefix="kronos_job_class_")
+        except RuntimeError:
+            raise ValueError("Job class {!r} not found in paths {}".format(name, ", ".join(self.job_classes_path)))
+
+        if not hasattr(mod, 'Job'):
+            raise RuntimeError(
+                "Module {!r} does not define a Job class" \
+                .format(name))
+
+        return mod.Job(config, self, job_dir)
+
     def generate_job_internals(self):
 
         # Launched jobs, matched with their job-ids
@@ -260,35 +294,8 @@ class Executor(object):
             # get job template name (either from the job config or from the global config, if present)
             job_class_name = job_config.setdefault("job_class", "synapp")
 
-            # now load the module
-            try:
-                job_class_module = load_module(job_class_name, self.job_classes_path, prefix="kronos_job_class_")
-            except RuntimeError:
-                logger.error("job class {} not found in {}".format(job_class_name, ", ".join(self.job_classes_path)))
-                raise
-
-            job_class = job_class_module.Job
-            need_cache = need_cache or job_class.needs_read_cache
-
-            # Enrich the job configuration with the necessary global configurations
-            # coming from the configuration file
-            if self._file_read_multiplicity:
-                job_config['file_read_multiplicity'] = self._file_read_multiplicity
-
-            if self._file_read_size_min_pow:
-                job_config['file_read_size_min_pow'] = self._file_read_size_min_pow
-
-            if self._file_read_size_max_pow:
-                job_config['file_read_size_max_pow'] = self._file_read_size_max_pow
-
-            if self.execution_mode == "events":
-                job_config['notification_host'] = self.notification_host
-                job_config['notification_port'] = self.notification_port
-
-            if self.config.get("nvdimm_root_path"):
-                job_config['nvdimm_root_path'] = self.nvdimm_root_path
-
-            j = job_class(job_config, self, job_dir)
+            j = self.load_job(job_class_name, job_config, job_dir)
+            need_cache = need_cache or j.needs_read_cache
 
             j.generate()
             jobs.append(j)
