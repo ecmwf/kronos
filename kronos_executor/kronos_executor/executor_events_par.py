@@ -109,7 +109,9 @@ class ExecutorEventsPar(Executor):
                 new_events = self.event_manager.get_latest_events(batch_size=self.event_batch_size)
 
             # completed job id's
-            completed_jobs = set([e.info["job"] for e in self.event_manager.get_events(type_filter="Complete")])
+            completed_jobs = set([e.info["job"]
+                for e in self.event_manager.get_events(type_filter="Complete")
+                if e.info["job"].count(".") == 0])
             if len(completed_jobs) > len(completed_jobs_prev):
                 logger.info("completed_jobs: {}/{}".format(len(completed_jobs), len(self.jobs)))
                 completed_jobs_prev = completed_jobs
@@ -174,7 +176,7 @@ class ExecutorEventsPar(Executor):
                                           if isinstance(ev, EventComplete)]
 
             times_of_timed_jobs = [time for (ev, time) in completed_jobs_and_timings
-                                   if jobid_to_timed_flag[ev.info["job"]]]
+                                   if jobid_to_timed_flag.get(ev.info["job"], False)]
 
             if times_of_timed_jobs:
                 last_timed_msg_timestamp = max(times_of_timed_jobs)
