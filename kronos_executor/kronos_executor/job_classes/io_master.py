@@ -21,14 +21,3 @@ class Job(UserAppJob):
 
         script_format['ioserver_hosts_file'] = self.executor.ioserver_hosts_file
 
-        # ===== SETUP to send TCP message to kronos at the end of job ======
-        bin_dir = os.path.dirname(self.executor.coordinator_binary)
-        send_msg_exe = "{}/send_job_complete_msg.py".format(bin_dir)
-
-        send_msg_text = "{} {} {}".format(self.executor.notification_host,
-                                          self.executor.notification_port,
-                                          self.id)
-
-        script_format['send_complete_msg'] = "python {} {}".format(send_msg_exe, send_msg_text)
-        # ==================================================================
-

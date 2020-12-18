@@ -35,6 +35,8 @@ setup(
 
         'kronos_executor/bin/kronos-generate-read-files',
 
+        'kronos_executor/bin/kronos-notify',
+
         'kronos_executor/bin/kronos-summarise-kschedule',
         'kronos_executor/bin/kronos-summarise-results',
 

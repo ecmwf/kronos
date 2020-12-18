@@ -66,6 +66,12 @@ class HPCJob(BaseJob):
             'simulation_token': self.executor.simulation_token
         }
 
+        script_format['kronos_notify'] = "{} {} {} {}".format(
+                os.path.join(os.path.dirname(__file__), "bin", "kronos-notify"),
+                self.executor.notification_host,
+                self.executor.notification_port,
+                self.id)
+
         self.customised_generated_internals(script_format)
 
         script_format.setdefault('launcher_command', self.executor.execution_context.launcher_command)

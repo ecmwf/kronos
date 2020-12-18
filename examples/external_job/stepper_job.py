@@ -29,12 +29,5 @@ class Job(UserAppJob):
         else:
             script_format['source_kronos_env'] = ""
 
-        # Utility to send an event to kronos
-        script_format['notify_script'] = "python {} {} {} {}".format(
-                here / "notify.py",
-                self.executor.notification_host,
-                self.executor.notification_port,
-                self.id)
-
         # Path to the external app
         script_format['stepper'] = "python {}".format(here / "stepper.py")
