@@ -2,6 +2,12 @@
 Kronos version history
 ======================
 
+0.7.1
+-----
+
+- executor: add configurable search paths for execution contexts, job classes, and job templates
+- executor: support composite jobs
+
 0.7.0 (11-08-2020)
 ------------------
 
