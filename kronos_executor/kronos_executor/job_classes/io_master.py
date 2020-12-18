@@ -1,4 +1,3 @@
-import os
 from kronos_executor.external_job import UserAppJob
 
 # =================================================
