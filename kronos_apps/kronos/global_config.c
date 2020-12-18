@@ -41,6 +41,7 @@ int init_global_config(const JSON* json, int argc, char** argv) {
     bool be_verbose;
     long nprocs;
     const char* env_ptr;
+    long job_id_num;
 
     /* Initialise MPI if, and only if, it is available */
 
@@ -220,7 +221,6 @@ int init_global_config(const JSON* json, int argc, char** argv) {
 
     global_config.notification_port = 7363;
     global_config.enable_notifications = false;
-    global_config.job_num = 0;
 
     if ((tmp_json = json_object_get(json, "notification_host")) != NULL) {
         if (json_as_string(tmp_json, global_config.notification_host, HOST_NAME_MAX) != 0) {
@@ -243,11 +243,15 @@ int init_global_config(const JSON* json, int argc, char** argv) {
     }
 
     if ((tmp_json = json_object_get(json, "job_num")) != NULL) {
-        if (json_as_integer(tmp_json, &global_config.job_num) != 0) {
-            error = -1;
-            fprintf(stderr, "Error reading job_num as integer from global configuration\nGot:");
-            print_json(stderr, tmp_json);
-            fprintf(stderr, "\n");
+        if (json_as_string(tmp_json, global_config.job_id, JOBID_MAX) != 0) {
+            if (json_as_integer(tmp_json, &job_id_num) != 0) {
+                error = -1;
+                fprintf(stderr, "Error reading job_id as integer or string from global configuration\nGot:");
+                print_json(stderr, tmp_json);
+                fprintf(stderr, "\n");
+            } else {
+                snprintf(global_config.job_id, JOBID_MAX, "%li", job_id_num);
+            }
         }
     }
 
@@ -339,7 +343,7 @@ int init_global_config(const JSON* json, int argc, char** argv) {
         if (global_config.nvdimm_root_path) {
             printf("nvdimm_root_path: %s\n", global_config.nvdimm_root_path);
         }
-        printf("Job ID number: %li\n", global_config.job_num);
+        printf("Job ID: %s\n", global_config.job_id);
         printf("Initial timestamp: %f, %s\n",
                (double)global_config.start_time, asctime(localtime(&global_config.start_time)));
 #ifdef HAVE_MPI

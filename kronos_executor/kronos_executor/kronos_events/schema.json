@@ -110,7 +110,7 @@
                             "description": "Application type that originated the event"
                         },
                         "job": {
-                            "type": "integer",
+                            "type": "string",
                             "description": "unique job id (within the simulation)"
                         },
                         "timestamp": {

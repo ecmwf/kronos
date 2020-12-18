@@ -217,7 +217,7 @@ bool send_final_notification() {
     /* Construct notification message */
     json_info = json_object_new();
     json_object_insert(json_info, "app", json_string_new("kronos-synapp"));
-    json_object_insert(json_info, "job", json_number_new(global_conf->job_num));
+    json_object_insert(json_info, "job", json_string_new(global_conf->job_id));
     json_object_insert(json_info, "timestamp", json_number_new(take_time()));
 
     json = json_object_new();

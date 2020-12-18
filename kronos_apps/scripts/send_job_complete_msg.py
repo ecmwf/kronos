@@ -72,7 +72,7 @@ if __name__ == "__main__":
 
     final = {"info": {
                 "timestamp": int(time.time()),
-                "job": int(job_id),
+                "job": job_id,
                 "app": "kronos-synapp"
              },
              "type": "Complete",

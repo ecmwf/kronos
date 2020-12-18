@@ -13,7 +13,7 @@ class BaseJob(object):
         self.path = path
         self.executor = executor
         self.input_file = os.path.join(self.path, 'input.json')
-        self._job_num = job_config.get('job_num', 0)
+        self._job_num = job_config.get('job_num', "0")
 
         self.start_delay = job_config.get('start_delay', 0)
         if not (isinstance(self.start_delay, int) or isinstance(self.start_delay, float)):
@@ -37,8 +37,8 @@ class BaseJob(object):
         # -------------------------------------------------------------------------
         # NOTE: dependencies can be either:
         #
-        #  - integers (i.e. as used by the executor_schedule and interpreted
-        #    as job-id to be completed)
+        #  - integers or strings (i.e. as used by the executor_schedule and
+        #    interpreted as job-id to be completed)
         #
         #  - dictionaries (i.e. as used by the executor_events and used to describe
         #    event-based dependencies)
@@ -47,8 +47,8 @@ class BaseJob(object):
         _deps = []
         if self.job_config.get('depends', []):
 
-            if all(isinstance(d, int) for d in self.job_config['depends']):
-                _deps = self.job_config.get('depends', [])
+            if all(isinstance(d, (int, str)) for d in self.job_config['depends']):
+                _deps = [str(d) for d in self.job_config['depends']]
 
             elif all(isinstance(d, dict) for d in self.job_config['depends']):
                 _deps = [EventFactory.from_dictionary(d, validate_event=False) for d in self.job_config['depends']]

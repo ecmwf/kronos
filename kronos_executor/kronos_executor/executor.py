@@ -288,7 +288,7 @@ class Executor(object):
 
         for job_num, job_config in enumerate(self.job_iterator()):
             job_dir = os.path.join(self.job_dir, "job-{}".format(job_num))
-            job_config['job_num'] = job_num
+            job_config['job_num'] = str(job_num)
 
             # get job template name (either from the job config or from the global config, if present)
             job_class_name = job_config.setdefault("job_class", "synapp")

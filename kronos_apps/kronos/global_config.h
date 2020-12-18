@@ -25,6 +25,8 @@
 #include "common/json.h"
 #include "common/bool.h"
 
+#define JOBID_MAX 256
+
 /* ------------------------------------------------------------------------------------------------------------------ */
 
 typedef struct GlobalConfig {
@@ -57,7 +59,7 @@ typedef struct GlobalConfig {
     long file_read_size_min;
     long file_read_size_max;
 
-    long job_num;
+    char job_id[JOBID_MAX];
 
     bool enable_notifications;
     char notification_host[HOST_NAME_MAX];
