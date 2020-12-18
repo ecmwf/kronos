@@ -1,6 +1,4 @@
 
-import sys
-
 from kronos_executor.tools import load_module
 
 class ExecutionContext:

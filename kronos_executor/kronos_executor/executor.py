@@ -5,7 +5,6 @@ import logging
 import os
 import socket
 import stat
-import sys
 import time
 import uuid
 from shutil import copy2

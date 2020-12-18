@@ -1,5 +1,5 @@
 import os
-from kronos_executor.job_classes.external_app import UserAppJob
+from kronos_executor.external_job import UserAppJob
 
 # =================================================
 # Very minimal example of the io_master application
