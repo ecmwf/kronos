@@ -105,7 +105,7 @@ class IngestedDataSet(object):
     @classmethod
     def from_pickled(cls, ingest_file):
         print("ingesting {}".format(ingest_file))
-        with open(ingest_file, 'r') as f:
+        with open(ingest_file, 'rb') as f:
             return pickle.load(f)
 
 
@@ -128,7 +128,7 @@ class IngestedDataSet(object):
         if not reparse:
 
             try:
-                with open(cache_file, 'r') as f:
+                with open(cache_file, 'rb') as f:
                     print("Using cached data from: {}".format(f.name))
                     dataset = pickle.load(f)
 
@@ -160,7 +160,7 @@ class IngestedDataSet(object):
             # Pickle the object for later rapid loading.
             if cache:
                 print("Writing cache file: {}".format(cache_file))
-                with open(cache_file, "w") as f:
+                with open(cache_file, "wb") as f:
                     pickle.dump(dataset, f)
 
         return dataset

@@ -104,6 +104,6 @@ if __name__ == "__main__":
     dataset = logreader.ingest_data(args.type, args.path, ingest_config=ingest_config)
 
     print("Ingestion complete. Writing dump file ...")
-    with open(args.output, "w") as f:
+    with open(args.output, "wb") as f:
         pickle.dump(dataset, f)
     print("done")

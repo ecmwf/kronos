@@ -14,9 +14,9 @@ class PickableObject(object):
 
     @classmethod
     def from_pickled(cls, pickle_name):
-        with open(pickle_name, 'r') as f:
+        with open(pickle_name, 'rb') as f:
             return pickle.load(f)
 
     def export_pickle(self, pickle_name):
-        with open(pickle_name, 'w') as f:
+        with open(pickle_name, 'wb') as f:
             return pickle.dump(self, f)
