@@ -88,7 +88,7 @@ class KmeansClusters(ClusteringStrategy):
         n_round_off = 1
 
         # check that the max number of clusters is not higher than the n samples in the input matrix
-        if config["max_num_clusters"] >= input_matrix.shape[0]:
+        if config["max_num_clusters"] > input_matrix.shape[0]:
             config["max_num_clusters"] = input_matrix.shape[0]
 
             logger.info("N clusters > matrix row size! => max n clusters = {}".format(input_matrix.shape[0]))
