@@ -25,7 +25,7 @@ from kronos_executor.io_formats.profile_format import ProfileFormat
 from kronos_executor.definitions import time_signal_names
 from kronos_modeller.jobs import ModelJob
 from kronos_modeller.plot_handler import PlotHandler
-from kronos_modeller.workload import WorkloadDataGroup
+from kronos_modeller.workload_set import WorkloadSet
 
 if __name__ == "__main__":
 
@@ -60,7 +60,7 @@ if __name__ == "__main__":
         print("too many labels in KProfile data (>10). I'm not plotting..")
         sys.exit(1)
 
-    wl_orig_group = WorkloadDataGroup.from_labelled_jobs(labelled_jobs)
+    wl_orig_group = WorkloadSet.from_labelled_jobs(labelled_jobs)
 
     max_running_jobs_orig = wl_orig_group.max_running_jobs
     vals_max_orig = wl_orig_group.max_timeseries(n_bins=args.nbins)
