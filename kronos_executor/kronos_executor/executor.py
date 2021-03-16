@@ -44,6 +44,7 @@ class Executor(object):
         'execution_contexts_path',
         'job_classes_path',
         'job_templates_path',
+        'job_config_defaults',
 
         # ioserver options
         'ioserver_hosts_file',
@@ -175,6 +176,9 @@ class Executor(object):
             logger.info("Read cache multiplicity: {}".format(self._file_read_multiplicity))
             logger.info("File read min size (2 ^ {}) bytes".format(self._file_read_size_min_pow))
             logger.info("File read max size (2 ^ {}) bytes".format(self._file_read_size_max_pow))
+
+        # job configuration defaults
+        self.job_config_defaults = config.get('job_config_defaults', {})
 
         # path to the ioserver hosts.json file
         self.ioserver_hosts_file = config.get('ioserver_hosts_file', None)

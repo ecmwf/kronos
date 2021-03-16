@@ -1,3 +1,4 @@
+import copy
 import jinja2
 import math
 import os
@@ -46,10 +47,12 @@ class HPCJob(BaseJob):
 
     def generate_internal(self):
 
+        script_format = copy.deepcopy(self.executor.job_config_defaults)
+
         default_nprocs = self.job_config.get('num_procs', 1)
         default_nnodes = int(math.ceil(float(default_nprocs) / self.executor.procs_per_node))
 
-        script_format = {
+        script_format.update({
             'write_dir': self.path,
             'read_dir': self.executor.read_cache_path,
             'shared_dir': self.executor.job_dir_shared,
@@ -64,7 +67,7 @@ class HPCJob(BaseJob):
             'cpus_per_task': 1,
             'num_hyperthreads': 1,
             'simulation_token': self.executor.simulation_token
-        }
+        })
 
         script_format['kronos_notify'] = "{} {} {} {}".format(
                 os.path.join(os.path.dirname(__file__), "bin", "kronos-notify"),
