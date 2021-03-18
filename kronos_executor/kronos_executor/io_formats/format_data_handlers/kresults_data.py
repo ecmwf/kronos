@@ -26,7 +26,6 @@ class KResultsData(object):
 
     res_file_root = "statistics"
     res_file_ext = "kresults"
-#    res_file_ext = "krf"
 
     def __init__(self, jobs=None, sim_name=None, sim_path=None, n_procs_node=None):
 
@@ -371,6 +370,25 @@ class KResultsData(object):
         print("total n jobs {}".format(len(self.jobs)))
         print("total n in classes {}".format(total_jobs_in_classes))
 
+    def global_stats(self):
+        """
+        JSON of all the global stats that could be present
+        in the job stats files
+        """
+
+        glob_stats = []
+        for job in self.jobs:
+
+            g_stats = job.get_global_stats()
+            if g_stats:
+                glob_stats.append(
+                    {
+                        "job_name": job.name,
+                        "globals": g_stats
+                    }
+                )
+
+        return glob_stats
 
 
 class KResultsDataSet(object):

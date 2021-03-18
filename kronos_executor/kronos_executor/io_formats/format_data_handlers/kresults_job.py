@@ -209,3 +209,10 @@ class KResultsJob(object):
 
             # If no specific classes are found, a "generic_class"
             return ["generic_class"]
+
+    def get_global_stats(self):
+        """
+        Get the global stats
+        """
+        glob_st = self._json_data.get("global")
+        return glob_st
