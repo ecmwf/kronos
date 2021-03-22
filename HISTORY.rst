@@ -7,6 +7,10 @@ Kronos version history
 
 - executor: add configurable search paths for execution contexts, job classes, and job templates
 - executor: support composite jobs
+- executor: allow for job configuration defaults in the configuration file
+- executor/modeller: support job-wide statistics for third-party apps
+- installer: allow offline install
+- modeller: fix python3 transition
 
 0.7.0 (11-08-2020)
 ------------------
