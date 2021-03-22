@@ -19,11 +19,11 @@ class ResultsFormat(JSONIoFormat):
     """
     A standardised format for profiling information.
     """
-    format_version = 1
+    format_version = 2
     format_magic = "KRONOS-KRESULTS-MAGIC"
     schema_json = os.path.join(os.path.dirname(__file__), "results_schema.json")
 
-    def __init__(self, ranks=None, created=None, uid=None):
+    def __init__(self, ranks=None, created=None, uid=None, global_stats=None):
 
         super(ResultsFormat, self).__init__(created=created, uid=uid)
 
@@ -34,6 +34,7 @@ class ResultsFormat(JSONIoFormat):
         self.ranks = ranks
         self.uid = uid
         # self.time_series = time_series
+        self.global_stats = {} if global_stats is None else global_stats
 
     def __eq__(self, other):
         """
@@ -61,7 +62,8 @@ class ResultsFormat(JSONIoFormat):
         return cls(
             ranks=data['ranks'],
             created=datetime.fromtimestamp(strict_rfc3339.rfc3339_to_timestamp(data['created'])),
-            uid=data['uid']
+            uid=data['uid'],
+            global_stats=data.get("global")
         )
 
     def output_dict(self):
@@ -79,5 +81,8 @@ class ResultsFormat(JSONIoFormat):
             "kronosVersion": "0.7.1",
             "kronosSHA1": "none"
         }
+
+        if self.global_stats:
+            output_dict.update({"global": self.global_stats})
 
         return output_dict
