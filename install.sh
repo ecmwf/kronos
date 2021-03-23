@@ -151,8 +151,6 @@ install_executor() {
 
             conda deactivate
 
-            conda deactivate
-
         else # install online (will download dependencies)
 
             echo "installing executor dependencies (online).."
@@ -224,8 +222,6 @@ install_modeller() {
                     pip install ${KRONOS_DEPENDS_DIR}/$depfile
                 fi
             done < ${KRONOS_DEPENDS_DIR}/kronos_modeller.deps
-
-            conda deactivate
 
             conda deactivate
 
