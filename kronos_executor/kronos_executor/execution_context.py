@@ -36,13 +36,19 @@ class ExecutionContext:
     def __init__(self, config):
         self.config = config.copy()
 
-    def scheduler_params(self, job_config):
-        """Format the appropriate scheduler directives for the given job"""
+    def scheduler_params(self, job_config, use_params=None):
+        """Format the appropriate scheduler directives for the given job
+        :param job_config: job configuration (dict)
+        :param use_params: (optional) if set, use these instead of `scheduler_use_params` (list)"""
+
         assert self.scheduler_directive_start is not None
 
         lines = []
 
-        for pname in self.scheduler_use_params:
+        if use_params is None:
+            use_params = self.scheduler_use_params
+
+        for pname in use_params:
             param = self.scheduler_directive_params.get(pname)
             if param is not None:
                 pval = None
@@ -58,13 +64,19 @@ class ExecutionContext:
         """Generate environment setup lines for the given job"""
         return ""
 
-    def launch_command(self, job_config):
-        """Generate the command line to launch the job from the job script"""
+    def launch_command(self, job_config, use_params=None):
+        """Generate the command line to launch the job from the job script
+        :param job_config: job configuration (dict)
+        :param use_params: (optional) if set, use these instead of `launcher_use_params` (list)"""
+
         assert self.launch_command is not None
 
         command = [self.launcher_command]
 
-        for pname in self.launcher_use_params:
+        if use_params is None:
+            use_params = self.launcher_use_params
+
+        for pname in use_params:
             param = self.launcher_params.get(pname)
             if param is not None:
                 pval = None

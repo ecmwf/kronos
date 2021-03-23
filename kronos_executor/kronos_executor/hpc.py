@@ -45,6 +45,18 @@ class HPCJob(BaseJob):
         """
         pass
 
+    def override_execution_context(self, execution_context, script_format):
+        """
+        Place-holder for overriding the parameters used by the execution context.
+        Can be used to provide extra job-specific scheduler or launcher parameters.
+        If not `None`, the resulting lists will override the corresponding `*_use_params`
+        in the execution context.
+        :param execution_context:
+        :param script_format:
+        :return: override_scheduler, override_launcher
+        """
+        return None, None
+
     def generate_internal(self):
 
         script_format = copy.deepcopy(self.executor.job_config_defaults)
@@ -77,10 +89,14 @@ class HPCJob(BaseJob):
 
         self.customised_generated_internals(script_format)
 
+        override_scheduler, override_launcher = self.override_execution_context(self.executor.execution_context, script_format)
+
         script_format.setdefault('launcher_command', self.executor.execution_context.launcher_command)
-        script_format.setdefault('scheduler_params', self.executor.execution_context.scheduler_params(script_format))
+        script_format.setdefault('scheduler_params',
+                self.executor.execution_context.scheduler_params(script_format, override_scheduler))
         script_format.setdefault('env_setup', self.executor.execution_context.env_setup(script_format))
-        script_format.setdefault('launch_command', self.executor.execution_context.launch_command(script_format))
+        script_format.setdefault('launch_command',
+                self.executor.execution_context.launch_command(script_format, override_launcher))
 
         template = self.template_env.get_template(self.job_template_name)
         stream = template.stream(script_format)
