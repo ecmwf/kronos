@@ -13,4 +13,5 @@ export KRONOS_TOKEN="{{ simulation_token }}"
 
 sleep 5
 
+{{ notify_env_setup }}
 {{ kronos_notify }} --type="Complete" io-master

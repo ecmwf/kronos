@@ -14,4 +14,5 @@ cd {{ job_dir }}
 {{ job.submit_script }} >{{ job.output_file }} 2>{{ job.error_file }}
 {% endfor %}
 
+{{ notify_env_setup }}
 {{ kronos_notify }} --type="Complete" composite
