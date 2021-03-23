@@ -76,8 +76,8 @@ class HPCJob(BaseJob):
             'job_error_file': self.error_file,
             'num_procs': default_nprocs,
             'num_nodes': default_nnodes,
-            'cpus_per_task': 1,
-            'num_hyperthreads': 1,
+            'cpus_per_task': self.job_config.get('cpus_per_task', 1),
+            'num_hyperthreads': self.job_config.get('num_hyperthreads', 1),
             'simulation_token': self.executor.simulation_token
         })
 
