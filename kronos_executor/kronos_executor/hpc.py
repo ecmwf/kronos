@@ -62,7 +62,8 @@ class HPCJob(BaseJob):
         script_format = copy.deepcopy(self.executor.job_config_defaults)
 
         default_nprocs = self.job_config.get('num_procs', 1)
-        default_nnodes = int(math.ceil(float(default_nprocs) / self.executor.procs_per_node))
+        default_nnodes = self.job_config.get('num_nodes',
+                int(math.ceil(float(default_nprocs) / self.executor.procs_per_node)))
 
         script_format.update({
             'write_dir': self.path,
