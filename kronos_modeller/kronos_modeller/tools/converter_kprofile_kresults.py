@@ -31,16 +31,19 @@ class ConverterKprofileKresults(object):
         else:
             self.user_runtime = None
 
-    def convert(self, nbins=None):
+    def convert(self, nbins=None, adjust_creation_date=False):
 
         kresults_jobs = []
 
         # profiled jobs
         for prof_job in self.kprofiler_data.profiled_jobs:
 
+            job_duration = prof_job["duration"]
+
             # if user_runtime is set, rescale the job timestamps to be consistent to it..
             if self.user_runtime:
                 time_scaling = self.user_runtime / float(prof_job["duration"])
+                job_duration = self.user_runtime
                 for tsk, tsv in prof_job["time_series"].items():
                     tsv["times"] = [t * time_scaling for t in tsv["times"]]
 
@@ -110,8 +113,13 @@ class ConverterKprofileKresults(object):
 
                 ranks_data.append(rank_data)
 
+            if adjust_creation_date:
+                created = strict_rfc3339.timestamp_to_rfc3339_utcoffset(prof_job["time_start"] + job_duration)
+            else:
+                created = strict_rfc3339.now_to_rfc3339_utcoffset()
+
             # then aggregates the kresults into kresults_Data
-            kresults_jobs.append(ResultsFormat(ranks_data, created=strict_rfc3339.now_to_rfc3339_utcoffset(), uid=9999))
+            kresults_jobs.append(ResultsFormat(ranks_data, created=created, uid=9999))
 
             return kresults_jobs
 
@@ -165,32 +173,34 @@ class ConverterKprofileKresults(object):
                 _non_null_vals = [v for v in kres_ts_vals if v]
                 _non_null_elapsed = [d for d, v in zip(kresults_perproc_timeseries["durations"], kres_ts_vals) if v]
                 _non_null_count = [v for v in kresults_perproc_timeseries["n_read"] if v]
+                _num_frames = sum(_non_null_count) if _non_null_count else len(_non_null_elapsed)
                 stats_data["read"] = {
                     "stddevElapsed": std_of_list(_non_null_elapsed),
                     "sumSquaredElapsed": sum_of_squared(_non_null_elapsed),
-                    "averageElapsed": sum(_non_null_elapsed) / sum(_non_null_count),
+                    "averageElapsed": sum(_non_null_elapsed) / _num_frames if _num_frames else 0.,
                     "elapsed": sum(_non_null_elapsed),
                     "stddevBytes": std_of_list(_non_null_vals),
                     "sumSquaredBytes": sum_of_squared(_non_null_vals),
-                    "averageBytes": sum(_non_null_vals) / sum(_non_null_count),
+                    "averageBytes": sum(_non_null_vals) / _num_frames if _num_frames else 0.,
                     "bytes": sum(_non_null_vals),
-                    "count": int(sum(_non_null_count))
+                    "count": int(_num_frames)
                 }
 
             if kres_ts_name == "bytes_write":
                 _non_null_vals = [v for v in kres_ts_vals if v]
                 _non_null_elapsed = [d for d, v in zip(kresults_perproc_timeseries["durations"], kres_ts_vals) if v]
                 _non_null_count = [v for v in kresults_perproc_timeseries["n_write"] if v]
+                _num_frames = sum(_non_null_count) if _non_null_count else len(_non_null_elapsed)
                 stats_data["write"] = {
                     "stddevElapsed": std_of_list(_non_null_elapsed),
                     "sumSquaredElapsed": sum_of_squared(_non_null_elapsed),
-                    "averageElapsed": sum(_non_null_elapsed) / sum(_non_null_count),
+                    "averageElapsed": sum(_non_null_elapsed) / _num_frames if _num_frames else 0.,
                     "elapsed": sum(_non_null_elapsed),
                     "stddevBytes": std_of_list(_non_null_vals),
                     "sumSquaredBytes": sum_of_squared(_non_null_vals),
-                    "averageBytes": sum(_non_null_vals) / sum(_non_null_count),
+                    "averageBytes": sum(_non_null_vals) / _num_frames if _num_frames else 0.,
                     "bytes": sum(_non_null_vals),
-                    "count": int(sum(_non_null_count))
+                    "count": int(_num_frames)
                 }
 
             if kres_ts_name == "bytes_pairwise":
@@ -198,17 +208,18 @@ class ConverterKprofileKresults(object):
                 _non_null_vals = [v for v in kres_ts_vals if v]
                 _non_null_elapsed = [d for d, v in zip(kresults_perproc_timeseries["durations"], kres_ts_vals) if v]
                 _non_null_count = [v for v in kresults_perproc_timeseries["n_pairwise"] if v]
+                _num_frames = sum(_non_null_count) if _non_null_count else len(_non_null_elapsed)
 
                 stats_data["mpi-pairwise"] = {
                     "stddevElapsed": std_of_list(_non_null_elapsed),
                     "sumSquaredElapsed": sum_of_squared(_non_null_elapsed),
-                    "averageElapsed": sum(_non_null_elapsed) / sum(_non_null_count),
+                    "averageElapsed": sum(_non_null_elapsed) / _num_frames if _num_frames else 0.,
                     "elapsed": sum(_non_null_elapsed),
                     "stddevBytes": std_of_list(_non_null_vals),
                     "sumSquaredBytes": sum_of_squared(_non_null_vals),
-                    "averageBytes": sum(_non_null_vals) / sum(_non_null_count),
+                    "averageBytes": sum(_non_null_vals) / _num_frames if _num_frames else 0.,
                     "bytes": sum(_non_null_vals),
-                    "count": int(sum(_non_null_count))
+                    "count": int(_num_frames)
                 }
 
             if kres_ts_name == "bytes_collective":
@@ -216,17 +227,18 @@ class ConverterKprofileKresults(object):
                 _non_null_vals = [v for v in kres_ts_vals if v]
                 _non_null_elapsed = [d for d, v in zip(kresults_perproc_timeseries["durations"], kres_ts_vals) if v]
                 _non_null_count = [v for v in kresults_perproc_timeseries["n_collective"] if v]
+                _num_frames = sum(_non_null_count) if _non_null_count else len(_non_null_elapsed)
 
                 stats_data["mpi-collective"] = {
                     "stddevElapsed": std_of_list(_non_null_elapsed),
                     "sumSquaredElapsed": sum_of_squared(_non_null_elapsed),
-                    "averageElapsed": sum(_non_null_elapsed) / sum(_non_null_count),
+                    "averageElapsed": sum(_non_null_elapsed) / _num_frames if _num_frames else 0.,
                     "elapsed": sum(_non_null_elapsed),
                     "stddevBytes": std_of_list(_non_null_vals),
                     "sumSquaredBytes": sum_of_squared(_non_null_vals),
-                    "averageBytes": sum(_non_null_vals) / sum(_non_null_count),
+                    "averageBytes": sum(_non_null_vals) / _num_frames if _num_frames else 0.,
                     "bytes": sum(_non_null_vals),
-                    "count": int(sum(_non_null_count))
+                    "count": int(_num_frames)
                 }
 
         return stats_data
