@@ -98,6 +98,8 @@ if __name__ == "__main__":
         ingest_config['label_method'] = args.labeller
     if args.clock_rate:
         ingest_config['clock_rate'] = args.clock_rate
+    if args.pattern:
+        ingest_config['pattern'] = args.pattern
 
     print("Ingest config: {}".format(ingest_config))
 

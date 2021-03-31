@@ -6,14 +6,16 @@
 # granted to it by virtue of its status as an intergovernmental organisation nor
 # does it submit to any jurisdiction.
 
-import os
-import sys
+from datetime import datetime
 import glob
 import json
 import logging
-from datetime import datetime
+import pathlib
+import os
+import sys
 
 import numpy as np
+
 from kronos_executor.definitions import signal_types
 from kronos_modeller.kronos_exceptions import ConfigurationError
 from kronos_modeller.jobs import IngestedJob, ModelJob
@@ -200,7 +202,10 @@ def read_allinea_logs(log_dir, cfg=None, jobs_n_bins=None, list_json_files=None)
     """
     # pick up the list of json files to process
     if list_json_files is None:
-        json_files = glob.glob(os.path.join(os.path.realpath(log_dir), "*.json"))
+        pattern = "**/*.json"
+        if cfg is not None and 'pattern' in cfg:
+            pattern = cfg.get('pattern')
+        json_files = list(pathlib.Path(log_dir).rglob(pattern))
         json_files.sort()
     else:
         json_files = [log_dir+'/'+ff for ff in list_json_files]
@@ -260,6 +265,9 @@ def ingest_allinea_profiles(path, cfg=None, jobs_n_bins=None, list_json_files=No
                                  cfg=cfg,
                                  jobs_n_bins=jobs_n_bins,
                                  list_json_files=list_json_files)
+
+    if not jobs:
+        raise RuntimeError("No file found")
 
     return AllineaDataSet(jobs, json_label_map=json_label_map)
 
