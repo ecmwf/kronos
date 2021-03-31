@@ -54,6 +54,10 @@ if __name__ == "__main__":
                         help="Report all the global stats",
                         action='store_true')
 
+    parser.add_argument('--permissive',
+                        help="Ignore jobs without statistics",
+                        action='store_true')
+
     # print the help if no arguments are passed
     if len(sys.argv) == 1:
         parser.print_help()
@@ -66,7 +70,8 @@ if __name__ == "__main__":
     config = ExportConfig.from_json_file(args.export_config)
 
     # Labelled list of simulations
-    labelled_kronos_sims = [KResultsData.read_from_sim_paths(path, tag, n_procs_node=config.n_procs_node)
+    labelled_kronos_sims = [KResultsData.read_from_sim_paths(path, tag,
+                                n_procs_node=config.n_procs_node, permissive=args.permissive)
                             for tag, path in zip(config.simulation_labels, config.simulation_paths)]
 
     # Pre-calculate data ready for export
