@@ -171,6 +171,10 @@ class KResultsData(object):
             for job_stats in stats_list:
                 for stat_entry in job_stats:
                     for stat_metric in stat_entry.keys():
+                        if stat_metric not in kresults_stats_info:
+                            print(f"Warning: skipping unknown metric {stat_metric!r}")
+                            continue
+
                         for field in kresults_stats_info[stat_metric]["to_sum"]:
 
                             if field in kresults_stats_info[stat_metric].get("per_process", []):

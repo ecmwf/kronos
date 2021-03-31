@@ -69,6 +69,9 @@ class KResultsJob(object):
         # Append any time series data that is present
         time_series = {}
         for name, values in _series.items():
+            if name not in kresults_ts_names_map:
+                print(f"Warning: skipping unknown metric {name!r}")
+                continue
 
             if values:
                 ts_t, ts_v, ts_r, ts_e = zip(*values)
