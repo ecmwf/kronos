@@ -30,6 +30,7 @@ if __name__ == "__main__":
     parser.add_argument("--user_runtime", type=float, help="Rescale to match this apparent runtime")
     parser.add_argument("--bins", type=int, default=20, help="Number of bins for the time series")
     parser.add_argument("--adjust", action="store_true", default=False, help="Adjust creation date to match the end of the job")
+    parser.add_argument("--offset", type=float, help="Shift times by this offset (seconds)")
 
     # print the help if no arguments are passed
     if len(sys.argv) == 1:
@@ -41,7 +42,7 @@ if __name__ == "__main__":
 
     kprofile_data = ProfileFormat.from_filename(args.kprofile_file)
     converter = ConverterKprofileKresults(kprofile_data, user_runtime=args.user_runtime)
-    kresults = converter.convert(nbins=args.bins, adjust_creation_date=args.adjust)
+    kresults = converter.convert(nbins=args.bins, adjust_creation_date=args.adjust, offset=args.offset)
 
     out_file = args.output if args.output else "statistics.kresults"
     kresults[0].write_filename(out_file)

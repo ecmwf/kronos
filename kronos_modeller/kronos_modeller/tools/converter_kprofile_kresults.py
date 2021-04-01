@@ -5,6 +5,8 @@
 # In applying this licence, ECMWF does not waive the privileges and immunities 
 # granted to it by virtue of its status as an intergovernmental organisation nor
 # does it submit to any jurisdiction.
+import time
+
 import strict_rfc3339
 
 from kronos_executor.io_formats.results_format import ResultsFormat
@@ -31,7 +33,7 @@ class ConverterKprofileKresults(object):
         else:
             self.user_runtime = None
 
-    def convert(self, nbins=None, adjust_creation_date=False):
+    def convert(self, nbins=None, adjust_creation_date=False, offset=None):
 
         kresults_jobs = []
 
@@ -114,9 +116,14 @@ class ConverterKprofileKresults(object):
                 ranks_data.append(rank_data)
 
             if adjust_creation_date:
-                created = strict_rfc3339.timestamp_to_rfc3339_utcoffset(prof_job["time_start"] + job_duration)
+                created_ts = prof_job["time_start"] + job_duration
             else:
-                created = strict_rfc3339.now_to_rfc3339_utcoffset()
+                created_ts = time.time()
+
+            if offset is not None:
+                created_ts += offset
+
+            created = strict_rfc3339.timestamp_to_rfc3339_utcoffset(created_ts)
 
             # then aggregates the kresults into kresults_Data
             kresults_jobs.append(ResultsFormat(ranks_data, created=created, uid=9999))
