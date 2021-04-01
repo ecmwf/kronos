@@ -7,7 +7,6 @@
 # does it submit to any jurisdiction.
 
 from datetime import datetime
-import glob
 import json
 import logging
 import pathlib
