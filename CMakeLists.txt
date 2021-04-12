@@ -1,35 +1,23 @@
-# The old (original) kronos stuff is hidden now in the sandbox
+cmake_minimum_required( VERSION 3.12 FATAL_ERROR )
 
-cmake_minimum_required( VERSION 2.8.11 FATAL_ERROR )
+find_package( ecbuild 3.4 REQUIRED HINTS ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/../ecbuild )
 
-project( kronos C CXX )
-
-set( CMAKE_MODULE_PATH
-    "${CMAKE_CURRENT_SOURCE_DIR}/cmake"
-    ${CMAKE_MODULE_PATH}
-    "${CMAKE_CURRENT_SOURCE_DIR}/../ecbuild/cmake"
-    )
-
-include( ecbuild_system NO_POLICY_SCOPE )
-
-ecbuild_requires_macro_version( 3.0 )
+project( kronos LANGUAGES C CXX )
 
 # Dependencies and option
 
 ecbuild_add_option(
     FEATURE MPI
     DESCRIPTION "Use system MPI libraries"
-    REQUIRED_PACKAGES "MPI COMPONENTS CXX C" )
+    REQUIRED_PACKAGES "NAME MPI COMPONENTS CXX C" )
 
 # look for pmemio
-find_package(pmemio)
 ecbuild_add_option(
     FEATURE PMEMIO
     DESCRIPTION "Enable persistent memory support"
-    CONDITION pmemio_FOUND )
-message("HAVE_PMEMIO: ${HAVE_PMEMIO}")
+    REQUIRED_PACKAGES "NAME pmemio" )
 
-if(PMEMIO_FOUND)
+if(pmemio_FOUND)
     set( USE_C_STD "-std=c99")
 else()
     set( USE_C_STD "-std=c89")
@@ -94,17 +82,7 @@ set( KRONOS_LIBRARIES      "" )
 
 get_directory_property( KRONOS_DEFINITIONS COMPILE_DEFINITIONS )
 
-### include directories
-
-if (pmemio_FOUND)
-    include_directories(
-        ${KRONOS_INCLUDE_DIRS}
-        ${PMEMIO_INCLUDE_DIRS}
-        )
-else()
-    include_directories( ${KRONOS_INCLUDE_DIRS} )
-endif()
-
+### add sources
 add_subdirectory( kronos_apps )
 
 ### finalize project
@@ -112,9 +90,6 @@ add_subdirectory( kronos_apps )
 ecbuild_add_resources( TARGET top_files SOURCES_DONT_PACK AUTHORS )
 ecbuild_add_resources( TARGET top_files_1 SOURCES_DONT_PACK dev )
 #ecbuild_add_resources( TARGET top_files SOURCES TODO AUTHORS README.md NOTICE LICENSE INSTALL ChangeLog COPYING )
-
-ecbuild_pkgconfig(NAME kronos_synapps
-                  DESCRIPTION "Execute synthetic workloads on HPC systems using synthetic applications" )
 
 ecbuild_install_project( NAME ${PROJECT_NAME} )
 

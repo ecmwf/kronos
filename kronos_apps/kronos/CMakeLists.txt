@@ -3,10 +3,6 @@ if( HAVE_MPI )
     set(MPI_DEFINITIONS "HAVE_MPI")
 endif()
 
-if( HAVE_PMEMIO )
-    set(PMEMIO_DEFINITIONS "HAVE_PMEMIO")
-endif()
-
 #message("MPI_C_DEFINITIONS have been defined: ${MPI_C_DEFINITIONS}")
 #message("MPI_C_INCLUDE_PATH have been defined: ${MPI_C_INCLUDE_PATH}")
 #message("MPI_C_LIBRARIES have been defined: ${MPI_C_LIBRARIES}")
@@ -64,7 +60,7 @@ ecbuild_add_library (
         notification.c
         notification.h
 
-    DEFINITIONS
+    PRIVATE_DEFINITIONS
         "${MPI_DEFINITIONS}"
         "${PMEMIO_DEFINITIONS}"
 
@@ -72,15 +68,19 @@ ecbuild_add_library (
         kronos_version.h
         kronos_version.c
 
-    INCLUDES
+    PRIVATE_INCLUDES
         "${MPI_C_INCLUDE_PATH}"
         "${PMEMIO_INCLUDE_DIRS}"
 
-    LIBS
+    PUBLIC_INCLUDES
+        $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/kronos_apps>
+        $<BUILD_INTERFACE:${PROJECT_BINARY_DIR}/kronos_apps>
+
+    PRIVATE_LIBS
         m
         "${MPI_C_LIBRARIES}"
         "${PMEMIO_OBJ_LIBRARY}"
-        )
+)
 
 
 ecbuild_add_executable(
@@ -89,19 +89,9 @@ ecbuild_add_executable(
 
     SOURCES synapp.c
 
-    DEFINITIONS
-        "${MPI_DEFINITIONS}"
-        "${PMEMIO_DEFINITIONS}"
-
-    INCLUDES
-        "${MPI_C_INCLUDE_PATH}"
-        "${PMEMIO_INCLUDE_DIRS}"
-
     LIBS
         kronos
-        "${MPI_C_LIBRARIES}"
-        "${PMEMIO_OBJ_LIBRARY}"
-        )
+)
 
 file( RELATIVE_PATH _tgt_path ${PROJECT_SOURCE_DIR} ${CMAKE_CURRENT_LIST_DIR} )
 

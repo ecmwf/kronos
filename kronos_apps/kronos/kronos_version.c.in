@@ -1,12 +1,12 @@
 #include "kronos/kronos_version.h"
 
 const char * kronos_version()     { return KRONOS_VERSION; }
-const char * kronos_version_str() { return KRONOS_VERSION_STR; }
+const char * kronos_version_str() { return KRONOS_VERSION; }
 
 unsigned int kronos_version_int()
 {
-  return 10000*KRONOS_MAJOR_VERSION + 100*KRONOS_MINOR_VERSION + 1*KRONOS_PATCH_VERSION;
+  return 10000*KRONOS_VERSION_MAJOR + 100*KRONOS_VERSION_MINOR + 1*KRONOS_VERSION_PATCH;
 }
 
-const char * kronos_git_sha1() { return "@KRONOS_GIT_SHA1@"; }
+const char * kronos_git_sha1() { return "@kronos_GIT_SHA1@"; }
 

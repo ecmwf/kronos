@@ -56,7 +56,7 @@ This step installs the synthetic apps. Building the executable requires:
 
 4. CMake (version 3.6 or higher)
 
-5. ecBuild (version 3.0 or higher, https://github.com/ecmwf/ecbuild)
+5. ecBuild (version 3.4 or higher, https://github.com/ecmwf/ecbuild)
 
 To build the synthetic apps, create a build directory outside the source tree::
 
