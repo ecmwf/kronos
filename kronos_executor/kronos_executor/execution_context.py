@@ -69,9 +69,11 @@ class ExecutionContext:
         :param job_config: job configuration (dict)
         :param use_params: (optional) if set, use these instead of `launcher_use_params` (list)"""
 
-        assert self.launch_command is not None
+        launcher_command = job_config.get('launcher_command',
+            self.launcher_command)
+        assert launcher_command is not None
 
-        command = [self.launcher_command]
+        command = [launcher_command]
 
         if use_params is None:
             use_params = self.launcher_use_params
