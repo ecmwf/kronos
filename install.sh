@@ -11,7 +11,7 @@
 
 # ============== DEFAULT INSTALLATION LAYOUT [*DO NOT EDIT*] ==============
 export KRONOS_SOURCES_TOP_DIR=$(dirname $(readlink -f $BASH_SOURCE))
-export KRONOS_VERSION=$(cat ${KRONOS_SOURCES_TOP_DIR}/VERSION.cmake | awk '{print $3}' | sed "s/\"//g")
+export KRONOS_VERSION=$(cat ${KRONOS_SOURCES_TOP_DIR}/VERSION)
 export KRONOS_PACKAGE=kronos-${KRONOS_VERSION}-Source
 
 # installation-related directories (default: one level up)
