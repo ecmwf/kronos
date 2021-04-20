@@ -41,15 +41,29 @@ class KResultsData(object):
         # n CPU per node used for this sim
         self.n_procs_node = n_procs_node
 
+    @staticmethod
+    def iter_job_dirs(sim_path, leaf_only=False):
+        def _traverse(path, first=True):
+            job_dirs = sorted(
+                [x for x in os.listdir(path) if os.path.isdir(os.path.join(path, x)) and "job-" in x],
+                key=(lambda x: int(x.split("-")[-1])))
+
+            if not first and (not job_dirs or not leaf_only):
+                yield path
+
+            for job_dir in job_dirs:
+                yield from _traverse(os.path.join(path, job_dir), first=False)
+        return _traverse(sim_path)
+
     @classmethod
     def check_n_successful_jobs(cls, sim_path):
 
         # check that the run path contains the job sub-folders
-        job_dirs = [x for x in os.listdir(sim_path) if os.path.isdir(os.path.join(sim_path, x)) and "job-" in x]
+        job_dirs = cls.iter_job_dirs(sim_path, leaf_only=True)
 
         # check if there are jobs that didn't write the "statistics.kresults" file (or .krf for back-compatibility)
         failing_jobs = [job_dir for job_dir in job_dirs
-                        if not os.path.isfile(os.path.join(sim_path, job_dir, cls.res_file_root+"."+cls.res_file_ext))]
+                        if not os.path.isfile(os.path.join(job_dir, cls.res_file_root+"."+cls.res_file_ext))]
 
         if failing_jobs:
             print("ERROR: The following jobs have failed (jobs for which " \
@@ -65,43 +79,25 @@ class KResultsData(object):
         if not permissive:
             cls.check_n_successful_jobs(sim_path)
 
-        def _read_dir(path, path_rel=""):
-            # check that the run path contains the job sub-folders
-            job_dirs = sorted(
-                [x for x in os.listdir(path) if os.path.isdir(os.path.join(path, x)) and "job-" in x],
-                key=(lambda x: int(x.split("-")[-1])))
+        jobs_data = []
+        for job_dir in cls.iter_job_dirs(sim_path):
+            job_dir_rel = os.path.relpath(job_dir, start=sim_path)
+            print("reading data from {}..".format(job_dir_rel))
 
-            if not job_dirs:
-                return []
+            job_dir_files = os.listdir(job_dir)
+            kresults_file = [f for f in job_dir_files if f.endswith(cls.res_file_ext)]
 
-            jobs_data = []
-            for job_dir in job_dirs:
+            if kresults_file:
+                input_file_path = os.path.join(job_dir, 'input.json')
+                stats_file_path = os.path.join(job_dir, cls.res_file_root+"."+cls.res_file_ext)
 
-                sub_dir_path_rel = os.path.join(path_rel, job_dir)
-                print("reading data from {}..".format(sub_dir_path_rel))
+                # Read decorator data from input file
+                with open(input_file_path, 'r') as f:
+                    json_data_input = json.load(f)
+                decorator = KResultsDecorator(**json_data_input["metadata"])
 
-                sub_dir_path_abs = os.path.join(path, job_dir)
-                sub_dir_files = os.listdir(sub_dir_path_abs)
-                kresults_file = [f for f in sub_dir_files if f.endswith(cls.res_file_ext)]
-
-                if kresults_file:
-                    input_file_path_abs = os.path.join(sub_dir_path_abs, 'input.json')
-                    stats_file_path_abs = os.path.join(sub_dir_path_abs, cls.res_file_root+"."+cls.res_file_ext)
-
-                    # Read decorator data from input file
-                    with open(input_file_path_abs, 'r') as f:
-                        json_data_input = json.load(f)
-                    decorator = KResultsDecorator(**json_data_input["metadata"])
-
-                    # Append the profiled job to the "jobs_data" structure
-                    jobs_data.append(KResultsJob.from_kresults_file(stats_file_path_abs, decorator=decorator))
-
-                # check sub-directories recursively
-                jobs_data.extend(_read_dir(sub_dir_path_abs, sub_dir_path_rel))
-
-            return jobs_data
-
-        jobs_data = _read_dir(sim_path)
+                # Append the profiled job to the "jobs_data" structure
+                jobs_data.append(KResultsJob.from_kresults_file(stats_file_path, decorator=decorator))
 
         # and check that the collection was successful..
         if not jobs_data:

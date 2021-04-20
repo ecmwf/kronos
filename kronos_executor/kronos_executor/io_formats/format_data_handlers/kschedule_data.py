@@ -115,3 +115,13 @@ class KScheduleData(ScheduleFormat):
     def jobs(self):
         return self.synapp_data
 
+    @property
+    def leaf_jobs(self):
+        def _traverse(jobs):
+            for job in jobs:
+                if "jobs" in job:
+                    yield from _traverse(job["jobs"])
+                else:
+                    yield job
+        return list(_traverse(self.synapp_data))
+
