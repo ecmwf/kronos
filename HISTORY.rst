@@ -2,7 +2,7 @@
 Kronos version history
 ======================
 
-0.7.1
+0.8.0
 -----
 
 - executor: add configurable search paths for execution contexts, job classes, and job templates
