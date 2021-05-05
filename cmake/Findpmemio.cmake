@@ -77,6 +77,4 @@ if( NOT pmemio_FOUND )
 
     mark_as_advanced( PMEMIO_INCLUDE_DIR PMEMIO_OBJ_LIBRARY )
 
-    set( pmemio_FOUND ${PMEMIO_FOUND} )
-
 endif()

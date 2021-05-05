@@ -42,6 +42,8 @@ if __name__ == "__main__":
     testable_metrics.pop(testable_metrics.index("n_read"))
     parser.add_argument("--metrics", choices=testable_metrics+["all"], default=["all"], nargs='+')
 
+    parser.add_argument("--permissive", default=False, action="store_true")
+
     # print the help if no arguments are passed
     if len(sys.argv) == 1:
         parser.print_help()
@@ -71,7 +73,7 @@ if __name__ == "__main__":
         print("Specified path contains more than one KSchedule file!")
         sys.exit(1)
 
-    results_data = KResultsData.read_from_sim_paths(args.job_dir, "generic")
+    results_data = KResultsData.read_from_sim_paths(args.job_dir, "generic", permissive=args.permissive)
     results_metrics_sums = results_data.calc_metrics_sums()
 
     kschedule_data = KScheduleData.from_filename(os.path.join(args.job_dir, kschedule_file[0]))
@@ -82,7 +84,7 @@ if __name__ == "__main__":
         metrics_to_test += testable_metrics
 
     # calculate the necessary series..
-    tot_kschedule_metrics = {k: sum(KScheduleData.per_job_series(kschedule_data.jobs, k)) for k in metrics_to_test}
+    tot_kschedule_metrics = {k: sum(KScheduleData.per_job_series(kschedule_data.leaf_jobs, k)) for k in metrics_to_test}
 
     # check all the metrics selected
     failed_checks = []

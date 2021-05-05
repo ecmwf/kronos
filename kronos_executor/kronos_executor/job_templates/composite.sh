@@ -8,10 +8,11 @@ export KRONOS_TOKEN="{{ simulation_token }}"
 
 {{ env_setup }}
 
-# Call the io master and configure it with the appropriate I/O tasks in the time_schedule
-{{ kronos_bin_dir }}/remote_io_master {{ ioserver_hosts_file }} {{ input_file }}
+cd {{ job_dir }}
 
-sleep 5
+{%- for job in jobs %}
+{{ job.submit_script }} >{{ job.output_file }} 2>{{ job.error_file }}
+{% endfor %}
 
 {{ notify_env_setup }}
-{{ kronos_notify }} --type="Complete" io-master
+{{ kronos_notify }} --type="Complete" composite

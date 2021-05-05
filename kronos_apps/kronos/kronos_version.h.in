@@ -1,12 +1,12 @@
 #ifndef kronos_version_h
 #define kronos_version_h
 
-#define KRONOS_VERSION_STR "@KRONOS_VERSION_STR@"
-#define KRONOS_VERSION     "@KRONOS_VERSION@"
+#define KRONOS_VERSION_STR "@kronos_VERSION@"
+#define KRONOS_VERSION     "@kronos_VERSION@"
 
-#define KRONOS_MAJOR_VERSION @KRONOS_MAJOR_VERSION@
-#define KRONOS_MINOR_VERSION @KRONOS_MINOR_VERSION@
-#define KRONOS_PATCH_VERSION @KRONOS_PATCH_VERSION@
+#define KRONOS_VERSION_MAJOR @kronos_VERSION_MAJOR@
+#define KRONOS_VERSION_MINOR @kronos_VERSION_MINOR@
+#define KRONOS_VERSION_PATCH @kronos_VERSION_PATCH@
 
 const char * kronos_version();
 

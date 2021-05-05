@@ -486,8 +486,8 @@
                 }
               }
             }
-          }
-
+          },
+          "required": ["synth_apps_n_bins"]
         }
 
       }

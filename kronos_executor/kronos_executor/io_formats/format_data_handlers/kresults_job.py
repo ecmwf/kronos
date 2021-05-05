@@ -33,29 +33,45 @@ class KResultsJob(object):
 
     def calc_time_series(self):
 
-        # group time series from kresults data..
-        _series_tvr = {}
-        for rr,rank_data in enumerate(self._json_data["ranks"]):
+        _series = {}
+        if "global" in self._json_data and "time_series" in self._json_data["global"]:
+            global_time_series = self._json_data["global"]["time_series"]
 
-            delta_t = rank_data["time_series"]['durations']
+            delta_t = global_time_series['durations']
             tends = cumsum(delta_t)
 
-            for ts_name, ts_vals in rank_data["time_series"].items():
-
+            for ts_name, ts_vals in global_time_series.items():
                 if ts_name != "durations":
                     ts_all = [(t, v, v / dt, dt) for t, dt, v in zip(tends, delta_t, ts_vals) if (v != 0 and dt != 0)]
-                    _series_tvr.setdefault(ts_name, []).extend(ts_all)
+                    _series[ts_name] = ts_all
 
-        # sort the time-series with ascending time..
-        for ts in _series_tvr.values():
-            ts.sort(key=lambda _x: _x[0])
+        _series_tvr = {}
+        if "ranks" in self._json_data:
+            # group time series from kresults data..
+            for rr,rank_data in enumerate(self._json_data["ranks"]):
+
+                delta_t = rank_data["time_series"]['durations']
+                tends = cumsum(delta_t)
+
+                for ts_name, ts_vals in rank_data["time_series"].items():
+
+                    if ts_name != "durations":
+                        ts_all = [(t, v, v / dt, dt) for t, dt, v in zip(tends, delta_t, ts_vals) if (v != 0 and dt != 0)]
+                        _series_tvr.setdefault(ts_name, []).extend(ts_all)
+
+            # sort the time-series with ascending time..
+            for ts in _series_tvr.values():
+                ts.sort(key=lambda _x: _x[0])
+
+        # Per-rank time series override the global ones
+        _series.update(_series_tvr)
 
         # Append any time series data that is present
         time_series = {}
-        for name, values in _series_tvr.items():
-
-            # assert name in time_signal.signal_types
-            assert name in kresults_ts_names_map.keys()
+        for name, values in _series.items():
+            if name not in kresults_ts_names_map:
+                print(f"Warning: skipping unknown metric {name!r}")
+                continue
 
             if values:
                 ts_t, ts_v, ts_r, ts_e = zip(*values)
@@ -196,3 +212,10 @@ class KResultsJob(object):
 
             # If no specific classes are found, a "generic_class"
             return ["generic_class"]
+
+    def get_global_stats(self):
+        """
+        Get the global stats
+        """
+        glob_st = self._json_data.get("global")
+        return glob_st

@@ -1,12 +1,10 @@
 #!/usr/bin/env python
 
 import datetime
-import imp
 import logging
 import os
 import socket
 import stat
-import sys
 import time
 import uuid
 from shutil import copy2
@@ -17,6 +15,7 @@ from kronos_executor.global_config import global_config
 from kronos_executor import generate_read_files
 from kronos_executor.execution_context import load_context
 from kronos_executor.job_submitter import JobSubmitter
+from kronos_executor.tools import load_module
 
 logger = logging.getLogger(__name__)
 
@@ -42,6 +41,10 @@ class Executor(object):
         'file_read_multiplicity',
         'file_read_size_min_pow',
         'file_read_size_max_pow',
+        'execution_contexts_path',
+        'job_classes_path',
+        'job_templates_path',
+        'job_config_defaults',
 
         # ioserver options
         'ioserver_hosts_file',
@@ -143,11 +146,14 @@ class Executor(object):
 
         self.initial_time = None
 
-        search_paths = [
-            os.getcwd(),
-            os.path.join(os.path.dirname(__file__), "execution_contexts")
-        ]
+        search_paths = [os.getcwd()]
+        search_paths.extend(config.get('execution_contexts_path', []))
+        search_paths.append(os.path.join(os.path.dirname(__file__), "execution_contexts"))
         self.execution_context = load_context(config.get('execution_context', 'trivial'), search_paths, config)
+
+        self.job_classes_path = [os.getcwd()]
+        self.job_classes_path.extend(config.get('job_classes_path', []))
+        self.job_classes_path.append(os.path.join(os.path.dirname(__file__), "job_classes"))
 
         self.cancel_file_path = os.path.join(self.job_dir, "killjobs")
         self.cancel_file = None
@@ -170,6 +176,9 @@ class Executor(object):
             logger.info("Read cache multiplicity: {}".format(self._file_read_multiplicity))
             logger.info("File read min size (2 ^ {}) bytes".format(self._file_read_size_min_pow))
             logger.info("File read max size (2 ^ {}) bytes".format(self._file_read_size_max_pow))
+
+        # job configuration defaults
+        self.job_config_defaults = config.get('job_config_defaults', {})
 
         # path to the ioserver hosts.json file
         self.ioserver_hosts_file = config.get('ioserver_hosts_file', None)
@@ -241,6 +250,40 @@ class Executor(object):
             for i in range(job_repeats):
                 yield job
 
+    def load_job(self, name, config, job_dir):
+        """Load the Job object from a module named ``name`` to be found in one of
+        the directories in the job class path"""
+
+        # Enrich the job configuration with the necessary global configurations
+        # coming from the configuration file
+        if self._file_read_multiplicity:
+            config['file_read_multiplicity'] = self._file_read_multiplicity
+
+        if self._file_read_size_min_pow:
+            config['file_read_size_min_pow'] = self._file_read_size_min_pow
+
+        if self._file_read_size_max_pow:
+            config['file_read_size_max_pow'] = self._file_read_size_max_pow
+
+        if self.execution_mode == "events":
+            config['notification_host'] = self.notification_host
+            config['notification_port'] = self.notification_port
+
+        if self.config.get("nvdimm_root_path"):
+            config['nvdimm_root_path'] = self.nvdimm_root_path
+
+        try:
+            mod = load_module(name, self.job_classes_path, prefix="kronos_job_class_")
+        except RuntimeError:
+            raise ValueError("Job class {!r} not found in paths {}".format(name, ", ".join(self.job_classes_path)))
+
+        if not hasattr(mod, 'Job'):
+            raise RuntimeError(
+                "Module {!r} does not define a Job class" \
+                .format(name))
+
+        return mod.Job(config, self, job_dir)
+
     def generate_job_internals(self):
 
         # Launched jobs, matched with their job-ids
@@ -249,57 +292,13 @@ class Executor(object):
 
         for job_num, job_config in enumerate(self.job_iterator()):
             job_dir = os.path.join(self.job_dir, "job-{}".format(job_num))
-            job_config['job_num'] = job_num
+            job_config['job_num'] = str(job_num)
 
             # get job template name (either from the job config or from the global config, if present)
             job_class_name = job_config.setdefault("job_class", "synapp")
-            job_classes_dir = os.path.join(os.path.dirname(__file__), "job_classes")
 
-            # now search for the template file in the cwd first..
-            if os.path.isfile( "{}.py".format(os.path.join(os.getcwd(), job_class_name)) ):
-
-                job_class_module_file = "{}.py".format(os.path.join(os.getcwd(), job_class_name))
-
-            elif os.path.isfile( os.path.join(job_classes_dir, "{}.py".format(job_class_name)) ):
-
-                job_class_module_file = os.path.join(os.path.dirname(__file__), "job_classes/{}.py".format(job_class_name))
-
-            else:
-
-                logger.error("template file {}.py not found neither in {} nor in {}".format(job_class_name,
-                                                                                            os.getcwd(),
-                                                                                            job_classes_dir))
-                raise IOError
-
-            # now load the module
-            job_module_name = "kronos_job_class_{}".format(job_class_name)
-            if job_module_name in sys.modules:
-                job_class_module = sys.modules[job_module_name]
-            else:
-                job_class_module = imp.load_source(job_module_name, job_class_module_file)
-
-            job_class = job_class_module.Job
-            need_cache = need_cache or job_class.needs_read_cache
-
-            # Enrich the job configuration with the necessary global configurations
-            # coming from the configuration file
-            if self._file_read_multiplicity:
-                job_config['file_read_multiplicity'] = self._file_read_multiplicity
-
-            if self._file_read_size_min_pow:
-                job_config['file_read_size_min_pow'] = self._file_read_size_min_pow
-
-            if self._file_read_size_max_pow:
-                job_config['file_read_size_max_pow'] = self._file_read_size_max_pow
-
-            if self.execution_mode == "events":
-                job_config['notification_host'] = self.notification_host
-                job_config['notification_port'] = self.notification_port
-
-            if self.config.get("nvdimm_root_path"):
-                job_config['nvdimm_root_path'] = self.nvdimm_root_path
-
-            j = job_class(job_config, self, job_dir)
+            j = self.load_job(job_class_name, job_config, job_dir)
+            need_cache = need_cache or j.needs_read_cache
 
             j.generate()
             jobs.append(j)

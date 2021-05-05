@@ -74,7 +74,7 @@ if __name__ == "__main__":
         raise ValueError("file {} does not exist!".format(args.kschedule_file))
 
     if not args.config:
-        raise ValueError("Configuration file not set! choose --config=<path-to-config-file>".format(args.config))
+        raise ValueError("Configuration file not set! choose --config=<path-to-config-file>")
 
     if args.config:
         if not os.path.exists(args.config):

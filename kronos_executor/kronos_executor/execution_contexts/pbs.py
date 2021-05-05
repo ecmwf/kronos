@@ -12,7 +12,9 @@ class PBSExecutionContext(ExecutionContext):
         "num_hyperthreads": "-l EC_hyperthreads=",
         "job_output_file": "-o ",
         "job_error_file": "-e ",
-        "scheduler_queue": "-q "
+        "scheduler_queue": "-q ",
+        "login_shell": "-S ",
+        "time_limit": "-l walltime="
     }
     scheduler_use_params = [
         'job_name', 'scheduler_queue', 'num_nodes', 'num_procs',
@@ -30,7 +32,11 @@ class PBSExecutionContext(ExecutionContext):
     launcher_params = {
         "procs_per_node": "-N ",
         "num_procs": "-n ",
-        "export_library_path": "-e "
+        "cpus_per_task": "-d ",
+        "num_hyperthreads": "-j ",
+        "export_library_path": "-e ",
+        "cpu_binding": "-cc ",
+        "strict_memory": "-ss"
     }
     launcher_use_params = ["export_library_path", "procs_per_node", "num_procs"]
 
@@ -40,12 +46,16 @@ class PBSExecutionContext(ExecutionContext):
         self.config['export_library_path'] = 'LD_LIBRARY_PATH="${LD_LIBRARY_PATH}"'
 
     def env_setup(self, job_config):
-        return  """\
+        libpath = ""
+        if "coordinator_library_path" in job_config:
+            libpath = """\
 export LD_LIBRARY_PATH={coordinator_library_path}:${{LD_LIBRARY_PATH}}
 
+"""
+        return (libpath + """\
 # Export an EC simulation ID (to assist identifying the job in darshan logs)
 export EC_simulation_id="{job_name}"\
-""".format(**job_config)
+""").format(**job_config)
 
 
 Context = PBSExecutionContext

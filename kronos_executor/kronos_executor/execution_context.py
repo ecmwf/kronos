@@ -1,7 +1,5 @@
 
-import importlib.util
-import pathlib
-import sys
+from kronos_executor.tools import load_module
 
 class ExecutionContext:
     """Handles the interaction between jobs and the system"""
@@ -38,13 +36,19 @@ class ExecutionContext:
     def __init__(self, config):
         self.config = config.copy()
 
-    def scheduler_params(self, job_config):
-        """Format the appropriate scheduler directives for the given job"""
+    def scheduler_params(self, job_config, use_params=None):
+        """Format the appropriate scheduler directives for the given job
+        :param job_config: job configuration (dict)
+        :param use_params: (optional) if set, use these instead of `scheduler_use_params` (list)"""
+
         assert self.scheduler_directive_start is not None
 
         lines = []
 
-        for pname in self.scheduler_use_params:
+        if use_params is None:
+            use_params = self.scheduler_use_params
+
+        for pname in use_params:
             param = self.scheduler_directive_params.get(pname)
             if param is not None:
                 pval = None
@@ -60,13 +64,21 @@ class ExecutionContext:
         """Generate environment setup lines for the given job"""
         return ""
 
-    def launch_command(self, job_config):
-        """Generate the command line to launch the job from the job script"""
-        assert self.launch_command is not None
+    def launch_command(self, job_config, use_params=None):
+        """Generate the command line to launch the job from the job script
+        :param job_config: job configuration (dict)
+        :param use_params: (optional) if set, use these instead of `launcher_use_params` (list)"""
 
-        command = [self.launcher_command]
+        launcher_command = job_config.get('launcher_command',
+            self.launcher_command)
+        assert launcher_command is not None
 
-        for pname in self.launcher_use_params:
+        command = [launcher_command]
+
+        if use_params is None:
+            use_params = self.launcher_use_params
+
+        for pname in use_params:
             param = self.launcher_params.get(pname)
             if param is not None:
                 pval = None
@@ -107,26 +119,10 @@ def load_context(name, path, config):
     """Load the Context object from a module named ``name`` to be found in one
     of the directories in ``path``"""
 
-    mod_name = "kronos_execution_context_{}".format(name)
-
-    mod = None
-    if mod_name in sys.modules:
-        mod = sys.modules[mod_name]
-
-    else:
-        src = None
-        for p in path:
-            src = pathlib.Path(p) / "{}.py".format(name)
-            if src.is_file():
-                break
-
-        if src is None:
-            raise ValueError("Execution context {!r} not found".format(name))
-
-        spec = importlib.util.spec_from_file_location(mod_name, src)
-        mod = importlib.util.module_from_spec(spec)
-        sys.modules[mod_name] = mod
-        spec.loader.exec_module(mod)
+    try:
+        mod = load_module(name, path, prefix="kronos_execution_context_")
+    except RuntimeError:
+        raise ValueError("Execution context {!r} not found in paths {}".format(name, ", ".join(path)))
 
     if not hasattr(mod, 'Context'):
         raise RuntimeError(

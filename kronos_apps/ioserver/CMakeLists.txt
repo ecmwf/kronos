@@ -1,9 +1,4 @@
 
-if( PMEMIO_FOUND )
-    set(PMEMIO_DEFINITIONS "HAVE_PMEMIO")
-endif()
-
-
 # -- terminate worker
 ecbuild_add_executable(
 
@@ -14,13 +9,10 @@ ecbuild_add_executable(
         ${PROJECT_SOURCE_DIR}/kronos_apps/common/network/message.h
         terminate_io_worker.c
 
-    DEFINITIONS        
-
-    INCLUDES
-
     LIBS
         msglogger
         network
+        kronos
 )
 
 
@@ -49,11 +41,13 @@ ecbuild_add_executable(
         "${PMEMIO_DEFINITIONS}"
 
     INCLUDES
+        "${PMEMIO_INCLUDE_DIRS}"
 
     LIBS
         kronos
         msglogger
         network
+        "${PMEMIO_OBJ_LIBRARY}"
 )
 
 
@@ -68,10 +62,6 @@ ecbuild_add_executable(
         remote_io_master.c
         io_data.h
         io_data.c
-
-    DEFINITIONS
-
-    INCLUDES
 
     LIBS
         kronos

@@ -26,7 +26,6 @@ class KResultsData(object):
 
     res_file_root = "statistics"
     res_file_ext = "kresults"
-#    res_file_ext = "krf"
 
     def __init__(self, jobs=None, sim_name=None, sim_path=None, n_procs_node=None):
 
@@ -42,15 +41,29 @@ class KResultsData(object):
         # n CPU per node used for this sim
         self.n_procs_node = n_procs_node
 
+    @staticmethod
+    def iter_job_dirs(sim_path, leaf_only=False):
+        def _traverse(path, first=True):
+            job_dirs = sorted(
+                [x for x in os.listdir(path) if os.path.isdir(os.path.join(path, x)) and "job-" in x],
+                key=(lambda x: int(x.split("-")[-1])))
+
+            if not first and (not job_dirs or not leaf_only):
+                yield path
+
+            for job_dir in job_dirs:
+                yield from _traverse(os.path.join(path, job_dir), first=False)
+        return _traverse(sim_path)
+
     @classmethod
     def check_n_successful_jobs(cls, sim_path):
 
         # check that the run path contains the job sub-folders
-        job_dirs = [x for x in os.listdir(sim_path) if os.path.isdir(os.path.join(sim_path, x)) and "job-" in x]
+        job_dirs = cls.iter_job_dirs(sim_path, leaf_only=True)
 
         # check if there are jobs that didn't write the "statistics.kresults" file (or .krf for back-compatibility)
         failing_jobs = [job_dir for job_dir in job_dirs
-                        if not os.path.isfile(os.path.join(sim_path, job_dir, cls.res_file_root+"."+cls.res_file_ext))]
+                        if not os.path.isfile(os.path.join(job_dir, cls.res_file_root+"."+cls.res_file_ext))]
 
         if failing_jobs:
             print("ERROR: The following jobs have failed (jobs for which " \
@@ -66,34 +79,30 @@ class KResultsData(object):
         if not permissive:
             cls.check_n_successful_jobs(sim_path)
 
-        # check that the run path contains the job sub-folders
-        job_dirs = sorted([x for x in os.listdir(sim_path) if os.path.isdir(os.path.join(sim_path, x)) and "job-" in x])
-
-        # and check that the collection was successful..
-        if not job_dirs:
-            print("Specified path does not contain any job folder (<job-ID>..)!")
-            sys.exit(1)
-
         jobs_data = []
-        for job_dir in job_dirs:
+        for job_dir in cls.iter_job_dirs(sim_path):
+            job_dir_rel = os.path.relpath(job_dir, start=sim_path)
+            print("reading data from {}..".format(job_dir_rel))
 
-            print("reading data from {}..".format(job_dir))
-
-            sub_dir_path_abs = os.path.join(sim_path, job_dir)
-            sub_dir_files = os.listdir(sub_dir_path_abs)
-            kresults_file = [f for f in sub_dir_files if f.endswith(cls.res_file_ext)]
+            job_dir_files = os.listdir(job_dir)
+            kresults_file = [f for f in job_dir_files if f.endswith(cls.res_file_ext)]
 
             if kresults_file:
-                input_file_path_abs = os.path.join(sub_dir_path_abs, 'input.json')
-                stats_file_path_abs = os.path.join(sub_dir_path_abs, cls.res_file_root+"."+cls.res_file_ext)
+                input_file_path = os.path.join(job_dir, 'input.json')
+                stats_file_path = os.path.join(job_dir, cls.res_file_root+"."+cls.res_file_ext)
 
                 # Read decorator data from input file
-                with open(input_file_path_abs, 'r') as f:
+                with open(input_file_path, 'r') as f:
                     json_data_input = json.load(f)
                 decorator = KResultsDecorator(**json_data_input["metadata"])
 
                 # Append the profiled job to the "jobs_data" structure
-                jobs_data.append(KResultsJob.from_kresults_file(stats_file_path_abs, decorator=decorator))
+                jobs_data.append(KResultsJob.from_kresults_file(stats_file_path, decorator=decorator))
+
+        # and check that the collection was successful..
+        if not jobs_data:
+            print("Specified path does not contain any job folder (<job-ID>..)!")
+            sys.exit(1)
 
         return cls(jobs=jobs_data, sim_name=sim_name, sim_path=sim_path, n_procs_node=n_procs_node)
 
@@ -158,6 +167,10 @@ class KResultsData(object):
             for job_stats in stats_list:
                 for stat_entry in job_stats:
                     for stat_metric in stat_entry.keys():
+                        if stat_metric not in kresults_stats_info:
+                            print(f"Warning: skipping unknown metric {stat_metric!r}")
+                            continue
+
                         for field in kresults_stats_info[stat_metric]["to_sum"]:
 
                             if field in kresults_stats_info[stat_metric].get("per_process", []):
@@ -371,6 +384,25 @@ class KResultsData(object):
         print("total n jobs {}".format(len(self.jobs)))
         print("total n in classes {}".format(total_jobs_in_classes))
 
+    def global_stats(self):
+        """
+        JSON of all the global stats that could be present
+        in the job stats files
+        """
+
+        glob_stats = []
+        for job in self.jobs:
+
+            g_stats = job.get_global_stats()
+            if g_stats:
+                glob_stats.append(
+                    {
+                        "job_name": job.name,
+                        "globals": g_stats
+                    }
+                )
+
+        return glob_stats
 
 
 class KResultsDataSet(object):

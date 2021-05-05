@@ -98,6 +98,10 @@
                                             "minimum": 0
                                         },
                                         {
+                                            "type": "string",
+                                            "description": "Simple case of dependencies: list of jobID's that a job depends on"
+                                        },
+                                        {
                                             "type": "object",
                                             "description": "Kronos event structure (Kronos-Event schema)"
                                         }
@@ -344,6 +348,10 @@
                                             "type": "integer",
                                             "description": "Simple case of dependencies: list of jobID's that a job depends on",
                                             "minimum": 0
+                                        },
+                                        {
+                                            "type": "string",
+                                            "description": "Simple case of dependencies: list of jobID's that a job depends on"
                                         },
                                         {
                                             "type": "object",

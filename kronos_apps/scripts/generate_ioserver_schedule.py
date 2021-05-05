@@ -158,7 +158,7 @@ def generate_timestep_workflow(args):
         # job dependency (all but the first producer)
         job_dep = copy.deepcopy(job_dependency_template)
         job_dep["info"]["app"] = "kronos-synapp"
-        job_dep["info"]["job"] = timestep_job - 1
+        job_dep["info"]["job"] = str(timestep_job - 1)
         job_templ["depends"] = [job_dep] if timestep_job else []
         #job_templ["depends"] = []
 
@@ -201,7 +201,7 @@ def generate_timestep_workflow(args):
             # job dependency (depends on time-step job)
             job_dep = copy.deepcopy(job_dependency_template)
             job_dep["info"]["app"] = "kronos-synapp"
-            job_dep["info"]["job"] = timestep_job
+            job_dep["info"]["job"] = str(timestep_job)
             job_templ["depends"] = [job_dep]
             #job_templ["depends"] = []
 

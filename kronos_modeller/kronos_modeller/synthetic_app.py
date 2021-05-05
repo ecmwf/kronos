@@ -143,7 +143,7 @@ class SyntheticWorkload(object):
         Export the synthetic workload to pickle file..
         :return:
         """
-        with open(os.path.join(self.config.dir_output, 'sa_workload_pickle'), 'w') as f:
+        with open(os.path.join(self.config.dir_output, 'sa_workload_pickle'), 'wb') as f:
 
             pickle.dump(self, f)
 

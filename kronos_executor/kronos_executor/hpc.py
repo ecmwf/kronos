@@ -1,3 +1,4 @@
+import copy
 import jinja2
 import math
 import os
@@ -23,6 +24,7 @@ class HPCJob(BaseJob):
 
         template_loader = jinja2.ChoiceLoader([
             jinja2.FileSystemLoader(os.getcwd()),
+            jinja2.FileSystemLoader(executor.config.get('job_templates_path', [])),
             jinja2.PackageLoader('kronos_executor', 'job_templates')
         ])
         self.template_env = jinja2.Environment(loader=template_loader)
@@ -43,12 +45,27 @@ class HPCJob(BaseJob):
         """
         pass
 
+    def override_execution_context(self, execution_context, script_format):
+        """
+        Place-holder for overriding the parameters used by the execution context.
+        Can be used to provide extra job-specific scheduler or launcher parameters.
+        If not `None`, the resulting lists will override the corresponding `*_use_params`
+        in the execution context.
+        :param execution_context:
+        :param script_format:
+        :return: override_scheduler, override_launcher
+        """
+        return None, None
+
     def generate_internal(self):
 
-        default_nprocs = self.job_config.get('num_procs', 1)
-        default_nnodes = int(math.ceil(float(default_nprocs) / self.executor.procs_per_node))
+        script_format = copy.deepcopy(self.executor.job_config_defaults)
 
-        script_format = {
+        default_nprocs = self.job_config.get('num_procs', 1)
+        default_nnodes = self.job_config.get('num_nodes',
+                int(math.ceil(float(default_nprocs) / self.executor.procs_per_node)))
+
+        script_format.update({
             'write_dir': self.path,
             'read_dir': self.executor.read_cache_path,
             'shared_dir': self.executor.job_dir_shared,
@@ -60,17 +77,27 @@ class HPCJob(BaseJob):
             'job_error_file': self.error_file,
             'num_procs': default_nprocs,
             'num_nodes': default_nnodes,
-            'cpus_per_task': 1,
-            'num_hyperthreads': 1,
+            'cpus_per_task': self.job_config.get('cpus_per_task', 1),
+            'num_hyperthreads': self.job_config.get('num_hyperthreads', 1),
             'simulation_token': self.executor.simulation_token
-        }
+        })
+
+        script_format['kronos_notify'] = "{} {} {} {}".format(
+                os.path.join(os.path.dirname(__file__), "bin", "kronos-notify"),
+                self.executor.notification_host,
+                self.executor.notification_port,
+                self.id)
 
         self.customised_generated_internals(script_format)
 
+        override_scheduler, override_launcher = self.override_execution_context(self.executor.execution_context, script_format)
+
         script_format.setdefault('launcher_command', self.executor.execution_context.launcher_command)
-        script_format.setdefault('scheduler_params', self.executor.execution_context.scheduler_params(script_format))
+        script_format.setdefault('scheduler_params',
+                self.executor.execution_context.scheduler_params(script_format, override_scheduler))
         script_format.setdefault('env_setup', self.executor.execution_context.env_setup(script_format))
-        script_format.setdefault('launch_command', self.executor.execution_context.launch_command(script_format))
+        script_format.setdefault('launch_command',
+                self.executor.execution_context.launch_command(script_format, override_launcher))
 
         template = self.template_env.get_template(self.job_template_name)
         stream = template.stream(script_format)

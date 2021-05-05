@@ -1,5 +1,12 @@
+#!/usr/bin/env python3
 
-from __future__ import print_function
+# (C) Copyright 2020- ECMWF.
+#
+# This software is licensed under the terms of the Apache Licence Version 2.0
+# which can be obtained at http://www.apache.org/licenses/LICENSE-2.0.
+# In applying this licence, ECMWF does not waive the privileges and immunities
+# granted to it by virtue of its status as an intergovernmental organisation nor
+# does it submit to any jurisdiction.
 
 import argparse
 import socket
@@ -33,7 +40,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('server_host', type=str)
     parser.add_argument('server_port', type=int)
-    parser.add_argument('job_id', type=int)
+    parser.add_argument('job_id', type=str)
     parser.add_argument('app_id', type=str)
     parser.add_argument('metadata', type=str, default=None, nargs='?')
 

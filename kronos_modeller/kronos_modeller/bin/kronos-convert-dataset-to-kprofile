@@ -24,9 +24,9 @@ if __name__ == "__main__":
 
     # Parser for the required arguments
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawTextHelpFormatter)
-    parser.add_argument("path_pickled", type=str, help="The path of the pickeld dataset to ingest")
+    parser.add_argument("path_pickled", type=str, help="The path of the pickled dataset to ingest")
     parser.add_argument("path_output", type=str, help="The path of the KProfile file to write out")
-    parser.add_argument("-t", "--tag", type=str, help="worklaod tag")
+    parser.add_argument("-t", "--tag", type=str, help="workload tag")
 
     # print the help if no arguments are passed
     if len(sys.argv) == 1:

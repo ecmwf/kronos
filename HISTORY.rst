@@ -2,6 +2,17 @@
 Kronos version history
 ======================
 
+0.8.0 (04-05-2021)
+------------------
+
+- executor: add configurable search paths for execution contexts, job classes, and job templates
+- executor: support composite jobs
+- executor: allow for job configuration defaults in the configuration file
+- executor/modeller: support job-wide statistics for third-party apps
+- installer: allow offline install
+- modeller: fix python3 transition
+- synapp: update to ecbuild 3
+
 0.7.0 (11-08-2020)
 ------------------
 

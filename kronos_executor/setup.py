@@ -13,7 +13,7 @@ test_requirements = [
 
 setup(
     name='kronos-executor',
-    version='0.7.0',
+    version='0.8.0',
     description="Execution of a HPC workload on a target system",
     long_description="Execution of a HPC workload on a target system",
     author="Tiago Quintino, Antonino Bonanni, Simon Smart",
@@ -34,6 +34,9 @@ setup(
         'kronos_executor/bin/kronos-format-kschedule',
 
         'kronos_executor/bin/kronos-generate-read-files',
+
+        'kronos_executor/bin/kronos-notify',
+        'kronos_executor/bin/kronos-report-statistics',
 
         'kronos_executor/bin/kronos-summarise-kschedule',
         'kronos_executor/bin/kronos-summarise-results',

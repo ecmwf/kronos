@@ -31,6 +31,14 @@
             "type": "string",
             "description": "The git SHA1 tag for the current build of kronos"
         },
+        "appName": {
+            "type": "string",
+            "description": "The name of the application"
+        },
+        "appVersion": {
+            "type": "string",
+            "description": "The version string of the application"
+        },
         "ranks": {
             "type": "array",
             "description": "Data is generated on each (MPI) process independently. The output from each rank is aggregated here.",
@@ -160,7 +168,42 @@
                     }
                 }
             }
+        },
+        "global": {
+            "type": "object",
+            "description": "Job-level statistics",
+            "additionalProperties": false,
+            "properties": {
+                "stats": {
+                    "type": "object",
+                    "description": "Aggregated metrics",
+                    "additionalProperties": {
+                        "type": "number",
+                        "description": "metric value"
+                    }
+                },
+                "time_series": {
+                    "type": "object",
+                    "description": "Time data for the whole job",
+                    "properties": {
+                        "durations": {
+                            "type": "array",
+                            "description": "duration of the samples",
+                            "items": {
+                                "type": "number"
+                            }
+                        }
+                    },
+                    "additionalProperties": {
+                        "type": "array",
+                        "description": "data points",
+                        "items": {
+                            "type": "number"
+                        }
+                    }
+                }
+            }
         }
     },
-    "required": ["version", "tag", "created", "ranks", "kronosVersion", "kronosSHA1"]
+    "required": ["version", "tag", "created"]
 }

@@ -28,6 +28,10 @@ class EventBase(object):
         if validate_event:
             self.validate_json(message_json)
 
+        # make sure the job id is a string
+        if "job" in message_json.get("info", {}):
+            message_json["info"]["job"] = str(message_json["info"]["job"])
+
         # keep the top-level keys as attributes
         for k, v in message_json.items():
             setattr(self, k, v)

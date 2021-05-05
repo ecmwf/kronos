@@ -13,19 +13,47 @@ Script to collect and aggregate in a tarball all the relevant files of a Kronos 
 
 """
 
-import os
-import sys
 import argparse
+import pathlib
+import sys
 import tarfile
+
+
+def collect_job_files(start_dir, collect_files, exclude_files, tar_file):
+    def _collect(dir):
+        job_dirs = [x for x in dir.glob("job-*") if x.is_dir()]
+
+        for job_dir in job_dirs:
+            job_dir_rel = job_dir.relative_to(start_dir)
+
+            print("processing directory {!s}".format(job_dir_rel))
+
+            for file_path in job_dir.iterdir():
+                if not any(file_path.match(f_name_coll) for f_name_coll in collect_files):
+                    continue
+                if any(file_path.match(f_name_excl) for f_name_excl in exclude_files):
+                    continue
+
+                file_path_rel = file_path.relative_to(start_dir)
+
+                print("collecting {!s}".format(file_path_rel))
+                tar_file.add(file_path, arcname="run_data" / file_path_rel)
+
+            _collect(job_dir)
+    _collect(start_dir)
 
 
 if __name__ == "__main__":
 
     # Parser for the required arguments
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawTextHelpFormatter)
-    parser.add_argument("tarball_path", type=str, help="Path of the kronos tarball")
-    parser.add_argument("path_run", type=str, help="Path of the kronos output folder "
-                                                   "(contains the job-<ID> sub-folders)")
+    parser.add_argument("tarball_path", type=pathlib.Path,
+            help="Path of the kronos tarball (gzipped)")
+    parser.add_argument("path_run", type=pathlib.Path,
+            help="Path of the kronos output folder (contains the job-<ID> sub-folders)")
+
+    parser.add_argument("-x", "--exclude", type=str, action="append", default=[],
+            help="Do not collect files matching this pattern (can be specified multiple times)")
 
     # print the help if no arguments are passed
     if len(sys.argv) == 1:
@@ -35,18 +63,18 @@ if __name__ == "__main__":
     # parse the arguments..
     args = parser.parse_args()
 
-    if not os.path.exists(args.path_run):
+    if not args.path_run.exists():
         print("Specified Kronos output path does not exist: {}".format(args.path_run))
         sys.exit(1)
 
-    if os.path.exists(args.tarball_path):
+    if args.tarball_path.exists():
         print("File {} already exists".format(args.tarball_path))
         sys.exit(1)
     else:
         tar_file = tarfile.open(args.tarball_path, "w:gz")
 
     # add the KSCHEDULE FILE into the tarball
-    kschedule_files = [x for x in os.listdir(args.path_run) if os.path.isfile(os.path.join(args.path_run, x)) and x.endswith('.kschedule')]
+    kschedule_files = [x for x in args.path_run.glob('*.kschedule') if x.is_file()]
     if not kschedule_files:
         print("Specified path does not contain the KSchedule file!")
         sys.exit(1)
@@ -55,47 +83,30 @@ if __name__ == "__main__":
         sys.exit(1)
     else:
         kschedule_file = kschedule_files[0]
-        print("collecting kschedule {}".format(kschedule_file))
-        tar_file.add(os.path.join(args.path_run, kschedule_file), arcname=os.path.join("run_data", kschedule_file))
+        kschedule_file_rel = kschedule_file.relative_to(args.path_run)
+        print("collecting kschedule {!s}".format(kschedule_file_rel))
+        tar_file.add(kschedule_file, arcname="run_data" / kschedule_file_rel)
 
     # add the LOG FILE(s) into the tarball (if any)
-    log_files = [x for x in os.listdir(args.path_run) if os.path.isfile(os.path.join(args.path_run, x)) and x.endswith('.log')]
-    if log_files:
-        for log_file in log_files:
-            print("collecting log file {}".format(log_file))
-            tar_file.add(os.path.join(args.path_run, log_file), arcname=os.path.join("run_data", log_file))
+    log_files = [x for x in args.path_run.glob('*.log') if x.is_file()]
+    for log_file in log_files:
+        log_file_rel = log_file.relative_to(args.path_run)
+        print("collecting log file {!s}".format(log_file_rel))
+        tar_file.add(log_file, arcname="run_data" / log_file_rel)
 
     files_to_be_collected = [
         'submit_script',
         'input.json',
-        'error',
-        'output',
+        'error*',
+        'output*',
         'statistics.kresults',
-        '.darshan',
-        '.map',
+        '*.darshan',
+        '*.map',
     ]
 
-    # job sub-directories
-    job_dirs = [x for x in os.listdir(args.path_run) if os.path.isdir(os.path.join(args.path_run, x)) and "job-" in x]
+    files_to_be_excluded = args.exclude
 
-    fname_list = []
-    dict_name_label = {}
-
-    jobs_data_all = []
-    for job_dir in job_dirs:
-
-        print("processing directory {}".format(job_dir))
-
-        sub_dir_path_abs = os.path.join(args.path_run, job_dir)
-        sub_dir_files = os.listdir(sub_dir_path_abs)
-
-        file_names = [f_name for f_name in sub_dir_files for f_name_coll in files_to_be_collected if f_name_coll in f_name]
-
-        print("files {}".format(file_names))
-
-        for file_name in file_names:
-            file_abs_path = os.path.join(sub_dir_path_abs, file_name)
-            tar_file.add(file_abs_path, arcname=os.path.join("run_data", os.path.join(job_dir, file_name)))
+    collect_job_files(args.path_run, files_to_be_collected, files_to_be_excluded, tar_file)
 
     tar_file.close()
 

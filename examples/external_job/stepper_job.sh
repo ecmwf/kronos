@@ -15,8 +15,8 @@ for step in $(seq 1 $nsteps) ; do
     echo "Running step $step"
     {{ stepper }} $step {{ size_kb }} "{{ shared_dir }}"
     sleep 10
-    {{ notify_script }} --type="NotifyMetadata" stepper "{\"step\": $step}"
+    {{ kronos_notify }} --type="NotifyMetadata" stepper "{\"step\": $step}"
 done
 
 # send end-of-job msg
-{{ notify_script }} --type="Complete" stepper
+{{ kronos_notify }} --type="Complete" stepper

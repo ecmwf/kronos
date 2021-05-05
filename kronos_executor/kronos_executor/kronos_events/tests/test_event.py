@@ -47,8 +47,8 @@ class EventTests(unittest.TestCase):
         event_2 = EventComplete(complete_json_valid_2)
 
         # assert get_hash
-        self.assertEqual(event_1.get_hashed(), tuple( (("type", "Complete"), ("app", "kronos-synapp"), ("job", 999))) )
-        self.assertEqual(event_2.get_hashed(), tuple((("type", "Complete"), ("app", "kronos-synapp"), ("job", 999))))
+        self.assertEqual(event_1.get_hashed(), tuple( (("type", "Complete"), ("app", "kronos-synapp"), ("job", '999'))) )
+        self.assertEqual(event_2.get_hashed(), tuple((("type", "Complete"), ("app", "kronos-synapp"), ("job", '999'))))
 
         # assert event equality
         self.assertEqual(event_1, event_1)
@@ -137,7 +137,7 @@ class EventTests(unittest.TestCase):
                                                 (
                                                     ("type", "MetadataChange"),
                                                     ("app", 3),
-                                                    ("job", 333),
+                                                    ("job", '333'),
                                                     (
                                                         ("param_1", 1),
                                                         ("param_2", 2),
@@ -151,7 +151,7 @@ class EventTests(unittest.TestCase):
                                                 (
                                                     ("type", "MetadataChange"),
                                                     ("app", 9),
-                                                    ("job", 999),
+                                                    ("job", '999'),
                                                     (
                                                         ("param_1", 1),
                                                         ("param_2", 2),

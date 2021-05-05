@@ -1,0 +1,102 @@
+#!/usr/bin/env python3
+
+# (C) Copyright 2021- ECMWF.
+#
+# This software is licensed under the terms of the Apache Licence Version 2.0
+# which can be obtained at http://www.apache.org/licenses/LICENSE-2.0.
+# In applying this licence, ECMWF does not waive the privileges and immunities
+# granted to it by virtue of its status as an intergovernmental organisation nor
+# does it submit to any jurisdiction.
+
+import argparse
+import datetime
+import json
+import os
+
+
+KRONOS_TAG = "KRONOS-KRESULTS-MAGIC"
+KRONOS_SCHEMA_VERSION = 2
+
+
+def timestamp():
+    return datetime.datetime.now().strftime("%Y-%m-%dT%H:%M:%S+00:00")
+
+
+def keyval(arg):
+    key, sep, val = arg.partition("=")
+    if not sep:
+        raise argparse.ArgumentTypeError("expected 'key=value', not {!r}".format(arg))
+    try:
+        val = float(val.strip())
+    except ValueError as e:
+        raise argparse.ArgumentTypeError(str(e))
+    return key.strip(), val
+
+
+def load_data(fname, append):
+    if os.path.isfile(fname) and append:
+        with open(fname, "r") as f:
+            return json.load(f)
+
+    return {"tag": KRONOS_TAG,
+            "version": KRONOS_SCHEMA_VERSION,
+            "created": timestamp(),
+            "uid": os.getuid(),
+            }
+
+
+def add_meta(data, name=None, version=None):
+    if name is not None:
+        data['appName'] = name
+    if version is not None:
+        data['appVersion'] = version
+
+
+def add_stats(data, keyval, timeseries=False):
+    gl_dict = data.setdefault("global", {})
+    if not timeseries:
+        st_dict = gl_dict.setdefault("stats", {})
+        st_dict.update(keyval)
+        return
+
+    frame = dict(keyval)
+    if 'duration' not in frame and 'durations' not in frame:
+        raise ValueError("No duration provided")
+    ts_dict = gl_dict.setdefault("time_series", {})
+    maxlen = max((len(s) for s in ts_dict.values()), default=0)
+    for key, val in frame.items():
+        series = ts_dict.setdefault(key, [])
+        if len(series) < maxlen:
+            series.extend(float("nan") for _ in range(maxlen - len(series)))
+        series.append(val)
+
+
+def save_stats(data, fname):
+    with open(fname, "w") as f:
+        json.dump(data, f)
+
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(
+        description="Report user statistics for a Kronos job")
+    parser.add_argument('keyval', type=keyval, nargs='+', metavar="KEY=VALUE",
+        help="metric (the value must be a number)")
+
+    parser.add_argument('-f', '--file', type=str, default="statistics.kresults",
+        help="path to the output file (default: 'statistics.kresults')")
+
+    parser.add_argument('-a', '--append', default=False, action='store_true',
+        help="append to an existing file, do not overwrite")
+    parser.add_argument('-t', '--timeseries', default=False, action='store_true',
+        help="set time series rather than a global metric (does NOT imply -a)")
+
+    parser.add_argument('-n', '--name', type=str, default=None, help="app name")
+    parser.add_argument('-v', '--version', type=str, default=None,
+        help="app version")
+
+    args = parser.parse_args()
+
+    data = load_data(args.file, args.append)
+    add_meta(data, args.name, args.version)
+    add_stats(data, args.keyval, args.timeseries)
+    save_stats(data, args.file)

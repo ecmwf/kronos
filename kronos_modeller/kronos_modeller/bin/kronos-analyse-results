@@ -27,8 +27,10 @@ Usage examples:
 
 """
 
-import argparse
+import os
 import sys
+import json
+import argparse
 
 from kronos_executor.io_formats.format_data_handlers.kresults_data import KResultsData
 from kronos_executor.io_formats.format_data_handlers.kresults_data import KResultsDataSet
@@ -38,9 +40,23 @@ from kronos_modeller.post_process.exporters import writer_map
 if __name__ == "__main__":
 
     # Read other arguments if present..
-    parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawTextHelpFormatter)
-    parser.add_argument('export_config', help="Analysis configuration file")
-    parser.add_argument('--print_job_classes', "-p", help="Print simulation info on screen", action='store_true')
+    parser = argparse.ArgumentParser(description=__doc__,
+                                     formatter_class=argparse.RawTextHelpFormatter)
+
+    parser.add_argument('export_config',
+                        help="Analysis configuration file")
+
+    parser.add_argument('--print_job_classes', "-p",
+                        help="Print simulation info on screen",
+                        action='store_true')
+
+    parser.add_argument('--report_globals', "-rg",
+                        help="Report all the global stats",
+                        action='store_true')
+
+    parser.add_argument('--permissive',
+                        help="Ignore jobs without statistics",
+                        action='store_true')
 
     # print the help if no arguments are passed
     if len(sys.argv) == 1:
@@ -54,7 +70,8 @@ if __name__ == "__main__":
     config = ExportConfig.from_json_file(args.export_config)
 
     # Labelled list of simulations
-    labelled_kronos_sims = [KResultsData.read_from_sim_paths(path, tag, n_procs_node=config.n_procs_node)
+    labelled_kronos_sims = [KResultsData.read_from_sim_paths(path, tag,
+                                n_procs_node=config.n_procs_node, permissive=args.permissive)
                             for tag, path in zip(config.simulation_labels, config.simulation_paths)]
 
     # Pre-calculate data ready for export
@@ -62,7 +79,8 @@ if __name__ == "__main__":
 
     # Retrieve job classes common for all the simulation in the set
     common_job_classes = sim_set.retrieve_common_job_classes(config.job_classes)
-    print("==== Job classes shared by all simulations: ====\n{}".format( "\n".join(list(common_job_classes.keys())) ))
+    print("==== Job classes shared by all simulations: ====\n{}".format(
+        "\n".join(list(common_job_classes.keys())) ))
 
     # calculate statistics on the common job classes
     sim_set.calculate_class_stats_sums(common_job_classes)
@@ -77,3 +95,21 @@ if __name__ == "__main__":
         data_writer.export(export_config=export_config,
                            output_path=config.output_path,
                            job_classes=common_job_classes)
+
+    # Create a json file in the export path with
+    # all the global stats found in the stats files
+    if args.report_globals:
+
+        sim_extras_all = []
+        for sim in sim_set.sims:
+            sim_extras = sim.global_stats()
+            if sim_extras:
+                sim_extras_all.append(sim_extras)
+
+        if sim_extras_all:
+            if not os.path.exists(config.output_path):
+                os.mkdir(config.output_path)
+
+            extras_filename = os.path.join(config.output_path, "global_stats.json")
+            with open(extras_filename, "w") as jf:
+                json.dump(sim_extras_all, jf)

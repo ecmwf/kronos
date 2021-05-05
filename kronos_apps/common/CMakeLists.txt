@@ -8,11 +8,8 @@ ecbuild_add_library(
         ${PROJECT_SOURCE_DIR}/kronos_apps/common/logger.h
         ${PROJECT_SOURCE_DIR}/kronos_apps/common/logger.c
 
-    DEFINITIONS
-
-    INCLUDES
-
-    LIBS
+    PRIVATE_INCLUDES
+        $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/kronos_apps>
 )
 
 
@@ -27,14 +24,8 @@ ecbuild_add_library(
         ${PROJECT_SOURCE_DIR}/kronos_apps/common/network/message.h
         ${PROJECT_SOURCE_DIR}/kronos_apps/common/network/message.c
 
-    DEFINITIONS
-
-    GENERATED
-
-    INCLUDES
-
-    LIBS
-
+    PRIVATE_INCLUDES
+        $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/kronos_apps>
 )
 
 
