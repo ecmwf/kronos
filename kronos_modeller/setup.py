@@ -4,7 +4,15 @@
 from setuptools import setup, find_packages
 
 requirements = [
-    "kronos-executor==0.8.0"
+    "kronos-executor==0.8.0",
+    "jsonschema",
+    "matplotlib",
+    "mock",
+    "numpy",
+    "scikit-learn",
+    "scipy",
+    "setuptools",
+    "strict-rfc3339"
 ]
 
 test_requirements = [

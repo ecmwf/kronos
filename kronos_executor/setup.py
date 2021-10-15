@@ -4,7 +4,11 @@
 from setuptools import setup, find_packages
 
 requirements = [
-    # TODO: put package requirements here
+    "jinja2",
+    "jsonschema",
+    "numpy",
+    "setuptools",
+    "strict-rfc3339"
 ]
 
 test_requirements = [
