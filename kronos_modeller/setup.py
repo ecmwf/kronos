@@ -47,7 +47,9 @@ setup(
         'kronos_modeller/bin/kronos-plot-kprofile'
 
     ],
-    include_package_data=True,
+    package_data={
+        '': ['*.json']
+    },
     install_requires=requirements,
     license="Apache Software License 2.0",
     zip_safe=False,
