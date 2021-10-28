@@ -54,6 +54,8 @@ if __name__ == "__main__":
 
     parser.add_argument("-x", "--exclude", type=str, action="append", default=[],
             help="Do not collect files matching this pattern (can be specified multiple times)")
+    parser.add_argument("-i", "--include", type=str, action="append", default=[],
+            help="Also collect files matching this pattern (can be specified multiple times)")
 
     # print the help if no arguments are passed
     if len(sys.argv) == 1:
@@ -103,6 +105,7 @@ if __name__ == "__main__":
         '*.darshan',
         '*.map',
     ]
+    files_to_be_collected.extend(args.include)
 
     files_to_be_excluded = args.exclude
 
