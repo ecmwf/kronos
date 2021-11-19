@@ -2,6 +2,7 @@ import json
 import logging
 
 from kronos_executor.kronos_events.event_complete import EventComplete
+from kronos_executor.kronos_events.event_failed import EventFailed
 from kronos_executor.kronos_events.event_metadatachange import EventMetadataChange
 from kronos_executor.kronos_events.event_notifymetadata import EventNotifyMetadata
 from kronos_executor.kronos_events.event_time import EventTime
@@ -10,7 +11,8 @@ event_types = {
     "MetadataChange": EventMetadataChange,
     "NotifyMetadata": EventNotifyMetadata,
     "Time": EventTime,
-    "Complete": EventComplete
+    "Complete": EventComplete,
+    "Failed": EventFailed,
 }
 
 logger = logging.getLogger(__name__)

@@ -29,6 +29,10 @@ class Executor(object):
     class InvalidParameter(Exception):
         pass
 
+    class SimulationFailed(RuntimeError):
+        """Raised to signal to the executor that a simulation has failed"""
+        pass
+
     available_parameters = [
         'coordinator_binary',
         'execution_context',
@@ -207,6 +211,8 @@ class Executor(object):
         # nvdimm path if present
         self.nvdimm_root_path = self.config.get("nvdimm_root_path")
 
+        self.exit_status = 0
+
     def set_job_submitted(self, job_num, submitted_id):
         self.submitted_job_ids[job_num] = submitted_id
 
@@ -384,10 +390,15 @@ class Executor(object):
         raise NotImplementedError
 
     def __enter__(self):
+        self.exit_status = 0
         self.setup()
 
     def __exit__(self, exc_type, exc_value, traceback):
         self.teardown(exc_type is not None)
+        if exc_type is not None and issubclass(exc_type, Executor.SimulationFailed):
+            logger.error(str(exc_value))
+            self.exit_status = 1
+            return True
 
     def run(self):
         """
@@ -413,6 +424,8 @@ class Executor(object):
 
                 # executes the epilogue of the kschedule
                 self.epilogue()
+
+        return self.exit_status
 
     def prologue(self):
         """

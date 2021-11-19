@@ -96,4 +96,5 @@ if __name__ == "__main__":
     selected_executor = executor_class(config, schedule, arg_config=args_dict)
 
     # run
-    selected_executor.run()
+    sts = selected_executor.run()
+    sys.exit(sts)

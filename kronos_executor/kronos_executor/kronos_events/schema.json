@@ -126,6 +126,43 @@
 
         {
             "type": "object",
+            "description": "Event sent from an application upon failure",
+            "additionalProperties": false,
+            "properties": {
+                "token": {
+                    "type": "string",
+                    "description": "A unique token that identifies the simulation"
+                },
+                "type": {
+                    "type": "string",
+                    "description": "type of event",
+                    "enum": ["Failed"]
+                },
+                "info": {
+                    "type": "object",
+                    "description": "Information relative to the event",
+                    "properties": {
+                        "app": {
+                            "type": "string",
+                            "description": "Application type that originated the event"
+                        },
+                        "job": {
+                            "type": "string",
+                            "description": "unique job id (within the simulation)"
+                        },
+                        "timestamp": {
+                            "type": "number",
+                            "description": "Timestamp of the the event"
+                        }
+                    }
+                }
+            },
+            "required": ["type", "info"]
+        },
+
+
+        {
+            "type": "object",
             "description": "Simple event sent from a timer",
             "additionalProperties": false,
             "properties": {
