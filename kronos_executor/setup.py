@@ -4,7 +4,11 @@
 from setuptools import setup, find_packages
 
 requirements = [
-    # TODO: put package requirements here
+    "jinja2",
+    "jsonschema",
+    "numpy",
+    "setuptools",
+    "strict-rfc3339"
 ]
 
 test_requirements = [
@@ -46,7 +50,20 @@ setup(
         'kronos_executor/bin/kronos-view-json'
 
     ],
-    include_package_data=True,
+    package_data={
+        'kronos_executor': [
+            'config_format/exe_config_schema.json',
+            'execution_contexts/trivial_run.sh',
+            'io_formats/profile_schema.json',
+            'io_formats/results_schema.json',
+            'io_formats/schedule_schema.json',
+            'job_classes/lsf_filter.sh',
+            'job_templates/composite.sh',
+            'job_templates/io_master.sh',
+            'job_templates/synapp.sh',
+            'kronos_events/schema.json'
+        ]
+    },
     install_requires=requirements,
     license="Apache Software License 2.0",
     zip_safe=False,
