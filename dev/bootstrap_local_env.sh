@@ -15,11 +15,11 @@ cd ${bamboo_working_directory}
 
 unset PYTHONPATH
 
-# Get conda, and install it (very) locally
+# Get conda-forge, and install it (very) locally
+wget https://github.com/conda-forge/miniforge/releases/latest/download/Miniforge3-Linux-x86_64.sh
+sh Miniforge3-Linux-x86_64.sh -b -p ${bamboo_working_directory}/miniforge
 
-wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh
-sh Miniconda3-latest-Linux-x86_64.sh -b -p ${bamboo_working_directory}/miniconda
-export PATH=${bamboo_working_directory}/miniconda/bin:${PATH}
+export PATH=${bamboo_working_directory}/miniforge/bin:${PATH}
 
 # Work around ~/.conda being incorrectly (hard)-used in cond a create.
 

@@ -12,10 +12,10 @@ Kronos Executor
    management system. If this is not available in your system it may be installed in a local
    directory as follows::
 
-      wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh
-      sh Miniconda3-latest-Linux-x86_64.sh -b -p $PWD/miniconda
+      wget "https://github.com/conda-forge/miniforge/releases/latest/download/Miniforge3-$(uname)-$(uname -m).sh"
+      bash Miniforge3-$(uname)-$(uname -m).sh
       unset PYTHONPATH
-      export PATH=$PWD/miniconda/bin:$PATH
+      export PATH=$PWD/miniforge3/bin:$PATH
 
 2. **Get Kronos sources**::
 

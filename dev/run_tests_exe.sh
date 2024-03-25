@@ -16,7 +16,7 @@ export PS1=""
 
 # Get access to the installed python environment
 
-export PATH=${bamboo_working_directory}/miniconda/bin:${PATH}
+export PATH=${bamboo_working_directory}/miniforge/bin:${PATH}
 
 # tests of the executor
 

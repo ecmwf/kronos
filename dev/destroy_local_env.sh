@@ -9,4 +9,4 @@
 
 set -uex
 
-rm -rf ${bamboo_working_directory}/miniconda || true
+rm -rf ${bamboo_working_directory}/miniforge || true
