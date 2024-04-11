@@ -4,7 +4,7 @@ import logging
 from datetime import datetime
 
 from kronos_executor.executor import Executor
-from kronos_executor.kronos_events import EventComplete
+from kronos_executor.kronos_events import EventComplete, EventFailed
 from kronos_executor.kronos_events.manager import Manager
 from kronos_executor.kronos_events.time_ticker import TimeTicker
 
@@ -107,6 +107,11 @@ class ExecutorEventsPar(Executor):
             # Get next message from manager
             if not all(j.id in completed_jobs for j in self.jobs):
                 new_events = self.event_manager.get_latest_events(batch_size=self.event_batch_size)
+
+                for event in new_events:
+                    if isinstance(event, EventFailed):
+                        raise Executor.SimulationFailed(
+                            "Job {} ({}) failed. Aborting.".format(event.info["job"], event.info["app"]))
 
             # completed job id's
             completed_jobs = set([e.info["job"]

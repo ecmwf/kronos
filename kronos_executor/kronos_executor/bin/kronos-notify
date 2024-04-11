@@ -44,7 +44,7 @@ if __name__ == "__main__":
     parser.add_argument('app_id', type=str)
     parser.add_argument('metadata', type=str, default=None, nargs='?')
 
-    parser.add_argument('-t', '--type', choices=['Complete', 'MetadataChange', 'NotifyMetadata'], required=True)
+    parser.add_argument('-t', '--type', choices=['Complete', 'Failed', 'MetadataChange', 'NotifyMetadata'], required=True)
 
     args = parser.parse_args()
 

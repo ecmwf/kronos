@@ -21,10 +21,10 @@ export KRONOS_BUILD_DIR_DEFAULT=${KRONOS_INSTALLER_DIR_DEFAULT}/build
 export KRONOS_BIN_DIR_DEFAULT=${KRONOS_BUILD_DIR_DEFAULT}/bin
 
 # conda installation
-export KRONOS_CONDA_DIR_DEFAULT=${KRONOS_INSTALLER_DIR_DEFAULT}/miniconda
+export KRONOS_CONDA_DIR_DEFAULT=${KRONOS_INSTALLER_DIR_DEFAULT}/miniforge
 export KRONOS_CONDA_BIN_DIR_DEFAULT=${KRONOS_CONDA_DIR_DEFAULT}/bin
 export KRONOS_CONDA_CMD_DEFAULT=${KRONOS_CONDA_BIN_DIR_DEFAULT}/conda
-export KRONOS_CONDA_INSTALLER_EXE_DEFAULT=Miniconda3-latest-Linux-x86_64.sh
+export KRONOS_CONDA_INSTALLER_EXE_DEFAULT=Miniforge3-Linux-x86_64.sh
 # =========================================================================
 
 
@@ -88,9 +88,9 @@ install_conda() {
         fi
 
     else
-        # download miniconda from website (exit if errors)
+        # download miniforge from website (exit if errors)
         set -e
-        wget -c http://repo.continuum.io/miniconda/${KRONOS_CONDA_INSTALLER_EXE} -P ${KRONOS_INSTALLER_DIR}
+        wget -c https://github.com/conda-forge/miniforge/releases/latest/download/${KRONOS_CONDA_INSTALLER_EXE} -P ${KRONOS_INSTALLER_DIR}
         sh ${KRONOS_INSTALLER_DIR}/${KRONOS_CONDA_INSTALLER_EXE} -b -p ${KRONOS_CONDA_DIR}
         set +e
     fi
@@ -105,7 +105,7 @@ install_executor() {
 
     # check that conda is already installed
     if [[ ! -d ${KRONOS_CONDA_DIR} ]]; then
-        echo "Miniconda missing, install conda first.."
+        echo "Miniforge missing, install conda first.."
         exit 1
     fi
 
@@ -179,7 +179,7 @@ install_modeller() {
 
     # check that conda is already installed
     if [[ ! -d ${KRONOS_CONDA_DIR} ]]; then
-        echo "Miniconda missing, install conda first.."
+        echo "Miniforge missing, install conda-forge first.."
         exit 1
     fi
 

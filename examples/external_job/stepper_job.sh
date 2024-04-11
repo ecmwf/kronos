@@ -1,6 +1,16 @@
 #!/bin/bash
 {{ scheduler_params }}
 
+handle_error() {
+  set +e
+  trap 0
+  {{ kronos_notify }} --type="Failed" stepper
+  exit 1
+}
+trap handle_error ERR
+
+set -e
+
 wdir="{{ write_dir }}"
 cd $wdir
 
