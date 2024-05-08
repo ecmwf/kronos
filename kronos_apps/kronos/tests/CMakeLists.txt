@@ -17,6 +17,7 @@ ecbuild_add_test(
 ecbuild_add_test(
     TARGET kronos_test_file_write
     SOURCES test_file_write.c
+    CONDITION HAVE_BUILD_TESTS_FILE_WRITE
     LIBS kronos )
 
 ecbuild_add_test(

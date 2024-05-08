@@ -17,6 +17,10 @@ ecbuild_add_option(
     DESCRIPTION "Enable persistent memory support"
     REQUIRED_PACKAGES "NAME pmemio" )
 
+ecbuild_add_option( FEATURE BUILD_TESTS_FILE_WRITE
+    DEFAULT OFF
+    DESCRIPTION "Build tests that write files on disk (default: OFF)." )
+
 if(pmemio_FOUND)
     set( USE_C_STD "-std=c99")
 else()
