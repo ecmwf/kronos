@@ -17,9 +17,15 @@ ecbuild_add_option(
     DESCRIPTION "Enable persistent memory support"
     REQUIRED_PACKAGES "NAME pmemio" )
 
+# Allow tests that write to disk (rely on TMPDIR being defined)
 ecbuild_add_option( FEATURE BUILD_TESTS_FILE_WRITE
     DEFAULT OFF
-    DESCRIPTION "Build tests that write files on disk (default: OFF)." )
+    DESCRIPTION "Build tests that write files to disk (default: OFF)." )
+
+# Allow tests that rely on timings
+ecbuild_add_option( FEATURE BUILD_TESTS_TIMINGS
+    DEFAULT OFF
+    DESCRIPTION "Build tests that rely on timings (default: OFF)." )
 
 if(pmemio_FOUND)
     set( USE_C_STD "-std=c99")
