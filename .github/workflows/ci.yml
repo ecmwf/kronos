@@ -6,7 +6,6 @@ on:
     branches:
       - 'master'
       - 'develop'
-      - 'feature/kronos-apps-downstream-ci'
     tags-ignore:
       - '**'
 
@@ -25,7 +24,7 @@ jobs:
   downstream-ci:
     name: downstream-ci
     if: ${{ !github.event.pull_request.head.repo.fork && github.event.action != 'labeled' || github.event.label.name == 'approved-for-ci' }}
-    uses: ecmwf-actions/downstream-ci/.github/workflows/downstream-ci.yml@add-kronos-apps
+    uses: ecmwf-actions/downstream-ci/.github/workflows/downstream-ci.yml@main
     with:
       kronos: ecmwf/kronos@${{ github.event.pull_request.head.sha || github.sha }}
       codecov_upload: true
@@ -53,7 +52,7 @@ jobs:
   downstream-ci-hpc:
     name: downstream-ci-hpc
     if: ${{ !github.event.pull_request.head.repo.fork && github.event.action != 'labeled' || github.event.label.name == 'approved-for-ci' }}
-    uses: ecmwf-actions/downstream-ci/.github/workflows/downstream-ci-hpc.yml@add-kronos-apps
+    uses: ecmwf-actions/downstream-ci/.github/workflows/downstream-ci-hpc.yml@main
     with:
       kronos: ecmwf/kronos@${{ github.event.pull_request.head.sha || github.sha }}
     secrets: inherit
