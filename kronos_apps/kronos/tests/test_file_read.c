@@ -138,6 +138,7 @@ static void test_read_params_distribution() {
 
     config.reads = 1;
     config.kilobytes = 20000;
+    config.file_list = 0;
 
     params = get_read_params(&config);
 
@@ -176,6 +177,7 @@ static void test_read_params_too_big() {
 
     config.reads = 2;
     config.kilobytes = 3 * file_read_size_max / 1024;
+    config.file_list = 0;
 
     params = get_read_params(&config);
 
@@ -191,6 +193,7 @@ static void test_read_params_num_reads() {
 
     config.reads = 1;
     config.kilobytes = 0x10000;
+    config.file_list = 0;
 
     reset_global_distribute();
     params = get_read_params(&config);
@@ -231,6 +234,7 @@ static void test_read_params_mpi_threads() {
 
     config.reads = 8;
     config.kilobytes = 0x40000;
+    config.file_list = 0;
 
     reset_global_distribute();
     params = get_read_params(&config);
